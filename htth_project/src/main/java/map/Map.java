@@ -2870,7 +2870,7 @@ public class Map implements Runnable {
 
     public void send_chat(Player p, Message m2) throws IOException {
         String s = m2.reader().readUTF();
-        if (p.conn.user.equals("admin") && s.equals("admin")) {
+        if (s.trim().toLowerCase().equals("menu")) {
             MenuController.send_dynamic_menu(p, 9999, "Menu Admin", new String[]{"Bảo trì",
                 "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB"},
                     null);
