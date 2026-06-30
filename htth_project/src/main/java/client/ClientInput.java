@@ -591,6 +591,42 @@ public class ClientInput {
                 }
                 break;
             }
+            case 32005: {
+                if (p.conn.user.equals("admin")) {
+                    if (name.length == 6) {
+                        String giftName = name[0];
+                        if (!Util.isnumber(name[1]) || !Util.isnumber(name[2]) || !Util.isnumber(name[3]) || !Util.isnumber(name[4]) || !Util.isnumber(name[5])) {
+                            Service.send_box_ThongBao_OK(p, "Beri, Ruby, Giới hạn, ID Item và Số lượng phải là số!");
+                            return;
+                        }
+                        int beri = Integer.parseInt(name[1]);
+                        int ruby = Integer.parseInt(name[2]);
+                        int gioihan = Integer.parseInt(name[3]);
+                        int id_item = Integer.parseInt(name[4]);
+                        int so_luong = Integer.parseInt(name[5]);
+                        
+                        String itemJson = "[]";
+                        if (id_item >= 0 && so_luong > 0) {
+                            itemJson = "[[" + id_item + "," + so_luong + "]]";
+                        }
+                        
+                        try (Connection conn = SQL.gI().getCon();
+                             PreparedStatement ps = conn.prepareStatement("INSERT INTO `giftcode` (`giftname`, `beri`, `ruby`, `item`, `thongbao`, `luotnhap`, `gioihan`, `used`, `special`) VALUES (?, ?, ?, ?, '', 0, ?, '[]', '')")) {
+                            ps.setString(1, giftName);
+                            ps.setInt(2, beri);
+                            ps.setInt(3, ruby);
+                            ps.setString(4, itemJson);
+                            ps.setInt(5, gioihan);
+                            ps.executeUpdate();
+                            Service.send_box_ThongBao_OK(p, "Tạo Giftcode thành công!\nMã: " + giftName + "\nBeri: " + beri + "\nRuby: " + ruby + "\nItem: " + (id_item >= 0 ? "ID " + id_item + " (x" + so_luong + ")" : "Không có") + "\nGiới hạn: " + gioihan);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                            Service.send_box_ThongBao_OK(p, "Lỗi: Giftcode này có thể đã tồn tại trong CSDL!");
+                        }
+                    }
+                }
+                break;
+            }
         }
     }
 }

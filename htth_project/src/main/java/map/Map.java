@@ -2870,13 +2870,29 @@ public class Map implements Runnable {
 
     public void send_chat(Player p, Message m2) throws IOException {
         String s = m2.reader().readUTF();
-        if (s.trim().toLowerCase().equals("menu")) {
-            MenuController.send_dynamic_menu(p, 9999, "Menu Admin", new String[]{"Bảo trì",
-                "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB"},
-                    null);
-        } else {
-            this.send_chat_popup(0, p.index_map, s);
+        String txt = s.trim().toLowerCase();
+        if (p.conn.user.equals("admin")) {
+            if (txt.equals("menu")) {
+                MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[]{"Bảo trì",
+                    "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tạo Giftcode"},
+                        null);
+                Service.send_box_ThongBao_OK(p, "Nếu menu không hiện, hãy dùng lệnh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode");
+                return;
+            } else if (txt.startsWith("admin ")) {
+                String cmd = txt.substring(6);
+                if (cmd.equals("baotri")) MenuController.Menu_Admin(p, (byte) 0);
+                else if (cmd.equals("tien")) MenuController.Menu_Admin(p, (byte) 1);
+                else if (cmd.equals("level")) MenuController.Menu_Admin(p, (byte) 2);
+                else if (cmd.equals("setxp")) MenuController.Menu_Admin(p, (byte) 3);
+                else if (cmd.equals("item")) MenuController.Menu_Admin(p, (byte) 4);
+                else if (cmd.equals("save")) MenuController.Menu_Admin(p, (byte) 5);
+                else if (cmd.equals("updatetb")) MenuController.Menu_Admin(p, (byte) 6);
+                else if (cmd.equals("taocode")) MenuController.Menu_Admin(p, (byte) 7);
+                else Service.send_box_ThongBao_OK(p, "Lệnh admin không hợp lệ!");
+                return;
+            }
         }
+        this.send_chat_popup(0, p.index_map, s);
     }
 
     private void send_chat_popup(int type, int id_p, String s) throws IOException {

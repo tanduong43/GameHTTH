@@ -1080,7 +1080,7 @@ public class MenuController {
           Menu_Buggi(p, index);
           break;
         }
-        case 9999: {
+        case 999: {
           Menu_Admin(p, index);
           break;
         }
@@ -2117,11 +2117,29 @@ private static void Menu_LucThuc(Player p, byte index) throws IOException {
     }
   }
 
-  private static void Menu_Admin(Player p, byte index) throws IOException {
+  public static void Menu_Admin(Player p, byte index) throws IOException {
     if (p.conn.user.equals("admin")) {
       switch (index) {
         case 0: {
+          Service.send_box_ThongBao_OK(p, "Đã kích hoạt đếm ngược bảo trì 5 phút!");
           new Thread(() -> {
+            try {
+                Manager.gI().chatKTG(0, "Hệ thống sẽ bảo trì sau 5 phút nữa, vui lòng đăng xuất để tránh mất dữ liệu!", 5);
+                Thread.sleep(4 * 60 * 1000L);
+                Manager.gI().chatKTG(0, "Hệ thống sẽ bảo trì sau 1 phút nữa!", 5);
+                Thread.sleep(30 * 1000L);
+                Manager.gI().chatKTG(0, "Hệ thống sẽ bảo trì sau 30 giây nữa!", 5);
+                Thread.sleep(20 * 1000L);
+                Manager.gI().chatKTG(0, "Hệ thống sẽ bảo trì sau 10 giây nữa!", 5);
+                for (int i = 9; i > 0; i--) {
+                    Thread.sleep(1000L);
+                    Manager.gI().chatKTG(0, "Hệ thống sẽ bảo trì sau " + i + " giây nữa!", 5);
+                }
+                Thread.sleep(1000L);
+                Manager.gI().chatKTG(0, "BẮT ĐẦU BẢO TRÌ TẮT MÁY CHỦ...", 5);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             synchronized (SessionManager.CLIENT_ENTRYS) {
               System.out.println("START CLOSE SERVER");
               SaveData.process();
@@ -2168,6 +2186,14 @@ private static void Menu_LucThuc(Player p, byte index) throws IOException {
         }
         case 3: {
           Service.input_text(p, 32001, "SetXP", new String[] {"Nhập mức"});
+          break;
+        }
+        case 6: {
+          Service.input_text(p, 32003, "Thông Báo Toàn Máy Chủ", new String[] {"Nội dung"});
+          break;
+        }
+        case 7: {
+          Service.input_text(p, 32005, "Tạo Giftcode", new String[] {"Tên mã", "Số Beri", "Số Ruby", "Giới hạn", "ID Item (-1 nếu ko có)", "Số lượng Item"});
           break;
         }
         case 4: {

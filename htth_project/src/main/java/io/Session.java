@@ -1082,7 +1082,7 @@ public class Session implements Runnable {
     }
 
     public void update_onl(int type) {
-        if (Manager.gI().server_admin) {
+        if (Manager.gI().server_admin && !"admin".equals(this.user)) {
             type = 0;
         }
         Connection connection = null;
