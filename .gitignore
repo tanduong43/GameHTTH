@@ -1,0 +1,50 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editor settings
+.vscode/
+.idea/
+*.iml
+
+# Dependency folders
+node_modules/
+**/node_modules/
+
+# Build / output folders
+target/
+**/target/
+build/
+**/build/
+dist/
+**/dist/
+out/
+**/out/
+coverage/
+**/coverage/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.pid
+*.seed
+*.swp
+*~
+
+# Java / JVM
+*.class
+.gradle/
+**/.gradle/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Mac metadata
+__MACOSX/
+
+# Cache folders
+.cache/
+**/.cache/
