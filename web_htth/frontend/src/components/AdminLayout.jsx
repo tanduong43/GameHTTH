@@ -61,7 +61,7 @@ export default function AdminLayout() {
           <SidebarLink to="/admin" currentPath={location.pathname} exact>📊 Dashboard</SidebarLink>
           <SidebarLink to="/admin/accounts" currentPath={location.pathname}>👤 Quản lý Tài khoản</SidebarLink>
           <SidebarLink to="/admin/coins" currentPath={location.pathname}>💰 Quản lý Nạp tiền</SidebarLink>
-          <SidebarLink to="/admin/giftcodes" currentPath={location.pathname}>🎁 Tạo Giftcode</SidebarLink>
+          <SidebarLink to="/admin/giftcodes" currentPath={location.pathname}>🎁 Quản lý Giftcode</SidebarLink>
         </nav>
 
         <div style={{ padding: '20px', marginTop: 'auto' }}>

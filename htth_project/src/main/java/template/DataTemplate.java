@@ -12,7 +12,7 @@ public class DataTemplate {
         public final static int VerdataImageSave = 148;
         public final static int VerdataUpgradeSave = 753;
         public final static int VerdataPotionClan = 160;
-        public final static short MAX_ITEM_IN_BAG = 2000;
+        public final static short MAX_ITEM_IN_BAG = 9999;
         //
         public final static byte[] mLockMap = new byte[] {8, 11, 8, 8, 5, 5, 20, 20, 13, 13, 8, 8,
                         4, 4, 4, 7, 4, 4, 7, 7, 25, 42, 9, 12, 5, 5, 8, 8, 9, 12, 2, 2, 3, 5, 6, 8,

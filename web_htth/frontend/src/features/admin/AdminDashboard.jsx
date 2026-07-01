@@ -15,7 +15,7 @@ export default function AdminDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '30px' }}>
         <DashboardCard title="Tài Khoản" desc="Quản lý thành viên, khóa nick" icon="👤" link="/admin/accounts" />
         <DashboardCard title="Nạp Tiền" desc="Cộng trừ coin thủ công" icon="💰" link="/admin/coins" />
-        <DashboardCard title="Giftcode" desc="Tạo mã quà tặng mới" icon="🎁" link="/admin/giftcodes" />
+        <DashboardCard title="Giftcode" desc="Quản lý & tạo mã quà tặng" icon="🎁" link="/admin/giftcodes" />
       </div>
     </div>
   );

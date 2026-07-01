@@ -34,6 +34,17 @@ public class ServerManager implements Runnable {
         this.running = true;
         this.mythread.start();
         SaveData.process();
+        
+        // Register JVM Shutdown Hook to save all player and clan data on exit
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("SHUTDOWN: Saving database...");
+            boolean admin_save = Manager.gI().server_admin;
+            Manager.gI().server_admin = false;
+            SaveData.process();
+            Manager.gI().server_admin = admin_save;
+            System.out.println("SHUTDOWN: Database saved successfully!");
+        }));
+
         //
         serverEventManager = new ServerEventManager();
         serverEventManager.init();

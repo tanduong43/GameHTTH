@@ -81,8 +81,10 @@ public class Util {
     }
 
     public synchronized static List<Top_Dame> sort(List<Top_Dame> list_select) {
-        return new ArrayList<Top_Dame>();
-    }
+    List<Top_Dame> result = new ArrayList<Top_Dame>(list_select);
+    result.sort((a, b) -> Long.compare(b.dame, a.dame)); // dame cao nhất lên đầu
+    return result;
+}
 
     public static String number_format(long n) {
         return (NumberFormat.getInstance(Locale.ITALY).format(n));

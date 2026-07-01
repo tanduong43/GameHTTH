@@ -277,4 +277,91 @@ router.post('/admin/create_giftcode', jwtRequired, isAdmin, async (req, res) => 
     }
 });
 
+// GET /api/admin/giftcodes
+router.get('/admin/giftcodes', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const [rows] = await db.execute('SELECT * FROM giftcode ORDER BY id DESC');
+        return res.json({ success: true, giftcodes: rows });
+    } catch (err) {
+        console.error('Admin get giftcodes error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// PUT /api/admin/giftcode/:id
+router.put('/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { code, beri, ruby, gioihan, item, thongbao, luotnhap, used, special } = req.body;
+
+    const beriInt = parseInt(beri || 0, 10);
+    const rubyInt = parseInt(ruby || 0, 10);
+    const gioihanInt = parseInt(gioihan ?? 1, 10);
+    const luotnhapInt = parseInt(luotnhap ?? 0, 10);
+    const itemJson = item ?? '[]';
+    const thongbaoStr = thongbao ?? '';
+    const usedStr = used ?? '';
+    const specialStr = special ?? '';
+
+    if (!code) {
+        return res.json({ success: false, message: 'Thiếu mã giftcode!' });
+    }
+
+    if (gioihanInt < 1) {
+        return res.json({ success: false, message: 'Giới hạn lượt nhập phải lớn hơn 0!' });
+    }
+
+    if (luotnhapInt < 0 || luotnhapInt > gioihanInt) {
+        return res.json({ success: false, message: 'Lượt đã nhập không hợp lệ!' });
+    }
+
+    let parsedItem;
+    try {
+        parsedItem = JSON.parse(itemJson);
+        if (!Array.isArray(parsedItem)) {
+            return res.json({ success: false, message: 'Trường item phải là mảng JSON!' });
+        }
+    } catch {
+        return res.json({ success: false, message: 'Trường item không đúng định dạng JSON!' });
+    }
+
+    try {
+        // Check if code exists on another id
+        const [existing] = await db.execute('SELECT * FROM giftcode WHERE giftname = ? AND id != ?', [code, id]);
+        if (existing.length > 0) {
+            return res.json({ success: false, message: 'Mã code này đã tồn tại ở giftcode khác!' });
+        }
+
+        const [result] = await db.execute(
+            'UPDATE giftcode SET giftname = ?, beri = ?, ruby = ?, item = ?, thongbao = ?, luotnhap = ?, gioihan = ?, used = ?, special = ? WHERE id = ?',
+            [code, beriInt, rubyInt, itemJson, thongbaoStr, luotnhapInt, gioihanInt, usedStr, specialStr, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy Giftcode để cập nhật!' });
+        }
+
+        return res.json({ success: true, message: 'Cập nhật Giftcode thành công!' });
+    } catch (err) {
+        console.error('Admin update giftcode error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// DELETE /api/admin/giftcode/:id
+router.delete('/api/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.execute('DELETE FROM giftcode WHERE id = ?', [id]);
+        if (result.affectedRows === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy Giftcode để xóa!' });
+        }
+        return res.json({ success: true, message: 'Xóa Giftcode thành công!' });
+    } catch (err) {
+        console.error('Admin delete giftcode error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
 module.exports = router;
+

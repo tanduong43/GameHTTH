@@ -1051,6 +1051,7 @@ public class Service {
         } else if (p.clan != null && TypeShop == 98 && value == 1 && cat == -1 && id >= 0
                 && id < 10) {
             p.clan.icon = id;
+            Clan.update();
             Clan.send_info(p, false);
             for (int i = 0; i < p.map.players.size(); i++) {
                 if (!p.map.players.get(i).equals(p)) {
@@ -1066,6 +1067,7 @@ public class Service {
                 && id < 402) {
             if (id < 10) {
                 p.clan.icon = id;
+                Clan.update();
                 for (int i2 = 0; i2 < p.clan.members.size(); i2++) {
                     Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i2).name);
                     if (p0 != null) {
@@ -1089,6 +1091,7 @@ public class Service {
                 } else {
                     p.clan.update_ruby(-ngoc_quant);
                     p.clan.icon = id;
+                    Clan.update();
                     for (int i2 = 0; i2 < p.clan.members.size(); i2++) {
                         Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i2).name);
                         if (p0 != null) {

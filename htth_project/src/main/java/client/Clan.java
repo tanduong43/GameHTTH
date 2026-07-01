@@ -1,12 +1,5 @@
 package client;
 
-import core.Service;
-import core.Util;
-import database.SQL;
-import io.Message;
-import map.Map;
-import org.json.simple.JSONArray;
-import template.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,6 +7,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.simple.JSONArray;
+
+import core.Service;
+import core.Util;
+import database.SQL;
+import io.Message;
+import map.Map;
+import template.Clan_chat;
+import template.Clan_member;
+import template.EffTemplate;
+import template.ItemBag47;
+import template.ItemTemplate8;
+
 /**
  *
  * @author Truongbk
@@ -225,7 +232,7 @@ public class Clan {
                         p.clan.pointAttri += 2;
                         if (p.clan.level >= 16) {
                             p.clan.level = 1;
-                            p.clan.opAttri = new short[] {0, 0, 0, 0, 0};
+                            p.clan.opAttri = new short[] { 0, 0, 0, 0, 0 };
                             p.clan.pointAttri = 2;
                             p.clan.maxAttri = 20;
                             p.clan.trungsinh++;
@@ -530,7 +537,7 @@ public class Clan {
                                 for (int i = 1; i <= p.clan.level; i++) {
                                     p.clan.pointAttri += 2;
                                 }
-                                p.clan.opAttri = new short[] {0, 0, 0, 0, 0};
+                                p.clan.opAttri = new short[] { 0, 0, 0, 0, 0 };
                                 for (int i1 = 0; i1 < p.clan.members.size(); i1++) {
                                     Player p0 = Map
                                             .get_player_by_name_allmap(p.clan.members.get(i1).name);
@@ -559,7 +566,7 @@ public class Clan {
             }
             // case 2:
             case 15: {
-                Service.input_text(p, 11, "Đóng góp băng", new String[] {"Nhập số ruby muốn góp"});
+                Service.input_text(p, 11, "Đóng góp băng", new String[] { "Nhập số ruby muốn góp" });
                 break;
             }
             case 3: { // phong chuc
@@ -628,8 +635,7 @@ public class Clan {
                                             : (mem.levelInclan == 2 ? "Hoa tiêu" : "thuyền viên")));
                         }
                         for (int i = 0; i < p.clan.members.size(); i++) {
-                            Player p0ther =
-                                    Map.get_player_by_name_allmap(p.clan.members.get(i).name);
+                            Player p0ther = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
                             if (p0ther != null) {
                                 update_list_member(p0ther, false);
                                 Clan.send_info(p0ther, false);
@@ -702,8 +708,7 @@ public class Clan {
                             p0.clan = null;
                         }
                         for (int i = 0; i < p.clan.members.size(); i++) {
-                            Player p0ther =
-                                    Map.get_player_by_name_allmap(p.clan.members.get(i).name);
+                            Player p0ther = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
                             if (p0ther != null) {
                                 update_list_member(p0ther, false);
                                 Clan.send_info(p0ther, false);
@@ -749,8 +754,7 @@ public class Clan {
                     }
                     for (int i = 0; i < p.clan.members.size(); i++) {
                         if (!p.clan.members.get(i).name.equals(p.name)) {
-                            Player p0ther =
-                                    Map.get_player_by_name_allmap(p.clan.members.get(i).name);
+                            Player p0ther = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
                             if (p0ther != null) {
                                 update_list_member(p0ther, false);
                                 Clan.send_info(p0ther, false);
@@ -854,8 +858,7 @@ public class Clan {
                             p.clan.pointAttri--;
                             p.clan.opAttri[chucVu]++;
                             for (int i = 0; i < p.clan.members.size(); i++) {
-                                Player p0 =
-                                        Map.get_player_by_name_allmap(p.clan.members.get(i).name);
+                                Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
                                 if (p0 != null) {
                                     Clan.send_Attri(p0, false);
                                     p0.update_info_to_all();
@@ -890,8 +893,7 @@ public class Clan {
                         }
                     }
                     if (clan_chat != null) {
-                        Clan_member mem =
-                                p.clan.get_mem_request(clan_chat.str.replace(" xin vào băng", ""));
+                        Clan_member mem = p.clan.get_mem_request(clan_chat.str.replace(" xin vào băng", ""));
                         if (mem != null) {
                             // clear chat
                             List<Clan_chat> list_remove = new ArrayList<>();
@@ -989,8 +991,7 @@ public class Clan {
                         }
                     }
                     if (clan_chat != null) {
-                        Clan_member mem =
-                                p.clan.get_mem_request(clan_chat.str.replace(" xin vào băng", ""));
+                        Clan_member mem = p.clan.get_mem_request(clan_chat.str.replace(" xin vào băng", ""));
                         if (mem != null) {
                             // clear chat
                             List<Clan_chat> list_remove = new ArrayList<>();

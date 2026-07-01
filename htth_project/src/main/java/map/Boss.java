@@ -3,21 +3,23 @@ package map;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import core.Util;
+
 import client.Player;
 import core.Manager;
+import core.Util;
 import io.Message;
 import template.Option;
 import template.Top_Dame;
+
 /**
  *
  * @author Truongbk
  */
 public class Boss {
     public static List<Boss> ENTRYS;
-    public static byte[] BOSS_LIVE = new byte[] {0, 0, 0, 0, 0, 0};
-    public static byte[] BOSS_AREA = new byte[] {-1, -1, -1, -1, -1, -1};
-    public static byte[] TIME_NOW = new byte[] {18, 0, 0};
+    public static byte[] BOSS_LIVE = new byte[] { 0, 0, 0, 0, 0, 0 };
+    public static byte[] BOSS_AREA = new byte[] { -1, -1, -1, -1, -1, -1 };
+    public static byte[] TIME_NOW = new byte[] { 18, 0, 0 };
     public int id;
     public Mob mob;
     public byte levelBoss;
@@ -27,7 +29,8 @@ public class Boss {
     public List<Top_Dame> TopDame;
     public int index_mob_save;
 
-    public Boss() {}
+    public Boss() {
+    }
 
     public static void create_boss() {
         for (int i0 = 135; i0 < 141; i0++) {
@@ -99,6 +102,79 @@ public class Boss {
         }
     }
 
+    public static void spawn_event_boss() {
+        List<Boss> dead_bosses = new ArrayList<>();
+        for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+            Boss temp = Boss.ENTRYS.get(i);
+            if (temp.mob.isdie) {
+                dead_bosses.add(temp);
+            }
+        }
+        if (dead_bosses.size() > 0) {
+            Boss temp = dead_bosses.get(Util.random(dead_bosses.size()));
+            Map[] zones = null;
+            int retries = 0;
+            while (zones == null && retries < 100) {
+                int randomIdx = Util.random(Map.ENTRYS.size());
+                zones = Map.ENTRYS.get(randomIdx);
+                if (zones == null || zones.length == 0) {
+                    zones = null;
+                } else {
+                    int mapId = zones[0].template.id;
+                    if (mapId >= 119 && mapId <= 123 || mapId == 54 || mapId == 58 || mapId == 59 || mapId == 1000
+                            || zones[0].list_mob == null || zones[0].list_mob.length == 0) {
+                        zones = null;
+                    }
+                }
+                retries++;
+            }
+            if (zones != null && zones.length > 0) {
+                Map randomMap = zones[Util.random(zones.length)];
+                temp.mob.isdie = false;
+                temp.mob.hp = temp.mob.hp_max;
+                temp.mob.id_target = -1;
+                temp.levelBoss = 1;
+                temp.mob.index = temp.index_mob_save;
+                temp.mob.map = randomMap;
+                
+                short temp_x = 300;
+                short temp_y = 300;
+                if (randomMap.template.npcs.size() > 0) {
+                    Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
+                    temp_x = npc.x;
+                    temp_y = npc.y;
+                }
+                temp.mob.x = temp_x;
+                temp.mob.y = temp_y;
+                
+                temp.TopDame.clear();
+                
+                try {
+                    Manager.gI().chatKTG(0,
+                            ("Sự kiện: Siêu trùm " + temp.mob.mob_template.name + " đã xuất hiện tại "
+                                    + temp.mob.map.template.name + " khu "
+                                    + (temp.mob.map.zone_id + 1) + ". Hãy mau mau đi săn thôi!"),
+                            5);
+                    System.out.println("Event boss " + temp.mob.mob_template.name + " map "
+                            + temp.mob.map.template.name + " khu "
+                            + (temp.mob.map.zone_id + 1));
+                    
+                    Message m_local = new Message(1);
+                    m_local.writer().writeByte(1);
+                    m_local.writer().writeShort(temp.mob.index);
+                    m_local.writer().writeShort(temp.mob.x);
+                    m_local.writer().writeShort(temp.mob.y);
+                    for (int j = 0; j < temp.mob.map.players.size(); j++) {
+                        Player p0 = temp.mob.map.players.get(j);
+                        p0.conn.addmsg(m_local);
+                    }
+                    m_local.cleanup();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
+
     public static Mob get_mob(Player p, int id) {
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
             Boss tempB = Boss.ENTRYS.get(i);
@@ -116,12 +192,12 @@ public class Boss {
     public static void result_boss() {
         //
         short[][] list = new short[][] { //
-                new short[] {135}, //
-                new short[] {136}, //
-                new short[] {137}, //
-                new short[] {138}, //
-                new short[] {139}, //
-                new short[] {140}, //
+                new short[] { 135 }, //
+                new short[] { 136 }, //
+                new short[] { 137 }, //
+                new short[] { 138 }, //
+                new short[] { 139 }, //
+                new short[] { 140 }, //
         };
         for (int i12 = 0; i12 < list.length; i12++) {
             List<Top_Dame> list_select = null;
@@ -135,6 +211,17 @@ public class Boss {
             }
             if (list_select != null) {
                 List<Top_Dame> result = Util.sort(list_select);
+                StringBuilder sb = new StringBuilder("Top gây dame Boss: ");
+                for (int k = 0; k < Math.min(3, result.size()); k++) {
+                    Top_Dame td = result.get(k);
+                    sb.append((k + 1)).append(". ").append(td.name)
+                            .append(" (").append(td.dame).append(") ");
+                }
+                try {
+                    Manager.gI().chatKTG(0, sb.toString(), 5);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         //
@@ -159,7 +246,7 @@ public class Boss {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        BOSS_LIVE = new byte[] {0, 0, 0, 0, 0, 0};
-        BOSS_AREA = new byte[] {-1, -1, -1, -1, -1, -1};
+        BOSS_LIVE = new byte[] { 0, 0, 0, 0, 0, 0 };
+        BOSS_AREA = new byte[] { -1, -1, -1, -1, -1, -1 };
     }
 }

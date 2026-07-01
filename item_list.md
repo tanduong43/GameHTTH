@@ -143,7 +143,8 @@
 | 4 | **129** | Rương Cam Cùng Hệ Lv80 |
 | 4 | **130** | Rương Cam Cùng Hệ Lv90 |
 | 4 | **131** | Rương Cam Cùng Hệ Lv100 |
-| 4 | **132** | Vé đổi đồ thời trang |
+| 4 | **132** | Vé đổi đồ git add .gitignore
+git commit -m "Ignore generated files" |
 | 4 | **133** | Vé kinh nghiệm đặc biệt |
 | 4 | **134** | Đá Ác Quỷ |
 | 4 | **135** | Tinh thể đá |

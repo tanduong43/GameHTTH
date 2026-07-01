@@ -1,6 +1,7 @@
 package template;
 
 import client.Player;
+
 /**
  *
  * @author Truongbk
@@ -26,7 +27,7 @@ public class Skill_info {
     // idEff 16: gay hoang loan
     //
     public static long[] EXP = new long[27];
-    public static int[] EXP_DEVIL = new int[] {100, 125, 167, 200, 250};
+    public static int[] EXP_DEVIL = new int[] { 100, 125, 167, 200, 250 };
     public long exp;
     public Skill_Template temp;
     public byte lvdevil;
@@ -82,28 +83,28 @@ public class Skill_info {
                 }
             }
         } else if (this.temp.ID >= 2000 && this.temp.ID < 3000) {
-            // switch (this.lvdevil) {
-            // case 1: {
-            // result = (result * 121) / 100;
-            // break;
-            // }
-            // case 2: {
-            // result = (result * 1567) / 1000;
-            // break;
-            // }
-            // case 3: {
-            // result = (result * 2106) / 1000;
-            // break;
-            // }
-            // case 4: {
-            // result = (result * 2889) / 1000;
-            // break;
-            // }
-            // case 5: {
-            // result *= 4;
-            // break;
-            // }
-            // }
+            switch (this.lvdevil) {
+                case 1: {
+                    result = (result * 121) / 100;
+                    break;
+                }
+                case 2: {
+                    result = (result * 1567) / 1000;
+                    break;
+                }
+                case 3: {
+                    result = (result * 2106) / 1000;
+                    break;
+                }
+                case 4: {
+                    result = (result * 2889) / 1000;
+                    break;
+                }
+                case 5: {
+                    result *= 4;
+                    break;
+                }
+            }
         }
         return result;
     }

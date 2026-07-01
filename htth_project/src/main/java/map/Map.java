@@ -2594,6 +2594,35 @@ public class Map implements Runnable {
                                 5);
                         //
                         List<GiftBox> list_gift = new ArrayList<>();
+                        // Búa siêu cấp (item ID 323, type 4)
+                        GiftBox gb_bua = new GiftBox();
+                        ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);
+                        if (it_bua != null) {
+                            gb_bua.id = it_bua.id;
+                            gb_bua.type = 4;
+                            gb_bua.name = it_bua.name;
+                            gb_bua.icon = it_bua.icon;
+                            gb_bua.num = 1;
+                            gb_bua.color = 0;
+                            list_gift.add(gb_bua);
+                            notice += "x1 búa siêu cấp, ";
+                        }
+
+                        // Đá khảm random (ItemTemplate7 type 7)
+                        if (ItemTemplate7.ENTRYS.size() > 0) {
+                            ItemTemplate7 it_da = ItemTemplate7.ENTRYS.get(Util.random(ItemTemplate7.ENTRYS.size()));
+                            if (it_da != null) {
+                                GiftBox gb_da = new GiftBox();
+                                gb_da.id = it_da.id;
+                                gb_da.type = 7;
+                                gb_da.name = it_da.name;
+                                gb_da.icon = it_da.icon;
+                                gb_da.num = 1;
+                                gb_da.color = 0;
+                                list_gift.add(gb_da);
+                                notice += "x1 " + it_da.name + ", ";
+                            }
+                        }
                         //
                         if (50 > Util.random(120)) {
                             GiftBox gb_rcam = new GiftBox();

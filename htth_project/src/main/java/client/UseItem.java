@@ -834,6 +834,57 @@ public class UseItem {
                                 + "\nCó thể xem lại ở npc Robin, Lưu ý thời gian cộng dồn tối đa 30 ngày");
                         break;
                     }
+                    case 414: {
+                        // Check if player has any upgradeable default skill (< 25)
+                        boolean canUpgrade = false;
+                        for (int i = 0; i < p.skill_point.size(); i++) {
+                            Skill_info sk = p.skill_point.get(i);
+                            if (sk.temp.typeSkill == 1 && sk.temp.typeDevil == 0 && sk.temp.ID < 2000) {
+                                if (sk.temp.Lv_RQ < 25) {
+                                    canUpgrade = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (!canUpgrade) {
+                            Service.send_box_ThongBao_OK(p, "Tất cả kỹ năng mặc định đã đạt cấp tối đa (25)!");
+                            used = false;
+                            break;
+                        }
+                        
+                        // Upgrade all default skills that are < 25 by 1 level
+                        boolean upgradedAny = false;
+                        for (int i = 0; i < p.skill_point.size(); i++) {
+                            Skill_info sk = p.skill_point.get(i);
+                            if (sk.temp.typeSkill == 1 && sk.temp.typeDevil == 0 && sk.temp.ID < 2000) {
+                                if (sk.temp.Lv_RQ < 25) {
+                                    if (Skill_Template.upgrade_skill(sk, p.clazz)) {
+                                        sk.exp = 0; // reset exp to 0 for the new level
+                                        upgradedAny = true;
+                                        
+                                        // Send level up packet to client
+                                        Message m = new Message(-28);
+                                        m.writer().writeByte(1);
+                                        p.write_data_skill(m.writer(), sk);
+                                        p.conn.addmsg(m);
+                                        m.cleanup();
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (upgradedAny) {
+                            p.send_skill();
+                            p.update_info_to_all();
+                            Service.send_box_ThongBao_OK(p, "Nâng cấp thành công toàn bộ kỹ năng mặc định lên 1 cấp!");
+                            used = true;
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra, không thể nâng cấp kỹ năng.");
+                            used = false;
+                        }
+                        break;
+                    }
                     default: {
                         Service.send_box_ThongBao_OK(p, "Hiện tại "
                                 + ItemTemplate4.get_item_name(id) + " chưa sử dụng được");

@@ -1,15 +1,5 @@
 package core;
 
-import activities.Friend;
-import client.Clan;
-import client.Item;
-import client.Player;
-import database.SQL;
-import io.Message;
-import map.Map;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONValue;
-import template.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,6 +7,25 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONValue;
+
+import activities.Friend;
+import client.Clan;
+import client.Item;
+import client.Player;
+import database.SQL;
+import io.Message;
+import map.Map;
+import template.InfoMemList;
+import template.ItemFashion;
+import template.ItemFashionP;
+import template.ItemFashionP2;
+import template.ItemTemplate3;
+import template.Item_wear;
+import template.Level;
+
 /**
  *
  * @author Truongbk
@@ -138,7 +147,7 @@ public class BXH {
                 for (int i = bound1; i < bound2; i++) {
                     InfoMemList temp = BXH.WANTED.get(i);
                     Player p0 = Map.get_player_by_name_allmap(temp.name);
-                    short[] part = new short[] {-1, -1, -1};
+                    short[] part = new short[] { -1, -1, -1 };
                     if (p0 != null) {
                         temp.head = p0.head;
                         temp.hair = p0.hair;

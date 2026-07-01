@@ -62,6 +62,9 @@ public class ServerEventManager {
                         Clan.reset_day();
                         LittleGarden.LIST.clear();
                     }
+                    if (min % 5 == 0 && sec == 0) {
+                        Boss.spawn_event_boss();
+                    }
                     if (hour == 18 && min == 0 && sec == 0) {
                         Boss.create_boss();
                     }

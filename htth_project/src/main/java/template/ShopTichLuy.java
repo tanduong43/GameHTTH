@@ -38,7 +38,7 @@ public class ShopTichLuy {
         try {
             connection = SQL.gI().getCon();
             ps = connection
-                    .prepareStatement("UPDATE `shoptichluy` SET `limit_data` = ? WHERE `id` = ?");
+                    .prepareStatement("UPDATE `shoptichluy` SET `limit_data` = ? WHERE `id` = ? AND `type` = ?");
             for (int i = 0; i < ENTRY.size(); i++) {
                 ps.clearParameters();
                 ShopTichLuy temp = ENTRY.get(i);
@@ -52,6 +52,7 @@ public class ShopTichLuy {
                 }
                 ps.setNString(1, js.toJSONString());
                 ps.setInt(2, temp.id);
+                ps.setByte(3, temp.type);
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
