@@ -3,6 +3,7 @@ package map;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import client.Player;
 import core.Manager;
@@ -16,6 +17,9 @@ import template.Top_Dame;
  * @author Truongbk
  */
 public class Boss {
+    public static final Set<Integer> ALLOWED_MAP_IDS = Set.of(
+        0, 2, 3, 4, 7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 20, 23, 24, 26, 27, 28, 31, 32, 34, 35, 36, 39, 40, 42, 43, 44, 47, 48, 50, 51, 52, 63, 65, 68, 70, 71, 72, 82, 84, 85, 86, 94, 95, 96, 97, 98, 99, 100, 101, 112, 115, 116, 117, 118, 124, 125, 126, 192, 193, 194, 195, 196, 197
+    );
     public static List<Boss> ENTRYS;
     public static byte[] BOSS_LIVE = new byte[] { 0, 0, 0, 0, 0, 0 };
     public static byte[] BOSS_AREA = new byte[] { -1, -1, -1, -1, -1, -1 };
@@ -121,7 +125,7 @@ public class Boss {
                     zones = null;
                 } else {
                     int mapId = zones[0].template.id;
-                    if (mapId >= 119 && mapId <= 123 || mapId == 54 || mapId == 58 || mapId == 59 || mapId == 1000
+                    if (!ALLOWED_MAP_IDS.contains(mapId)
                             || zones[0].list_mob == null || zones[0].list_mob.length == 0) {
                         zones = null;
                     }

@@ -2594,64 +2594,80 @@ public class Map implements Runnable {
                                 5);
                         //
                         List<GiftBox> list_gift = new ArrayList<>();
-                        // Búa siêu cấp (item ID 323, type 4)
-                        GiftBox gb_bua = new GiftBox();
-                        ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);
-                        if (it_bua != null) {
-                            gb_bua.id = it_bua.id;
-                            gb_bua.type = 4;
-                            gb_bua.name = it_bua.name;
-                            gb_bua.icon = it_bua.icon;
-                            gb_bua.num = 1;
-                            gb_bua.color = 0;
-                            list_gift.add(gb_bua);
-                            notice += "x1 búa siêu cấp, ";
+                        // 1. Gift 1: Ngẫu nhiên Khiên hoặc Búa siêu cấp (tỉ lệ 20%)
+                        if (Util.random(100) < 20) {
+                            GiftBox gift1 = new GiftBox();
+                            if (Util.random(2) == 0) {
+                                ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);
+                                if (it_bua != null) {
+                                    gift1.id = 323;
+                                    gift1.type = 4;
+                                    gift1.name = it_bua.name;
+                                    gift1.icon = it_bua.icon;
+                                    gift1.num = 1;
+                                    gift1.color = 0;
+                                    notice += "x1 búa siêu cấp, ";
+                                }
+                            } else {
+                                ItemTemplate7 it_temp7_in = ItemTemplate7.get_it_by_id(10);
+                                if (it_temp7_in != null) {
+                                    gift1.id = 10;
+                                    gift1.type = 7;
+                                    gift1.name = it_temp7_in.name;
+                                    gift1.icon = it_temp7_in.icon;
+                                    gift1.num = 1;
+                                    gift1.color = 0;
+                                    notice += "x1 khiên, ";
+                                }
+                            }
+                            if (gift1.name != null) {
+                                list_gift.add(gift1);
+                            }
                         }
 
-                        // Đá khảm random (ItemTemplate7 type 7)
-                        if (ItemTemplate7.ENTRYS.size() > 0) {
-                            ItemTemplate7 it_da = ItemTemplate7.ENTRYS.get(Util.random(ItemTemplate7.ENTRYS.size()));
-                            if (it_da != null) {
-                                GiftBox gb_da = new GiftBox();
-                                gb_da.id = it_da.id;
-                                gb_da.type = 7;
-                                gb_da.name = it_da.name;
-                                gb_da.icon = it_da.icon;
-                                gb_da.num = 1;
-                                gb_da.color = 0;
-                                list_gift.add(gb_da);
-                                notice += "x1 " + it_da.name + ", ";
+                        // 2. Gift 2: Item 339 (Tỉ lệ ngẫu nhiên) hoặc Rương cam cùng cấp
+                        GiftBox gift2 = new GiftBox();
+                        if (Util.random(100) < 50) { // 50% chance for Item 339
+                            ItemTemplate4 it_339 = ItemTemplate4.get_it_by_id(339);
+                            if (it_339 != null) {
+                                gift2.id = 339;
+                                gift2.type = 4;
+                                gift2.name = it_339.name;
+                                gift2.icon = it_339.icon;
+                                gift2.num = 1;
+                                gift2.color = 0;
+                                notice += "x1 " + it_339.name + ", ";
+                            }
+                        } else {
+                            int chestId = ((p.level < 11 ? 11 : p.level) / 10) + 111;
+                            ItemTemplate4 it_rcam = ItemTemplate4.get_it_by_id(chestId);
+                            if (it_rcam != null) {
+                                gift2.id = (short) chestId;
+                                gift2.type = 4;
+                                gift2.name = it_rcam.name;
+                                gift2.icon = it_rcam.icon;
+                                gift2.num = 1;
+                                gift2.color = 0;
+                                notice += "x1 rương cam cùng cấp, ";
                             }
                         }
-                        //
-                        if (50 > Util.random(120)) {
-                            GiftBox gb_rcam = new GiftBox();
-                            ItemTemplate4 it_temp4_in = ItemTemplate4
-                                    .get_it_by_id((((p.level < 11 ? 11 : p.level) / 10) + 111));
-                            if (it_temp4_in != null) {
-                                gb_rcam.id = it_temp4_in.id;
-                                gb_rcam.type = 4;
-                                gb_rcam.name = it_temp4_in.name;
-                                gb_rcam.icon = it_temp4_in.icon;
-                                gb_rcam.num = 1;
-                                gb_rcam.color = 0;
-                                list_gift.add(gb_rcam);
-                            }
-                            notice += "x1 rương cam cùng cấp, ";
+                        if (gift2.name != null) {
+                            list_gift.add(gift2);
                         }
-                        if (30 > Util.random(120)) {
-                            GiftBox gb_rcam = new GiftBox();
-                            ItemTemplate7 it_temp7_in = ItemTemplate7.get_it_by_id(10);
-                            if (it_temp7_in != null) {
-                                gb_rcam.id = it_temp7_in.id;
-                                gb_rcam.type = 7;
-                                gb_rcam.name = it_temp7_in.name;
-                                gb_rcam.icon = it_temp7_in.icon;
-                                gb_rcam.num = 1;
-                                gb_rcam.color = 0;
-                                list_gift.add(gb_rcam);
-                            }
-                            notice += "x1 khiên, ";
+
+                        // 3. Gift 3: Ngẫu nhiên đá từ 44 đến 79 (type 4)
+                        int randomStoneId = Util.random(44, 80);
+                        ItemTemplate4 it_stone = ItemTemplate4.get_it_by_id(randomStoneId);
+                        if (it_stone != null) {
+                            GiftBox gift3 = new GiftBox();
+                            gift3.id = (short) randomStoneId;
+                            gift3.type = 4;
+                            gift3.name = it_stone.name;
+                            gift3.icon = it_stone.icon;
+                            gift3.num = 1;
+                            gift3.color = 0;
+                            list_gift.add(gift3);
+                            notice += "x1 " + it_stone.name + ", ";
                         }
                         //
                         int beri_receiv = 0;
@@ -2698,41 +2714,7 @@ public class Map implements Runnable {
                             list_gift.add(gb_beri);
                         }
                         notice += (beri_receiv + " beri, ");
-                        if (mob_target.mob_template.mob_id >= 137
-                                && mob_target.mob_template.mob_id <= 140) {
-                            if (30 > Util.random(120)) {
-                                int id_add = (70 > Util.random(120)) ? 310
-                                        : (70 > Util.random(120)) ? 311 : 312;
-                                GiftBox gb_manh = new GiftBox();
-                                ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
-                                if (it_temp4_in != null) {
-                                    gb_manh.id = it_temp4_in.id;
-                                    gb_manh.type = 4;
-                                    gb_manh.name = it_temp4_in.name;
-                                    gb_manh.icon = it_temp4_in.icon;
-                                    gb_manh.num = 1;
-                                    gb_manh.color = 0;
-                                    list_gift.add(gb_manh);
-                                }
-                                notice += "x1 mảnh đồ tím 9x, ";
-                            }
-                            if (30 > Util.random(120)) {
-                                int id_add = (70 > Util.random(120)) ? 313
-                                        : (70 > Util.random(120)) ? 314 : 315;
-                                GiftBox gb_manh = new GiftBox();
-                                ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
-                                if (it_temp4_in != null) {
-                                    gb_manh.id = it_temp4_in.id;
-                                    gb_manh.type = 4;
-                                    gb_manh.name = it_temp4_in.name;
-                                    gb_manh.icon = it_temp4_in.icon;
-                                    gb_manh.num = 1;
-                                    gb_manh.color = 0;
-                                    list_gift.add(gb_manh);
-                                }
-                                notice += "x1 mảnh đồ cam 9x, ";
-                            }
-                        }
+                        // fragment drops removed
                         p.update_money();
                         if (list_gift.size() > 0) {
                             Service.send_gift(p, 1, "Hoạt động săn trùm",
@@ -2740,25 +2722,7 @@ public class Map implements Runnable {
                                     list_gift, false);
                         }
                         Manager.gI().chatKTG(0, notice.substring(0, notice.length() - 1), 5);
-                        // boss up level
-                        if (mob_target.boss_info.levelBoss < 10) {
-                            mob_target.hp = mob_target.hp_max;
-                            mob_target.isdie = false;
-                            mob_target.boss_info.levelBoss++;
-                            mob_target.index++;
-                            Message m_local = new Message(1);
-                            m_local.writer().writeByte(1);
-                            m_local.writer().writeShort(mob_target.index);
-                            m_local.writer().writeShort(mob_target.x);
-                            m_local.writer().writeShort(mob_target.y);
-                            for (int j = 0; j < this.players.size(); j++) {
-                                Player p0 = this.players.get(j);
-                                p0.conn.addmsg(m_local);
-                            }
-                            m_local.cleanup();
-                            Manager.gI().chatKTG(0, mob_target.mob_template.name + " bậc "
-                                    + mob_target.boss_info.levelBoss + " xuất hiện", 5);
-                        }
+                        // boss up level removed
                     }
                     if (Map.is_map_boss(this.template.id) && p.map_boss_info != null
                             && p.map_boss_info.mob.contains(mob_target)) {

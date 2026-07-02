@@ -1,14 +1,44 @@
 package client;
 
 import java.io.IOException;
-import activities.*;
-import core.*;
+
+import activities.Chat;
+import activities.ChuyenHoa;
+import activities.Fight;
+import activities.Friend;
+import activities.HanhTrinh;
+import activities.Join_Item;
+import activities.Learn_Skill;
+import activities.LittleGarden;
+import activities.Market;
+import activities.Max_Level;
+import activities.Pvp;
+import activities.Rebuild_Item;
+import activities.Red_Line;
+import activities.Ship;
+import activities.Split_Item;
+import activities.TableTickOption;
+import activities.Trade;
+import activities.UpgradeDevil;
+import activities.UpgradeDial;
+import activities.UpgradeItem;
+import activities.UpgradeSuperItem;
+import activities.Upgrade_Skin;
+import activities.VongQuay;
+import activities.Wanted;
+import core.BXH;
+import core.Manager;
+import core.MenuController;
+import core.Service;
+import core.Util;
 import event.EventSpecial;
 import io.Message;
 import io.Session;
+import map.Boss;
 import map.Map;
 import template.EffTemplate;
 import template.ItemBoat;
+
 /**
  *
  * @author Truongbk
@@ -191,10 +221,10 @@ public class MessageHandler {
                             }
                         }
                         if (check) {
-                            conn.p.data_yesno = new int[]{id};
+                            conn.p.data_yesno = new int[] { id };
                             Service.send_box_yesno(conn.p, 43, "Thông báo",
                                     ("Dịch chuyển đến người này mất 5 ruby, xác nhận dịch chuyển?"),
-                                    new String[]{"5", "Không"}, new byte[]{7, -1});
+                                    new String[] { "5", "Không" }, new byte[] { 7, -1 });
                         }
                     }
                     if (!check) {
@@ -436,7 +466,7 @@ public class MessageHandler {
                         for (int i = 0; i < conn.p.clan.members.size(); i++) {
                             if (conn.p.clan.members.get(i).name.equals(conn.p.name)
                                     && (conn.p.clan.members.get(i).levelInclan == 1
-                                    || conn.p.clan.members.get(i).levelInclan == 0)) {
+                                            || conn.p.clan.members.get(i).levelInclan == 0)) {
                                 check = true;
                                 break;
                             }
@@ -747,6 +777,7 @@ public class MessageHandler {
         login_into_char_select(id);
     }
 
+    // Đăng nhập tạo thông báo - tanduong - thongbao
     public void login_into_char_select(short id) throws IOException {
         if (conn.list_char != null && id < conn.list_char.size()) {
             Player p0 = new Player(conn, conn.list_char.get(id));
@@ -796,17 +827,7 @@ public class MessageHandler {
             Service.Wanted(conn.p, true);
             Clan.send_info(conn.p, true);
             conn.p.item.update_assets_Inventory(true);
-            //
-            Message m2 = new Message(18);
-            m2.writer().writeUTF("Tin đến");
-            m2.writer().writeUTF(
-                    "UPDATE - Chức Năng Tuyệt kỹ Lục Thức\n"
-                    + "\n"
-                    + "Cùng với Haki, Trái ác quỷ và Karate Người cá thì Lục thức là một trong những sức mạnh độc đáo của One Piece.\n"
-                    + "\n"
-                    + "Chi Tiết : https://hanhtrinhhaitac.com/forum/43/update-chuc-nang-tuyet-ky-luc-thuc.html \n"
-            );
-            conn.p.list_msg_cache.add(m2);
+
             Message m3 = new Message(18);
             m3.writer().writeUTF("Đua Top OPEN");
             m3.writer().writeUTF("\nThời gian: 12:00 ngày 30/12/2023 - 12:00 ngày 30/1/2024\n"
@@ -821,15 +842,37 @@ public class MessageHandler {
                     + "- TOP 4-10: 1 Trang bị Max +10, Thời trang Mihawk, 1 Đá khảm vô cực, 30 Đá hải thạch cấp 6, 100.000.000 Beri\n"
                     + "");
             conn.p.list_msg_cache.add(m3);
-            Message m4 = new Message(18);
-            m4.writer().writeUTF("GiftCode");
-            m4.writer().writeUTF(
-                     " \n- 1: TanThu"
-                    + "\n- 2: ThanhVien"
-                    + "\n- 3:tambiet2023"
-                    + "\n- 4:htht2024"
-                    + "\n- 5:baotri");
-            conn.p.list_msg_cache.add(m4);
+            // Message m4 = new Message(18);
+            // m4.writer().writeUTF("GiftCode");
+            // m4.writer().writeUTF(
+            // " \n- 1: TanThu"
+            // + "\n- 2: ThanhVien"
+            // + "\n- 3:tambiet2023"
+            // + "\n- 4:htht2024"
+            // + "\n- 5:baotri");
+            // conn.p.list_msg_cache.add(m4);
+
+            // Boss Status Announcement
+            StringBuilder sbBoss = new StringBuilder();
+            for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+                Boss temp = Boss.ENTRYS.get(i);
+                if (temp.mob != null && !temp.mob.isdie) {
+                    sbBoss.append("- ").append(temp.mob.mob_template.name)
+                            .append(" xuất hiện tại: ").append(temp.mob.map.template.name)
+                            .append(" (Khu ").append(temp.mob.map.zone_id + 1).append(")\n");
+                }
+            }
+            if (sbBoss.length() > 0) {
+                Message mBoss = new Message(18);
+                mBoss.writer().writeUTF("Thông báo boss");
+                mBoss.writer().writeUTF(sbBoss.toString());
+                conn.p.list_msg_cache.add(mBoss);
+            }
+            Message m2 = new Message(18);
+            m2.writer().writeUTF("Tin đến");
+            m2.writer().writeUTF(
+                    "Chào mừng bạn đến với Hải Tặc Đại Chiến - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
+            conn.p.list_msg_cache.add(m2);
         }
     }
 }

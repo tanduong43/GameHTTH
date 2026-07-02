@@ -9,6 +9,8 @@ import map.Mob;
 import map.Vgo;
 import org.joda.time.LocalTime;
 import template.Map_Little_Garden;
+import io.Message;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -64,6 +66,46 @@ public class ServerEventManager {
                     }
                     if (min % 5 == 0 && sec == 0) {
                         Boss.spawn_event_boss();
+                    }
+                    if (sec == 0) {
+                        try {
+                            StringBuilder sbBoss = new StringBuilder();
+                            for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+                                Boss temp = Boss.ENTRYS.get(i);
+                                if (temp.mob != null && !temp.mob.isdie) {
+                                    sbBoss.append("- ").append(temp.mob.mob_template.name)
+                                            .append(" xuất hiện tại: ").append(temp.mob.map.template.name)
+                                            .append(" (Khu ").append(temp.mob.map.zone_id + 1).append(")\n");
+                                }
+                            }
+                            if (sbBoss.length() > 0) {
+                                Message m5 = new Message(18);
+                                m5.writer().writeUTF("Boss đang sống");
+                                m5.writer().writeUTF(sbBoss.toString());
+                                for (Map[] mapall : Map.ENTRYS) {
+                                    for (Map map : mapall) {
+                                        for (int i = 0; i < map.players.size(); i++) {
+                                            Player p0 = map.players.get(i);
+                                            if (p0.conn != null) {
+                                                p0.conn.addmsg(m5);
+                                            }
+                                        }
+                                    }
+                                }
+                                List<Map> mapplus = Map.get_map_plus();
+                                for (int i = 0; i < mapplus.size(); i++) {
+                                    for (int i12 = 0; i12 < mapplus.get(i).players.size(); i12++) {
+                                        Player p0 = mapplus.get(i).players.get(i12);
+                                        if (p0.conn != null) {
+                                            p0.conn.addmsg(m5);
+                                        }
+                                    }
+                                }
+                                m5.cleanup();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                     if (hour == 18 && min == 0 && sec == 0) {
                         Boss.create_boss();
