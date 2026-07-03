@@ -21,6 +21,7 @@ public class ServerEventManager {
     private Thread thread_cal_time;
     private Thread thread_save_data;
     private boolean running;
+    private String lastBossStatus = "";
 
     public ServerEventManager() {
         this.running = false;
@@ -78,10 +79,16 @@ public class ServerEventManager {
                                             .append(" (Khu ").append(temp.mob.map.zone_id + 1).append(")\n");
                                 }
                             }
-                            if (sbBoss.length() > 0) {
+                            String currentBossStatus = sbBoss.toString();
+                            if (!currentBossStatus.equals(lastBossStatus)) {
+                                lastBossStatus = currentBossStatus;
                                 Message m5 = new Message(18);
                                 m5.writer().writeUTF("Boss đang sống");
-                                m5.writer().writeUTF(sbBoss.toString());
+                                if (currentBossStatus.length() > 0) {
+                                    m5.writer().writeUTF(currentBossStatus);
+                                } else {
+                                    m5.writer().writeUTF("Hiện tại không có boss nào đang sống.");
+                                }
                                 for (Map[] mapall : Map.ENTRYS) {
                                     for (Map map : mapall) {
                                         for (int i = 0; i < map.players.size(); i++) {

@@ -27,11 +27,25 @@ public class SessionManager {
             ss.connected = false;
             try {
                 if (ss.p != null && ss.p.map != null) {
+                    // BossHunt: nếu player đang trong map BossHunt, chuyển vị trí lưu về map 1
+                    // để khi login lại không bị spawn vào map BossHunt đã hết
+                    if (ss.p.map.map_bossHunt != null && ss.p.bossHunt != null) {
+                        System.out.println("[BossHunt] Player " + ss.p.name
+                            + " disconnected from BossHunt floor "
+                            + (ss.p.bossHunt.currentFloor + 1)
+                            + ". Saving position at village (map 1).");
+                        map.Map[] villageMap = map.Map.get_map_by_id(1);
+                        if (villageMap != null && villageMap.length > 0) {
+                            ss.p.map = villageMap[0];
+                            ss.p.x = 300;
+                            ss.p.y = 250;
+                        }
+                    }
                     ss.p.map.leave_map(ss.p, 0);
                     if (ss.p.ship_pet != null && ss.p.ship_pet.map == null) {
                         ss.p.ship_pet.map = ss.p.map;
                     }
-                    Player.flush(ss.p, true);
+                    client.Player.flush(ss.p, true);
                 }
                 //
                 ss.clear_network(ss);

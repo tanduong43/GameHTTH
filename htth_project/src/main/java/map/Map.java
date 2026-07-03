@@ -31,6 +31,7 @@ public class Map implements Runnable {
     public Dungeon map_dungeon;
     public Map_clan_resource clan_resource;
     public Map_Little_Garden map_little_garden;
+    public activities.BossHunt map_bossHunt;
     public ItemMap[] list_it_map = new ItemMap[1_000];
     public boolean can_PK = true;
 
@@ -110,6 +111,80 @@ public class Map implements Runnable {
         update_map_little_garden();
         update_map_ThuThachVeThan();
         update_map_Wanted();
+        update_map_bossHunt();
+    }
+
+    private void update_map_bossHunt() throws IOException {
+        if (this.map_bossHunt == null) return;
+        activities.BossHunt hunt = this.map_bossHunt;
+        if (!hunt.active) {
+            System.out.println("[BossHunt] map_bossHunt inactive on map "
+                + this.template.id + ", clearing reference.");
+            this.map_bossHunt = null;
+            return;
+        }
+        // Chỉ map có boss của tầng hiện tại mới xử lý
+        if (hunt.maps.isEmpty() || !hunt.maps.get(hunt.currentFloor).equals(this)) {
+            return;
+        }
+        // Kiểm tra nếu boss trên map này đã chết hết
+        boolean allBossDead = !hunt.mobs.isEmpty();
+        for (Mob mob : hunt.mobs) {
+            if (mob.map.equals(this) && !mob.isdie) {
+                allBossDead = false;
+                break;
+            }
+        }
+        if (!allBossDead) return;
+        // Tất cả boss tầng này đã chết
+        if (!hunt.isTransitioning) {
+            hunt.isTransitioning = true;
+            int nextFloor = hunt.currentFloor + 1;
+            System.out.println("[BossHunt] Floor " + (hunt.currentFloor + 1)
+                + " cleared! All bosses dead. Next floor=" + (nextFloor + 1)
+                + "/" + activities.BossHunt.BOSS_MAPS.length);
+            if (nextFloor >= activities.BossHunt.BOSS_MAPS.length) {
+                // Đã hoàn thành Boss7 (tầng cuối) -> báo thắng, sau 10s về map id 1
+                hunt.transitionTime = System.currentTimeMillis() + 10_000L;
+                System.out.println("[BossHunt] FINAL FLOOR COMPLETE! Returning to village in 10s.");
+                for (client.Player member : hunt.members) {
+                    if (member.conn != null) {
+                        core.Service.send_box_ThongBao_OK(member,
+                            "Bạn đã Win Tầng " + (hunt.currentFloor + 1)
+                            + "!\nChúc mừng đã hoàn thành Săn Trùm! Sau 10 giây sẽ trở về làng.");
+                        core.Service.send_time_cool_down(member,
+                            hunt.transitionTime, "Quay về làng", 2);
+                    }
+                }
+            } else {
+                // Chuyển sang tầng tiếp theo sau 3 giây
+                hunt.transitionTime = System.currentTimeMillis() + 3_000L;
+                System.out.println("[BossHunt] Transitioning to floor " + (nextFloor + 1) + " in 3s.");
+                for (client.Player member : hunt.members) {
+                    if (member.conn != null) {
+                        core.Service.send_box_ThongBao_OK(member,
+                            "Bạn đã Win Tầng " + (hunt.currentFloor + 1)
+                            + "! Chuẩn bị sang Tầng " + (nextFloor + 1) + "...");
+                    }
+                }
+            }
+        } else {
+            // Đang chờ transition
+            if (hunt.transitionTime > 0 && System.currentTimeMillis() >= hunt.transitionTime) {
+                hunt.transitionTime = 0;
+                // Xóa liên kết map_bossHunt trên map cũ để nó không chạy lại
+                this.map_bossHunt = null;
+                int nextFloor = hunt.currentFloor + 1;
+                if (nextFloor >= activities.BossHunt.BOSS_MAPS.length) {
+                    System.out.println("[BossHunt] Returning all players to village (map 1).");
+                    hunt.returnAllToVillage(null, 1);
+                } else {
+                    System.out.println("[BossHunt] Starting floor " + (nextFloor + 1));
+                    hunt.isTransitioning = false;
+                    hunt.startFloor(nextFloor);
+                }
+            }
+        }
     }
 
     private void update_map_Wanted() throws IOException {
@@ -1096,6 +1171,18 @@ public class Map implements Runnable {
                 }
             }
         }
+        // BossHunt mobs
+        if (this.map_bossHunt != null && this.map_bossHunt.active) {
+            for (Mob mob : this.map_bossHunt.mobs) {
+                if (mob.map.equals(this) && !mob.isdie && mob.id_target != -1) {
+                    try {
+                        mob_fire(mob, mob.id_target);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 
     private synchronized void mob_fire(Mob mob, int id_target) throws IOException {
@@ -1252,6 +1339,15 @@ public class Map implements Runnable {
             if (this.players.size() < 1) {
                 this.stop_map();
             }
+        }
+        // BossHunt: when player disconnects/leaves, keep them in hunt but mark conn gone
+        // They will be prompted to rejoin on next login via findActiveHunt
+        if (this.map_bossHunt != null && p.bossHunt != null) {
+            System.out.println("[BossHunt] Player " + p.name
+                + " left BossHunt map (floor " + (p.bossHunt.currentFloor + 1) + ")."
+                + " Keeping in hunt for reconnect.");
+            // Player's map location will be saved as BossHunt map,
+            // Player.setup() will redirect them to map 1 on next login.
         }
         try {
             Message m = new Message(3);
@@ -1544,6 +1640,16 @@ public class Map implements Runnable {
                         if (mob_target[i] == null && this.template.id == 81
                                 && this.map_little_garden != null) {
                             mob_target[i] = this.get_mobs(id_target, 0);
+                        }
+                        // BossHunt mob lookup (index = negative value like -1000 - floor)
+                        if (mob_target[i] == null && this.map_bossHunt != null
+                                && p.bossHunt != null) {
+                            mob_target[i] = p.bossHunt.get_mob(p, id_target);
+                            if (mob_target[i] != null) {
+                                System.out.println("[BossHunt] Player " + p.name
+                                    + " attacking BossHunt mob index=" + id_target
+                                    + " floor=" + (p.bossHunt.currentFloor + 1));
+                            }
                         }
                         if (mob_target[i] == null && Map.is_map_dungeon(this.template.id)
                                 && p.dungeon != null && this.map_dungeon != null) {

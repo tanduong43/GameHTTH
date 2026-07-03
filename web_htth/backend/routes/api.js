@@ -126,6 +126,33 @@ router.post('/logout', (req, res) => {
     return res.json({ success: true, message: 'Đăng xuất thành công' });
 });
 
+// POST /api/change-password/
+router.post('/change-password', jwtRequired, async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword || newPassword.length < 3) {
+        return res.json({ success: false, message: 'Mật khẩu cũ và mật khẩu mới (từ 3 ký tự trở lên) không được để trống!' });
+    }
+
+    try {
+        const [rows] = await db.execute('SELECT * FROM accounts WHERE id = ?', [req.jwt_user_id]);
+        if (rows.length === 0) {
+            return res.json({ success: false, message: 'Tài khoản không tồn tại!' });
+        }
+
+        const account = rows[0];
+        if (account.pass !== oldPassword) {
+            return res.json({ success: false, message: 'Mật khẩu cũ không chính xác!' });
+        }
+
+        await db.execute('UPDATE accounts SET `pass` = ? WHERE id = ?', [newPassword, req.jwt_user_id]);
+        return res.json({ success: true, message: 'Đổi mật khẩu thành công!' });
+    } catch (err) {
+        console.error('Change password error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
 // ================= ADMIN ROUTING =================
 
 // POST /api/admin/add_coin/

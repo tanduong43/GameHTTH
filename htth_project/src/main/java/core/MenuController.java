@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.joda.time.LocalTime;
 
+import activities.BossHunt;
 import activities.ChuyenHoa;
 import activities.HanhTrinh;
 import activities.HelpDialog;
@@ -386,11 +387,13 @@ public class MenuController {
           if (p.conn.status != 1) {
             send_dynamic_menu(
                 p, type, get_name_npc(type), new String[] { "Kích Hoạt Tài Khoản", "Thách đấu",
-                    "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip },
+                    "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip,
+                    "Vị trí Boss" },
                 null);
           } else {
             send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Thách đấu", "Cao thủ",
-                "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip }, null);
+                "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip, "Vị trí Boss" },
+                null);
           }
           break;
         }
@@ -831,6 +834,10 @@ public class MenuController {
         }
         case 988: {
           if (index >= 0 && index <= 12 && p.dungeon == null) {
+            if (index > 0 && p.win_dungeon_1 == 0) {
+              Service.send_box_ThongBao_OK(p, "Bạn cần phải vượt qua ải đơn cấp độ 3 trước!");
+              break;
+            }
             int save = index;
             p.data_yesno = new int[] { save };
             if (save < 7) {
@@ -971,24 +978,19 @@ public class MenuController {
               break;
             }
             case 3: {
+              if (p.conn.status != 1) {
+                Service.send_box_ThongBao_OK(p,
+                    "Bạn chưa kích hoạt tài khoản!\nHãy kích hoạt tài khoản trước khi nhập Giftcode.");
+                return;
+              }
               Service.input_text(p, 1, "Quà tặng máy chủ", new String[] { "Nhập giftcode" });
               break;
             }
             case 4: {
-              if (p.conn.status != 1) {
-                Service.send_box_ThongBao_OK(p,
-                    "Chưa Kích hoạt không thể đổi coin");
-                return;
-              }
               Service.input_text(p, 8, "Đổi Coin Sang Ruby", new String[] { "10 coin = 2 ruby" });
               break;
             }
             case 5: {
-              if (p.conn.status != 1) {
-                Service.send_box_ThongBao_OK(p,
-                    "Chưa Kích hoạt không thể đổi Beri");
-                return;
-              }
               Service.input_text(p, 9, "Đổi Coin Sang Beri", new String[] { "1 coin = 5000 beri" });
               break;
             }
@@ -1662,7 +1664,8 @@ public class MenuController {
           break;
         }
         case 2: {
-          Service.send_box_ThongBao_OK(p, "Bạn đã tích lũy nạp: " + Util.number_format(p.getTichLuy()) + " VND (" + (p.getTichLuy() / 1000) + " điểm)");
+          Service.send_box_ThongBao_OK(p, "Bạn đã tích lũy nạp: " + Util.number_format(p.getTichLuy()) + " VND ("
+              + (p.getTichLuy() / 1000) + " điểm)");
           break;
         }
         case 3: {
@@ -1680,8 +1683,32 @@ public class MenuController {
 
   private static void Menu_Zosaku(Player p, byte index) throws IOException {
     switch (index) {
-      case 3:
-      case 0: {
+      case 3: { // Trận chiến lớn
+        break;
+      }
+      case 0: { // Săn trùm
+        if (p.bossHunt != null) {
+          Service.send_box_ThongBao_OK(p, "Bạn đang trong Săn Trùm rồi!");
+          break;
+        }
+        if (p.dungeon != null) {
+          Service.send_box_ThongBao_OK(p, "Bạn đang trong phó bản, hãy thoát ra trước");
+          break;
+        }
+        if (p.party == null) {
+          Service.send_box_ThongBao_OK(p, "Bạn cần tạo nhóm trước khi tham gia Săn Trùm");
+          break;
+        }
+        if (p.party.list.size() < 2) {
+          Service.send_box_ThongBao_OK(p, "Cần ít nhất 2 thành viên trong nhóm để tham gia Săn Trùm");
+          break;
+        }
+        if (!p.party.list.get(0).name.equals(p.name)) {
+          Service.send_box_ThongBao_OK(p, "Chỉ trưởng nhóm mới có quyền bắt đầu Săn Trùm");
+          break;
+        }
+        BossHunt hunt = new BossHunt();
+        hunt.create(p);
         break;
       }
       case 1: { // map pvp
@@ -1699,7 +1726,16 @@ public class MenuController {
         }
         break;
       }
-      case 2: { // pho ban lien tang
+      case 2: { // Vượt liên ải / Phó bản liên tầng
+        if (p.dungeon != null) {
+          Service.send_box_ThongBao_OK(p, "Bạn đang trong phó bản, hãy thoát ra trước");
+          break;
+        }
+        // mode = 7 => phó bản liên tầng, cần 2 chìa khóa
+        p.data_yesno = new int[] { 7 };
+        Service.send_box_yesno(p, 52, "Thông báo",
+            "Vào phó bản liên tầng cần 2 chìa khóa phó bản. Bạn có muốn vào không?",
+            new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
         break;
       }
       case 4: {
@@ -1987,20 +2023,18 @@ public class MenuController {
     }
     switch (index) {
       case 0: {
-        if (p.level > 3) {
-          Service.input_text(p, 2, "Đăng ký",
-              new String[] { "Tên tài khoản (Email hoặc SĐT)", "Mật khẩu (6 đến 10 ký tự)" });
-        } else {
+        if (p.level <= 3) {
           Service.send_box_ThongBao_OK(p, "Hãy luyện tập đến khi level 4 hãy quay lại đây!");
+          return;
         }
-        // if (p.conn.coin < 10000) {
-        // Service.send_box_ThongBao_OK(p, "Bạn Không đủ 10000 Coin để kích hoạt!");
-        // return;
-        // }
-        p.update_coin(-10000);
+        if (p.conn.coin < 10) {
+          Service.send_box_ThongBao_OK(p, "Bạn không đủ 10 Coin để kích hoạt tài khoản!");
+          return;
+        }
+        p.update_coin(-10);
         p.conn.status = 1;
         p.update_status(1);
-        Service.send_box_ThongBao_OK(p, "Bạn đã kích hoạt thành công!");
+        Service.send_box_ThongBao_OK(p, "Bạn đã kích hoạt thành công! Bạn đã bị trừ 10 Coin.\nBây giờ bạn có thể nhập Giftcode tại NPC Nami.");
         break;
       }
       case 1: {
@@ -2100,6 +2134,30 @@ public class MenuController {
           }
         } else {
           Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip hôm nay rồi");
+        }
+        break;
+      }
+      case 8: {
+        List<map.Boss> aliveBosses = new ArrayList<>();
+        if (map.Boss.ENTRYS != null) {
+          for (int i = 0; i < map.Boss.ENTRYS.size(); i++) {
+            map.Boss temp = map.Boss.ENTRYS.get(i);
+            if (temp != null && temp.mob != null && !temp.mob.isdie && temp.mob.map != null && temp.mob.mob_template != null) {
+              aliveBosses.add(temp);
+            }
+          }
+        }
+        if (aliveBosses.isEmpty()) {
+          Service.send_box_ThongBao_OK(p, "Hiện tại không có Boss nào còn sống!");
+        } else {
+          StringBuilder sb = new StringBuilder("Danh sách Boss còn sống:\n");
+          for (int i = 0; i < aliveBosses.size(); i++) {
+            map.Boss b = aliveBosses.get(i);
+            sb.append("- ").append(b.mob.mob_template.name)
+              .append(": ").append(b.mob.map.template.name)
+              .append(" (Khu ").append(b.mob.map.zone_id + 1).append(")\n");
+          }
+          Service.send_box_ThongBao_OK(p, sb.toString());
         }
         break;
       }

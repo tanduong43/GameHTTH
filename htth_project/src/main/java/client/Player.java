@@ -69,6 +69,8 @@ public class Player {
     public byte giaiPhongNangLuong;
     public Clan clan;
     public Dungeon dungeon;
+    public activities.BossHunt bossHunt;
+    public int win_dungeon_1 = 0;
     public Player pvp_target;
     public boolean pvp_accept;
     public int pvp_win;
@@ -187,6 +189,11 @@ public class Player {
             level = Short.parseShort(js.get(0).toString());
             exp = Long.parseLong(js.get(1).toString());
             thongthao = Short.parseShort(js.get(2).toString());
+            if (js.size() > 3) {
+                win_dungeon_1 = Integer.parseInt(js.get(3).toString());
+            } else {
+                win_dungeon_1 = 0;
+            }
             js.clear();
             date = DateTime.parse(rs.getString("date"));
             js.clear();
@@ -256,6 +263,13 @@ public class Player {
                 }
             }
             this.map = map[zone_goto];
+            // Nếu map đã lưu là map BossHunt instance (đã kết thúc) -> về map 1
+            if (this.map.map_bossHunt != null) {
+                Map[] safeMap = Map.get_map_by_id(1);
+                if (safeMap != null && safeMap.length > 0) {
+                    this.map = safeMap[0];
+                }
+            }
             this.hp = Integer.parseInt(js.get(2).toString());
             this.mp = Integer.parseInt(js.get(3).toString());
             x = Short.parseShort(js.get(4).toString());
@@ -636,6 +650,7 @@ public class Player {
             js.add(p.level);
             js.add(p.exp);
             js.add(p.thongthao);
+            js.add(p.win_dungeon_1);
             ps.setNString(1, js.toJSONString());
             js.clear();
             ps.setNString(2, p.date.toString());

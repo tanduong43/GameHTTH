@@ -23,6 +23,56 @@ public class ClientYesNo {
         byte value = m2.reader().readByte();
         // System.out.println("id " + id);
         // System.out.println("value " + value);
+        if (id == 999) {
+            BossHunt hunt = BossHunt.findActiveHunt(p.name);
+            if (value == 0) { // Đồng ý - vào lại trận
+                if (hunt != null && hunt.active && !hunt.maps.isEmpty()) {
+                    hunt.updateMemberReference(p.name, p);
+                    p.bossHunt = hunt;
+                    map.Map targetMap = hunt.maps.get(hunt.currentFloor);
+                    if (targetMap != null) {
+                        Vgo vgo = new Vgo();
+                        vgo.map_go = new map.Map[] { targetMap };
+                        vgo.xnew = 300;
+                        vgo.ynew = 250;
+                        p.goto_map(vgo);
+                        // Thông báo cho các thành viên còn lại
+                        for (Player member : hunt.members) {
+                            if (member.conn != null && !member.name.equals(p.name)) {
+                                Service.send_box_ThongBao_OK(member,
+                                    p.name + " đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
+                            }
+                        }
+                        Service.send_box_ThongBao_OK(p, "Bạn đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
+                    } else {
+                        p.bossHunt = null;
+                        Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
+                    }
+                } else if (hunt != null && hunt.waitingForReady) {
+                    hunt.updateMemberReference(p.name, p);
+                    p.bossHunt = hunt;
+                    Service.send_box_ThongBao_OK(p, "Bạn đã quay lại phòng chờ Săn Trùm!");
+                } else {
+                    p.bossHunt = null;
+                    Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
+                }
+            } else { // Hủy - rời khỏi hunt, ở lại map 1
+                if (hunt != null) {
+                    hunt.removeMemberByName(p.name);
+                }
+                p.bossHunt = null;
+                // Đảm bảo player ở map 1
+                if (p.map == null || p.map.map_bossHunt != null) {
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = map.Map.get_map_by_id(1);
+                    vgo.xnew = 300;
+                    vgo.ynew = 250;
+                    p.goto_map(vgo);
+                }
+            }
+            p.data_yesno = null;
+            return;
+        }
         if (id == 38 && p.data_yesno != null && p.data_yesno.length == 1) {
             List<Skill_info> name_skill = new ArrayList<>();
             for (int i = 0; i < p.skill_point.size(); i++) {
@@ -408,6 +458,12 @@ public class ClientYesNo {
                             return;
                         }
                         byte mode = (byte) p.data_yesno[0];
+                        if (mode > 0 && p.win_dungeon_1 == 0) {
+                            Service.send_box_ThongBao_OK(p, "Bạn cần phải vượt qua ải đơn cấp độ 3 trước!");
+                            p.data_yesno = null;
+                            p.map_tele = null;
+                            return;
+                        }
                         if (mode < 7) {
                             if (p.get_key_boss() < 1) {
                                 Service.send_box_ThongBao_OK(p, "Không đủ 1 chìa khóa phó bản");
@@ -438,6 +494,12 @@ public class ClientYesNo {
                         vgo.xnew = 350;
                         vgo.ynew = 260;
                         p.goto_map(vgo);
+                    }
+                    break;
+                }
+                case 54: {
+                    if (p.bossHunt != null) {
+                        p.bossHunt.setReady(p, value == 0);
                     }
                     break;
                 }

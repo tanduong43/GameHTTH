@@ -14,6 +14,12 @@ export default function UserSubnav({ activeTab }) {
         👤 Tài Khoản
       </button>
       <button
+        className={`subnav-btn ${activeTab === 'change-password' ? 'active' : ''}`}
+        onClick={() => navigate('/dien-dan?tab=change-password')}
+      >
+        🔒 Đổi Mật Khẩu
+      </button>
+      <button
         className={`subnav-btn ${activeTab === 'topup' ? 'active' : ''}`}
         onClick={() => navigate('/nap-the')}
       >

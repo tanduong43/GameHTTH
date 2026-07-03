@@ -34,7 +34,6 @@ import core.Util;
 import event.EventSpecial;
 import io.Message;
 import io.Session;
-import map.Boss;
 import map.Map;
 import template.EffTemplate;
 import template.ItemBoat;
@@ -852,27 +851,51 @@ public class MessageHandler {
             // + "\n- 5:baotri");
             // conn.p.list_msg_cache.add(m4);
 
-            // Boss Status Announcement
-            StringBuilder sbBoss = new StringBuilder();
-            for (int i = 0; i < Boss.ENTRYS.size(); i++) {
-                Boss temp = Boss.ENTRYS.get(i);
-                if (temp.mob != null && !temp.mob.isdie) {
-                    sbBoss.append("- ").append(temp.mob.mob_template.name)
-                            .append(" xuất hiện tại: ").append(temp.mob.map.template.name)
-                            .append(" (Khu ").append(temp.mob.map.zone_id + 1).append(")\n");
-                }
-            }
-            if (sbBoss.length() > 0) {
-                Message mBoss = new Message(18);
-                mBoss.writer().writeUTF("Thông báo boss");
-                mBoss.writer().writeUTF(sbBoss.toString());
-                conn.p.list_msg_cache.add(mBoss);
-            }
+            // // Boss Status Announcement
+            // StringBuilder sbBoss = new StringBuilder();
+            // for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+            // Boss temp = Boss.ENTRYS.get(i);
+            // if (temp.mob != null && !temp.mob.isdie) {
+            // sbBoss.append("- ").append(temp.mob.mob_template.name)
+            // .append(" xuất hiện tại: ").append(temp.mob.map.template.name)
+            // .append(" (Khu ").append(temp.mob.map.zone_id + 1).append(")\n");
+            // }
+            // }
+            // if (sbBoss.length() > 0) {
+            // Message mBoss = new Message(18);
+            // mBoss.writer().writeUTF("Thông báo boss");
+            // mBoss.writer().writeUTF(sbBoss.toString());
+            // conn.p.list_msg_cache.add(mBoss);
+            // }
             Message m2 = new Message(18);
             m2.writer().writeUTF("Tin đến");
             m2.writer().writeUTF(
                     "Chào mừng bạn đến với Hải Tặc Đại Chiến - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
             conn.p.list_msg_cache.add(m2);
+
+            // Reconnect Boss Hunt check
+            activities.BossHunt activeHunt = activities.BossHunt.findActiveHunt(conn.p.name);
+            // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về map 1
+            if (conn.p.map != null && conn.p.map.map_bossHunt != null) {
+                System.out.println("[BossHunt] Login safety: player " + conn.p.name
+                        + " still in BossHunt map, redirecting to map 1.");
+                map.Vgo vgo = new map.Vgo();
+                vgo.map_go = map.Map.get_map_by_id(1);
+                vgo.xnew = 300;
+                vgo.ynew = 250;
+                conn.p.goto_map(vgo);
+                conn.p.bossHunt = null;
+            }
+            if (activeHunt != null && activeHunt.active) {
+                System.out.println("[BossHunt] Player " + conn.p.name
+                        + " reconnected. Active hunt found at floor "
+                        + (activeHunt.currentFloor + 1) + ". Showing rejoin dialog.");
+                Service.send_box_yesno(conn.p, 999, "Săn Trùm",
+                        "Trận Săn Trùm của bạn vẫn đang diễn ra (Tầng "
+                                + (activeHunt.currentFloor + 1)
+                                + "). Bạn có muốn quay lại không?",
+                        new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+            }
         }
     }
 }
