@@ -293,7 +293,7 @@ public class BossHunt {
         this.readyState.remove(name);
     }
 
-    public synchronized String giveRewardsForFloor(Player member, int floor) {
+    public synchronized void giveRewardsForFloor(Player member, int floor, boolean isLastFloor) {
         try {
             List<template.GiftBox> gifts = new ArrayList<>();
 
@@ -357,22 +357,16 @@ public class BossHunt {
 
             // Send gifts using Service
             if (!gifts.isEmpty()) {
-                Service.send_gift(member, 0, "Phần thưởng BossHunt", "Vượt qua tầng " + (floor + 1), gifts, true);
-
-                // Construct a text representation for the popup
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < gifts.size(); i++) {
-                    template.GiftBox gb = gifts.get(i);
-                    sb.append(gb.num).append(" ").append(gb.name);
-                    if (i < gifts.size() - 1) {
-                        sb.append(", ");
-                    }
+                String notice;
+                if (isLastFloor) {
+                    notice = "Chúc mừng bạn đã chiến thắng Tầng " + (floor + 1) + "!\nHoàn thành Săn Trùm! Sau 5 giây sẽ trở về làng.";
+                } else {
+                    notice = "Chúc mừng bạn đã chiến thắng Tầng " + (floor + 1) + "!\nChuẩn bị chuyển sang Tầng " + (floor + 2) + "...";
                 }
-                return sb.toString();
+                Service.send_gift(member, 1, "Phần thưởng BossHunt", notice, gifts, true);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "Không có quà";
     }
 }

@@ -149,11 +149,7 @@ public class Map implements Runnable {
                 System.out.println("[BossHunt] FINAL FLOOR COMPLETE! Returning to registered village in 5s.");
                 for (client.Player member : hunt.members) {
                     if (member.conn != null) {
-                        String giftSummary = hunt.giveRewardsForFloor(member, hunt.currentFloor);
-                        core.Service.send_box_ThongBao_OK(member,
-                            "Bạn đã Win Tầng " + (hunt.currentFloor + 1) + "!\n"
-                            + "Phần quà nhận được: " + giftSummary + "\n"
-                            + "Chúc mừng đã hoàn thành Săn Trùm! Sau 5 giây sẽ trở về làng.");
+                        hunt.giveRewardsForFloor(member, hunt.currentFloor, true);
                         core.Service.send_time_cool_down(member,
                             hunt.transitionTime, "Quay về làng", 2);
                     }
@@ -164,11 +160,7 @@ public class Map implements Runnable {
                 System.out.println("[BossHunt] Transitioning to floor " + (nextFloor + 1) + " in 3s.");
                 for (client.Player member : hunt.members) {
                     if (member.conn != null) {
-                        String giftSummary = hunt.giveRewardsForFloor(member, hunt.currentFloor);
-                        core.Service.send_box_ThongBao_OK(member,
-                            "Bạn đã Win Tầng " + (hunt.currentFloor + 1) + "!\n"
-                            + "Phần quà nhận được: " + giftSummary + "\n"
-                            + "Chuẩn bị sang Tầng " + (nextFloor + 1) + "...");
+                        hunt.giveRewardsForFloor(member, hunt.currentFloor, false);
                     }
                 }
             }
