@@ -1128,6 +1128,29 @@ public class Player {
         }
     }
 
+    public boolean canGoToMap(int mapId) {
+        if (this.list_quest == null || this.list_quest.isEmpty()) {
+            return true;
+        }
+        QuestP quest_select = this.list_quest.get(0);
+        if (quest_select != null) {
+            for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
+                if (MapCanGoTo.idQuest[i] <= quest_select.template.id) {
+                    if (mapId != 119 && mapId != 120 && mapId != 122 && mapId != 123 
+                            && mapId != 54 && mapId != 58 && mapId != 59 && mapId != 984 && mapId != 1000
+                            && mapId != 127 && mapId != 167 && mapId != 168 && mapId != 169 
+                            && mapId != 170 && mapId != 171 && mapId != 172 && mapId != 173 
+                            && mapId != 174 && mapId != 175 && mapId != 176 
+                            && MapCanGoTo.idMap[i] < mapId) {
+                        return false;
+                    }
+                    break;
+                }
+            }
+        }
+        return true;
+    }
+
     public void change_map(Vgo vgo) throws IOException {
         this.ischangemap = false;
         this.xold = this.x;

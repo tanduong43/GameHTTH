@@ -6,19 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import client.Player;
-import map.Mob;
-import map.Vgo;
-import template.MobTemplate;
-import template.ItemTemplate4;
-import template.ItemMap;
-import map.LeaveItemMap;
 import core.Service;
 import core.Util;
+import map.Mob;
+import map.Vgo;
+import template.ItemTemplate4;
+import template.MobTemplate;
 
 public class BossHunt {
     public static final List<BossHunt> ACTIVE_HUNTS = new CopyOnWriteArrayList<>();
-    public static final int[] BOSS_MAPS = {201, 202, 203, 204, 205, 206, 207};
+    public static final int[] BOSS_MAPS = { 201, 202, 203, 204, 205, 206, 207 };
 
     public static BossHunt findActiveHunt(String playerName) {
         for (BossHunt hunt : ACTIVE_HUNTS) {
@@ -73,7 +72,7 @@ public class BossHunt {
             leader.bossHunt = this;
             this.readyState.put(leader.name, true);
         }
-        
+
         this.waitingForReady = true;
 
         // Send ready check prompt to all other members
@@ -81,7 +80,7 @@ public class BossHunt {
             if (!p.name.equals(leader.name)) {
                 Service.send_box_yesno(p, 54, "Săn Trùm",
                         "Trưởng nhóm bắt đầu Săn Trùm. Bạn đã sẵn sàng chưa?",
-                        new String[] {"Sẵn sàng", "Hủy"}, new byte[] {2, 1});
+                        new String[] { "Sẵn sàng", "Hủy" }, new byte[] { 2, 1 });
             } else {
                 Service.send_box_ThongBao_OK(p, "Đang đợi đồng đội sẵn sàng...");
             }
@@ -89,8 +88,9 @@ public class BossHunt {
     }
 
     public synchronized void setReady(Player p, boolean ready) throws IOException {
-        if (!waitingForReady) return;
-        
+        if (!waitingForReady)
+            return;
+
         this.readyState.put(p.name, ready);
         if (!ready) {
             // Cancel room
@@ -149,10 +149,10 @@ public class BossHunt {
     public synchronized void startFloor(int floor) throws IOException {
         this.currentFloor = floor;
         this.floorTime = System.currentTimeMillis() + 120_000L; // 2 minutes countdown
-        
+
         int mapId = BOSS_MAPS[floor];
         System.out.println("[BossHunt] Starting floor " + (floor + 1)
-            + " | mapId=" + mapId + " | members=" + members.size());
+                + " | mapId=" + mapId + " | members=" + members.size());
         map.Map[] templates = map.Map.get_map_by_id(mapId);
         if (templates == null || templates.length == 0) {
             System.out.println("[BossHunt] ERROR: Map template not found for id=" + mapId);
@@ -160,18 +160,18 @@ public class BossHunt {
             return;
         }
         map.Map mapTemplate = templates[0];
-        
+
         map.Map map_instance = new map.Map();
         map_instance.template = mapTemplate.template;
         map_instance.zone_id = (byte) 0;
         map_instance.list_mob = new int[0];
         map_instance.map_bossHunt = this;
-        
+
         Mob originalMob = null;
         if (mapTemplate.list_mob != null && mapTemplate.list_mob.length > 0) {
             originalMob = Mob.ENTRYS.get(mapTemplate.list_mob[0]);
         }
-        
+
         if (originalMob == null) {
             System.out.println("[BossHunt] WARNING: No mob template found for map " + mapId + ", using fallback.");
             originalMob = new Mob();
@@ -181,12 +181,12 @@ public class BossHunt {
             originalMob.level = 50;
             originalMob.hp_max = 500_000;
         }
-        
+
         Mob boss = new Mob();
         boss.mob_template = originalMob.mob_template;
         boss.x = originalMob.x;
         boss.y = originalMob.y;
-        
+
         long baseHp = originalMob.mob_template.hp_max > 0 ? originalMob.mob_template.hp_max : 100_000L;
         int memberCount = members.size();
         boss.hp_max = (int) (baseHp * (1.0 + floor * 0.4) * (0.8 + memberCount * 0.4));
@@ -195,25 +195,26 @@ public class BossHunt {
         }
         boss.hp = boss.hp_max;
         boss.level = originalMob.level + (floor * 5);
-        if (boss.level > 100) boss.level = 100;
-        
+        if (boss.level > 100)
+            boss.level = 100;
+
         boss.isdie = false;
         boss.id_target = -1;
         boss.index = -1000 - floor;
         boss.map = map_instance;
         boss.boss_info = null;
-        
+
         System.out.println("[BossHunt] Boss spawned: name=" + boss.mob_template.name
-            + " index=" + boss.index + " hp=" + boss.hp_max
-            + " level=" + boss.level + " at (" + boss.x + "," + boss.y + ")");
-        
+                + " index=" + boss.index + " hp=" + boss.hp_max
+                + " level=" + boss.level + " at (" + boss.x + "," + boss.y + ")");
+
         this.mobs.clear();
         this.mobs.add(boss);
-        
+
         map_instance.start_map();
         map.Map.add_map_plus(map_instance);
         this.maps.add(map_instance);
-        
+
         for (Player member : members) {
             if (member.conn != null) {
                 Vgo vgo = new Vgo();
@@ -235,7 +236,7 @@ public class BossHunt {
 
     public synchronized void returnAllToVillage(String message, int mapId) throws IOException {
         System.out.println("[BossHunt] returnAllToVillage -> mapId=" + mapId
-            + " | members=" + members.size());
+                + " | members=" + members.size());
         ACTIVE_HUNTS.remove(this);
         this.active = false;
         List<Player> tempMembers = new ArrayList<>(members);
@@ -245,12 +246,19 @@ public class BossHunt {
                 if (message != null && !message.isEmpty()) {
                     Service.send_box_ThongBao_OK(member, message);
                 }
+                int targetMapId = mapId;
+                // Nếu member chưa mở được map này -> về map 1
+                if (!member.canGoToMap(targetMapId)) {
+                    System.out.println("[BossHunt] Player " + member.name + " cannot access map " + targetMapId
+                            + " yet. Fallback to map 1.");
+                    targetMapId = 1;
+                }
                 Vgo vgo = new Vgo();
-                vgo.map_go = map.Map.get_map_by_id(mapId);
+                vgo.map_go = map.Map.get_map_by_id(targetMapId);
                 vgo.xnew = 300;
                 vgo.ynew = 250;
                 member.goto_map(vgo);
-                System.out.println("[BossHunt] Teleported " + member.name + " to map " + mapId);
+                System.out.println("[BossHunt] Teleported " + member.name + " to map " + targetMapId);
             } else {
                 System.out.println("[BossHunt] Member " + member.name + " offline, skipping teleport.");
             }
@@ -283,5 +291,88 @@ public class BossHunt {
     public synchronized void removeMemberByName(String name) {
         this.members.removeIf(m -> m.name.equals(name));
         this.readyState.remove(name);
+    }
+
+    public synchronized String giveRewardsForFloor(Player member, int floor) {
+        try {
+            List<template.GiftBox> gifts = new ArrayList<>();
+
+            // 1. Beri
+            int beri = 100_000 * (floor + 1);
+            ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
+            if (it_beri != null) {
+                template.GiftBox gb = new template.GiftBox();
+                gb.id = 0;
+                gb.type = 4;
+                gb.name = it_beri.name;
+                gb.icon = it_beri.icon;
+                gb.num = beri;
+                gb.color = 0;
+                gifts.add(gb);
+            }
+
+            // 2. Ruby (template4 ID 1)
+            int ruby = 50 * (floor + 1);
+            ItemTemplate4 it_ruby = ItemTemplate4.get_it_by_id(1);
+            if (it_ruby != null) {
+                template.GiftBox gb = new template.GiftBox();
+                gb.id = 1;
+                gb.type = 4;
+                gb.name = it_ruby.name;
+                gb.icon = it_ruby.icon;
+                gb.num = ruby;
+                gb.color = 0;
+                gifts.add(gb);
+            }
+
+            // 3. Random Stone (ID 44 - 79)
+            int stoneId = Util.random(44, 80);
+            ItemTemplate4 it_stone = ItemTemplate4.get_it_by_id(stoneId);
+            if (it_stone != null) {
+                template.GiftBox gb = new template.GiftBox();
+                gb.id = (short) stoneId;
+                gb.type = 4;
+                gb.name = it_stone.name;
+                gb.icon = it_stone.icon;
+                gb.num = 1;
+                gb.color = 0;
+                gifts.add(gb);
+            }
+
+            // 4. Ruong cam (Only on floor 4 and above: floor index >= 3)
+            if (floor >= 3) {
+                int chestId = ((member.level < 11 ? 11 : member.level) / 10) + 121;
+                ItemTemplate4 it_chest = ItemTemplate4.get_it_by_id(chestId);
+                if (it_chest != null) {
+                    template.GiftBox gb = new template.GiftBox();
+                    gb.id = (short) chestId;
+                    gb.type = 4;
+                    gb.name = it_chest.name;
+                    gb.icon = it_chest.icon;
+                    gb.num = 1;
+                    gb.color = 0;
+                    gifts.add(gb);
+                }
+            }
+
+            // Send gifts using Service
+            if (!gifts.isEmpty()) {
+                Service.send_gift(member, 0, "Phần thưởng BossHunt", "Vượt qua tầng " + (floor + 1), gifts, true);
+
+                // Construct a text representation for the popup
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < gifts.size(); i++) {
+                    template.GiftBox gb = gifts.get(i);
+                    sb.append(gb.num).append(" ").append(gb.name);
+                    if (i < gifts.size() - 1) {
+                        sb.append(", ");
+                    }
+                }
+                return sb.toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "Không có quà";
     }
 }

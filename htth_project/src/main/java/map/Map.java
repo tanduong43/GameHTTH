@@ -144,14 +144,16 @@ public class Map implements Runnable {
                 + " cleared! All bosses dead. Next floor=" + (nextFloor + 1)
                 + "/" + activities.BossHunt.BOSS_MAPS.length);
             if (nextFloor >= activities.BossHunt.BOSS_MAPS.length) {
-                // Đã hoàn thành Boss7 (tầng cuối) -> báo thắng, sau 10s về map id 1
-                hunt.transitionTime = System.currentTimeMillis() + 10_000L;
-                System.out.println("[BossHunt] FINAL FLOOR COMPLETE! Returning to village in 10s.");
+                // Đã hoàn thành Boss7 (tầng cuối) -> báo thắng, sau 5s về làng đã đăng ký
+                hunt.transitionTime = System.currentTimeMillis() + 5_000L;
+                System.out.println("[BossHunt] FINAL FLOOR COMPLETE! Returning to registered village in 5s.");
                 for (client.Player member : hunt.members) {
                     if (member.conn != null) {
+                        String giftSummary = hunt.giveRewardsForFloor(member, hunt.currentFloor);
                         core.Service.send_box_ThongBao_OK(member,
-                            "Bạn đã Win Tầng " + (hunt.currentFloor + 1)
-                            + "!\nChúc mừng đã hoàn thành Săn Trùm! Sau 10 giây sẽ trở về làng.");
+                            "Bạn đã Win Tầng " + (hunt.currentFloor + 1) + "!\n"
+                            + "Phần quà nhận được: " + giftSummary + "\n"
+                            + "Chúc mừng đã hoàn thành Săn Trùm! Sau 5 giây sẽ trở về làng.");
                         core.Service.send_time_cool_down(member,
                             hunt.transitionTime, "Quay về làng", 2);
                     }
@@ -162,9 +164,11 @@ public class Map implements Runnable {
                 System.out.println("[BossHunt] Transitioning to floor " + (nextFloor + 1) + " in 3s.");
                 for (client.Player member : hunt.members) {
                     if (member.conn != null) {
+                        String giftSummary = hunt.giveRewardsForFloor(member, hunt.currentFloor);
                         core.Service.send_box_ThongBao_OK(member,
-                            "Bạn đã Win Tầng " + (hunt.currentFloor + 1)
-                            + "! Chuẩn bị sang Tầng " + (nextFloor + 1) + "...");
+                            "Bạn đã Win Tầng " + (hunt.currentFloor + 1) + "!\n"
+                            + "Phần quà nhận được: " + giftSummary + "\n"
+                            + "Chuẩn bị sang Tầng " + (nextFloor + 1) + "...");
                     }
                 }
             }
@@ -176,8 +180,8 @@ public class Map implements Runnable {
                 this.map_bossHunt = null;
                 int nextFloor = hunt.currentFloor + 1;
                 if (nextFloor >= activities.BossHunt.BOSS_MAPS.length) {
-                    System.out.println("[BossHunt] Returning all players to village (map 1).");
-                    hunt.returnAllToVillage(null, 1);
+                    System.out.println("[BossHunt] Returning all players to registered village mapId=" + hunt.registeredMapId);
+                    hunt.returnAllToVillage(null, hunt.registeredMapId);
                 } else {
                     System.out.println("[BossHunt] Starting floor " + (nextFloor + 1));
                     hunt.isTransitioning = false;
