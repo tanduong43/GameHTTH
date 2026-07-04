@@ -1,17 +1,19 @@
 import { useLocation, useRoutes } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { LandingPage, ForumPage, TopupPage } from './features';
+import { LandingPage, ForumPage, NewsList, NewsDetail } from './features';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboard from './features/admin/AdminDashboard';
 import AdminAccount from './features/admin/components/AdminAccount';
 import AdminCoin from './features/admin/components/AdminCoin';
 import AdminGiftcode from './features/admin/components/AdminGiftcode';
+import AdminNews from './features/admin/components/AdminNews';
 import AnimatedPage from './components/AnimatedPage';
 
 const routes = [
   { path: '/', element: <LandingPage /> },
   { path: '/dien-dan', element: <ForumPage /> },
-  { path: '/nap-the', element: <TopupPage /> },
+  { path: '/news', element: <NewsList /> },
+  { path: '/news/:idOrSlug', element: <NewsDetail /> },
   { 
     path: '/admin', 
     element: <AdminLayout />,
@@ -20,6 +22,7 @@ const routes = [
       { path: 'accounts', element: <AdminAccount /> },
       { path: 'coins', element: <AdminCoin /> },
       { path: 'giftcodes', element: <AdminGiftcode /> },
+      { path: 'news', element: <AdminNews /> },
     ]
   },
 ];
@@ -27,7 +30,7 @@ const routes = [
 function getPageStyle(pathname) {
   const base = { position: 'relative', zIndex: 3, width: '100%' };
 
-  if (pathname === '/' || pathname.startsWith('/admin')) {
+  if (pathname === '/' || pathname.startsWith('/admin') || pathname.startsWith('/news')) {
     return base;
   }
 

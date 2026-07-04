@@ -24,9 +24,12 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('token');
       }
     } catch (err) {
-      console.error(err);
+      console.error('Fetch user error:', err);
       setUser(null);
-      localStorage.removeItem('token');
+      // Chỉ xóa token khi máy chủ trả về lỗi xác thực cụ thể (401/403)
+      if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+        localStorage.removeItem('token');
+      }
     } finally {
       setLoading(false);
     }

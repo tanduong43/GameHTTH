@@ -390,5 +390,277 @@ router.delete('/api/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) 
     }
 });
 
+// GET /api/ranking
+router.get('/ranking', async (req, res) => {
+    try {
+        // 1. Fetch top 10 characters by level
+        const levelSql = `
+            SELECT 
+                name, 
+                clazz,
+                CASE 
+                    WHEN level LIKE '[%]' THEN CAST(JSON_UNQUOTE(JSON_EXTRACT(level, '$[0]')) AS UNSIGNED)
+                    WHEN level REGEXP '^[0-9]+$' THEN CAST(level AS UNSIGNED)
+                    ELSE 1
+                END as level
+            FROM players
+            ORDER BY level DESC
+            LIMIT 10
+        `;
+        const [levelRows] = await db.execute(levelSql);
+        const topLevel = levelRows.map(row => ({
+            name: row.name,
+            level: parseInt(row.level || 0, 10),
+            clazz: row.clazz !== null ? parseInt(row.clazz, 10) : 0
+        }));
+
+        // 2. Fetch top 10 characters by PvP point
+        const pvpSql = `
+            SELECT name, pvppoint, clazz 
+            FROM players 
+            ORDER BY pvppoint DESC 
+            LIMIT 10
+        `;
+        const [pvpRows] = await db.execute(pvpSql);
+        const topPvp = pvpRows.map(row => ({
+            name: row.name,
+            pvppoint: parseInt(row.pvppoint || 0, 10),
+            clazz: row.clazz !== null ? parseInt(row.clazz, 10) : 0
+        }));
+
+        return res.json({
+            success: true,
+            topLevel,
+            topPvp
+        });
+    } catch (err) {
+        console.error('Fetch ranking error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// GET /api/news
+router.get('/news', async (req, res) => {
+    let page = parseInt(req.query.page, 10) || 1;
+    let limit = parseInt(req.query.limit, 10) || 10;
+    const search = req.query.search || '';
+
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 10;
+    const offset = (page - 1) * limit;
+
+    try {
+        let countSql = "SELECT COUNT(*) as total FROM news WHERE status = 'published'";
+        let selectSql = "SELECT * FROM news WHERE status = 'published'";
+        const countParams = [];
+        const selectParams = [];
+
+        if (search) {
+            countSql += " AND (title LIKE ? OR summary LIKE ?)";
+            selectSql += " AND (title LIKE ? OR summary LIKE ?)";
+            const searchPattern = `%${search}%`;
+            countParams.push(searchPattern, searchPattern);
+            selectParams.push(searchPattern, searchPattern);
+        }
+
+        selectSql += " ORDER BY published_at DESC, id DESC LIMIT ? OFFSET ?";
+        selectParams.push(limit, offset);
+
+        const [countRows] = await db.query(countSql, countParams);
+        const total = countRows[0].total;
+
+        const [newsRows] = await db.query(selectSql, selectParams);
+
+        return res.json({
+            success: true,
+            data: newsRows,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+    } catch (err) {
+        console.error('Fetch news error:', err);
+        return res.status(500).json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// GET /api/news/:idOrSlug
+router.get('/news/:idOrSlug', async (req, res) => {
+    const { idOrSlug } = req.params;
+    try {
+        const sql = "SELECT * FROM news WHERE (slug = ? OR id = ?) AND status = 'published'";
+        const queryId = parseInt(idOrSlug, 10) || 0;
+
+        const [rows] = await db.query(sql, [idOrSlug, queryId]);
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết!' });
+        }
+
+        return res.json({
+            success: true,
+            data: rows[0]
+        });
+    } catch (err) {
+        console.error('Fetch news detail error:', err);
+        return res.status(500).json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// ================= ADMIN NEWS CRUD =================
+
+// GET /api/admin/news
+router.get('/admin/news', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM news ORDER BY id DESC');
+        return res.json({ success: true, news: rows });
+    } catch (err) {
+        console.error('Admin get news error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/admin/news
+router.post('/admin/news', jwtRequired, isAdmin, async (req, res) => {
+    const { title, summary, content, thumbnail, status } = req.body;
+    if (!title || !summary || !content) {
+        return res.json({ success: false, message: 'Vui lòng nhập đầy đủ Tiêu đề, Tóm tắt và Nội dung!' });
+    }
+
+    const slug = title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+
+    const published_at = status === 'published' ? new Date() : null;
+
+    try {
+        const [existing] = await db.query('SELECT id FROM news WHERE slug = ?', [slug]);
+        let finalSlug = slug;
+        if (existing.length > 0) {
+            finalSlug = `${slug}-${Date.now().toString().slice(-4)}`;
+        }
+
+        const [result] = await db.query(
+            'INSERT INTO news (title, slug, summary, content, thumbnail, status, published_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [title, finalSlug, summary, content, thumbnail || null, status || 'draft', published_at]
+        );
+
+        return res.json({ success: true, message: 'Tạo bài viết thành công!', id: result.insertId });
+    } catch (err) {
+        console.error('Admin create news error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// PUT /api/admin/news/:id
+router.put('/admin/news/:id', jwtRequired, isAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { title, summary, content, thumbnail, status } = req.body;
+    if (!title || !summary || !content) {
+        return res.json({ success: false, message: 'Vui lòng nhập đầy đủ Tiêu đề, Tóm tắt và Nội dung!' });
+    }
+
+    const slug = title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+
+    try {
+        const [existing] = await db.query('SELECT id FROM news WHERE id = ?', [id]);
+        if (existing.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy bài viết!' });
+        }
+
+        const [duplicate] = await db.query('SELECT id FROM news WHERE slug = ? AND id != ?', [slug, id]);
+        let finalSlug = slug;
+        if (duplicate.length > 0) {
+            finalSlug = `${slug}-${Date.now().toString().slice(-4)}`;
+        }
+
+        const [oldRows] = await db.query('SELECT status, published_at FROM news WHERE id = ?', [id]);
+        let published_at = oldRows[0].published_at;
+        if (status === 'published' && oldRows[0].status !== 'published') {
+            published_at = new Date();
+        } else if (status === 'draft') {
+            published_at = null;
+        }
+
+        await db.query(
+            'UPDATE news SET title = ?, slug = ?, summary = ?, content = ?, thumbnail = ?, status = ?, published_at = ? WHERE id = ?',
+            [title, finalSlug, summary, content, thumbnail || null, status || 'draft', published_at, id]
+        );
+
+        return res.json({ success: true, message: 'Cập nhật bài viết thành công!' });
+    } catch (err) {
+        console.error('Admin update news error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// DELETE /api/admin/news/:id
+router.delete('/admin/news/:id', jwtRequired, isAdmin, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [existing] = await db.query('SELECT id FROM news WHERE id = ?', [id]);
+        if (existing.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy bài viết!' });
+        }
+
+        await db.query('DELETE FROM news WHERE id = ?', [id]);
+        return res.json({ success: true, message: 'Xóa bài viết thành công!' });
+    } catch (err) {
+        console.error('Admin delete news error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/admin/upload
+router.post('/admin/upload', jwtRequired, isAdmin, async (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    const { fileName, fileData } = req.body;
+    if (!fileName || !fileData) {
+        return res.json({ success: false, message: 'Thiếu dữ liệu tệp tin!' });
+    }
+
+    try {
+        const matches = fileData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+            return res.json({ success: false, message: 'Định dạng dữ liệu ảnh không hợp lệ!' });
+        }
+
+        const fileBuffer = Buffer.from(matches[2], 'base64');
+        const extension = path.extname(fileName) || '.png';
+        const newFileName = `thumb-${Date.now()}${extension}`;
+
+        const uploadDir = path.join(__dirname, '../uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const filePath = path.join(uploadDir, newFileName);
+        fs.writeFileSync(filePath, fileBuffer);
+
+        const fileUrl = `http://localhost:8000/uploads/${newFileName}`;
+        return res.json({ success: true, url: fileUrl });
+    } catch (err) {
+        console.error('File upload error:', err);
+        return res.json({ success: false, message: `Lỗi lưu tệp tin: ${err.message}` });
+    }
+});
+
 module.exports = router;
 

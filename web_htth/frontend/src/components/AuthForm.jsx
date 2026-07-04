@@ -80,26 +80,28 @@ export default function AuthForm({ title = '⚓ ĐĂNG NHẬP' }) {
         </div>
       )}
 
-      <form onSubmit={isRegister ? handleRegisterSubmit : handleLoginSubmit} autoComplete="off">
+      <form onSubmit={isRegister ? handleRegisterSubmit : handleLoginSubmit} autoComplete="on">
         <div className="input-group">
           <input
             type="text"
+            name="username"
             placeholder="Tên tài khoản..."
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             disabled={submitting}
-            autoComplete="off"
+            autoComplete="username"
             required
           />
         </div>
         <div className="input-group" style={{ position: 'relative' }}>
           <input
             type={showPassword ? 'text' : 'password'}
+            name="password"
             placeholder="Mật khẩu..."
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={submitting}
-            autoComplete="off"
+            autoComplete="current-password"
             required
             style={{ paddingRight: '45px' }}
           />

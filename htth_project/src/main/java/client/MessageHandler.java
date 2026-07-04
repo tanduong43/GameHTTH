@@ -628,7 +628,13 @@ public class MessageHandler {
                         m_local.cleanup();
                     }
                     if (Map.is_map_dungeon(conn.p.map.template.id) && conn.p.dungeon != null) {
-                        Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Thời gian", 2);
+                        if (conn.p.dungeon instanceof activities.TowerChallenge) {
+                            activities.TowerChallenge tc = (activities.TowerChallenge) conn.p.dungeon;
+                            Service.send_time_cool_down(conn.p, tc.stageEndTime, "Tầng" + (tc.currentStageIndex + 1),
+                                    2);
+                        } else {
+                            Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Thời gian", 2);
+                        }
                     } else if (conn.p.map.template.id == 9999 && conn.p.map.clan_resource != null) {
                         Service.send_time_cool_down(conn.p, conn.p.map.clan_resource.time,
                                 "Thời gian", 2);
@@ -811,7 +817,7 @@ public class MessageHandler {
                 }
                 conn.p.bossHunt = null;
             }
-            
+
             // Reconnect Tower Challenge check
             activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(conn.p.name);
             if (activeChallenge != null) {
@@ -819,7 +825,8 @@ public class MessageHandler {
                 conn.p.dungeon = activeChallenge;
             }
             // Safety fallback: nếu vẫn đang trong map Tower map nhưng no active dungeon
-            if (conn.p.map != null && conn.p.map.template.id >= 500 && conn.p.map.template.id <= 512 && conn.p.dungeon == null) {
+            if (conn.p.map != null && conn.p.map.template.id >= 500 && conn.p.map.template.id <= 512
+                    && conn.p.dungeon == null) {
                 System.out.println("[TowerChallenge] Login safety: player " + conn.p.name
                         + " still in Tower map but no active dungeon, redirecting to map 1.");
                 map.Map[] villageMap = map.Map.get_map_by_id(1);
@@ -914,7 +921,8 @@ public class MessageHandler {
                     "Chào mừng bạn đến với Hải Tặc Đại Chiến - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
             conn.p.list_msg_cache.add(m2);
 
-            // === Rejoin dialog — đợi người dùng vào game hoàn toàn và sau 2 giây mới gửi thông báo ===
+            // === Rejoin dialog — đợi người dùng vào game hoàn toàn và sau 2 giây mới gửi
+            // thông báo ===
             if (activeHunt != null && (activeHunt.active || activeHunt.waitingForReady)) {
                 final Player player = conn.p;
                 new Thread(() -> {

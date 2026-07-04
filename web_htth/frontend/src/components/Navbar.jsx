@@ -13,7 +13,7 @@ function Navbar() {
   // Determine active state for each nav item
   const isHomeActive = location.pathname === '/' && hash !== '#download';
   const isDownloadActive = location.pathname === '/' && hash === '#download';
-  const isTopupActive = location.pathname === '/nap-the';
+  const isNewsActive = location.pathname.startsWith('/news');
   const isForumActive = location.pathname === '/dien-dan';
 
   const handleHomeClick = (e) => {
@@ -60,6 +60,12 @@ function Navbar() {
         >
           Trang Chủ
         </a>
+        <Link 
+          to="/news" 
+          className={`nav-btn ${isNewsActive ? 'active' : ''}`}
+        >
+          Tin Tức
+        </Link>
         <a 
           href="#download" 
           onClick={handleDownloadClick} 
@@ -68,16 +74,10 @@ function Navbar() {
           Tải Game
         </a>
         <Link 
-          to="/nap-the" 
-          className={`nav-btn ${isTopupActive ? 'active' : ''}`}
-        >
-          Nạp Game
-        </Link>
-        <Link 
           to="/dien-dan" 
           className={`nav-btn ${isForumActive ? 'active' : ''}`}
         >
-          {user ? `Tài Khoản (${user.username})` : 'Diễn Đàn'}
+          {user ? `Tài Khoản (${user.username})` : 'Tài Khoản'}
         </Link>
       </div>
     </nav>

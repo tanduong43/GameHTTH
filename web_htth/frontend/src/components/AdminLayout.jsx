@@ -62,6 +62,7 @@ export default function AdminLayout() {
           <SidebarLink to="/admin/accounts" currentPath={location.pathname}>👤 Quản lý Tài khoản</SidebarLink>
           <SidebarLink to="/admin/coins" currentPath={location.pathname}>💰 Quản lý Nạp tiền</SidebarLink>
           <SidebarLink to="/admin/giftcodes" currentPath={location.pathname}>🎁 Quản lý Giftcode</SidebarLink>
+          <SidebarLink to="/admin/news" currentPath={location.pathname}>📰 Quản lý Tin Tức</SidebarLink>
         </nav>
 
         <div style={{ padding: '20px', marginTop: 'auto' }}>
@@ -84,9 +85,20 @@ export default function AdminLayout() {
 
 function SidebarLink({ to, currentPath, children, exact = false }) {
   const isActive = exact ? currentPath === to : currentPath.startsWith(to);
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    if (isActive) {
+      window.location.reload();
+    } else {
+      window.location.href = to;
+    }
+  };
+
   return (
     <Link 
       to={to} 
+      onClick={handleClick}
       style={{
         padding: '12px 20px',
         color: isActive ? '#fff' : '#aaa',

@@ -11,7 +11,7 @@ const styles = {
     border: '1px solid #333',
     borderRadius: '16px',
     boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)',
-    fontFamily: '"Inter", "Roboto", sans-serif',
+    fontFamily: '"Times New Roman", Times, serif',
     color: '#fff',
     backdropFilter: 'blur(8px)',
   },

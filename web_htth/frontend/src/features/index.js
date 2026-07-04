@@ -1,11 +1,13 @@
 import LandingPage from './landing/LandingPage';
 import ForumPage from './forum/ForumPage';
-import TopupPage from './topup/TopupPage';
 import AdminPanel from './admin/AdminPanel';
+import NewsList from './news/NewsList';
+import NewsDetail from './news/NewsDetail';
 
 export {
   LandingPage,
   ForumPage,
-  TopupPage,
-  AdminPanel
+  AdminPanel,
+  NewsList,
+  NewsDetail
 };

@@ -6,8 +6,8 @@ import '../styles/App.css';
 export default function MainLayout({ children }) {
   const location = useLocation();
 
-  const isLandingMode = location.pathname === '/';
-  const isForumMode = location.pathname === '/dien-dan' || location.pathname === '/nap-the';
+  const isLandingMode = location.pathname === '/' || location.pathname === '/dien-dan' || location.pathname.startsWith('/news');
+  const isForumMode = false;
 
   useEffect(() => {
     window.scrollTo(0, 0);

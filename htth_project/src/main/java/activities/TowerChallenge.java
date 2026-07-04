@@ -1,21 +1,30 @@
 package activities;
 
-import client.Player;
-import map.Map;
-import map.Mob;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import client.Player;
 import core.Service;
+import map.Map;
+import map.Mob;
 import map.Vgo;
 import template.GiftBox;
-import template.ItemTemplate7;
 import template.ItemTemplate4;
-import core.Util;
+import template.ItemTemplate7;
 
+//Vượt liên tầng (13 tầng)
 public class TowerChallenge extends Dungeon {
     public static final List<TowerChallenge> ACTIVE_CHALLENGES = new CopyOnWriteArrayList<>();
+    private static final ScheduledExecutorService TRANSITION_SCHEDULER = Executors.newScheduledThreadPool(2, r -> {
+        Thread t = new Thread(r, "TowerChallenge-Transition");
+        t.setDaemon(true);
+        return t;
+    });
 
     public List<Player> partyMembers = new ArrayList<>();
     public Player leader;
@@ -24,6 +33,8 @@ public class TowerChallenge extends Dungeon {
     public Map currentMap;
     public boolean active = false;
     public boolean finished = false;
+    public boolean isTransitioning = false;
+    public long transitionEndTime = 0;
     public java.util.Map<String, Integer> playerLastRewardedStage = new java.util.HashMap<>();
 
     public TowerChallenge(List<Player> members, Player leader) {
@@ -65,6 +76,8 @@ public class TowerChallenge extends Dungeon {
         }
 
         this.currentStageIndex = stageIndex;
+        this.isTransitioning = false;
+        this.transitionEndTime = 0;
         int mapId = 500 + stageIndex;
 
         // Clean up previous stage map
@@ -73,7 +86,13 @@ public class TowerChallenge extends Dungeon {
             Map.remove_map_plus(this.currentMap);
         }
 
-        Map mapTemplate = Map.get_map_by_id(mapId)[0];
+        Map[] templates = Map.get_map_by_id(mapId);
+        if (templates == null || templates.length == 0) {
+            System.out.println("[TowerChallenge] ERROR: Map template not found for id=" + mapId);
+            failDungeon("Lỗi: Không tìm thấy map " + mapId);
+            return;
+        }
+        Map mapTemplate = templates[0];
         Map mapDungeon = new Map();
         mapDungeon.template = mapTemplate.template;
         mapDungeon.zone_id = (byte) 0;
@@ -106,6 +125,8 @@ public class TowerChallenge extends Dungeon {
             }
         }
 
+        System.out.println("[TowerChallenge] Spawned " + this.mobs.size() + " monsters for Map ID: " + mapId);
+
         mapDungeon.start_map();
         mapDungeon.map_dungeon = this;
         mapDungeon.map_dungeon.checkG = new java.util.HashSet<>();
@@ -130,7 +151,7 @@ public class TowerChallenge extends Dungeon {
                 pOnline.dungeon = this;
                 try {
                     pOnline.goto_map(vgo);
-                    Service.send_time_cool_down(pOnline, this.stageEndTime, "Vượt Liên Ải Ải " + (stageIndex + 1), 2);
+                    Service.send_time_cool_down(pOnline, this.stageEndTime, "Vượt Liên Ải Tầng " + (stageIndex + 1), 2);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -141,10 +162,12 @@ public class TowerChallenge extends Dungeon {
     }
 
     public synchronized void update(Map map) throws IOException {
-        if (this.finished) return;
+        if (this.finished)
+            return;
 
         // 1. Timeout Check
         if (System.currentTimeMillis() > this.stageEndTime) {
+            System.out.println("[TowerChallenge] Floor timeout reached. Ending dungeon.");
             failDungeon("Hết thời gian vượt ải!");
             return;
         }
@@ -153,17 +176,27 @@ public class TowerChallenge extends Dungeon {
         boolean anyOnline = false;
         for (Player member : this.partyMembers) {
             Player pOnline = Map.get_player_by_name_allmap(member.name);
-            if (pOnline != null && pOnline.conn != null && pOnline.conn.connected && pOnline.map.equals(this.currentMap)) {
+            if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                    && pOnline.map.equals(this.currentMap)) {
                 anyOnline = true;
                 break;
             }
         }
         if (!anyOnline) {
+            System.out.println("[TowerChallenge] No active players in currentMap. Ending dungeon.");
             failDungeon("Tất cả người chơi đã rời khỏi phó bản.");
             return;
         }
 
-        // 3. Stage Mobs Check
+        // 3. Transition check
+        if (this.isTransitioning) {
+            if (System.currentTimeMillis() >= this.transitionEndTime) {
+                completeStage();
+            }
+            return;
+        }
+
+        // 4. Stage Mobs Check
         int aliveMobs = 0;
         for (Mob mob : this.mobs) {
             if (mob.map.equals(map) && !mob.isdie) {
@@ -171,13 +204,40 @@ public class TowerChallenge extends Dungeon {
             }
         }
 
-        if (aliveMobs == 0) {
-            completeStage();
+        // Add debug logs for map ID and remaining monster count
+        if (map.equals(this.currentMap)) {
+            System.out.println("[TowerChallenge] Current Map ID: " + (500 + this.currentStageIndex)
+                    + " | Remaining Mobs: " + aliveMobs);
+        }
+
+        if (aliveMobs == 0 && map.equals(this.currentMap)) {
+            System.out.println("[TowerChallenge] All monsters defeated on Map ID: " + (500 + this.currentStageIndex)
+                    + ". Waiting 2 seconds before transitioning.");
+            this.isTransitioning = true;
+            this.transitionEndTime = System.currentTimeMillis() + 2000L;
+
+            // Chủ động lên lịch chuyển tầng, không phụ thuộc vào lần update() kế tiếp
+            TRANSITION_SCHEDULER.schedule(() -> {
+                try {
+                    if (!this.finished && this.isTransitioning) {
+                        completeStage();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, 2000L, TimeUnit.MILLISECONDS);
         }
     }
 
     public synchronized void completeStage() {
+        if (!this.isTransitioning) {
+            return; // đã được xử lý bởi lời gọi khác rồi
+        }
+        this.isTransitioning = false;
+        this.transitionEndTime = 0;
+
         int nextStage = this.currentStageIndex + 1;
+        int nextMapId = 500 + nextStage;
 
         // 1. Distribute rewards to eligible party members
         for (Player member : this.partyMembers) {
@@ -193,38 +253,71 @@ public class TowerChallenge extends Dungeon {
 
         // 2. Teleport to next stage or complete
         if (nextStage >= 13) {
+            System.out
+                    .println("[TowerChallenge] All monsters defeated on final map (Map ID: 512). Completing dungeon.");
             completeDungeon();
         } else {
+            System.out.println("[TowerChallenge] Teleporting to next map. Destination map ID: " + nextMapId);
             createStage(nextStage);
         }
     }
 
     private void giveStageRewards(Player p, int stageIndex) {
         try {
-            // Beri x10,000
-            p.update_vang(10_000);
-            p.update_money();
+            List<GiftBox> list_gift = new ArrayList<>();
 
-            // Type 7 Items
-            p.item.add_item_bag47(7, 6, 1);  // Turtle Shell (ID 6)
-            p.item.add_item_bag47(7, 4, 10); // Yellow Powder (ID 4)
-            p.item.add_item_bag47(7, 3, 10); // Purple Powder (ID 3)
-            p.item.add_item_bag47(7, 2, 10); // Black Powder / Coal Powder (ID 2)
-            p.item.add_item_bag47(7, 1, 20); // Enhancement Powder (ID 1)
-            p.item.add_item_bag47(7, 5, 2);  // Lucky Star (ID 5)
+            // 1. Beri x10,000
+            ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
+            if (it_beri != null) {
+                GiftBox gb = new GiftBox();
+                gb.id = it_beri.id;
+                gb.type = 4;
+                gb.name = it_beri.name;
+                gb.icon = it_beri.icon;
+                gb.num = 10_000;
+                gb.color = 0;
+                list_gift.add(gb);
+            }
 
-            p.item.update_Inventory(4, true);
+            // 2. Type 7 Items
+            int[][] items7 = {
+                    { 6, 1 }, // Turtle Shell (ID 6), quant 1
+                    { 4, 10 }, // Yellow Powder (ID 4), quant 10
+                    { 3, 10 }, // Purple Powder (ID 3), quant 10
+                    { 2, 10 }, // Black Powder / Coal Powder (ID 2), quant 10
+                    { 1, 20 }, // Enhancement Powder (ID 1), quant 20
+                    { 5, 2 } // Lucky Star (ID 5), quant 2
+            };
 
-            Service.send_box_ThongBao_OK(p, "Bạn nhận được phần thưởng vượt ải " + (stageIndex + 1) + "!");
+            for (int[] item : items7) {
+                ItemTemplate7 it_temp7 = ItemTemplate7.get_it_by_id(item[0]);
+                if (it_temp7 != null) {
+                    GiftBox gb = new GiftBox();
+                    gb.id = it_temp7.id;
+                    gb.type = 7;
+                    gb.name = it_temp7.name;
+                    gb.icon = it_temp7.icon;
+                    gb.num = item[1];
+                    gb.color = 0;
+                    list_gift.add(gb);
+                }
+            }
+
+            if (!list_gift.isEmpty()) {
+                Service.send_gift(p, 1, "Vượt ải " + (stageIndex + 1), "Phần thưởng", list_gift, true);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public synchronized void completeDungeon() {
-        if (this.finished) return;
+        if (this.finished)
+            return;
         this.finished = true;
         this.active = false;
+
+        System.out.println("[TowerChallenge] Dungeon completed successfully!");
 
         for (Player member : this.partyMembers) {
             Player pOnline = Map.get_player_by_name_allmap(member.name);
@@ -242,9 +335,12 @@ public class TowerChallenge extends Dungeon {
     }
 
     public synchronized void failDungeon(String reason) {
-        if (this.finished) return;
+        if (this.finished)
+            return;
         this.finished = true;
         this.active = false;
+
+        System.out.println("[TowerChallenge] Dungeon failed! Reason: " + reason);
 
         for (Player member : this.partyMembers) {
             Player pOnline = Map.get_player_by_name_allmap(member.name);
@@ -277,6 +373,9 @@ public class TowerChallenge extends Dungeon {
                 targetY = 250;
             }
 
+            System.out.println("[TowerChallenge] Teleporting player " + p.name + " back to registered village/map ID: "
+                    + targetMapId);
+
             Map[] targetMaps = Map.get_map_by_id(targetMapId);
             if (targetMaps == null || targetMaps.length == 0 || targetMaps[0] == null) {
                 targetMapId = 1;
@@ -307,6 +406,7 @@ public class TowerChallenge extends Dungeon {
     }
 
     public synchronized void cleanup() {
+        System.out.println("[TowerChallenge] Performing dungeon cleanup.");
         if (this.currentMap != null) {
             this.currentMap.running = false;
             Map.remove_map_plus(this.currentMap);

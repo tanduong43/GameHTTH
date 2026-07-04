@@ -9,7 +9,7 @@ const styles = {
     gap: '24px',
     maxWidth: '1200px',
     margin: '0 auto',
-    fontFamily: '"Inter", "Roboto", sans-serif',
+    fontFamily: '"Times New Roman", Times, serif',
   },
   title: {
     color: '#ff3366',
