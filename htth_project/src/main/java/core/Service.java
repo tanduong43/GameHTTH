@@ -486,6 +486,9 @@ public class Service {
         if (temp == null && p.map.map_little_garden != null) {
             temp = p.map.get_mobs(id, 0);
         }
+        if (temp == null && p.map.map_bossHunt != null) {
+            temp = p.map.map_bossHunt.get_mob(p, id);
+        }
         if (temp != null && !temp.isdie && temp.map.equals(p.map)) {
             send_mob_info(p, temp);
         }

@@ -3091,6 +3091,20 @@ public class Map implements Runnable {
                 }
             }
         }
+        if (this.map_bossHunt != null && this.map_bossHunt.active) {
+            for (int i = 0; i < this.map_bossHunt.mobs.size(); i++) {
+                Mob mob = this.map_bossHunt.mobs.get(i);
+                if (mob != null && !mob.isdie && mob.map.equals(this)) {
+                    Message m_local = new Message(1);
+                    m_local.writer().writeByte(1);
+                    m_local.writer().writeShort(mob.index);
+                    m_local.writer().writeShort(mob.x);
+                    m_local.writer().writeShort(mob.y);
+                    p.conn.addmsg(m_local);
+                    m_local.cleanup();
+                }
+            }
+        }
         // boss
         boolean haveBoss = false;
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
@@ -3294,7 +3308,8 @@ public class Map implements Runnable {
         }
         return check || id == 64 || id == 984 || id == 1000 || id == 9998 || id == 9999 || id == 115
                 || id == 81 || id == 120 || id == 122 || id == 123 || id == 119 || id == 58
-                || Map.is_map_boss(id) || Map.is_map_dungeon(id);
+                || Map.is_map_boss(id) || Map.is_map_dungeon(id)
+                || activities.BossHunt.isBossHuntMap(id);
     }
 
     public static boolean is_map_sea(int id) {

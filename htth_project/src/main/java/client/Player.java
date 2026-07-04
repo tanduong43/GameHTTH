@@ -253,7 +253,13 @@ public class Player {
             js.clear();
             js = (JSONArray) JSONValue.parse(rs.getString("site"));
             //
-            Map[] map = Map.get_map_by_id(Integer.parseInt(js.get(0).toString()));
+            int savedMapId = Integer.parseInt(js.get(0).toString());
+            boolean wasBossHuntMap = activities.BossHunt.isBossHuntMap(savedMapId);
+            if (wasBossHuntMap) {
+                System.out.println("[BossHunt] Player " + this.name + " saved map was BossHunt map (" + savedMapId + "). Redirecting to map 1 (Village).");
+                savedMapId = 1;
+            }
+            Map[] map = Map.get_map_by_id(savedMapId);
             byte zone_id = Byte.parseByte(js.get(1).toString());
             int zone_goto = zone_id < map.length ? zone_id : 0;
             if (zone_goto != 0) {
@@ -263,17 +269,15 @@ public class Player {
                 }
             }
             this.map = map[zone_goto];
-            // Nếu map đã lưu là map BossHunt instance (đã kết thúc) -> về map 1
-            if (this.map.map_bossHunt != null) {
-                Map[] safeMap = Map.get_map_by_id(1);
-                if (safeMap != null && safeMap.length > 0) {
-                    this.map = safeMap[0];
-                }
-            }
             this.hp = Integer.parseInt(js.get(2).toString());
             this.mp = Integer.parseInt(js.get(3).toString());
-            x = Short.parseShort(js.get(4).toString());
-            y = Short.parseShort(js.get(5).toString());
+            if (wasBossHuntMap) {
+                x = 300;
+                y = 250;
+            } else {
+                x = Short.parseShort(js.get(4).toString());
+                y = Short.parseShort(js.get(5).toString());
+            }
             if (this.x < 0 || this.x > this.map.template.maxW || this.y < 0
                     || this.y > this.map.template.maxH) {
                 x = (short) (this.map.template.maxW / 2);

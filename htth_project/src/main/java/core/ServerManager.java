@@ -3,8 +3,10 @@ package core;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import io.Session;
 import io.SessionManager;
+
 /**
  *
  * @author Truongbk
@@ -34,7 +36,7 @@ public class ServerManager implements Runnable {
         this.running = true;
         this.mythread.start();
         SaveData.process();
-        
+
         // Register JVM Shutdown Hook to save all player and clan data on exit
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("SHUTDOWN: Saving database...");

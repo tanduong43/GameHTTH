@@ -790,6 +790,29 @@ public class MessageHandler {
                 return;
             }
             conn.p = p0;
+
+            // === Reconnect Boss Hunt check — PHẢI chạy TRƯỚC khi gửi bất kỳ data map nào
+            // ===
+            activities.BossHunt activeHunt = activities.BossHunt.findActiveHunt(conn.p.name);
+            if (activeHunt != null) {
+                // Cập nhật lại tham chiếu Player mới cho hunt (fix bug #3)
+                activeHunt.updateMemberReference(conn.p.name, conn.p);
+                conn.p.bossHunt = activeHunt;
+            }
+            // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về map 1
+            if (conn.p.map != null && conn.p.map.map_bossHunt != null) {
+                System.out.println("[BossHunt] Login safety: player " + conn.p.name
+                        + " still in BossHunt map, redirecting to map 1.");
+                map.Map[] villageMap = map.Map.get_map_by_id(1);
+                if (villageMap != null && villageMap.length > 0) {
+                    conn.p.map = villageMap[0];
+                    conn.p.x = 300;
+                    conn.p.y = 250;
+                }
+                conn.p.bossHunt = null;
+            }
+            // === hết khối check ===
+
             Message m = new Message(-7); // update clock
             m.writer().writeByte(17);
             m.writer().writeLong(System.currentTimeMillis());
@@ -802,7 +825,7 @@ public class MessageHandler {
             Service.update_PK(conn.p, conn.p, false);
             Service.getThanhTich(conn.p, conn.p);
             conn.p.item.send_maxbag_Inventory();
-            // send data map
+            // send data map — giờ luôn đúng map (đã redirect nếu cần)
             conn.p.map.goto_map(conn.p);
             //
             Service.update_PK(conn.p, conn.p, true);
@@ -873,28 +896,23 @@ public class MessageHandler {
                     "Chào mừng bạn đến với Hải Tặc Đại Chiến - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
             conn.p.list_msg_cache.add(m2);
 
-            // Reconnect Boss Hunt check
-            activities.BossHunt activeHunt = activities.BossHunt.findActiveHunt(conn.p.name);
-            // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về map 1
-            if (conn.p.map != null && conn.p.map.map_bossHunt != null) {
-                System.out.println("[BossHunt] Login safety: player " + conn.p.name
-                        + " still in BossHunt map, redirecting to map 1.");
-                map.Vgo vgo = new map.Vgo();
-                vgo.map_go = map.Map.get_map_by_id(1);
-                vgo.xnew = 300;
-                vgo.ynew = 250;
-                conn.p.goto_map(vgo);
-                conn.p.bossHunt = null;
-            }
-            if (activeHunt != null && activeHunt.active) {
-                System.out.println("[BossHunt] Player " + conn.p.name
-                        + " reconnected. Active hunt found at floor "
-                        + (activeHunt.currentFloor + 1) + ". Showing rejoin dialog.");
-                Service.send_box_yesno(conn.p, 999, "Săn Trùm",
-                        "Trận Săn Trùm của bạn vẫn đang diễn ra (Tầng "
-                                + (activeHunt.currentFloor + 1)
-                                + "). Bạn có muốn quay lại không?",
-                        new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+            // === Rejoin dialog — đợi người dùng vào game hoàn toàn và sau 2 giây mới gửi thông báo ===
+            if (activeHunt != null && (activeHunt.active || activeHunt.waitingForReady)) {
+                final Player player = conn.p;
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(2000);
+                        if (player != null && player.conn != null && player.conn.connected) {
+                            System.out.println("[BossHunt] Player " + player.name
+                                    + " logged in. Active/Waiting hunt found. Showing rejoin dialog after 2s delay.");
+                            Service.send_box_yesno(player, 999, "Săn Trùm",
+                                    "Bạn đang có trận Săn Boss chưa hoàn thành. Bạn có muốn quay lại không?",
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[BossHunt] Error in delayed rejoin dialog thread: " + e.getMessage());
+                    }
+                }).start();
             }
         }
     }

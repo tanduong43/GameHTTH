@@ -3,8 +3,9 @@ package io;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import client.Player;
+
 import core.Manager;
+
 /**
  *
  * @author Truongbk
@@ -27,30 +28,31 @@ public class SessionManager {
             ss.connected = false;
             try {
                 if (ss.p != null && ss.p.map != null) {
-                    // BossHunt: nếu player đang trong map BossHunt, chuyển vị trí lưu về map 1
-                    // để khi login lại không bị spawn vào map BossHunt đã hết
+                    map.Map originalMap = ss.p.map;
+
                     if (ss.p.map.map_bossHunt != null && ss.p.bossHunt != null) {
                         System.out.println("[BossHunt] Player " + ss.p.name
-                            + " disconnected from BossHunt floor "
-                            + (ss.p.bossHunt.currentFloor + 1)
-                            + ". Saving position at village (map 1).");
+                                + " disconnected from BossHunt floor "
+                                + (ss.p.bossHunt.currentFloor + 1)
+                                + ". Saving position at village (map 1).");
                         map.Map[] villageMap = map.Map.get_map_by_id(1);
                         if (villageMap != null && villageMap.length > 0) {
                             ss.p.map = villageMap[0];
                             ss.p.x = 300;
                             ss.p.y = 250;
                         }
+                        // Không cancel cả room — chỉ giữ player trong hunt để họ
+                        // được hỏi "rejoin?" ở lần login sau (xem MessageHandler)
                     }
-                    ss.p.map.leave_map(ss.p, 0);
+
+                    originalMap.leave_map(ss.p, 0); // chỉ gọi 1 lần, đúng map gốc
                     if (ss.p.ship_pet != null && ss.p.ship_pet.map == null) {
                         ss.p.ship_pet.map = ss.p.map;
                     }
                     client.Player.flush(ss.p, true);
                 }
-                //
                 ss.clear_network(ss);
                 ss.update_onl(0);
-                //
             } catch (Exception e) {
             }
             SessionManager.CLIENT_ENTRYS.remove(ss);

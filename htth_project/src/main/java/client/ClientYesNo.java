@@ -26,11 +26,13 @@ public class ClientYesNo {
         if (id == 999) {
             BossHunt hunt = BossHunt.findActiveHunt(p.name);
             if (value == 0) { // Đồng ý - vào lại trận
+                System.out.println("[BossHunt] Player " + p.name + " accepted to rejoin the Boss Hunt.");
                 if (hunt != null && hunt.active && !hunt.maps.isEmpty()) {
                     hunt.updateMemberReference(p.name, p);
                     p.bossHunt = hunt;
                     map.Map targetMap = hunt.maps.get(hunt.currentFloor);
                     if (targetMap != null) {
+                        System.out.println("[BossHunt] Rejoining player " + p.name + " to floor " + (hunt.currentFloor + 1) + " (map " + targetMap.template.id + ").");
                         Vgo vgo = new Vgo();
                         vgo.map_go = new map.Map[] { targetMap };
                         vgo.xnew = 300;
@@ -45,18 +47,22 @@ public class ClientYesNo {
                         }
                         Service.send_box_ThongBao_OK(p, "Bạn đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
                     } else {
+                        System.out.println("[BossHunt] Rejoin failed for player " + p.name + ": map for floor " + (hunt.currentFloor + 1) + " not found.");
                         p.bossHunt = null;
                         Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
                     }
                 } else if (hunt != null && hunt.waitingForReady) {
+                    System.out.println("[BossHunt] Rejoining player " + p.name + " to waiting lobby.");
                     hunt.updateMemberReference(p.name, p);
                     p.bossHunt = hunt;
                     Service.send_box_ThongBao_OK(p, "Bạn đã quay lại phòng chờ Săn Trùm!");
                 } else {
+                    System.out.println("[BossHunt] Rejoin failed for player " + p.name + ": room no longer exists or finished.");
                     p.bossHunt = null;
                     Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
                 }
             } else { // Hủy - rời khỏi hunt, ở lại map 1
+                System.out.println("[BossHunt] Player " + p.name + " declined to rejoin the Boss Hunt. Clearing active references.");
                 if (hunt != null) {
                     hunt.removeMemberByName(p.name);
                 }

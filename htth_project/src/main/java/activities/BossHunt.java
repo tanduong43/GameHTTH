@@ -33,6 +33,15 @@ public class BossHunt {
         return null;
     }
 
+    public static boolean isBossHuntMap(int mapId) {
+        for (int id : BOSS_MAPS) {
+            if (id == mapId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public List<map.Map> maps = new ArrayList<>();
     public List<Mob> mobs = new ArrayList<>();
     public List<Player> members = new ArrayList<>();
