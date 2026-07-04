@@ -137,7 +137,18 @@ public class BossHunt {
             cancelRoom("Không đủ 2 người chơi để bắt đầu Săn Trùm.");
             return;
         }
-        System.out.println("[BossHunt] Starting hunt with " + members.size() + " members.");
+        for (Player member : members) {
+            if (member.get_key_boss() < 2) {
+                cancelRoom("Thành viên " + member.name + " không đủ 2 chìa khóa phó bản để bắt đầu.");
+                return;
+            }
+        }
+        for (Player member : members) {
+            member.update_key_boss(-2);
+            Service.CountDown_Ticket(member);
+        }
+
+        System.out.println("[BossHunt] Starting hunt with " + members.size() + " members. 2 keys deducted from all members.");
         this.waitingForReady = false;
         this.active = true;
         this.currentFloor = 0;

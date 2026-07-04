@@ -22,7 +22,7 @@ public class Map implements Runnable {
     public static byte weather_level = 1;
     public MapTemplate template;
     public Map_ThuThachVeThan map_ThuThachVeThan;
-    private boolean running;
+    public boolean running;
     public Thread mythread;
     public List<Player> players = new ArrayList<>();
     public int[] list_mob;
@@ -47,12 +47,18 @@ public class Map implements Runnable {
     }
 
     public static boolean is_map_dungeon(int id) {
-        return id >= 167 && id <= 176;
+        return (id >= 167 && id <= 176) || (id >= 500 && id <= 512);
     }
 
     public static void add_map_plus(Map map_boss) {
         synchronized (Map.MAP_PLUS) {
             Map.MAP_PLUS.add(map_boss);
+        }
+    }
+
+    public static void remove_map_plus(Map map_boss) {
+        synchronized (Map.MAP_PLUS) {
+            Map.MAP_PLUS.remove(map_boss);
         }
     }
 
@@ -125,6 +131,14 @@ public class Map implements Runnable {
         }
         // Chỉ map có boss của tầng hiện tại mới xử lý
         if (hunt.maps.isEmpty() || !hunt.maps.get(hunt.currentFloor).equals(this)) {
+            return;
+        }
+        // Kiểm tra hết giờ (2 phút)
+        if (hunt.floorTime > 0 && System.currentTimeMillis() >= hunt.floorTime) {
+            System.out.println("[BossHunt] Floor " + (hunt.currentFloor + 1)
+                + " timed out! Returning players to registered village mapId=" + hunt.registeredMapId);
+            this.map_bossHunt = null;
+            hunt.returnAllToVillage("Đã hết thời gian khiêu chiến Boss!", hunt.registeredMapId);
             return;
         }
         // Kiểm tra nếu boss trên map này đã chết hết
@@ -682,6 +696,10 @@ public class Map implements Runnable {
             boolean ok_out_map = false;
             if (players.size() > 0) {
                 Player p0 = players.get(0);
+                if (p0.dungeon instanceof activities.TowerChallenge) {
+                    ((activities.TowerChallenge) p0.dungeon).update(this);
+                    return;
+                }
                 int num_mob = 0;
                 for (int i = 0; i < p0.dungeon.mobs.size(); i++) {
                     if (p0.dungeon.mobs.get(i).map.equals(this)) {
@@ -689,8 +707,8 @@ public class Map implements Runnable {
                     }
                 }
                 if (num_mob == 0 && p0.dungeon.time > System.currentTimeMillis()) {
-                    if (this.template.id == 175) {
-                        p0.dungeon.time = System.currentTimeMillis() + 10_000L;
+                    if (this.template.id == 176) {
+                        p0.dungeon.time = System.currentTimeMillis() + 5_000L;
                         Service.send_time_cool_down(p0, p0.dungeon.time, "Thời gian", 2);
                     }
                     if (!this.map_dungeon.checkG.contains(this.template.id)) {
@@ -778,6 +796,34 @@ public class Map implements Runnable {
                                 gb_.color = 0;
                                 list_gift.add(gb_);
                             }
+                        }
+                        // Thêm phần quà Đá Hải Thạch ngẫu nhiên (từ cấp 1 đến 6, cấp 5 và 6 tỉ lệ 2%)
+                        int stoneRoll = Util.random(100);
+                        int stoneId = 221; // Mặc định cấp 1
+                        if (stoneRoll < 1) { // 1% cho cấp 6 (Đá Hải Thạch cấp 6 - ID 226)
+                            stoneId = 226;
+                        } else if (stoneRoll < 2) { // 1% cho cấp 5 (Đá Hải Thạch cấp 5 - ID 225)
+                            stoneId = 225;
+                        } else if (stoneRoll < 8) { // 6% cho cấp 4
+                            stoneId = 224;
+                        } else if (stoneRoll < 25) { // 17% cho cấp 3
+                            stoneId = 223;
+                        } else if (stoneRoll < 55) { // 30% cho cấp 2
+                            stoneId = 222;
+                        } else { // 45% cho cấp 1
+                            stoneId = 221;
+                        }
+
+                        ItemTemplate4 it_haithach = ItemTemplate4.get_it_by_id(stoneId);
+                        if (it_haithach != null) {
+                            GiftBox gb_haithach = new GiftBox();
+                            gb_haithach.id = (short) stoneId;
+                            gb_haithach.type = 4;
+                            gb_haithach.name = it_haithach.name;
+                            gb_haithach.icon = it_haithach.icon;
+                            gb_haithach.num = 1;
+                            gb_haithach.color = 0;
+                            list_gift.add(gb_haithach);
                         }
                         Service.send_gift(p0, 1, "Ải đơn cấp độ " + (mode_dungeon + 3),
                                 "Phần thưởng", list_gift, true);
@@ -2724,6 +2770,21 @@ public class Map implements Runnable {
                             }
                             if (gift1.name != null) {
                                 list_gift.add(gift1);
+                            }
+                        }
+                        // Thêm Kỹ năng đơn (tỉ lệ 5%)
+                        if (Util.random(100) < 5) {
+                            ItemTemplate4 it_kndon = ItemTemplate4.get_it_by_id(414);
+                            if (it_kndon != null) {
+                                GiftBox giftKnd = new GiftBox();
+                                giftKnd.id = 414;
+                                giftKnd.type = 4;
+                                giftKnd.name = it_kndon.name;
+                                giftKnd.icon = it_kndon.icon;
+                                giftKnd.num = 1;
+                                giftKnd.color = 0;
+                                list_gift.add(giftKnd);
+                                notice += "x1 " + it_kndon.name + ", ";
                             }
                         }
 

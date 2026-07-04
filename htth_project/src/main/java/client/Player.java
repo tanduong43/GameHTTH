@@ -71,6 +71,9 @@ public class Player {
     public Dungeon dungeon;
     public activities.BossHunt bossHunt;
     public int win_dungeon_1 = 0;
+    public int originalMapId = -1;
+    public short originalX = -1;
+    public short originalY = -1;
     public Player pvp_target;
     public boolean pvp_accept;
     public int pvp_win;
@@ -259,7 +262,23 @@ public class Player {
                 System.out.println("[BossHunt] Player " + this.name + " saved map was BossHunt map (" + savedMapId + "). Redirecting to map 1 (Village).");
                 savedMapId = 1;
             }
-            Map[] map = Map.get_map_by_id(savedMapId);
+            boolean wasTowerMap = (savedMapId >= 500 && savedMapId <= 512);
+            Map[] map = null;
+            if (wasTowerMap) {
+                activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(this.name);
+                if (activeChallenge != null) {
+                    savedMapId = activeChallenge.currentMap.template.id;
+                    map = new Map[] { activeChallenge.currentMap };
+                } else {
+                    System.out.println("[TowerChallenge] Player " + this.name + " saved map was Tower map (" + savedMapId + ") but no active challenge. Redirecting to map 1 (Village).");
+                    savedMapId = 1;
+                    map = Map.get_map_by_id(1);
+                    x = 300;
+                    y = 250;
+                }
+            } else {
+                map = Map.get_map_by_id(savedMapId);
+            }
             byte zone_id = Byte.parseByte(js.get(1).toString());
             int zone_goto = zone_id < map.length ? zone_id : 0;
             if (zone_goto != 0) {
@@ -1015,7 +1034,7 @@ public class Player {
             }
         }
         if ( map_go[0].template.id !=119 && map_go[0].template.id!=120 &&map_go[0].template.id!=122 && map_go[0].template.id!=123 && map_go[0].template.id!=54 && map_go[0].template.id!=58 && map_go[0].template.id!= 59 && map_go[0].template.id!=123 && map_go[0].template.id!=984 && map_go[0].template.id!=1000
-                && map_go[0].template.id!=127&& map_go[0].template.id!=167&& map_go[0].template.id!=168&& map_go[0].template.id!=169&& map_go[0].template.id!=170&& map_go[0].template.id!=171&& map_go[0].template.id!=172&& map_go[0].template.id!=173&& map_go[0].template.id!=174&& map_go[0].template.id!=175&& map_go[0].template.id!=176&& map_go[0].template.id > idMap ) {
+                && map_go[0].template.id!=127&& !Map.is_map_dungeon(map_go[0].template.id) && map_go[0].template.id > idMap ) {
             Service.send_box_ThongBao_OK(this,
                     "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
             return;
@@ -1029,52 +1048,62 @@ public class Player {
                     break;
                 }
             }
-            switch (map_go[0].template.id) {
-                case 168: {
-                    vgo.xnew = 1490;
-                    vgo.ynew = 260;
-                    break;
+            if (id_map >= 500 && id_map <= 512) {
+                vgo.xnew = 350;
+                vgo.ynew = 260;
+            } else {
+                switch (map_go[0].template.id) {
+                    case 168: {
+                        vgo.xnew = 1490;
+                        vgo.ynew = 260;
+                        break;
+                    }
+                    case 169: {
+                        vgo.xnew = 760;
+                        vgo.ynew = 240;
+                        break;
+                    }
+                    case 170: {
+                        vgo.xnew = 100;
+                        vgo.ynew = 245;
+                        break;
+                    }
+                    case 171: {
+                        vgo.xnew = 675;
+                        vgo.ynew = 270;
+                        break;
+                    }
+                    case 172: {
+                        vgo.xnew = 113;
+                        vgo.ynew = 240;
+                        break;
+                    }
+                    case 173: {
+                        vgo.xnew = 135;
+                        vgo.ynew = 255;
+                        break;
+                    }
+                    case 174: {
+                        vgo.xnew = 121;
+                        vgo.ynew = 225;
+                        break;
+                    }
+                    case 175: {
+                        vgo.xnew = 156;
+                        vgo.ynew = 255;
+                        break;
+                    }
+                    case 176: {
+                        vgo.xnew = 190;
+                        vgo.ynew = 245;
+                        break;
+                    }
                 }
-                case 169: {
-                    vgo.xnew = 760;
-                    vgo.ynew = 240;
-                    break;
-                }
-                case 170: {
-                    vgo.xnew = 100;
-                    vgo.ynew = 245;
-                    break;
-                }
-                case 171: {
-                    vgo.xnew = 675;
-                    vgo.ynew = 270;
-                    break;
-                }
-                case 172: {
-                    vgo.xnew = 113;
-                    vgo.ynew = 240;
-                    break;
-                }
-                case 173: {
-                    vgo.xnew = 135;
-                    vgo.ynew = 255;
-                    break;
-                }
-                case 174: {
-                    vgo.xnew = 121;
-                    vgo.ynew = 225;
-                    break;
-                }
-                case 175: {
-                    vgo.xnew = 156;
-                    vgo.ynew = 255;
-                    break;
-                }
-                case 176: {
-                    vgo.xnew = 190;
-                    vgo.ynew = 245;
-                    break;
-                }
+            }
+        } else {
+            if (this.dungeon instanceof activities.TowerChallenge) {
+                Service.send_time_cool_down(this, 0, "", 0);
+                this.dungeon = null;
             }
         }
         //
@@ -1138,9 +1167,7 @@ public class Player {
                 if (MapCanGoTo.idQuest[i] <= quest_select.template.id) {
                     if (mapId != 119 && mapId != 120 && mapId != 122 && mapId != 123 
                             && mapId != 54 && mapId != 58 && mapId != 59 && mapId != 984 && mapId != 1000
-                            && mapId != 127 && mapId != 167 && mapId != 168 && mapId != 169 
-                            && mapId != 170 && mapId != 171 && mapId != 172 && mapId != 173 
-                            && mapId != 174 && mapId != 175 && mapId != 176 
+                            && mapId != 127 && !Map.is_map_dungeon(mapId) 
                             && MapCanGoTo.idMap[i] < mapId) {
                         return false;
                     }
@@ -1166,7 +1193,7 @@ public class Player {
             for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
                 if (MapCanGoTo.idQuest[i] <= quest_select.template.id) {
                     if ( map_go[0].template.id !=119 && map_go[0].template.id!=120 &&map_go[0].template.id!=122 && map_go[0].template.id!=123 && map_go[0].template.id!=54 && map_go[0].template.id!=58 && map_go[0].template.id!= 59 && map_go[0].template.id!=123 && map_go[0].template.id!=984 && map_go[0].template.id!=1000
-                && map_go[0].template.id!=127&& map_go[0].template.id!=167&& map_go[0].template.id!=168&& map_go[0].template.id!=169&& map_go[0].template.id!=170&& map_go[0].template.id!=171&& map_go[0].template.id!=172&& map_go[0].template.id!=173&& map_go[0].template.id!=174&& map_go[0].template.id!=175&& map_go[0].template.id!=176 && MapCanGoTo.idMap[i] < map_go[0].template.id) {
+                && map_go[0].template.id!=127&& !Map.is_map_dungeon(map_go[0].template.id) && MapCanGoTo.idMap[i] < map_go[0].template.id) {
                         Service.send_box_ThongBao_OK(this,
                                 "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
                         return;

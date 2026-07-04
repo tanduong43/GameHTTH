@@ -289,6 +289,10 @@ public class MenuController {
         case -126:
         case -125:
         case -123: {
+          if (p.dungeon != null || Map.is_map_dungeon(p.map.template.id)) {
+              Service.send_box_yesno(p, 994, "Thông báo", "Bạn có muốn rời khỏi phó bản đơn và quay về Làng Sirup không?", new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+              break;
+          }
           Show_List_Map_Tele(p, 0, -124);
           break;
         }
@@ -834,10 +838,6 @@ public class MenuController {
         }
         case 988: {
           if (index >= 0 && index <= 12 && p.dungeon == null) {
-            if (index > 0 && p.win_dungeon_1 == 0) {
-              Service.send_box_ThongBao_OK(p, "Bạn cần phải vượt qua ải đơn cấp độ 3 trước!");
-              break;
-            }
             int save = index;
             p.data_yesno = new int[] { save };
             if (save < 7) {
@@ -1705,6 +1705,17 @@ public class MenuController {
         }
         if (!p.party.list.get(0).name.equals(p.name)) {
           Service.send_box_ThongBao_OK(p, "Chỉ trưởng nhóm mới có quyền bắt đầu Săn Trùm");
+          break;
+        }
+        boolean hasEnoughKeys = true;
+        for (Player member : p.party.list) {
+          if (member.get_key_boss() < 2) {
+            Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 2 chìa khóa phó bản!");
+            hasEnoughKeys = false;
+            break;
+          }
+        }
+        if (!hasEnoughKeys) {
           break;
         }
         BossHunt hunt = new BossHunt();

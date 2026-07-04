@@ -3,7 +3,18 @@ package client;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import activities.*;
+
+import activities.BossHunt;
+import activities.ChuyenHoa;
+import activities.Dungeon;
+import activities.HanhTrinh;
+import activities.Learn_Skill;
+import activities.LittleGarden;
+import activities.Market;
+import activities.Max_Level;
+import activities.Rebuild_Item;
+import activities.Ship;
+import activities.UpgradeItem;
 import core.Service;
 import core.Util;
 import io.Message;
@@ -12,7 +23,23 @@ import map.MapCanGoTo;
 import map.Mob;
 import map.Npc;
 import map.Vgo;
-import template.*;
+import template.Clan_member;
+import template.DataTemplate;
+import template.ItemBag47;
+import template.ItemMarket;
+import template.ItemTemplate3;
+import template.ItemTemplate4;
+import template.ItemTemplate4_Info;
+import template.ItemTemplate7;
+import template.Item_wear;
+import template.Map_ThuThachVeThan;
+import template.Option;
+import template.PotionMarket;
+import template.QuestP;
+import template.Ship_pet;
+import template.Skill_Template;
+import template.Skill_info;
+
 /**
  *
  * @author Truongbk
@@ -23,6 +50,23 @@ public class ClientYesNo {
         byte value = m2.reader().readByte();
         // System.out.println("id " + id);
         // System.out.println("value " + value);
+        if (id == 994) {
+            if (value == 0) { // Đồng ý rời phó bản đơn
+                if (p.dungeon != null) {
+                    p.dungeon.mobs.clear();
+                    for (int i = 0; i < p.dungeon.maps.size(); i++) {
+                        p.dungeon.maps.get(i).stop_map();
+                    }
+                    p.dungeon = null;
+                }
+                Vgo vgo = new Vgo();
+                vgo.map_go = map.Map.get_map_by_id(25);
+                vgo.xnew = 390;
+                vgo.ynew = 240;
+                p.goto_map(vgo);
+            }
+            return;
+        }
         if (id == 999) {
             BossHunt hunt = BossHunt.findActiveHunt(p.name);
             if (value == 0) { // Đồng ý - vào lại trận
@@ -32,7 +76,8 @@ public class ClientYesNo {
                     p.bossHunt = hunt;
                     map.Map targetMap = hunt.maps.get(hunt.currentFloor);
                     if (targetMap != null) {
-                        System.out.println("[BossHunt] Rejoining player " + p.name + " to floor " + (hunt.currentFloor + 1) + " (map " + targetMap.template.id + ").");
+                        System.out.println("[BossHunt] Rejoining player " + p.name + " to floor "
+                                + (hunt.currentFloor + 1) + " (map " + targetMap.template.id + ").");
                         Vgo vgo = new Vgo();
                         vgo.map_go = new map.Map[] { targetMap };
                         vgo.xnew = 300;
@@ -42,12 +87,14 @@ public class ClientYesNo {
                         for (Player member : hunt.members) {
                             if (member.conn != null && !member.name.equals(p.name)) {
                                 Service.send_box_ThongBao_OK(member,
-                                    p.name + " đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
+                                        p.name + " đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
                             }
                         }
-                        Service.send_box_ThongBao_OK(p, "Bạn đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
+                        Service.send_box_ThongBao_OK(p,
+                                "Bạn đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
                     } else {
-                        System.out.println("[BossHunt] Rejoin failed for player " + p.name + ": map for floor " + (hunt.currentFloor + 1) + " not found.");
+                        System.out.println("[BossHunt] Rejoin failed for player " + p.name + ": map for floor "
+                                + (hunt.currentFloor + 1) + " not found.");
                         p.bossHunt = null;
                         Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
                     }
@@ -57,12 +104,14 @@ public class ClientYesNo {
                     p.bossHunt = hunt;
                     Service.send_box_ThongBao_OK(p, "Bạn đã quay lại phòng chờ Săn Trùm!");
                 } else {
-                    System.out.println("[BossHunt] Rejoin failed for player " + p.name + ": room no longer exists or finished.");
+                    System.out.println(
+                            "[BossHunt] Rejoin failed for player " + p.name + ": room no longer exists or finished.");
                     p.bossHunt = null;
                     Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
                 }
             } else { // Hủy - rời khỏi hunt, ở lại map 1
-                System.out.println("[BossHunt] Player " + p.name + " declined to rejoin the Boss Hunt. Clearing active references.");
+                System.out.println("[BossHunt] Player " + p.name
+                        + " declined to rejoin the Boss Hunt. Clearing active references.");
                 if (hunt != null) {
                     hunt.removeMemberByName(p.name);
                 }
@@ -148,23 +197,23 @@ public class ClientYesNo {
             switch (id) {
                 case 61: {
                     if (p.data_yesno != null && p.data_yesno.length == 1) {
-                        int coin = p.data_yesno[0] /5000;
+                        int coin = p.data_yesno[0] / 5000;
                         if (p.conn.coin < coin) {
                             Service.send_box_ThongBao_OK(p,
                                     "Bạn không đủ " + Util.number_format(coin) + " coin");
                             p.data_yesno = null;
                             p.map_tele = null;
-                           
+
                             return;
                         }
                         if (p.update_coin(-coin)) {
                             p.update_vang(p.data_yesno[0]);
                             p.update_money();
                             Service.send_box_ThongBao_OK(p,
-                                "Bạn đã đổi thành công " + Util.number_format(coin) + " coin ra "
-                                        + Util.number_format(p.data_yesno[0]) + " Beri.");
+                                    "Bạn đã đổi thành công " + Util.number_format(coin) + " coin ra "
+                                            + Util.number_format(p.data_yesno[0]) + " Beri.");
                         }
-                        
+
                     }
                     break;
                 }
@@ -176,17 +225,17 @@ public class ClientYesNo {
                                     "Bạn không đủ " + Util.number_format(coin) + " coin");
                             p.data_yesno = null;
                             p.map_tele = null;
-                           
+
                             return;
                         }
                         if (p.update_coin(-coin)) {
                             p.update_ngoc(p.data_yesno[0]);
                             p.update_money();
                             Service.send_box_ThongBao_OK(p,
-                                "Bạn đã đổi thành công " + Util.number_format(coin) + " coin ra "
-                                        + Util.number_format(p.data_yesno[0]) + " Ruby.");
+                                    "Bạn đã đổi thành công " + Util.number_format(coin) + " coin ra "
+                                            + Util.number_format(p.data_yesno[0]) + " Ruby.");
                         }
-                        
+
                     }
                     break;
                 }
@@ -221,12 +270,11 @@ public class ClientYesNo {
                                 m.writer().writeByte(0);
                                 m.writer().writeShort(HanhTrinh.get_map(p));
                                 m.writer().writeUTF(p.map.template.name);
-                                List<ItemBag47> list_DaHanhTrinh =
-                                        p.get_list_daHanhTrinh_total(p.map.template.id);
+                                List<ItemBag47> list_DaHanhTrinh = p.get_list_daHanhTrinh_total(p.map.template.id);
                                 m.writer().writeByte(list_DaHanhTrinh.size());
                                 for (int i = 0; i < list_DaHanhTrinh.size(); i++) {
-                                    ItemTemplate4 itemTemplate4_ =
-                                            ItemTemplate4.get_it_by_id(list_DaHanhTrinh.get(i).id);
+                                    ItemTemplate4 itemTemplate4_ = ItemTemplate4
+                                            .get_it_by_id(list_DaHanhTrinh.get(i).id);
                                     m.writer().writeUTF(itemTemplate4_.name);
                                     m.writer().writeByte(4);
                                     m.writer().writeShort(itemTemplate4_.id);
@@ -379,8 +427,7 @@ public class ClientYesNo {
                         map_boss.zone_id = (byte) 0;
                         map_boss.list_mob = new int[0];
                         map_boss.map_ThuThachVeThan = new Map_ThuThachVeThan();
-                        map_boss.map_ThuThachVeThan.time_state =
-                                System.currentTimeMillis() + 10_000L;
+                        map_boss.map_ThuThachVeThan.time_state = System.currentTimeMillis() + 10_000L;
                         //
                         listP.forEach(p0 -> {
                             try {
@@ -457,20 +504,75 @@ public class ClientYesNo {
                 }
                 case 52: {
                     if (p.data_yesno != null && p.data_yesno.length == 1) {
-                        if (p.party != null) {
-                            Service.send_box_ThongBao_OK(p, "Hãy hủy nhóm trước khi vào phó bản");
-                            p.data_yesno = null;
-                            p.map_tele = null;
-                            return;
-                        }
                         byte mode = (byte) p.data_yesno[0];
-                        if (mode > 0 && p.win_dungeon_1 == 0) {
-                            Service.send_box_ThongBao_OK(p, "Bạn cần phải vượt qua ải đơn cấp độ 3 trước!");
-                            p.data_yesno = null;
-                            p.map_tele = null;
-                            return;
-                        }
-                        if (mode < 7) {
+                        if (mode == 7) {
+                            // Tower Challenge (Vượt Liên Ải)
+                            if (p.party == null) {
+                                Service.send_box_ThongBao_OK(p, "Bạn cần tạo nhóm trước khi tham gia Vượt Liên Ải");
+                                p.data_yesno = null;
+                                p.map_tele = null;
+                                return;
+                            }
+                            if (!p.party.list.get(0).name.equals(p.name)) {
+                                Service.send_box_ThongBao_OK(p, "Chỉ trưởng nhóm mới có quyền bắt đầu Vượt Liên Ải");
+                                p.data_yesno = null;
+                                p.map_tele = null;
+                                return;
+                            }
+                            // Validate all members
+                            for (int i = 0; i < p.party.list.size(); i++) {
+                                Player memInList = p.party.list.get(i);
+                                Player member = Map.get_player_by_name_allmap(memInList.name);
+                                if (member == null || member.conn == null || !member.conn.connected) {
+                                    Service.send_box_ThongBao_OK(p, "Thành viên " + memInList.name + " hiện đang offline!");
+                                    p.data_yesno = null;
+                                    p.map_tele = null;
+                                    return;
+                                }
+                                if (member.map == null || !member.map.equals(p.map)) {
+                                    Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
+                                    p.data_yesno = null;
+                                    p.map_tele = null;
+                                    return;
+                                }
+                                if (member.get_key_boss() < 2) {
+                                    Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 2 chìa khóa!");
+                                    p.data_yesno = null;
+                                    p.map_tele = null;
+                                    return;
+                                }
+                                if (member.dungeon != null) {
+                                    Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đang trong một phó bản khác!");
+                                    p.data_yesno = null;
+                                    p.map_tele = null;
+                                    return;
+                                }
+                            }
+                            
+                            // Success: deduct keys and save coordinates
+                            List<Player> onlineMembers = new ArrayList<>();
+                            for (int i = 0; i < p.party.list.size(); i++) {
+                                Player memInList = p.party.list.get(i);
+                                Player member = Map.get_player_by_name_allmap(memInList.name);
+                                if (member != null) {
+                                    member.update_key_boss(-2);
+                                    member.update_money();
+                                    member.originalMapId = member.map.template.id;
+                                    member.originalX = member.x;
+                                    member.originalY = member.y;
+                                    onlineMembers.add(member);
+                                }
+                            }
+                            
+                            activities.TowerChallenge tower = new activities.TowerChallenge(onlineMembers, p);
+                            tower.createStage(0);
+                        } else {
+                            if (p.party != null) {
+                                Service.send_box_ThongBao_OK(p, "Hãy hủy nhóm trước khi vào phó bản");
+                                p.data_yesno = null;
+                                p.map_tele = null;
+                                return;
+                            }
                             if (p.get_key_boss() < 1) {
                                 Service.send_box_ThongBao_OK(p, "Không đủ 1 chìa khóa phó bản");
                                 p.data_yesno = null;
@@ -478,28 +580,19 @@ public class ClientYesNo {
                                 return;
                             }
                             p.update_key_boss(-1);
-                        } else {
-                            if (p.get_key_boss() < 2) {
-                                Service.send_box_ThongBao_OK(p, "Không đủ 2 chìa khóa phó bản");
-                                p.data_yesno = null;
-                                p.map_tele = null;
-                                return;
-                            }
-                            p.update_key_boss(-2);
+                            p.update_money();
+                            Service.CountDown_Ticket(p);
+                            
+                            p.dungeon = new Dungeon();
+                            p.dungeon.mode = mode;
+                            p.dungeon.create();
+                            Vgo vgo = new Vgo();
+                            vgo.map_go = new Map[1];
+                            vgo.map_go[0] = p.dungeon.maps.get(0);
+                            vgo.xnew = 350;
+                            vgo.ynew = 260;
+                            p.goto_map(vgo);
                         }
-                        //
-                        p.update_money();
-                        Service.CountDown_Ticket(p);
-                        //
-                        p.dungeon = new Dungeon();
-                        p.dungeon.mode = mode;
-                        p.dungeon.create();
-                        Vgo vgo = new Vgo();
-                        vgo.map_go = new Map[1];
-                        vgo.map_go[0] = p.dungeon.maps.get(0);
-                        vgo.xnew = 350;
-                        vgo.ynew = 260;
-                        p.goto_map(vgo);
                     }
                     break;
                 }
@@ -749,12 +842,10 @@ public class ClientYesNo {
                             if (questP == null) {
                                 clan_mem.numquest++;
                                 questP = new QuestP();
-                                questP.template =
-                                        Quest.get_quest(-3000 + ((clan_mem.numquest - 1) * 2));
+                                questP.template = Quest.get_quest(-3000 + ((clan_mem.numquest - 1) * 2));
                                 questP.data = new short[questP.template.data_quest.length][];
                                 for (int i = 0; i < questP.data.length; i++) {
-                                    questP.data[i] =
-                                            new short[questP.template.data_quest[i].length];
+                                    questP.data[i] = new short[questP.template.data_quest[i].length];
                                     for (int j = 0; j < questP.data[i].length; j++) {
                                         questP.data[i][j] = questP.template.data_quest[i][j];
                                     }
@@ -782,7 +873,7 @@ public class ClientYesNo {
                 }
                 case 41: {
                     if (p.data_yesno != null && p.data_yesno.length == 1) {
-                        short[] id_op = new short[] {27, 16, 26, 4, 15, 1};
+                        short[] id_op = new short[] { 27, 16, 26, 4, 15, 1 };
                         if (p.pointAttributeThongThao < 1) {
                             Service.send_box_ThongBao_OK(p, "Không đủ 1 điểm thông thạo");
                             p.data_yesno = null;
@@ -834,20 +925,20 @@ public class ClientYesNo {
                                 int id_b2 = 0;
                                 int color = 0;
                                 int clazz = p.clazz;
-                                short[] type_equip = new short[] {0};
+                                short[] type_equip = new short[] { 0 };
                                 switch (itemTemplate4.id) {
                                     case 304: {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 0;
-                                        type_equip = new short[] {1, 3, 5};
+                                        type_equip = new short[] { 1, 3, 5 };
                                         break;
                                     }
                                     case 305: {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 0;
-                                        type_equip = new short[] {2, 4};
+                                        type_equip = new short[] { 2, 4 };
                                         clazz = 0;
                                         break;
                                     }
@@ -855,21 +946,21 @@ public class ClientYesNo {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 0;
-                                        type_equip = new short[] {0};
+                                        type_equip = new short[] { 0 };
                                         break;
                                     }
                                     case 307: {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 1;
-                                        type_equip = new short[] {1, 3, 5};
+                                        type_equip = new short[] { 1, 3, 5 };
                                         break;
                                     }
                                     case 308: {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 1;
-                                        type_equip = new short[] {2, 4};
+                                        type_equip = new short[] { 2, 4 };
                                         clazz = 0;
                                         break;
                                     }
@@ -877,21 +968,21 @@ public class ClientYesNo {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 1;
-                                        type_equip = new short[] {0};
+                                        type_equip = new short[] { 0 };
                                         break;
                                     }
                                     case 310: {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 2;
-                                        type_equip = new short[] {1, 3, 5};
+                                        type_equip = new short[] { 1, 3, 5 };
                                         break;
                                     }
                                     case 311: {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 2;
-                                        type_equip = new short[] {2, 4};
+                                        type_equip = new short[] { 2, 4 };
                                         clazz = 0;
                                         break;
                                     }
@@ -899,21 +990,21 @@ public class ClientYesNo {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 2;
-                                        type_equip = new short[] {0};
+                                        type_equip = new short[] { 0 };
                                         break;
                                     }
                                     case 313: {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 3;
-                                        type_equip = new short[] {1, 3, 5};
+                                        type_equip = new short[] { 1, 3, 5 };
                                         break;
                                     }
                                     case 314: {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 3;
-                                        type_equip = new short[] {2, 4};
+                                        type_equip = new short[] { 2, 4 };
                                         clazz = 0;
                                         break;
                                     }
@@ -921,21 +1012,21 @@ public class ClientYesNo {
                                         id_b1 = 1728;
                                         id_b2 = 1919;
                                         color = 3;
-                                        type_equip = new short[] {0};
+                                        type_equip = new short[] { 0 };
                                         break;
                                     }
                                     case 536: {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 0;
-                                        type_equip = new short[] {1, 3, 5};
+                                        type_equip = new short[] { 1, 3, 5 };
                                         break;
                                     }
                                     case 537: {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 0;
-                                        type_equip = new short[] {2, 4};
+                                        type_equip = new short[] { 2, 4 };
                                         clazz = 0;
                                         break;
                                     }
@@ -943,21 +1034,21 @@ public class ClientYesNo {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 0;
-                                        type_equip = new short[] {0};
+                                        type_equip = new short[] { 0 };
                                         break;
                                     }
                                     case 539: {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 1;
-                                        type_equip = new short[] {1, 3, 5};
+                                        type_equip = new short[] { 1, 3, 5 };
                                         break;
                                     }
                                     case 540: {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 1;
-                                        type_equip = new short[] {2, 4};
+                                        type_equip = new short[] { 2, 4 };
                                         clazz = 0;
                                         break;
                                     }
@@ -965,21 +1056,21 @@ public class ClientYesNo {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 1;
-                                        type_equip = new short[] {0};
+                                        type_equip = new short[] { 0 };
                                         break;
                                     }
                                     case 542: {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 2;
-                                        type_equip = new short[] {1, 3, 5};
+                                        type_equip = new short[] { 1, 3, 5 };
                                         break;
                                     }
                                     case 543: {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 2;
-                                        type_equip = new short[] {2, 4};
+                                        type_equip = new short[] { 2, 4 };
                                         clazz = 0;
                                         break;
                                     }
@@ -987,21 +1078,21 @@ public class ClientYesNo {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 2;
-                                        type_equip = new short[] {0};
+                                        type_equip = new short[] { 0 };
                                         break;
                                     }
                                     case 545: {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 3;
-                                        type_equip = new short[] {1, 3, 5};
+                                        type_equip = new short[] { 1, 3, 5 };
                                         break;
                                     }
                                     case 546: {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 3;
-                                        type_equip = new short[] {2, 4};
+                                        type_equip = new short[] { 2, 4 };
                                         clazz = 0;
                                         break;
                                     }
@@ -1009,7 +1100,7 @@ public class ClientYesNo {
                                         id_b1 = 1920;
                                         id_b2 = 2111;
                                         color = 3;
-                                        type_equip = new short[] {0};
+                                        type_equip = new short[] { 0 };
                                         break;
                                     }
                                 }
@@ -1068,50 +1159,46 @@ public class ClientYesNo {
                     if (p.item.total_item_bag_by_id(4, 87) > 0) {
                         int index = Util.random(1000);
                         if (index < 50) { // 316
-                            String[] name_ = new String[] {"Giáp sáp", "Đao không kích", "Lao sáp"};
-                            int[] icon_ = new int[] {79, 77, 78};
+                            String[] name_ = new String[] { "Giáp sáp", "Đao không kích", "Lao sáp" };
+                            int[] icon_ = new int[] { 79, 77, 78 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 316);
                             p.get_skill_taq_new(316);
                         } else if (index < 130) { // 32
-                            String[] name_ =
-                                    new String[] {"Sức mạnh của lửa", "Hỏa quyền", "Nắm đấm lửa"};
-                            int[] icon_ = new int[] {32, 30, 29};
+                            String[] name_ = new String[] { "Sức mạnh của lửa", "Hỏa quyền", "Nắm đấm lửa" };
+                            int[] icon_ = new int[] { 32, 30, 29 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 32);
                             p.get_skill_taq_new(32);
                         } else if (index < 210) { // 93
-                            String[] name_ = new String[] {"Cát lưu động", "Bão cát sa mạc",
-                                    "Cát linh động"};
-                            int[] icon_ = new int[] {55, 54, 52};
+                            String[] name_ = new String[] { "Cát lưu động", "Bão cát sa mạc",
+                                    "Cát linh động" };
+                            int[] icon_ = new int[] { 55, 54, 52 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 93);
                             p.get_skill_taq_new(93);
                         } else if (index < 330) { // 317
-                            String[] name_ =
-                                    new String[] {"Thân thể thép", "Ảo ảnh trảm", "Loạn trảm"};
-                            int[] icon_ = new int[] {82, 81, 80};
+                            String[] name_ = new String[] { "Thân thể thép", "Ảo ảnh trảm", "Loạn trảm" };
+                            int[] icon_ = new int[] { 82, 81, 80 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 317);
                             p.get_skill_taq_new(317);
                         } else if (index < 450) { // 92
-                            String[] name_ =
-                                    new String[] {"Băng vĩnh cửu", "Mưa băng", "Tuyết tê tái"};
-                            int[] icon_ = new int[] {57, 56, 53};
+                            String[] name_ = new String[] { "Băng vĩnh cửu", "Mưa băng", "Tuyết tê tái" };
+                            int[] icon_ = new int[] { 57, 56, 53 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 92);
                             p.get_skill_taq_new(92);
                         } else if (index < 580) { // 219
-                            String[] name_ =
-                                    new String[] {"Sóng âm - Xung kích", "Hóa báo đốm", "Tia chớp"};
-                            int[] icon_ = new int[] {72, 71, 70};
+                            String[] name_ = new String[] { "Sóng âm - Xung kích", "Hóa báo đốm", "Tia chớp" };
+                            int[] icon_ = new int[] { 72, 71, 70 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 219);
                             p.get_skill_taq_new(219);
                         } else if (index < 710) { // 220
-                            String[] name_ = new String[] {"Cơn lốc - Ưng kích", "Hóa chim ưng",
-                                    "Chim săn mồi"};
-                            int[] icon_ = new int[] {69, 68, 67};
+                            String[] name_ = new String[] { "Cơn lốc - Ưng kích", "Hóa chim ưng",
+                                    "Chim săn mồi" };
+                            int[] icon_ = new int[] { 69, 68, 67 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 220);
                             p.get_skill_taq_new(220);
                         } else { // 33
-                            String[] name_ = new String[] {"Sức sống bất diệt", "Chất bất ổn",
-                                    "Súng máy caosu"};
-                            int[] icon_ = new int[] {34, 33, 31};
+                            String[] name_ = new String[] { "Sức sống bất diệt", "Chất bất ổn",
+                                    "Súng máy caosu" };
+                            int[] icon_ = new int[] { 34, 33, 31 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 33);
                             p.get_skill_taq_new(33);
                         }
@@ -1145,33 +1232,29 @@ public class ClientYesNo {
                     if (p.item.total_item_bag_by_id(4, 86) > 0) {
                         int index = Util.random(1000);
                         if (index < 50) { // 88
-                            String[] name_ =
-                                    new String[] {"Khói bất tử", "Khói tốc độ", "Mưa khói"};
-                            int[] icon_ = new int[] {38, 39, 40};
+                            String[] name_ = new String[] { "Khói bất tử", "Khói tốc độ", "Mưa khói" };
+                            int[] icon_ = new int[] { 38, 39, 40 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 88);
                             p.get_skill_taq_new(88);
                         } else if (index < 150) { // 318
-                            String[] name_ =
-                                    new String[] {"Thần hộ thể", "Tăng trọng", "Sức nặng ngàn cân"};
-                            int[] icon_ = new int[] {85, 84, 83};
+                            String[] name_ = new String[] { "Thần hộ thể", "Tăng trọng", "Sức nặng ngàn cân" };
+                            int[] icon_ = new int[] { 85, 84, 83 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 318);
                             p.get_skill_taq_new(318);
                         } else if (index < 350) { // 90
-                            String[] name_ =
-                                    new String[] {"Bản năng thủ lĩnh", "Hóa bò tót", "Bất khuất"};
-                            int[] icon_ = new int[] {48, 47, 46};
+                            String[] name_ = new String[] { "Bản năng thủ lĩnh", "Hóa bò tót", "Bất khuất" };
+                            int[] icon_ = new int[] { 48, 47, 46 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 90);
                             p.get_skill_taq_new(90);
                         } else if (index < 650) { // 34
-                            String[] name_ =
-                                    new String[] {"Tiến hóa", "Thuốc tăng trưởng", "Hóa tuần lộc"};
-                            int[] icon_ = new int[] {37, 36, 35};
+                            String[] name_ = new String[] { "Tiến hóa", "Thuốc tăng trưởng", "Hóa tuần lộc" };
+                            int[] icon_ = new int[] { 37, 36, 35 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 34);
                             p.get_skill_taq_new(34);
                         } else { // 91
-                            String[] name_ = new String[] {"Nét vẽ cường hóa", "Nét vẽ phòng thủ",
-                                    "Nét vẽ sức mạnh"};
-                            int[] icon_ = new int[] {51, 50, 49};
+                            String[] name_ = new String[] { "Nét vẽ cường hóa", "Nét vẽ phòng thủ",
+                                    "Nét vẽ sức mạnh" };
+                            int[] icon_ = new int[] { 51, 50, 49 };
                             Service.NewDialog_eat_taq(p, name_, icon_, 91);
                             p.get_skill_taq_new(91);
                         }
@@ -1527,7 +1610,7 @@ public class ClientYesNo {
                             p.map_tele = null;
                             return;
                         }
-                        short[] id_check = new short[] {4, 9};
+                        short[] id_check = new short[] { 4, 9 };
                         for (int i = 0; i < id_check.length; i++) {
                             if (p.item.total_item_bag_by_id(7,
                                     id_check[i]) < ((p.level < 40) ? 120 : 100)) {
@@ -1887,8 +1970,7 @@ public class ClientYesNo {
                         if (it_receive != null
                                 && it_receive.time_market < System.currentTimeMillis()) {
                             if (it_receive.type_market == 2) {
-                                int price_receive =
-                                        (int) (((long) it_receive.price_market * 90L) / 100L);
+                                int price_receive = (int) (((long) it_receive.price_market * 90L) / 100L);
                                 p.update_vnd(price_receive);
                                 p.update_money();
                                 if (it_receive.category == 4) {
@@ -1991,8 +2073,7 @@ public class ClientYesNo {
                                 && it_receive.time_market < System.currentTimeMillis()) {
                             market.item3.remove(it_receive);
                             if (it_receive.type_market == 2) {
-                                int price_receive =
-                                        (int) (((long) it_receive.price_market * 90L) / 100L);
+                                int price_receive = (int) (((long) it_receive.price_market * 90L) / 100L);
                                 p.update_vnd(price_receive);
                                 p.update_money();
                                 Service.send_box_ThongBao_OK(p, "Nhận " + price_receive
@@ -2079,15 +2160,14 @@ public class ClientYesNo {
                                 p.map_tele = null;
                                 return;
                             }
-                            int type_market =
-                                    (it_select.template.typeEquip == 0
-                                            || it_select.template.typeEquip == 1
-                                            || it_select.template.typeEquip == 7)
-                                                    ? 0
-                                                    : ((it_select.template.typeEquip == 3
-                                                            || it_select.template.typeEquip == 5)
-                                                                    ? 1
-                                                                    : 2);
+                            int type_market = (it_select.template.typeEquip == 0
+                                    || it_select.template.typeEquip == 1
+                                    || it_select.template.typeEquip == 7)
+                                            ? 0
+                                            : ((it_select.template.typeEquip == 3
+                                                    || it_select.template.typeEquip == 5)
+                                                            ? 1
+                                                            : 2);
                             Market getMarket = Market.get_list_by_type(type_market);
                             if (getMarket != null) {
                                 ItemMarket it_add = new ItemMarket();
@@ -2143,8 +2223,7 @@ public class ClientYesNo {
                             mob_add.mob_template = temp.mob_template;
                             mob_add.x = temp.x;
                             mob_add.y = temp.y;
-                            mob_add.hp_max =
-                                    temp.mob_template.hp_max + Body.Point3_Template_hp[p.level];
+                            mob_add.hp_max = temp.mob_template.hp_max + Body.Point3_Template_hp[p.level];
                             mob_add.hp = mob_add.hp_max;
                             mob_add.level = p.level;
                             mob_add.isdie = false;
@@ -2484,7 +2563,7 @@ public class ClientYesNo {
                                 + ItemTemplate4.get_item_name(p.data_yesno[0]) + " Bạn sẽ"
                                 + "mất phí bảo hiểm chuyển hóa 500 Ruby để chuyển hóa 100% cấp cường hóa.\n"
                                 + "Lưu ý: Bạn có thể lựa chọn không mất phí nhưng sẽ có tỷ lệ rớt 1 cấp cường hóa"),
-                                new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                         return;
                     }
                     break;
@@ -2514,24 +2593,24 @@ public class ClientYesNo {
                             switch (p.item_chuyenhoa_save_0.levelup) {
                                 case 15: {
                                     it_bh = ItemTemplate4.get_it_by_id(551);
-                                    p.data_yesno = new int[] {551};
+                                    p.data_yesno = new int[] { 551 };
                                     break;
                                 }
                                 case 13:
                                 case 14: {
                                     it_bh = ItemTemplate4.get_it_by_id(550);
-                                    p.data_yesno = new int[] {550};
+                                    p.data_yesno = new int[] { 550 };
                                     break;
                                 }
                                 default: { // 10, 11, 12
                                     it_bh = ItemTemplate4.get_it_by_id(549);
-                                    p.data_yesno = new int[] {549};
+                                    p.data_yesno = new int[] { 549 };
                                     break;
                                 }
                             }
                             Service.send_box_yesno(p, 7, "Thông báo",
                                     ("Bạn có muốn sử dụng " + it_bh.name + "?"),
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             return;
                         } else {
                             if (p.get_ngoc() < 250) {
@@ -2585,8 +2664,13 @@ public class ClientYesNo {
                                     }
                                 }
                             }
-                            if ( map_go[0].template.id !=119 && map_go[0].template.id!=120 &&map_go[0].template.id!=122 && map_go[0].template.id!=123 && map_go[0].template.id!=54 && map_go[0].template.id!=58 && map_go[0].template.id!= 59 && map_go[0].template.id!=123 && map_go[0].template.id!=984 && map_go[0].template.id!=1000
-                && map_go[0].template.id!=127&& map_go[0].template.id!=167&& map_go[0].template.id!=168&& map_go[0].template.id!=169&& map_go[0].template.id!=170&& map_go[0].template.id!=171&& map_go[0].template.id!=172&& map_go[0].template.id!=173&& map_go[0].template.id!=174&& map_go[0].template.id!=175&& map_go[0].template.id!=176&& map_go[0].template.id > idMap  ) {
+                            if (map_go[0].template.id != 119 && map_go[0].template.id != 120
+                                    && map_go[0].template.id != 122 && map_go[0].template.id != 123
+                                    && map_go[0].template.id != 54 && map_go[0].template.id != 58
+                                    && map_go[0].template.id != 59 && map_go[0].template.id != 123
+                                    && map_go[0].template.id != 984 && map_go[0].template.id != 1000
+                                    && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
+                                    && map_go[0].template.id > idMap) {
                                 Service.send_box_ThongBao_OK(p,
                                         "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
                                 return;
@@ -2702,9 +2786,8 @@ public class ClientYesNo {
                 }
                 case 4032: {
                     if (p.item.total_item_bag_by_id(4, 32) > 0) {
-                        String[] name_ =
-                                new String[] {"Sức mạnh của lửa", "Hỏa quyền", "Nắm đấm lửa"};
-                        int[] icon_ = new int[] {32, 30, 29};
+                        String[] name_ = new String[] { "Sức mạnh của lửa", "Hỏa quyền", "Nắm đấm lửa" };
+                        int[] icon_ = new int[] { 32, 30, 29 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 32, 1);
@@ -2714,9 +2797,8 @@ public class ClientYesNo {
                 }
                 case 4033: {
                     if (p.item.total_item_bag_by_id(4, 33) > 0) {
-                        String[] name_ =
-                                new String[] {"Sức sống bất diệt", "Chất bất ổn", "Súng máy caosu"};
-                        int[] icon_ = new int[] {34, 33, 31};
+                        String[] name_ = new String[] { "Sức sống bất diệt", "Chất bất ổn", "Súng máy caosu" };
+                        int[] icon_ = new int[] { 34, 33, 31 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 33, 1);
@@ -2726,9 +2808,8 @@ public class ClientYesNo {
                 }
                 case 4034: {
                     if (p.item.total_item_bag_by_id(4, 34) > 0) {
-                        String[] name_ =
-                                new String[] {"Tiến hóa", "Thuốc tăng trưởng", "Hóa tuần lộc"};
-                        int[] icon_ = new int[] {37, 36, 35};
+                        String[] name_ = new String[] { "Tiến hóa", "Thuốc tăng trưởng", "Hóa tuần lộc" };
+                        int[] icon_ = new int[] { 37, 36, 35 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 34, 1);
@@ -2738,8 +2819,8 @@ public class ClientYesNo {
                 }
                 case 4088: {
                     if (p.item.total_item_bag_by_id(4, 88) > 0) {
-                        String[] name_ = new String[] {"Khói bất tử", "Khói tốc độ", "Mưa khói"};
-                        int[] icon_ = new int[] {38, 39, 40};
+                        String[] name_ = new String[] { "Khói bất tử", "Khói tốc độ", "Mưa khói" };
+                        int[] icon_ = new int[] { 38, 39, 40 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 88, 1);
@@ -2749,9 +2830,8 @@ public class ClientYesNo {
                 }
                 case 4090: {
                     if (p.item.total_item_bag_by_id(4, 90) > 0) {
-                        String[] name_ =
-                                new String[] {"Bản năng thủ lĩnh", "Hóa bò tót", "Bất khuất"};
-                        int[] icon_ = new int[] {48, 47, 46};
+                        String[] name_ = new String[] { "Bản năng thủ lĩnh", "Hóa bò tót", "Bất khuất" };
+                        int[] icon_ = new int[] { 48, 47, 46 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 90, 1);
@@ -2761,9 +2841,9 @@ public class ClientYesNo {
                 }
                 case 4091: {
                     if (p.item.total_item_bag_by_id(4, 91) > 0) {
-                        String[] name_ = new String[] {"Nét vẽ cường hóa", "Nét vẽ phòng thủ",
-                                "Nét vẽ sức mạnh"};
-                        int[] icon_ = new int[] {51, 50, 49};
+                        String[] name_ = new String[] { "Nét vẽ cường hóa", "Nét vẽ phòng thủ",
+                                "Nét vẽ sức mạnh" };
+                        int[] icon_ = new int[] { 51, 50, 49 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 91, 1);
@@ -2773,8 +2853,8 @@ public class ClientYesNo {
                 }
                 case 4092: {
                     if (p.item.total_item_bag_by_id(4, 92) > 0) {
-                        String[] name_ = new String[] {"Băng vĩnh cửu", "Mưa băng", "Tuyết tê tái"};
-                        int[] icon_ = new int[] {57, 56, 53};
+                        String[] name_ = new String[] { "Băng vĩnh cửu", "Mưa băng", "Tuyết tê tái" };
+                        int[] icon_ = new int[] { 57, 56, 53 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 92, 1);
@@ -2784,9 +2864,8 @@ public class ClientYesNo {
                 }
                 case 4093: {
                     if (p.item.total_item_bag_by_id(4, 93) > 0) {
-                        String[] name_ =
-                                new String[] {"Cát lưu động", "Bão cát sa mạc", "Cát linh động"};
-                        int[] icon_ = new int[] {55, 54, 52};
+                        String[] name_ = new String[] { "Cát lưu động", "Bão cát sa mạc", "Cát linh động" };
+                        int[] icon_ = new int[] { 55, 54, 52 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 93, 1);
@@ -2796,9 +2875,9 @@ public class ClientYesNo {
                 }
                 case 4160: {
                     if (p.item.total_item_bag_by_id(4, 160) > 0) {
-                        String[] name_ = new String[] {"Sấm chớp rền vang", "Lôi phạt",
-                                "Bùng nổ sức mạnh", "Ý chí thần sấm"};
-                        int[] icon_ = new int[] {61, 60, 59, 58};
+                        String[] name_ = new String[] { "Sấm chớp rền vang", "Lôi phạt",
+                                "Bùng nổ sức mạnh", "Ý chí thần sấm" };
+                        int[] icon_ = new int[] { 61, 60, 59, 58 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 160, 1);
@@ -2808,9 +2887,9 @@ public class ClientYesNo {
                 }
                 case 4161: {
                     if (p.item.total_item_bag_by_id(4, 161) > 0) {
-                        String[] name_ = new String[] {"Bão nham thạch", "Cột lửa", "Bùng cháy",
-                                "Nỗi đau bỏng cháy"};
-                        int[] icon_ = new int[] {65, 64, 63, 62};
+                        String[] name_ = new String[] { "Bão nham thạch", "Cột lửa", "Bùng cháy",
+                                "Nỗi đau bỏng cháy" };
+                        int[] icon_ = new int[] { 65, 64, 63, 62 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 161, 1);
@@ -2820,9 +2899,8 @@ public class ClientYesNo {
                 }
                 case 4219: {
                     if (p.item.total_item_bag_by_id(4, 219) > 0) {
-                        String[] name_ =
-                                new String[] {"Sóng âm - Xung kích", "Hóa báo đốm", "Tia chớp"};
-                        int[] icon_ = new int[] {72, 71, 70};
+                        String[] name_ = new String[] { "Sóng âm - Xung kích", "Hóa báo đốm", "Tia chớp" };
+                        int[] icon_ = new int[] { 72, 71, 70 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 219, 1);
@@ -2832,9 +2910,8 @@ public class ClientYesNo {
                 }
                 case 4220: {
                     if (p.item.total_item_bag_by_id(4, 220) > 0) {
-                        String[] name_ =
-                                new String[] {"Cơn lốc - Ưng kích", "Hóa chim ưng", "Chim săn mồi"};
-                        int[] icon_ = new int[] {69, 68, 67};
+                        String[] name_ = new String[] { "Cơn lốc - Ưng kích", "Hóa chim ưng", "Chim săn mồi" };
+                        int[] icon_ = new int[] { 69, 68, 67 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 220, 1);
@@ -2844,9 +2921,8 @@ public class ClientYesNo {
                 }
                 case 4240: {
                     if (p.item.total_item_bag_by_id(4, 240) > 0) {
-                        String[] name_ =
-                                new String[] {"Bộc phá", "Vết nứt", "Kình lực", "Địa chấn"};
-                        int[] icon_ = new int[] {76, 75, 73, 74};
+                        String[] name_ = new String[] { "Bộc phá", "Vết nứt", "Kình lực", "Địa chấn" };
+                        int[] icon_ = new int[] { 76, 75, 73, 74 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 240, 1);
@@ -2856,8 +2932,8 @@ public class ClientYesNo {
                 }
                 case 4316: {
                     if (p.item.total_item_bag_by_id(4, 316) > 0) {
-                        String[] name_ = new String[] {"Giáp sáp", "Đao không kích", "Lao sáp"};
-                        int[] icon_ = new int[] {79, 77, 78};
+                        String[] name_ = new String[] { "Giáp sáp", "Đao không kích", "Lao sáp" };
+                        int[] icon_ = new int[] { 79, 77, 78 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 316, 1);
@@ -2867,8 +2943,8 @@ public class ClientYesNo {
                 }
                 case 4317: {
                     if (p.item.total_item_bag_by_id(4, 317) > 0) {
-                        String[] name_ = new String[] {"Thân thể thép", "Ảo ảnh trảm", "Loạn trảm"};
-                        int[] icon_ = new int[] {82, 81, 80};
+                        String[] name_ = new String[] { "Thân thể thép", "Ảo ảnh trảm", "Loạn trảm" };
+                        int[] icon_ = new int[] { 82, 81, 80 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 317, 1);
@@ -2878,9 +2954,8 @@ public class ClientYesNo {
                 }
                 case 4318: {
                     if (p.item.total_item_bag_by_id(4, 318) > 0) {
-                        String[] name_ =
-                                new String[] {"Thần hộ thể", "Tăng trọng", "Sức nặng ngàn cân"};
-                        int[] icon_ = new int[] {85, 84, 83};
+                        String[] name_ = new String[] { "Thần hộ thể", "Tăng trọng", "Sức nặng ngàn cân" };
+                        int[] icon_ = new int[] { 85, 84, 83 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 318, 1);
@@ -2890,9 +2965,9 @@ public class ClientYesNo {
                 }
                 case 4427: { // trai bong toi
                     if (p.item.total_item_bag_by_id(4, 427) > 0) {
-                        String[] name_ = new String[] {"Dòng chảy ma pháp", "Vòng xoáy ma pháp",
-                                "Giải phóng", "Xoáy đen"};
-                        int[] icon_ = new int[] {91, 88, 90, 89};
+                        String[] name_ = new String[] { "Dòng chảy ma pháp", "Vòng xoáy ma pháp",
+                                "Giải phóng", "Xoáy đen" };
+                        int[] icon_ = new int[] { 91, 88, 90, 89 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 427, 1);

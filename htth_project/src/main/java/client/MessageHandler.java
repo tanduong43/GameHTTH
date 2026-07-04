@@ -811,6 +811,24 @@ public class MessageHandler {
                 }
                 conn.p.bossHunt = null;
             }
+            
+            // Reconnect Tower Challenge check
+            activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(conn.p.name);
+            if (activeChallenge != null) {
+                activeChallenge.updateMemberReference(conn.p.name, conn.p);
+                conn.p.dungeon = activeChallenge;
+            }
+            // Safety fallback: nếu vẫn đang trong map Tower map nhưng no active dungeon
+            if (conn.p.map != null && conn.p.map.template.id >= 500 && conn.p.map.template.id <= 512 && conn.p.dungeon == null) {
+                System.out.println("[TowerChallenge] Login safety: player " + conn.p.name
+                        + " still in Tower map but no active dungeon, redirecting to map 1.");
+                map.Map[] villageMap = map.Map.get_map_by_id(1);
+                if (villageMap != null && villageMap.length > 0) {
+                    conn.p.map = villageMap[0];
+                    conn.p.x = 300;
+                    conn.p.y = 250;
+                }
+            }
             // === hết khối check ===
 
             Message m = new Message(-7); // update clock

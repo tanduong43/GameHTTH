@@ -173,6 +173,9 @@ public class Party {
                 p0.party = null;
                 list.remove(p);
                 this.send_info();
+                if (p0.dungeon instanceof activities.TowerChallenge) {
+                    ((activities.TowerChallenge) p0.dungeon).handlePlayerLeftParty(p0);
+                }
                 break;
             }
         }
@@ -181,12 +184,16 @@ public class Party {
     private synchronized void delete() throws IOException {
         Message m = new Message(-25);
         m.writer().writeByte(3);
-        for (int i = 0; i < list.size(); i++) {
-            Player p0 = list.get(i);
+        List<Player> temp = new ArrayList<>(list);
+        for (int i = 0; i < temp.size(); i++) {
+            Player p0 = temp.get(i);
             p0.party = null;
             if (p0.conn != null) {
                 p0.conn.addmsg(m);
                 Service.send_box_ThongBao_OK(p0, "Nhóm đã giải tán");
+            }
+            if (p0.dungeon instanceof activities.TowerChallenge) {
+                ((activities.TowerChallenge) p0.dungeon).handlePlayerLeftParty(p0);
             }
         }
         m.cleanup();

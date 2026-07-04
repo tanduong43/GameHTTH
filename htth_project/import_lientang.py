@@ -67,7 +67,7 @@ def main():
         sys.exit(1)
 
     # Read SQL file
-    sql_path = 'lientang_maps.sql'
+    sql_path = 'lientang_1_13_maps.sql'
     if not os.path.exists(sql_path):
         print(f"SQL file not found: {sql_path}")
         sys.exit(1)
