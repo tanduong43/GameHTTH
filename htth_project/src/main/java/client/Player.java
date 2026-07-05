@@ -1124,7 +1124,11 @@ public class Player {
                     && Math.abs(this.y - this.ship_pet.y) < 200) {
                 this.ship_pet.map = null;
             }
-            this.map.leave_map(this, 2);
+            int leaveType = 2;
+            if (this.dungeon instanceof activities.TowerChallenge) {
+                leaveType = 1; // Sử dụng hiệu ứng teleport lấp lánh khi vượt liên ải
+            }
+            this.map.leave_map(this, leaveType);
             int zone_into = 0;
             while (zone_into < (map_go.length - 1)
                     && map_go[zone_into].players.size() >= map_go[zone_into].template.max_player) {

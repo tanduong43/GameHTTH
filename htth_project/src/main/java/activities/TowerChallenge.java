@@ -6,10 +6,15 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import client.Player;
 import core.Service;
+import io.Message;
+import map.Boss;
 import map.Map;
 import map.Mob;
 import map.Vgo;
@@ -35,13 +40,21 @@ public class TowerChallenge extends Dungeon {
     public boolean finished = false;
     public boolean isTransitioning = false;
     public long transitionEndTime = 0;
+    public Mob stageBoss = null; // Boss mob của tầng hiện tại
     public java.util.Map<String, Integer> playerLastRewardedStage = new java.util.HashMap<>();
+    // FIX #1: AtomicBoolean đảm bảo chỉ 1 luồng trigger chuyển tầng (compareAndSet)
+    private final AtomicBoolean stageCleared = new AtomicBoolean(false);
+    // FIX #4: Giữ tham chiếu task đang lên lịch để cancel khi cần
+    private volatile ScheduledFuture<?> currentTransitionFuture = null;
 
     public TowerChallenge(List<Player> members, Player leader) {
         this.partyMembers.addAll(members);
         this.leader = leader;
         this.mode = 7;
         ACTIVE_CHALLENGES.add(this);
+        System.out.println("[TowerChallenge] Instantiated challenge for leader: " + leader.name 
+            + " with party size: " + members.size() 
+            + " (Members: " + members.stream().map(p -> p.name).collect(Collectors.joining(", ")) + ")");
     }
 
     public static TowerChallenge findActiveChallenge(String name) {
@@ -78,27 +91,55 @@ public class TowerChallenge extends Dungeon {
         this.currentStageIndex = stageIndex;
         this.isTransitioning = false;
         this.transitionEndTime = 0;
+        // FIX #2: Reset flag atomic cho tầng mới trước khi spawn mob
+        this.stageCleared.set(false);
+        // FIX #4: Cancel task transition còn sót lại từ tầng trước
+        if (this.currentTransitionFuture != null && !this.currentTransitionFuture.isDone()) {
+            this.currentTransitionFuture.cancel(false);
+            this.currentTransitionFuture = null;
+        }
         int mapId = 500 + stageIndex;
 
         // Clean up previous stage map
-        if (this.currentMap != null) {
-            this.currentMap.running = false;
-            Map.remove_map_plus(this.currentMap);
+        Map oldMap = this.currentMap;
+        if (oldMap != null) {
+            oldMap.running = false;
+            // Defer removing from MAP_PLUS so get_player_by_name_allmap can still find players
         }
 
         Map[] templates = Map.get_map_by_id(mapId);
         if (templates == null || templates.length == 0) {
-            System.out.println("[TowerChallenge] ERROR: Map template not found for id=" + mapId);
-            failDungeon("Lỗi: Không tìm thấy map " + mapId);
+            // FIX #3: Log rõ ràng hơn — chỉ ra ID nào thiếu để dễ debug
+            System.out.println("[TowerChallenge] ERROR: Map template not found for mapId=" + mapId
+                    + " (stageIndex=" + stageIndex + ")."
+                    + " Verify that map ID " + mapId + " is defined in map data files and loaded at startup.");
+            // FIX #3: Dump danh sách MAP_PLUS hiện có để admin biết ID nào đang tồn tại
+            try {
+                String availableIds = Map.get_map_plus().stream()
+                        .map(m -> String.valueOf(m.template.id))
+                        .collect(Collectors.joining(", "));
+                System.out.println("[TowerChallenge] Current MAP_PLUS IDs: ["
+                        + (availableIds.isEmpty() ? "<none>" : availableIds) + "]");
+            } catch (Exception logEx) {
+                System.out.println("[TowerChallenge] (Could not dump MAP_PLUS IDs: " + logEx.getMessage() + ")");
+            }
+            // FIX #3: Fallback an toàn — không để player kẹt, thông báo rõ cho người chơi
+            failDungeon("Lỗi hệ thống: Dữ liệu tầng " + (stageIndex + 1)
+                    + " chưa được cấu hình. Vui lòng liên hệ Admin.");
             return;
         }
         Map mapTemplate = templates[0];
+
+        // Cập nhật hiệu ứng chuyển cảnh cho Client (xoay vòng 1, 2, 3)
+        mapTemplate.template.typeChangeMap = (byte) (1 + (stageIndex % 3));
+
         Map mapDungeon = new Map();
         mapDungeon.template = mapTemplate.template;
         mapDungeon.zone_id = (byte) 0;
         mapDungeon.list_mob = new int[0];
 
         this.mobs = new ArrayList<>();
+        this.stageBoss = null;
         int mobIndex = -2;
         if (mapTemplate.list_mob != null) {
             for (int i = 0; i < mapTemplate.list_mob.length; i++) {
@@ -125,7 +166,20 @@ public class TowerChallenge extends Dungeon {
             }
         }
 
-        System.out.println("[TowerChallenge] Spawned " + this.mobs.size() + " monsters for Map ID: " + mapId);
+        // Chọn con mob cuối cùng làm boss tầng, tăng HP x3 và gắn boss_info
+        if (!this.mobs.isEmpty()) {
+            Mob bossM = this.mobs.get(this.mobs.size() - 1);
+            bossM.hp_max = bossM.hp_max * 3;
+            bossM.hp = bossM.hp_max;
+            Boss bossInfo = new Boss();
+            bossInfo.mob = bossM;
+            bossInfo.levelBoss = (byte) (stageIndex + 1);
+            bossInfo.TopDame = new ArrayList<>();
+            bossM.boss_info = bossInfo;
+            this.stageBoss = bossM;
+        }
+
+        System.out.println("[TowerChallenge] Spawned " + this.mobs.size() + " monsters (1 boss) for Map ID: " + mapId);
 
         mapDungeon.start_map();
         mapDungeon.map_dungeon = this;
@@ -145,25 +199,39 @@ public class TowerChallenge extends Dungeon {
         vgo.xnew = 350;
         vgo.ynew = 260;
 
+        System.out.println("[TowerChallenge] Transitioning " + this.partyMembers.size() + " members to stageIndex=" + stageIndex + " (Map ID=" + mapId + ")");
         for (Player member : this.partyMembers) {
             Player pOnline = Map.get_player_by_name_allmap(member.name);
             if (pOnline != null && pOnline.conn != null && pOnline.conn.connected) {
                 pOnline.dungeon = this;
+                System.out.println("[TowerChallenge] Teleporting player " + pOnline.name + " to Map ID: " + mapId);
                 try {
                     pOnline.goto_map(vgo);
                     Service.send_time_cool_down(pOnline, this.stageEndTime, "Vượt Liên Ải Tầng " + (stageIndex + 1), 2);
                 } catch (IOException e) {
+                    System.out.println("[TowerChallenge] ERROR: Teleport failed for player " + pOnline.name + ": " + e.getMessage());
                     e.printStackTrace();
                 }
+            } else {
+                System.out.println("[TowerChallenge] WARNING: Player " + member.name + " is offline/disconnected, cannot teleport.");
             }
         }
 
         this.active = true;
+
+        if (oldMap != null) {
+            Map.remove_map_plus(oldMap);
+        }
     }
 
     public synchronized void update(Map map) throws IOException {
         if (this.finished)
             return;
+
+        // Chỉ xử lý update nếu map gọi tới chính là currentMap của Dungeon
+        if (!map.equals(this.currentMap)) {
+            return;
+        }
 
         // 1. Timeout Check
         if (System.currentTimeMillis() > this.stageEndTime) {
@@ -196,36 +264,91 @@ public class TowerChallenge extends Dungeon {
             return;
         }
 
-        // 4. Stage Mobs Check
-        int aliveMobs = 0;
-        for (Mob mob : this.mobs) {
-            if (mob.map.equals(map) && !mob.isdie) {
-                aliveMobs++;
-            }
-        }
-
-        // Add debug logs for map ID and remaining monster count
+        // 4. Boss Check - chỉ chuyển tầng khi boss chết
         if (map.equals(this.currentMap)) {
-            System.out.println("[TowerChallenge] Current Map ID: " + (500 + this.currentStageIndex)
-                    + " | Remaining Mobs: " + aliveMobs);
-        }
-
-        if (aliveMobs == 0 && map.equals(this.currentMap)) {
-            System.out.println("[TowerChallenge] All monsters defeated on Map ID: " + (500 + this.currentStageIndex)
-                    + ". Waiting 2 seconds before transitioning.");
-            this.isTransitioning = true;
-            this.transitionEndTime = System.currentTimeMillis() + 2000L;
-
-            // Chủ động lên lịch chuyển tầng, không phụ thuộc vào lần update() kế tiếp
-            TRANSITION_SCHEDULER.schedule(() -> {
-                try {
-                    if (!this.finished && this.isTransitioning) {
-                        completeStage();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            int aliveMobs = 0;
+            for (Mob mob : this.mobs) {
+                if (mob.map.equals(map) && !mob.isdie) {
+                    aliveMobs++;
                 }
-            }, 2000L, TimeUnit.MILLISECONDS);
+            }
+            boolean bossDefeated = (this.stageBoss != null && this.stageBoss.isdie);
+
+            System.out.println("[TowerChallenge] Current Map ID: " + (500 + this.currentStageIndex)
+                    + " | Remaining Mobs: " + aliveMobs
+                    + " | Boss defeated: " + bossDefeated);
+
+            if (bossDefeated) {
+                // FIX #1: compareAndSet đảm bảo CHỈ 1 lần trigger transition dù update() gọi nhiều lần
+                // Nếu stageCleared đã là true (set bởi lần gọi trước), bỏ qua
+                if (!stageCleared.compareAndSet(false, true)) {
+                    return;
+                }
+                System.out.println("[TowerChallenge] Boss defeated on Map ID: " + (500 + this.currentStageIndex)
+                        + ". Waiting 2 seconds before transitioning.");
+                this.isTransitioning = true;
+                this.transitionEndTime = System.currentTimeMillis() + 2000L;
+
+                // Gửi hiệu ứng ăn mừng pháo hoa và thông báo chạy chữ cho tổ đội
+                sendLocalNotice("Đã tiêu diệt Boss tầng " + (this.currentStageIndex + 1) + "! Chuẩn bị chuyển tầng...");
+                for (Player member : this.partyMembers) {
+                    Player pOnline = Map.get_player_by_name_allmap(member.name);
+                    if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                            && pOnline.map.equals(this.currentMap)) {
+                        try {
+                            Service.send_eff(pOnline, 23, 0); // Hiệu ứng pháo hoa
+                        } catch (Exception e) {
+                            // Bỏ qua lỗi
+                        }
+                    }
+                }
+
+                // FIX #4: Lưu ScheduledFuture để có thể cancel khi createStage() tiếp theo được gọi
+                // Chủ động lên lịch chuyển tầng, không phụ thuộc vào lần update() kế tiếp
+                this.currentTransitionFuture = TRANSITION_SCHEDULER.schedule(() -> {
+                    try {
+                        if (!this.finished && this.isTransitioning) {
+                            completeStage();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }, 2000L, TimeUnit.MILLISECONDS);
+
+            } else if (aliveMobs == 0) {
+                // FIX #1: Cùng guard atomic — tránh nhánh mob-clear trigger thêm sau boss-path
+                if (!stageCleared.compareAndSet(false, true)) {
+                    return;
+                }
+                System.out.println("[TowerChallenge] All mobs cleared on Map ID: " + (500 + this.currentStageIndex)
+                        + ". Waiting 3 seconds before transitioning.");
+                this.isTransitioning = true;
+                this.transitionEndTime = System.currentTimeMillis() + 3000L;
+
+                sendLocalNotice("Đã tiêu diệt tất cả quái trên tầng " + (this.currentStageIndex + 1)
+                        + "! Chuẩn bị chuyển tầng...");
+                for (Player member : this.partyMembers) {
+                    Player pOnline = Map.get_player_by_name_allmap(member.name);
+                    if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                            && pOnline.map.equals(this.currentMap)) {
+                        try {
+                            Service.send_eff(pOnline, 23, 0);
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                    }
+                }
+                // FIX #4: Lưu future tương tự nhánh boss
+                this.currentTransitionFuture = TRANSITION_SCHEDULER.schedule(() -> {
+                    try {
+                        if (!this.finished && this.isTransitioning) {
+                            completeStage();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }, 3000L, TimeUnit.MILLISECONDS);
+            }
         }
     }
 
@@ -235,6 +358,12 @@ public class TowerChallenge extends Dungeon {
         }
         this.isTransitioning = false;
         this.transitionEndTime = 0;
+        // FIX #4: Cancel future ngay khi completeStage() chạy thành công
+        // Tránh task cũ thức dậy sau khi tầng mới đã bắt đầu
+        if (this.currentTransitionFuture != null) {
+            this.currentTransitionFuture.cancel(false);
+            this.currentTransitionFuture = null;
+        }
 
         int nextStage = this.currentStageIndex + 1;
         int nextMapId = 500 + nextStage;
@@ -264,6 +393,7 @@ public class TowerChallenge extends Dungeon {
 
     private void giveStageRewards(Player p, int stageIndex) {
         try {
+            System.out.println("[TowerChallenge] Distributing stage rewards to player: " + p.name + " for stageIndex=" + stageIndex);
             List<GiftBox> list_gift = new ArrayList<>();
 
             // 1. Beri x10,000
@@ -304,9 +434,13 @@ public class TowerChallenge extends Dungeon {
             }
 
             if (!list_gift.isEmpty()) {
+                System.out.println("[TowerChallenge] Sending gift box of " + list_gift.size() + " items to player " + p.name + " via send_gift.");
                 Service.send_gift(p, 1, "Vượt ải " + (stageIndex + 1), "Phần thưởng", list_gift, true);
+            } else {
+                System.out.println("[TowerChallenge] WARNING: Gift list is empty for player " + p.name);
             }
         } catch (Exception e) {
+            System.out.println("[TowerChallenge] ERROR: Failed to distribute stage rewards to player " + p.name + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -317,17 +451,21 @@ public class TowerChallenge extends Dungeon {
         this.finished = true;
         this.active = false;
 
-        System.out.println("[TowerChallenge] Dungeon completed successfully!");
+        System.out.println("[TowerChallenge] Dungeon completed successfully! Teleporting party members back.");
 
         for (Player member : this.partyMembers) {
             Player pOnline = Map.get_player_by_name_allmap(member.name);
             if (pOnline != null) {
+                System.out.println("[TowerChallenge] Congratulating and teleporting back player: " + pOnline.name);
                 try {
                     Service.send_box_ThongBao_OK(pOnline, "Xin chúc mừng! Bạn đã hoàn thành Vượt Liên Ải!");
                 } catch (IOException e) {
+                    System.out.println("[TowerChallenge] ERROR: Failed to send completion notification to player " + pOnline.name + ": " + e.getMessage());
                     e.printStackTrace();
                 }
                 teleportBack(pOnline);
+            } else {
+                System.out.println("[TowerChallenge] Member " + member.name + " is offline/disconnected during dungeon completion.");
             }
         }
 
@@ -340,19 +478,23 @@ public class TowerChallenge extends Dungeon {
         this.finished = true;
         this.active = false;
 
-        System.out.println("[TowerChallenge] Dungeon failed! Reason: " + reason);
+        System.out.println("[TowerChallenge] Dungeon failed! Reason: " + reason + ". Teleporting party members back.");
 
         for (Player member : this.partyMembers) {
             Player pOnline = Map.get_player_by_name_allmap(member.name);
             if (pOnline != null) {
+                System.out.println("[TowerChallenge] Notifying and teleporting back player: " + pOnline.name);
                 if (reason != null && !reason.isEmpty()) {
                     try {
                         Service.send_box_ThongBao_OK(pOnline, reason);
                     } catch (IOException e) {
+                        System.out.println("[TowerChallenge] ERROR: Failed to send failure notification to player " + pOnline.name + ": " + e.getMessage());
                         e.printStackTrace();
                     }
                 }
                 teleportBack(pOnline);
+            } else {
+                System.out.println("[TowerChallenge] Member " + member.name + " is offline/disconnected during dungeon failure.");
             }
         }
 
@@ -444,5 +586,24 @@ public class TowerChallenge extends Dungeon {
         this.partyMembers.clear();
 
         ACTIVE_CHALLENGES.remove(this);
+    }
+
+    private void sendLocalNotice(String text) {
+        try {
+            Message m = new Message(-31);
+            m.writer().writeByte(0); // type 0: Chữ chạy giữa màn hình
+            m.writer().writeUTF(text);
+            m.writer().writeByte(5); // color 5: Màu vàng sáng
+            m.writer().writeShort(-1);
+            for (Player member : this.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected) {
+                    pOnline.conn.addmsg(m);
+                }
+            }
+            m.cleanup();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

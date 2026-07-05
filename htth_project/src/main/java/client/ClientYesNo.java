@@ -507,13 +507,16 @@ public class ClientYesNo {
                         byte mode = (byte) p.data_yesno[0];
                         if (mode == 7) {
                             // Tower Challenge (Vượt Liên Ải)
+                            System.out.println("[TowerChallenge] Player " + p.name + " initiated Tower Challenge registration.");
                             if (p.party == null) {
+                                System.out.println("[TowerChallenge] Registration failed: Player " + p.name + " is not in a party.");
                                 Service.send_box_ThongBao_OK(p, "Bạn cần tạo nhóm trước khi tham gia Vượt Liên Ải");
                                 p.data_yesno = null;
                                 p.map_tele = null;
                                 return;
                             }
                             if (!p.party.list.get(0).name.equals(p.name)) {
+                                System.out.println("[TowerChallenge] Registration failed: Player " + p.name + " is not the leader of the party.");
                                 Service.send_box_ThongBao_OK(p, "Chỉ trưởng nhóm mới có quyền bắt đầu Vượt Liên Ải");
                                 p.data_yesno = null;
                                 p.map_tele = null;
@@ -524,24 +527,28 @@ public class ClientYesNo {
                                 Player memInList = p.party.list.get(i);
                                 Player member = Map.get_player_by_name_allmap(memInList.name);
                                 if (member == null || member.conn == null || !member.conn.connected) {
+                                    System.out.println("[TowerChallenge] Registration failed: Party member " + memInList.name + " is offline.");
                                     Service.send_box_ThongBao_OK(p, "Thành viên " + memInList.name + " hiện đang offline!");
                                     p.data_yesno = null;
                                     p.map_tele = null;
                                     return;
                                 }
                                 if (member.map == null || !member.map.equals(p.map)) {
+                                    System.out.println("[TowerChallenge] Registration failed: Party member " + member.name + " is not in the same map (" + (member.map != null ? member.map.template.id : "null") + " vs " + p.map.template.id + ").");
                                     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                     p.data_yesno = null;
                                     p.map_tele = null;
                                     return;
                                 }
                                 if (member.get_key_boss() < 2) {
+                                    System.out.println("[TowerChallenge] Registration failed: Party member " + member.name + " has insufficient keys: " + member.get_key_boss() + "/2.");
                                     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 2 chìa khóa!");
                                     p.data_yesno = null;
                                     p.map_tele = null;
                                     return;
                                 }
                                 if (member.dungeon != null) {
+                                    System.out.println("[TowerChallenge] Registration failed: Party member " + member.name + " is already inside another dungeon.");
                                     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đang trong một phó bản khác!");
                                     p.data_yesno = null;
                                     p.map_tele = null;
@@ -550,20 +557,24 @@ public class ClientYesNo {
                             }
                             
                             // Success: deduct keys and save coordinates
+                            System.out.println("[TowerChallenge] Registration checks passed. Deducting keys from party members:");
                             List<Player> onlineMembers = new ArrayList<>();
                             for (int i = 0; i < p.party.list.size(); i++) {
                                 Player memInList = p.party.list.get(i);
                                 Player member = Map.get_player_by_name_allmap(memInList.name);
                                 if (member != null) {
+                                    int oldKeys = member.get_key_boss();
                                     member.update_key_boss(-2);
                                     member.update_money();
                                     member.originalMapId = member.map.template.id;
                                     member.originalX = member.x;
                                     member.originalY = member.y;
                                     onlineMembers.add(member);
+                                    System.out.println("  - Member " + member.name + ": deducted 2 keys. Old: " + oldKeys + ", New: " + member.get_key_boss() + ". Original map position: MapID=" + member.originalMapId + ", X=" + member.originalX + ", Y=" + member.originalY);
                                 }
                             }
                             
+                            System.out.println("[TowerChallenge] Starting TowerChallenge with " + onlineMembers.size() + " players.");
                             activities.TowerChallenge tower = new activities.TowerChallenge(onlineMembers, p);
                             tower.createStage(0);
                         } else {

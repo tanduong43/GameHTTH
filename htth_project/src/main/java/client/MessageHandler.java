@@ -630,7 +630,7 @@ public class MessageHandler {
                     if (Map.is_map_dungeon(conn.p.map.template.id) && conn.p.dungeon != null) {
                         if (conn.p.dungeon instanceof activities.TowerChallenge) {
                             activities.TowerChallenge tc = (activities.TowerChallenge) conn.p.dungeon;
-                            Service.send_time_cool_down(conn.p, tc.stageEndTime, "Tầng" + (tc.currentStageIndex + 1),
+                            Service.send_time_cool_down(conn.p, tc.stageEndTime, "Tầng " + (tc.currentStageIndex + 1),
                                     2);
                         } else {
                             Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Thời gian", 2);
