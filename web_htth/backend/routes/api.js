@@ -5,7 +5,7 @@ const db = require('../config/db');
 const { jwtRequired, isAdmin } = require('../middleware/auth');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'django-insecure-$(7p(&$6!)#@@*-p=*yiyte@o=%7ug%uleploraez8885&q-)1';
+const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_for_development_only';
 
 // POST /api/register/
 router.post('/register', async (req, res) => {

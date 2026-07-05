@@ -1114,8 +1114,8 @@ public class Player {
                 map_boss_info.x_new = vgo.xnew;
                 map_boss_info.y_new = vgo.ynew;
                 Service.send_box_yesno(this, 16, "Thông báo",
-                        (map_go[0].template.name + " rất nguy hiểm và phải mất 5 bánh "
-                                + "mì để vô, bạn có thật sự muốn đi một mình?"),
+                        (map_go[0].template.name + " rất nguy hiểm và phải mất 1.000 ruby "
+                                + "để vô, bạn có thật sự muốn đi một mình?"),
                         new String[] {"Đồng ý", "Hủy"}, new byte[] {-1, -1});
             }
         } else {
@@ -1284,6 +1284,10 @@ public class Player {
         }
         byte type = m2.reader().readByte();
         if (type == 1) { //
+            if (Map.is_map_dungeon(this.map.template.id)) {
+                Service.send_box_ThongBao_OK(this, "Không thể hồi sinh tại chỗ trong phó bản!");
+                return;
+            }
             if (pointPk < 20) {
                 Service.send_box_yesno(this, 14, "Thông báo",
                         ("Hồi sinh tại chỗ mất 500 beri, bạn có muốn hồi sinh không?"),

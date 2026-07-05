@@ -1235,22 +1235,26 @@ public class Map implements Runnable {
             if (p0 != null) {
                 if (!mob.isdie && !p0.wait_change_map && !p0.isdie
                         && p0.time_can_mob_atk < System.currentTimeMillis()) {
-                    //
-                    int dame = Util.random(mob.level * 2, mob.level * 5);
-                    if (mob.level > 30 && mob.level <= 50) {
-                        dame = (dame * 15) / 10;
-                    } else if (mob.level > 50 && mob.level <= 70) {
-                        dame = (dame * 18) / 10;
-                    } else if (mob.level > 70 && mob.level <= 90) {
-                        dame = (dame * 21) / 10;
-                    } else if (mob.level > 90 && mob.level <= 600) {
-                        dame = (dame * 25) / 10;
-            }
-                    if (mob.level - p0.level >= 10) {
-                        dame = dame * 5;
-                    }
-                    if (dame <= 0) {
-                        dame = Util.random(10, 20);
+                    int dame;
+                    if (mob.map.map_bossHunt != null && mob.final_dame > 0) {
+                        dame = mob.final_dame;
+                    } else {
+                        dame = Util.random(mob.level * 2, mob.level * 5);
+                        if (mob.level > 30 && mob.level <= 50) {
+                            dame = (dame * 15) / 10;
+                        } else if (mob.level > 50 && mob.level <= 70) {
+                            dame = (dame * 18) / 10;
+                        } else if (mob.level > 70 && mob.level <= 90) {
+                            dame = (dame * 21) / 10;
+                        } else if (mob.level > 90 && mob.level <= 600) {
+                            dame = (dame * 25) / 10;
+                        }
+                        if (mob.level - p0.level >= 10) {
+                            dame = dame * 5;
+                        }
+                        if (dame <= 0) {
+                            dame = Util.random(10, 20);
+                        }
                     }
 
                     // update hp target

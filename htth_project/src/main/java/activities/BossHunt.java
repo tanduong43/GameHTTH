@@ -199,15 +199,39 @@ public class BossHunt {
         boss.y = originalMob.y;
 
         long baseHp = originalMob.mob_template.hp_max > 0 ? originalMob.mob_template.hp_max : 100_000L;
-        int memberCount = members.size();
-        boss.hp_max = (int) (baseHp * (1.0 + floor * 0.4) * (0.8 + memberCount * 0.4));
-        if (boss.hp_max < 200_000) {
-            boss.hp_max = 200_000 + (floor * 100_000);
-        }
+        int floorNum = floor + 1;
+        boss.hp_max = (int) (baseHp * floorNum);
         boss.hp = boss.hp_max;
         boss.level = originalMob.level + (floor * 5);
         if (boss.level > 100)
             boss.level = 100;
+
+        // Calculate Base Damage based on originalMob's base level
+        int baseLevel = originalMob.level;
+        int baseDame = Util.random(baseLevel * 2, baseLevel * 5);
+        if (baseLevel > 30 && baseLevel <= 50) {
+            baseDame = (baseDame * 15) / 10;
+        } else if (baseLevel > 50 && baseLevel <= 70) {
+            baseDame = (baseDame * 18) / 10;
+        } else if (baseLevel > 70 && baseLevel <= 90) {
+            baseDame = (baseDame * 21) / 10;
+        } else if (baseLevel > 90 && baseLevel <= 600) {
+            baseDame = (baseDame * 25) / 10;
+        }
+        if (baseDame <= 0) {
+            baseDame = Util.random(10, 20);
+        }
+
+        boss.base_dame = baseDame;
+        boss.final_dame = baseDame * floorNum;
+
+        System.out.println("[BossHunt DEBUG] Spawning boss: " + boss.mob_template.name 
+            + " | ID: " + boss.mob_template.mob_id
+            + " | Floor: " + floorNum
+            + " | Base HP: " + baseHp
+            + " | Final HP: " + boss.hp_max
+            + " | Base Damage: " + boss.base_dame
+            + " | Final Damage: " + boss.final_dame);
 
         boss.isdie = false;
         boss.id_target = -1;
@@ -308,62 +332,18 @@ public class BossHunt {
         try {
             List<template.GiftBox> gifts = new ArrayList<>();
 
-            // 1. Beri
-            int beri = 100_000 * (floor + 1);
-            ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
-            if (it_beri != null) {
+            // 1. Ruong cam
+            int chestId = ((member.level < 11 ? 11 : member.level) / 10) + 121;
+            ItemTemplate4 it_chest = ItemTemplate4.get_it_by_id(chestId);
+            if (it_chest != null) {
                 template.GiftBox gb = new template.GiftBox();
-                gb.id = 0;
+                gb.id = (short) chestId;
                 gb.type = 4;
-                gb.name = it_beri.name;
-                gb.icon = it_beri.icon;
-                gb.num = beri;
-                gb.color = 0;
-                gifts.add(gb);
-            }
-
-            // 2. Ruby (template4 ID 1)
-            int ruby = 50 * (floor + 1);
-            ItemTemplate4 it_ruby = ItemTemplate4.get_it_by_id(1);
-            if (it_ruby != null) {
-                template.GiftBox gb = new template.GiftBox();
-                gb.id = 1;
-                gb.type = 4;
-                gb.name = it_ruby.name;
-                gb.icon = it_ruby.icon;
-                gb.num = ruby;
-                gb.color = 0;
-                gifts.add(gb);
-            }
-
-            // 3. Random Stone (ID 44 - 79)
-            int stoneId = Util.random(44, 80);
-            ItemTemplate4 it_stone = ItemTemplate4.get_it_by_id(stoneId);
-            if (it_stone != null) {
-                template.GiftBox gb = new template.GiftBox();
-                gb.id = (short) stoneId;
-                gb.type = 4;
-                gb.name = it_stone.name;
-                gb.icon = it_stone.icon;
+                gb.name = it_chest.name;
+                gb.icon = it_chest.icon;
                 gb.num = 1;
                 gb.color = 0;
                 gifts.add(gb);
-            }
-
-            // 4. Ruong cam (Only on floor 4 and above: floor index >= 3)
-            if (floor >= 3) {
-                int chestId = ((member.level < 11 ? 11 : member.level) / 10) + 121;
-                ItemTemplate4 it_chest = ItemTemplate4.get_it_by_id(chestId);
-                if (it_chest != null) {
-                    template.GiftBox gb = new template.GiftBox();
-                    gb.id = (short) chestId;
-                    gb.type = 4;
-                    gb.name = it_chest.name;
-                    gb.icon = it_chest.icon;
-                    gb.num = 1;
-                    gb.color = 0;
-                    gifts.add(gb);
-                }
             }
 
             // Send gifts using Service

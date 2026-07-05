@@ -128,6 +128,139 @@ public class ClientYesNo {
             p.data_yesno = null;
             return;
         }
+
+        if (id == 991) {
+            // Member response: value == 0 is Accept (Đồng ý), value != 0 is Decline (Từ chối)
+            if (p.party != null) {
+                activities.TowerChallenge.TowerChallengeLobby lobby = activities.TowerChallenge.ACTIVE_LOBBIES.get(p.party);
+                if (lobby != null) {
+                    if (value == 0) {
+                        lobby.memberAgreement.put(p.name, true);
+                    } else {
+                        lobby.memberAgreement.put(p.name, false);
+                        // Notify leader immediately
+                        Player leader = map.Map.get_player_by_name_allmap(lobby.leader.name);
+                        if (leader != null) {
+                            Service.send_box_ThongBao_OK(leader, "Thành viên " + p.name + " đã từ chối tham gia Vượt Liên Ải!");
+                        }
+                    }
+
+                    // Update and send status board to leader and all voted members
+                    for (Player mem : lobby.party.list) {
+                        Boolean agreement = lobby.memberAgreement.get(mem.name);
+                        if (agreement != null) { // Voted or is leader
+                            Player onlineMem = map.Map.get_player_by_name_allmap(mem.name);
+                            if (onlineMem != null) {
+                                if (onlineMem.name.equals(lobby.leader.name)) {
+                                    if (lobby.isAllAgreed()) {
+                                        Service.send_box_yesno(onlineMem, 993, "Vượt Liên Ải - Bắt đầu",
+                                            lobby.getStatusBoard() + "\nTất cả thành viên đã đồng ý! Bấm 'Vượt ải' để bắt đầu.",
+                                            new String[] {"Vượt ải", "Hủy"}, new byte[] {0, -1});
+                                    } else {
+                                        Service.send_box_yesno(onlineMem, 992, "Vượt Liên Ải - Chuẩn bị",
+                                            lobby.getStatusBoard(),
+                                            new String[] {"Cập nhật", "Hủy đăng ký"}, new byte[] {0, -1});
+                                    }
+                                } else {
+                                    Service.send_box_ThongBao_OK(onlineMem, lobby.getStatusBoard());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
+
+        if (id == 992) {
+            // Leader prepare lobby options
+            if (p.party != null) {
+                activities.TowerChallenge.TowerChallengeLobby lobby = activities.TowerChallenge.ACTIVE_LOBBIES.get(p.party);
+                if (lobby != null) {
+                    if (value == 0) {
+                        // Cập nhật (Refresh status)
+                        if (lobby.isAllAgreed()) {
+                            Service.send_box_yesno(p, 993, "Vượt Liên Ải - Bắt đầu",
+                                lobby.getStatusBoard() + "\nTất cả thành viên đã đồng ý! Bấm 'Vượt ải' để bắt đầu.",
+                                new String[] {"Vượt ải", "Hủy"}, new byte[] {0, -1});
+                        } else {
+                            Service.send_box_yesno(p, 992, "Vượt Liên Ải - Chuẩn bị",
+                                lobby.getStatusBoard(),
+                                new String[] {"Cập nhật", "Hủy đăng ký"}, new byte[] {0, -1});
+                        }
+                    } else {
+                        // Hủy đăng ký
+                        activities.TowerChallenge.ACTIVE_LOBBIES.remove(p.party);
+                        for (Player mem : p.party.list) {
+                            Player onlineMem = map.Map.get_player_by_name_allmap(mem.name);
+                            if (onlineMem != null) {
+                                Service.send_box_ThongBao_OK(onlineMem, "Trưởng nhóm đã hủy đăng ký Vượt Liên Ải.");
+                            }
+                        }
+                    }
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
+
+        if (id == 993) {
+            // Leader starts the dungeon
+            if (p.party != null) {
+                activities.TowerChallenge.TowerChallengeLobby lobby = activities.TowerChallenge.ACTIVE_LOBBIES.get(p.party);
+                if (lobby != null) {
+                    if (value == 0) {
+                        // Bắt đầu Vượt ải
+                        // 1. Validate all members again
+                        boolean ok = true;
+                        for (int i = 0; i < lobby.party.list.size(); i++) {
+                            Player memInList = lobby.party.list.get(i);
+                            Player member = map.Map.get_player_by_name_allmap(memInList.name);
+                            if (member == null || member.conn == null || !member.conn.connected || member.map == null || !member.map.equals(p.map) || member.get_key_boss() < 2 || member.dungeon != null) {
+                                ok = false;
+                                break;
+                            }
+                        }
+                        if (!ok) {
+                            Service.send_box_ThongBao_OK(p, "Thông tin thành viên không hợp lệ (offline, khác map, không đủ chìa khóa hoặc đang trong phó bản khác)!");
+                        } else {
+                            // Deduct keys and enter
+                            List<Player> onlineMembers = new ArrayList<>();
+                            for (int i = 0; i < lobby.party.list.size(); i++) {
+                                Player memInList = lobby.party.list.get(i);
+                                Player member = map.Map.get_player_by_name_allmap(memInList.name);
+                                if (member != null) {
+                                    member.update_key_boss(-2);
+                                    member.update_money();
+                                    member.originalMapId = member.map.template.id;
+                                    member.originalX = member.x;
+                                    member.originalY = member.y;
+                                    onlineMembers.add(member);
+                                }
+                            }
+                            activities.TowerChallenge.ACTIVE_LOBBIES.remove(p.party);
+                            activities.TowerChallenge tower = new activities.TowerChallenge(onlineMembers, p);
+                            tower.createStage(0);
+                        }
+                    } else {
+                        // Hủy
+                        activities.TowerChallenge.ACTIVE_LOBBIES.remove(p.party);
+                        for (Player mem : p.party.list) {
+                            Player onlineMem = map.Map.get_player_by_name_allmap(mem.name);
+                            if (onlineMem != null) {
+                                Service.send_box_ThongBao_OK(onlineMem, "Trưởng nhóm đã hủy đăng ký Vượt Liên Ải.");
+                            }
+                        }
+                    }
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
         if (id == 38 && p.data_yesno != null && p.data_yesno.length == 1) {
             List<Skill_info> name_skill = new ArrayList<>();
             for (int i = 0; i < p.skill_point.size(); i++) {
@@ -556,27 +689,31 @@ public class ClientYesNo {
                                 }
                             }
                             
-                            // Success: deduct keys and save coordinates
-                            System.out.println("[TowerChallenge] Registration checks passed. Deducting keys from party members:");
-                            List<Player> onlineMembers = new ArrayList<>();
-                            for (int i = 0; i < p.party.list.size(); i++) {
-                                Player memInList = p.party.list.get(i);
-                                Player member = Map.get_player_by_name_allmap(memInList.name);
-                                if (member != null) {
-                                    int oldKeys = member.get_key_boss();
-                                    member.update_key_boss(-2);
-                                    member.update_money();
-                                    member.originalMapId = member.map.template.id;
-                                    member.originalX = member.x;
-                                    member.originalY = member.y;
-                                    onlineMembers.add(member);
-                                    System.out.println("  - Member " + member.name + ": deducted 2 keys. Old: " + oldKeys + ", New: " + member.get_key_boss() + ". Original map position: MapID=" + member.originalMapId + ", X=" + member.originalX + ", Y=" + member.originalY);
+                            // Success: create lobby and invite members
+                            System.out.println("[TowerChallenge] All checks passed. Creating registration lobby.");
+                            activities.TowerChallenge.TowerChallengeLobby lobby = new activities.TowerChallenge.TowerChallengeLobby(p.party, p);
+                            activities.TowerChallenge.ACTIVE_LOBBIES.put(p.party, lobby);
+                            
+                            // Send yesno dialog to all OTHER members (action ID 991)
+                            for (Player memInList : p.party.list) {
+                                if (!memInList.name.equals(p.name)) {
+                                    Player member = Map.get_player_by_name_allmap(memInList.name);
+                                    if (member != null) {
+                                        Service.send_box_yesno(member, 991, "Vượt Liên Ải",
+                                            "Trưởng nhóm " + p.name + " muốn bắt đầu Vượt Liên Ải. Bạn có đồng ý tham gia?",
+                                            new String[] {"Đồng ý", "Từ chối"}, new byte[] {0, -1});
+                                    }
                                 }
                             }
                             
-                            System.out.println("[TowerChallenge] Starting TowerChallenge with " + onlineMembers.size() + " players.");
-                            activities.TowerChallenge tower = new activities.TowerChallenge(onlineMembers, p);
-                            tower.createStage(0);
+                            // Send status board to leader (action ID 992)
+                            Service.send_box_yesno(p, 992, "Vượt Liên Ải - Chuẩn bị",
+                                lobby.getStatusBoard(),
+                                new String[] {"Cập nhật", "Hủy đăng ký"}, new byte[] {0, -1});
+                            
+                            p.data_yesno = null;
+                            p.map_tele = null;
+                            return;
                         } else {
                             if (p.party != null) {
                                 Service.send_box_ThongBao_OK(p, "Hãy hủy nhóm trước khi vào phó bản");
@@ -2212,14 +2349,14 @@ public class ClientYesNo {
                 }
                 case 16: {
                     if (p.map_boss_info != null) {
-                        if (p.get_ticket() < 5) {
+                        if (p.get_ngoc() < 1000) {
                             p.map_boss_info = null;
-                            Service.send_box_ThongBao_OK(p, "Không đủ 5 bánh mì");
+                            Service.send_box_ThongBao_OK(p, "Không đủ 1.000 ruby");
                             p.data_yesno = null;
                             p.map_tele = null;
                             return;
                         }
-                        p.update_ticket(-5);
+                        p.update_ngoc(-1000);
                         p.update_money();
                         p.map.leave_map(p, 2);
                         // create map boss
@@ -2298,6 +2435,12 @@ public class ClientYesNo {
                     break;
                 }
                 case 14: {
+                    if (map.Map.is_map_dungeon(p.map.template.id)) {
+                        Service.send_box_ThongBao_OK(p, "Không thể hồi sinh tại chỗ trong phó bản!");
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
                     if (p.isdie) {
                         if (p.time_can_hs < 1) {
                             Service.send_box_ThongBao_OK(p, "Đã hết số lần hồi sinh tại chỗ!");

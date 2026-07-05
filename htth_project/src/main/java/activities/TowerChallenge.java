@@ -25,6 +25,7 @@ import template.ItemTemplate7;
 //Vượt liên tầng (13 tầng)
 public class TowerChallenge extends Dungeon {
     public static final List<TowerChallenge> ACTIVE_CHALLENGES = new CopyOnWriteArrayList<>();
+    public static final java.util.Map<client.Party, TowerChallengeLobby> ACTIVE_LOBBIES = new java.util.concurrent.ConcurrentHashMap<>();
     private static final ScheduledExecutorService TRANSITION_SCHEDULER = Executors.newScheduledThreadPool(2, r -> {
         Thread t = new Thread(r, "TowerChallenge-Transition");
         t.setDaemon(true);
@@ -577,6 +578,46 @@ public class TowerChallenge extends Dungeon {
             m.cleanup();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static class TowerChallengeLobby {
+        public client.Party party;
+        public Player leader;
+        public java.util.Map<String, Boolean> memberAgreement = new java.util.HashMap<>();
+
+        public TowerChallengeLobby(client.Party party, Player leader) {
+            this.party = party;
+            this.leader = leader;
+            for (Player p : party.list) {
+                if (p.name.equals(leader.name)) {
+                    memberAgreement.put(p.name, true);
+                } else {
+                    memberAgreement.put(p.name, null);
+                }
+            }
+        }
+
+        public boolean isAllAgreed() {
+            for (Boolean b : memberAgreement.values()) {
+                if (b == null || !b) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public String getStatusBoard() {
+            StringBuilder sb = new StringBuilder("Vượt Liên Ải - Chuẩn Bị:\n");
+            for (Player memInList : party.list) {
+                Boolean agreement = memberAgreement.get(memInList.name);
+                String status = "[?] Đang chờ";
+                if (agreement != null) {
+                    status = agreement ? "[v] Đồng ý" : "[x] Từ chối";
+                }
+                sb.append("- ").append(memInList.name).append(": ").append(status).append("\n");
+            }
+            return sb.toString();
         }
     }
 }

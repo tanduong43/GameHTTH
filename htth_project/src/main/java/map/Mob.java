@@ -20,4 +20,6 @@ public class Mob {
 	public long time_refresh;
 	public Boss boss_info;
 	public Map map;
+	public int base_dame;
+	public int final_dame;
 }

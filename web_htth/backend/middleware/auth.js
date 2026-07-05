@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'django-insecure-$(7p(&$6!)#@@*-p=*yiyte@o=%7ug%uleploraez8885&q-)1';
+const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_for_development_only';
 
 const jwtRequired = (req, res, next) => {
     const authHeader = req.headers['authorization'];
