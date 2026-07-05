@@ -166,10 +166,11 @@ public class TowerChallenge extends Dungeon {
             }
         }
 
-        // Chọn con mob cuối cùng làm boss tầng, tăng HP x3 và gắn boss_info
+        // Chọn con mob cuối cùng làm boss tầng, tăng HP x3 (tầng 11, 12, 13 nhân 8) và gắn boss_info
         if (!this.mobs.isEmpty()) {
             Mob bossM = this.mobs.get(this.mobs.size() - 1);
-            bossM.hp_max = bossM.hp_max * 3;
+            int multiplier = (stageIndex >= 10) ? 8 : 3;
+            bossM.hp_max = bossM.hp_max * multiplier;
             bossM.hp = bossM.hp_max;
             Boss bossInfo = new Boss();
             bossInfo.mob = bossM;
@@ -278,19 +279,23 @@ public class TowerChallenge extends Dungeon {
                     + " | Remaining Mobs: " + aliveMobs
                     + " | Boss defeated: " + bossDefeated);
 
-            if (bossDefeated) {
+            if (bossDefeated && aliveMobs == 0) {
                 // FIX #1: compareAndSet đảm bảo CHỈ 1 lần trigger transition dù update() gọi nhiều lần
                 // Nếu stageCleared đã là true (set bởi lần gọi trước), bỏ qua
                 if (!stageCleared.compareAndSet(false, true)) {
                     return;
                 }
-                System.out.println("[TowerChallenge] Boss defeated on Map ID: " + (500 + this.currentStageIndex)
-                        + ". Waiting 2 seconds before transitioning.");
+                System.out.println("[TowerChallenge] Boss and all mobs defeated on Map ID: " + (500 + this.currentStageIndex)
+                        + ". Waiting 5 seconds before transitioning.");
                 this.isTransitioning = true;
-                this.transitionEndTime = System.currentTimeMillis() + 2000L;
+                this.transitionEndTime = System.currentTimeMillis() + 5000L;
 
                 // Gửi hiệu ứng ăn mừng pháo hoa và thông báo chạy chữ cho tổ đội
-                sendLocalNotice("Đã tiêu diệt Boss tầng " + (this.currentStageIndex + 1) + "! Chuẩn bị chuyển tầng...");
+                sendLocalNotice("Đã tiêu diệt Boss và dọn sạch quái tầng " + (this.currentStageIndex + 1) + "! Chuẩn bị chuyển tầng...");
+                
+                // Trao quà ngay lập tức khi hoàn thành tầng để người chơi xem trong thời gian chờ 5s
+                distributeCurrentStageRewards();
+
                 for (Player member : this.partyMembers) {
                     Player pOnline = Map.get_player_by_name_allmap(member.name);
                     if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
@@ -313,41 +318,7 @@ public class TowerChallenge extends Dungeon {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }, 2000L, TimeUnit.MILLISECONDS);
-
-            } else if (aliveMobs == 0) {
-                // FIX #1: Cùng guard atomic — tránh nhánh mob-clear trigger thêm sau boss-path
-                if (!stageCleared.compareAndSet(false, true)) {
-                    return;
-                }
-                System.out.println("[TowerChallenge] All mobs cleared on Map ID: " + (500 + this.currentStageIndex)
-                        + ". Waiting 3 seconds before transitioning.");
-                this.isTransitioning = true;
-                this.transitionEndTime = System.currentTimeMillis() + 3000L;
-
-                sendLocalNotice("Đã tiêu diệt tất cả quái trên tầng " + (this.currentStageIndex + 1)
-                        + "! Chuẩn bị chuyển tầng...");
-                for (Player member : this.partyMembers) {
-                    Player pOnline = Map.get_player_by_name_allmap(member.name);
-                    if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
-                            && pOnline.map.equals(this.currentMap)) {
-                        try {
-                            Service.send_eff(pOnline, 23, 0);
-                        } catch (Exception e) {
-                            // ignore
-                        }
-                    }
-                }
-                // FIX #4: Lưu future tương tự nhánh boss
-                this.currentTransitionFuture = TRANSITION_SCHEDULER.schedule(() -> {
-                    try {
-                        if (!this.finished && this.isTransitioning) {
-                            completeStage();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }, 3000L, TimeUnit.MILLISECONDS);
+                }, 5000L, TimeUnit.MILLISECONDS);
             }
         }
     }
@@ -368,19 +339,7 @@ public class TowerChallenge extends Dungeon {
         int nextStage = this.currentStageIndex + 1;
         int nextMapId = 500 + nextStage;
 
-        // 1. Distribute rewards to eligible party members
-        for (Player member : this.partyMembers) {
-            Player pOnline = Map.get_player_by_name_allmap(member.name);
-            if (pOnline != null && pOnline.map.equals(this.currentMap)) {
-                int lastRewarded = playerLastRewardedStage.getOrDefault(pOnline.name, -1);
-                if (lastRewarded < this.currentStageIndex) {
-                    giveStageRewards(pOnline, this.currentStageIndex);
-                    playerLastRewardedStage.put(pOnline.name, this.currentStageIndex);
-                }
-            }
-        }
-
-        // 2. Teleport to next stage or complete
+        // 1. Teleport to next stage or complete
         if (nextStage >= 13) {
             System.out
                     .println("[TowerChallenge] All monsters defeated on final map (Map ID: 512). Completing dungeon.");
@@ -391,10 +350,24 @@ public class TowerChallenge extends Dungeon {
         }
     }
 
+    private void distributeCurrentStageRewards() {
+        for (Player member : this.partyMembers) {
+            Player pOnline = Map.get_player_by_name_allmap(member.name);
+            if (pOnline != null && pOnline.map.equals(this.currentMap)) {
+                int lastRewarded = playerLastRewardedStage.getOrDefault(pOnline.name, -1);
+                if (lastRewarded < this.currentStageIndex) {
+                    giveStageRewards(pOnline, this.currentStageIndex);
+                    playerLastRewardedStage.put(pOnline.name, this.currentStageIndex);
+                }
+            }
+        }
+    }
+
     private void giveStageRewards(Player p, int stageIndex) {
         try {
             System.out.println("[TowerChallenge] Distributing stage rewards to player: " + p.name + " for stageIndex=" + stageIndex);
             List<GiftBox> list_gift = new ArrayList<>();
+            int rewardMultiplier = (stageIndex >= 7) ? 2 : 1;
 
             // 1. Beri x10,000
             ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
@@ -404,7 +377,7 @@ public class TowerChallenge extends Dungeon {
                 gb.type = 4;
                 gb.name = it_beri.name;
                 gb.icon = it_beri.icon;
-                gb.num = 10_000;
+                gb.num = 10_000 * rewardMultiplier;
                 gb.color = 0;
                 list_gift.add(gb);
             }
@@ -427,7 +400,7 @@ public class TowerChallenge extends Dungeon {
                     gb.type = 7;
                     gb.name = it_temp7.name;
                     gb.icon = it_temp7.icon;
-                    gb.num = item[1];
+                    gb.num = item[1] * rewardMultiplier;
                     gb.color = 0;
                     list_gift.add(gb);
                 }

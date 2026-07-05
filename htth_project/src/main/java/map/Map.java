@@ -702,7 +702,8 @@ public class Map implements Runnable {
                 }
                 int num_mob = 0;
                 for (int i = 0; i < p0.dungeon.mobs.size(); i++) {
-                    if (p0.dungeon.mobs.get(i).map.equals(this)) {
+                    Mob mob = p0.dungeon.mobs.get(i);
+                    if (mob.map.equals(this) && !mob.isdie) {
                         num_mob++;
                     }
                 }
@@ -2443,7 +2444,7 @@ public class Map implements Runnable {
                     int value1 = 0;
                     int value2 = 0;
                     int percent = 0;
-                    if (mob_target.boss_info != null) {
+                    if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)) {
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
@@ -2733,7 +2734,7 @@ public class Map implements Runnable {
                         LeaveItemMap.leave_item4_little_garden(this, mob_target, p);
                     }
                     // boss
-                    if (mob_target.boss_info != null) {
+                    if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)) {
                         String notice = "Tiêu diệt siêu trùm nhận: ";
                         this.remove_obj(mob_target.index, 1);
                         Manager.gI().chatKTG(0,
