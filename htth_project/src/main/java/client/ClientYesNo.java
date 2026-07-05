@@ -15,6 +15,7 @@ import activities.Max_Level;
 import activities.Rebuild_Item;
 import activities.Ship;
 import activities.UpgradeItem;
+import activities.TableTickOption;
 import core.Service;
 import core.Util;
 import io.Message;
@@ -689,27 +690,30 @@ public class ClientYesNo {
                                 }
                             }
                             
-                            // Success: create lobby and invite members
-                            System.out.println("[TowerChallenge] All checks passed. Creating registration lobby.");
-                            activities.TowerChallenge.TowerChallengeLobby lobby = new activities.TowerChallenge.TowerChallengeLobby(p.party, p);
-                            activities.TowerChallenge.ACTIVE_LOBBIES.put(p.party, lobby);
+                            // Success: create TableTickOption and show to all members
+                            System.out.println("[TowerChallenge] All checks passed. Opening registration TableTickOption.");
+                            p.tableTickOption = new TableTickOption();
+                            p.tableTickOption.listP = new ArrayList<>();
+                            p.tableTickOption.idDialog = 1; // 1 is Tower Challenge (Phó bản Liên tầng)
                             
-                            // Send yesno dialog to all OTHER members (action ID 991)
+                            // Leader goes first
+                            p.tableTickOption.listP.add(p);
                             for (Player memInList : p.party.list) {
                                 if (!memInList.name.equals(p.name)) {
                                     Player member = Map.get_player_by_name_allmap(memInList.name);
                                     if (member != null) {
-                                        Service.send_box_yesno(member, 991, "Vượt Liên Ải",
-                                            "Trưởng nhóm " + p.name + " muốn bắt đầu Vượt Liên Ải. Bạn có đồng ý tham gia?",
-                                            new String[] {"Đồng ý", "Từ chối"}, new byte[] {0, -1});
+                                        p.tableTickOption.listP.add(member);
                                     }
                                 }
                             }
                             
-                            // Send status board to leader (action ID 992)
-                            Service.send_box_yesno(p, 992, "Vượt Liên Ải - Chuẩn bị",
-                                lobby.getStatusBoard(),
-                                new String[] {"Cập nhật", "Hủy đăng ký"}, new byte[] {0, -1});
+                            p.tableTickOption.list_check = new byte[p.tableTickOption.listP.size()];
+                            p.tableTickOption.list_check[0] = 1; // leader is checked
+                            for (int i = 1; i < p.tableTickOption.list_check.length; i++) {
+                                p.tableTickOption.list_check[i] = 0; // members are not checked
+                            }
+                            
+                            TableTickOption.show_table(p, "Phó bản Liên tầng");
                             
                             p.data_yesno = null;
                             p.map_tele = null;
