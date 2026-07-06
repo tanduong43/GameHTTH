@@ -1,13 +1,23 @@
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/api';
 
 export default function AuthForm({ title = '⚓ ĐĂNG NHẬP' }) {
   const { fetchUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isRegisterPath = location.pathname === '/register';
+  const isLoginPath = location.pathname === '/login';
+
+  const [isRegisterState, setIsRegisterState] = useState(false);
+  const isRegister = (isRegisterPath || isLoginPath) ? isRegisterPath : isRegisterState;
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isRegister, setIsRegister] = useState(false);
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,6 +43,10 @@ export default function AuthForm({ title = '⚓ ĐĂNG NHẬP' }) {
         showMessage('success', 'Đăng nhập thành công!');
         setUsername('');
         setPassword('');
+        setConfirmPassword('');
+        if (isLoginPath) {
+          navigate('/tai-khoan');
+        }
       } else {
         showMessage('error', res.data.message || 'Tài khoản hoặc mật khẩu không chính xác!');
       }
@@ -46,17 +60,25 @@ export default function AuthForm({ title = '⚓ ĐĂNG NHẬP' }) {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    if (!username || !password) {
+    if (!username || !password || !confirmPassword) {
       return showMessage('error', 'Vui lòng điền đầy đủ thông tin!');
+    }
+    if (password !== confirmPassword) {
+      return showMessage('error', 'Mật khẩu xác nhận không khớp!');
     }
     setSubmitting(true);
     setMessage(null);
     try {
       const res = await api.post('register/', { username, password });
       if (res.data.success) {
-        setIsRegister(false);
+        setIsRegisterState(false);
         showMessage('success', res.data.message || 'Đăng ký thành công! Vui lòng đăng nhập.');
+        setUsername('');
         setPassword('');
+        setConfirmPassword('');
+        if (isRegisterPath) {
+          navigate('/login');
+        }
       } else {
         showMessage('error', res.data.message || 'Đăng ký thất bại!');
       }
@@ -141,6 +163,22 @@ export default function AuthForm({ title = '⚓ ĐĂNG NHẬP' }) {
           </button>
         </div>
 
+        {isRegister && (
+          <div className="input-group" style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              placeholder="Xác nhận lại mật khẩu..."
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={submitting}
+              autoComplete="new-password"
+              required
+              style={{ paddingRight: '45px' }}
+            />
+          </div>
+        )}
+
         <button
           type="submit"
           className="btn btn-primary"
@@ -156,7 +194,14 @@ export default function AuthForm({ title = '⚓ ĐĂNG NHẬP' }) {
           <>
             Đã có tài khoản?{' '}
             <span
-              onClick={() => { setIsRegister(false); setMessage(null); }}
+              onClick={() => {
+                setMessage(null);
+                if (isRegisterPath || isLoginPath) {
+                  navigate('/login');
+                } else {
+                  setIsRegisterState(false);
+                }
+              }}
               style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 'bold' }}
             >
               Đăng nhập ngay
@@ -166,7 +211,14 @@ export default function AuthForm({ title = '⚓ ĐĂNG NHẬP' }) {
           <>
             Chưa có tài khoản?{' '}
             <span
-              onClick={() => { setIsRegister(true); setMessage(null); }}
+              onClick={() => {
+                setMessage(null);
+                if (isRegisterPath || isLoginPath) {
+                  navigate('/register');
+                } else {
+                  setIsRegisterState(true);
+                }
+              }}
               style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 'bold' }}
             >
               Đăng ký ngay

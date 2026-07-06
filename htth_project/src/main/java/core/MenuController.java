@@ -177,13 +177,13 @@ public class MenuController {
           if (p.map.template.id == 17) {
             send_dynamic_menu(p, type, "Nami",
                 new String[] { "Đổi Ruby", "Thành tích hằng ngày", "Tích lũy nạp thẻ", "Đấu giá",
-                    "Điểm nạp tích lũy", "Chợ mua bán" },
-                new short[] { 132, 134, 110, 169, 170, 170, 152 });
+                    "Điểm nạp tích lũy", "Chợ mua bán", "Danh Hiệu" },
+                new short[] { 132, 134, 110, 169, 170, 170, 152, -1 });
           } else {
             send_dynamic_menu(
                 p, type, "Nami", new String[] { "Đổi Ruby", "Thành tích hằng ngày",
-                    "Tích lũy nạp thẻ", "Đấu giá", "Điểm nạp tích lũy", },
-                new short[] { 132, 134, 110, 169, 170, 170 });
+                    "Tích lũy nạp thẻ", "Đấu giá", "Điểm nạp tích lũy", "Danh Hiệu" },
+                new short[] { 132, 134, 110, 169, 170, 170, -1 });
           }
           break;
         }
@@ -1006,6 +1006,10 @@ public class MenuController {
           Menu_Nami(p, index);
           break;
         }
+        case 950: { // menu danh hieu
+          process_title_menu(p, index);
+          break;
+        }
         case 994: {
           if (index == 0) {
           } else if (index == 1) {
@@ -1674,6 +1678,11 @@ public class MenuController {
         }
         case 4: {
           send_dynamic_menu(p, 987, "Điểm tích lũy", new String[] { "Vào cửa hàng" }, null);
+          break;
+        }
+        case 5:
+        case 6: {
+          show_title_menu(p);
           break;
         }
 
@@ -2691,5 +2700,93 @@ public class MenuController {
       p.conn.addmsg(m);
       m.cleanup();
     }
+  }
+
+  public static String getTitleName(int id) {
+      template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(id);
+      if (dh != null) {
+          return dh.name;
+      }
+      return "Danh Hiệu " + id;
+  }
+
+  private static void show_title_menu(Player p) throws IOException {
+      if (p.listDanhHieu == null || p.listDanhHieu.isEmpty()) {
+          Service.send_box_ThongBao_OK(p, "Bạn chưa sở hữu danh hiệu nào! Hãy tham gia sự kiện để nhận thêm.");
+          return;
+      }
+      
+      List<String> menu_options = new ArrayList<>();
+      List<Integer> menu_icons = new ArrayList<>();
+      
+      // Option to remove title (if currently wearing one)
+      if (p.idDanhHieu != -1) {
+          menu_options.add("Tháo Danh Hiệu (Đang đeo: " + getTitleName(p.idDanhHieu) + ")");
+          menu_icons.add(-1);
+      }
+      
+      // List all unlocked titles
+      for (int id : p.listDanhHieu) {
+          if (id == p.idDanhHieu) {
+              // skip since it's already shown as active/remove
+              continue;
+          }
+          template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(id);
+          if (dh == null) {
+              continue;
+          }
+          menu_options.add("Sử dụng: " + dh.name);
+          menu_icons.add(-1);
+      }
+      
+      // Send the dynamic menu with ID 950
+      send_dynamic_menu(p, 950, "Danh Hiệu", menu_options, menu_icons);
+  }
+
+  private static void process_title_menu(Player p, byte index) throws IOException {
+      if (p.listDanhHieu == null || p.listDanhHieu.isEmpty()) {
+          return;
+      }
+      
+      List<Integer> options = new ArrayList<>();
+      int removeIndex = -1;
+      
+      if (p.idDanhHieu != -1) {
+          removeIndex = 0;
+      }
+      
+      for (int id : p.listDanhHieu) {
+          if (id != p.idDanhHieu) {
+              template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(id);
+              if (dh != null) {
+                  options.add(id);
+              }
+          }
+      }
+      
+      if (index == removeIndex) {
+          // Remove active title
+          p.idDanhHieu = -1;
+          Player.flush(p, false);
+          p.update_info_to_all();
+          Service.send_box_ThongBao_OK(p, "Đã tháo danh hiệu thành công!");
+          System.out.println("[DanhHieu Log] Player " + p.name + " removed title (set idDanhHieu = -1)");
+      } else {
+          // Select title
+          int list_idx = index;
+          if (removeIndex != -1) {
+              list_idx = index - 1;
+          }
+          if (list_idx >= 0 && list_idx < options.size()) {
+              int selected_id = options.get(list_idx);
+              p.idDanhHieu = (short) selected_id;
+              Player.flush(p, false);
+              p.update_info_to_all();
+              Service.send_box_ThongBao_OK(p, "Sử dụng danh hiệu " + getTitleName(selected_id) + " thành công!");
+              System.out.println("[DanhHieu Log] Player " + p.name + " equipped title ID " + selected_id + " (" + getTitleName(selected_id) + ")");
+          } else {
+              System.out.println("[DanhHieu Log] Player " + p.name + " clicked invalid index " + index + " (list_idx = " + list_idx + ", options size = " + options.size() + ")");
+          }
+      }
   }
 }

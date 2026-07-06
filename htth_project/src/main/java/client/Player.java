@@ -136,6 +136,8 @@ public class Player {
     public boolean wait_change_map;
     public List<ItemBoatP> itemboat;
     public boolean is_show_hat;
+    public short idDanhHieu = -1;
+    public List<Integer> listDanhHieu;
     private int vnd;
     private int bua;
     public byte percent_da_sieu_cap;
@@ -254,6 +256,18 @@ public class Player {
                 }
             }
             js.clear();
+            idDanhHieu = rs.getShort("danhhieu");
+            listDanhHieu = new ArrayList<>();
+            String dbListDH = rs.getString("list_danhhieu");
+            if (dbListDH != null && !dbListDH.isEmpty()) {
+                JSONArray js_dh = (JSONArray) JSONValue.parse(dbListDH);
+                if (js_dh != null) {
+                    for (int i = 0; i < js_dh.size(); i++) {
+                        listDanhHieu.add(Integer.parseInt(js_dh.get(i).toString()));
+                    }
+                }
+            }
+            System.out.println("[DanhHieu Log] Loaded player " + this.name + " idDanhHieu = " + idDanhHieu + ", list size = " + listDanhHieu.size());
             js = (JSONArray) JSONValue.parse(rs.getString("site"));
             //
             int savedMapId = Integer.parseInt(js.get(0).toString());
@@ -662,7 +676,8 @@ public class Player {
                         + "`bag3` = ?, `it_body` = ?, `potential` = ?, `bag47` = ?, "
                         + "`rms` = ?, `skill` = ?, `friend` = ?, `enemy` = ?, `fashion` = ?, `eff` = ?, `box47` = ?, `box3` = ?, `quest` = ?, "
                         + "`exp` = ?, `pvppoint` = ?, `save_it3` = ?, `save_it47` = ?, "
-                        + "`hanhtrinh` = ?, `wanted_point` = ?, `wanted_chest` = ?, `mypet` = ?, `diemdanh` = ?, `diemdanhvip` = ?, `lucthuc` = ? WHERE `id` = "
+                        + "`hanhtrinh` = ?, `wanted_point` = ?, `wanted_chest` = ?, `mypet` = ?, `diemdanh` = ?, `diemdanhvip` = ?, `lucthuc` = ?, "
+                        + "`danhhieu` = ?, `list_danhhieu` = ? WHERE `id` = "
                         + p.id + ";";
         Connection connection = null;
         PreparedStatement ps = null;
@@ -993,6 +1008,14 @@ public class Player {
             js.add(p.lucthuc[2]);
             ps.setNString(28, js.toJSONString());
             js.clear();
+            ps.setInt(29, p.idDanhHieu);
+            JSONArray js_dh = new JSONArray();
+            if (p.listDanhHieu != null) {
+                for (int idDH : p.listDanhHieu) {
+                    js_dh.add(idDH);
+                }
+            }
+            ps.setNString(30, js_dh.toJSONString());
             //
             result = ps.executeUpdate();
         } catch (SQLException e) {
@@ -2207,6 +2230,7 @@ public class Player {
         Service.getThanhTich(this, this);
         Service.update_PK(this, this, false);
         Service.pet(this, this, false);
+        Service.charWearing(this, this, false);
         for (int i = 0; i < this.map.players.size(); i++) {
             Player p0 = this.map.players.get(i);
             if (p0.index_map != this.index_map) {
@@ -2216,6 +2240,7 @@ public class Player {
                 Service.pet(this, p0, false);
             }
         }
+        this.send_title_eff_to_map();
     }
 
     public int getNumPassive() {
@@ -2628,5 +2653,39 @@ public class Player {
             }
         }
         return null;
+    }
+
+    public void unlockDanhHieu(int id) {
+        if (this.listDanhHieu == null) {
+            this.listDanhHieu = new ArrayList<>();
+        }
+        if (!this.listDanhHieu.contains(id)) {
+            this.listDanhHieu.add(id);
+        }
+    }
+
+    public void send_title_eff_to_map() {
+        if (this.map == null) return;
+        try {
+            if (this.idDanhHieu != -1) {
+                template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(this.idDanhHieu);
+                int iconId = (dh != null) ? dh.idicon : this.idDanhHieu;
+                
+                io.Message m_eff = new io.Message(-15);
+                m_eff.writer().writeByte(iconId);
+                m_eff.writer().writeShort(this.index_map);
+                m_eff.writer().writeByte(0); // player
+                m_eff.writer().writeShort(-1); // infinite
+                
+                for (int i = 0; i < this.map.players.size(); i++) {
+                    Player p0 = this.map.players.get(i);
+                    p0.conn.addmsg(m_eff);
+                }
+                m_eff.cleanup();
+                System.out.println("[DanhHieu Log] Broadcasted title visual effect ID " + iconId + " to map for player " + this.name);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

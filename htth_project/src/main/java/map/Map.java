@@ -3032,6 +3032,26 @@ public class Map implements Runnable {
     public void send_chat(Player p, Message m2) throws IOException {
         String s = m2.reader().readUTF();
         String txt = s.trim().toLowerCase();
+        if (txt.startsWith("danhhieu ")) {
+            try {
+                String arg = txt.substring(9).trim();
+                if (arg.equals("all")) {
+                    for (int i = 0; i < DanhHieuTemplate.ENTRYS.size(); i++) {
+                        p.unlockDanhHieu(DanhHieuTemplate.ENTRYS.get(i).id);
+                    }
+                    client.Player.flush(p, false);
+                    Service.send_box_ThongBao_OK(p, "Đã mở khóa toàn bộ danh hiệu!");
+                } else {
+                    int title_id = Integer.parseInt(arg);
+                    p.unlockDanhHieu(title_id);
+                    client.Player.flush(p, false);
+                    Service.send_box_ThongBao_OK(p, "Đã mở khóa danh hiệu " + core.MenuController.getTitleName(title_id));
+                }
+            } catch (Exception e) {
+                Service.send_box_ThongBao_OK(p, "Lệnh không hợp lệ! Cú pháp: danhhieu [id] hoặc danhhieu all");
+            }
+            return;
+        }
         if (p.conn.user.equals("admin")) {
             if (txt.equals("menu")) {
                 MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[]{"Bảo trì",
@@ -3292,6 +3312,17 @@ public class Map implements Runnable {
             Service.Weapon_fashion(p0, p, false);
             Service.getThanhTich(p0, p);
             Service.charWearing(p0, p, false);
+            if (p0.idDanhHieu != -1) {
+                DanhHieuTemplate dh = DanhHieuTemplate.get(p0.idDanhHieu);
+                int iconId = (dh != null) ? dh.idicon : p0.idDanhHieu;
+                Message m_eff = new Message(-15);
+                m_eff.writer().writeByte(iconId);
+                m_eff.writer().writeShort(p0.index_map);
+                m_eff.writer().writeByte(0); // player
+                m_eff.writer().writeShort(-1); // infinite
+                p.conn.addmsg(m_eff);
+                m_eff.cleanup();
+            }
             //
             this.update_boat(p0, p, false);
             this.update_boat(p, p0, false);

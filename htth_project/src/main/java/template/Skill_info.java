@@ -26,7 +26,7 @@ public class Skill_info {
     // idEff 15: gay hut suc manh
     // idEff 16: gay hoang loan
     //
-    public static long[] EXP = new long[27];
+    public static long[] EXP = new long[32];
     public static int[] EXP_DEVIL = new int[] { 100, 125, 167, 200, 250 };
     public long exp;
     public Skill_Template temp;

@@ -205,7 +205,7 @@ function LandingPage() {
 
   const handleSlideAction = (action) => {
     if (action === 'forum') {
-      navigate('/dien-dan');
+      navigate('/tai-khoan');
     } else if (action === 'download') {
       const element = document.getElementById('download');
       if (element) {
@@ -568,7 +568,7 @@ function LandingPage() {
             const tag = getTag(item.title);
             const dateStr = item.published_at ? formatDate(item.published_at) : item.date;
             const summaryStr = item.summary || item.desc;
-            const targetUrl = item.slug || item.id ? `/news/${item.slug || item.id}` : '/dien-dan';
+            const targetUrl = item.slug || item.id ? `/news/${item.slug || item.id}` : '/tai-khoan';
             return (
               <article key={item.id} className="news-card card-panel">
                 <div className="news-meta">
@@ -639,7 +639,7 @@ function LandingPage() {
               <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Trang Chủ</a>
               <a href="#download" onClick={(e) => { e.preventDefault(); document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' }); }}>Tải Game</a>
               <a href="#" onClick={(e) => { e.preventDefault(); navigate('/nap-the'); }}>Nạp Thẻ</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/dien-dan'); }}>Tài Khoản</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/tai-khoan'); }}>Tài Khoản</a>
             </div>
           </div>
           <div className="footer-support">

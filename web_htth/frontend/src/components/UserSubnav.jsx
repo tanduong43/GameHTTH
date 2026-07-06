@@ -9,13 +9,13 @@ export default function UserSubnav({ activeTab }) {
     <div className="forum-subnav">
       <button
         className={`subnav-btn ${activeTab === 'account' ? 'active' : ''}`}
-        onClick={() => navigate('/dien-dan')}
+        onClick={() => navigate('/tai-khoan')}
       >
         👤 Tài Khoản
       </button>
       <button
         className={`subnav-btn ${activeTab === 'change-password' ? 'active' : ''}`}
-        onClick={() => navigate('/dien-dan?tab=change-password')}
+        onClick={() => navigate('/tai-khoan?tab=change-password')}
       >
         🔒 Đổi Mật Khẩu
       </button>

@@ -14,7 +14,7 @@ function Navbar() {
   const isHomeActive = location.pathname === '/' && hash !== '#download';
   const isDownloadActive = location.pathname === '/' && hash === '#download';
   const isNewsActive = location.pathname.startsWith('/news');
-  const isForumActive = location.pathname === '/dien-dan';
+  const isForumActive = location.pathname === '/tai-khoan' || location.pathname === '/login' || location.pathname === '/register';
 
   const handleHomeClick = (e) => {
     e.preventDefault();
@@ -74,7 +74,7 @@ function Navbar() {
           Tải Game
         </a>
         <Link 
-          to="/dien-dan" 
+          to={user ? "/tai-khoan" : "/login"} 
           className={`nav-btn ${isForumActive ? 'active' : ''}`}
         >
           {user ? `Tài Khoản (${user.username})` : 'Tài Khoản'}

@@ -193,7 +193,7 @@ public class Skill_Template {
             }
         }
         if (result != null && result.Lv_RQ > 0) {
-            if (result.Lv_RQ > 25) {
+            if (result.Lv_RQ > 30) {
                 return false;
             } else {
                 sk_info.temp = result;

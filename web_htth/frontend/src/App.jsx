@@ -8,12 +8,33 @@ import AdminCoin from './features/admin/components/AdminCoin';
 import AdminGiftcode from './features/admin/components/AdminGiftcode';
 import AdminNews from './features/admin/components/AdminNews';
 import AnimatedPage from './components/AnimatedPage';
+import AuthForm from './components/AuthForm';
 
 const routes = [
   { path: '/', element: <LandingPage /> },
-  { path: '/dien-dan', element: <ForumPage /> },
+  { path: '/tai-khoan', element: <ForumPage /> },
   { path: '/news', element: <NewsList /> },
   { path: '/news/:idOrSlug', element: <NewsDetail /> },
+  { 
+    path: '/login', 
+    element: (
+      <div className="forum-page" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
+        <div className="forum-content">
+          <AuthForm title="⚓ ĐĂNG NHẬP" />
+        </div>
+      </div>
+    ) 
+  },
+  { 
+    path: '/register', 
+    element: (
+      <div className="forum-page" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
+        <div className="forum-content">
+          <AuthForm title="⚓ ĐĂNG KÝ THÀNH VIÊN" />
+        </div>
+      </div>
+    ) 
+  },
   { 
     path: '/admin', 
     element: <AdminLayout />,

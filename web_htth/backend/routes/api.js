@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
         }
 
         await db.execute(
-            'INSERT INTO accounts (user, `pass`, char, onl, `lock`, status, coin, vip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO accounts (user, `pass`, `char`, onl, `lock`, status, coin, vip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [username, password, '[]', 0, 0, 0, 0, 0]
         );
 

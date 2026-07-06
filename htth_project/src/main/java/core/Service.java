@@ -367,9 +367,20 @@ public class Service {
                 m.writer().writeShort(-1);
             }
         }
-        m.writer().writeShort(-1);
-        m.writer().writeShort(-1);
-        m.writer().writeShort(-1);
+        short idIcon = -1;
+        if (p0.idDanhHieu != -1) {
+            template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p0.idDanhHieu);
+            if (dh != null) {
+                idIcon = (short) dh.idicon;
+            } else {
+                idIcon = (short) p0.idDanhHieu;
+            }
+        }
+        m.writer().writeShort(idIcon);
+        m.writer().writeShort(idIcon);
+        m.writer().writeShort(idIcon);
+        m.writer().writeShort(idIcon);
+        System.out.println("[DanhHieu Log] Sent charWearing of player " + p0.name + " to player " + p.name + " with idIcon in all 4 slots = " + idIcon);
         if (save_cache) {
             p.list_msg_cache.add(m);
         } else {

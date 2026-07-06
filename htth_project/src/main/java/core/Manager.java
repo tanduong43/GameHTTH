@@ -791,6 +791,31 @@ public class Manager {
             }
             // rs.close();
             System.out.println("load market ok");
+            // load danhhieu
+            query = "SELECT * FROM `danhhieu`;";
+            rs = ps.executeQuery(query);
+            template.DanhHieuTemplate.ENTRYS.clear();
+            while (rs.next()) {
+                template.DanhHieuTemplate temp = new template.DanhHieuTemplate();
+                temp.id = rs.getInt("id");
+                temp.name = rs.getString("name");
+                temp.idicon = rs.getInt("idicon");
+                temp.nframe = rs.getInt("nframe");
+                temp.op = new ArrayList<>();
+                String opStr = rs.getString("op");
+                if (opStr != null && !opStr.isEmpty()) {
+                    JSONArray js_ar = (JSONArray) JSONValue.parse(opStr);
+                    if (js_ar != null) {
+                        for (int i = 0; i < js_ar.size(); i++) {
+                            JSONArray js_in = (JSONArray) js_ar.get(i);
+                            temp.op.add(new template.Option(Byte.parseByte(js_in.get(0).toString()), Integer.parseInt(js_in.get(1).toString())));
+                        }
+                    }
+                }
+                template.DanhHieuTemplate.ENTRYS.add(temp);
+            }
+            rs.close();
+            System.out.println("load danhhieu template ok, size: " + template.DanhHieuTemplate.ENTRYS.size());
         } catch (SQLException e) {
             e.printStackTrace();
             System.exit(0);

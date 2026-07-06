@@ -108,6 +108,16 @@ public class Body {
                 }
             }
         }
+        if (p.idDanhHieu != -1) {
+            template.DanhHieuTemplate dhTemp = template.DanhHieuTemplate.get(p.idDanhHieu);
+            if (dhTemp != null && dhTemp.op != null) {
+                for (int j = 0; j < dhTemp.op.size(); j++) {
+                    if (dhTemp.op.get(j).id == id) {
+                        par += dhTemp.op.get(j).getParam();
+                    }
+                }
+            }
+        }
         for (int i = 0; i < p.skill_point.size(); i++) {
             Skill_info temp = p.skill_point.get(i);
             if (temp.temp.Lv_RQ > 0 && (temp.temp.typeSkill == 3)) {

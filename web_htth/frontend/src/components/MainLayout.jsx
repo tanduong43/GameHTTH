@@ -6,7 +6,11 @@ import '../styles/App.css';
 export default function MainLayout({ children }) {
   const location = useLocation();
 
-  const isLandingMode = location.pathname === '/' || location.pathname === '/dien-dan' || location.pathname.startsWith('/news');
+  const isLandingMode = location.pathname === '/' 
+    || location.pathname === '/tai-khoan' 
+    || location.pathname === '/login' 
+    || location.pathname === '/register' 
+    || location.pathname.startsWith('/news');
   const isForumMode = false;
 
   useEffect(() => {

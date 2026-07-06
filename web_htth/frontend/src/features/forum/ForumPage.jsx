@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/api';
 import AuthForm from '../../components/AuthForm';
@@ -85,13 +85,7 @@ function ForumPage() {
   }
 
   if (!user) {
-    return (
-      <div className="forum-page">
-        <div className="forum-content">
-          <AuthForm />
-        </div>
-      </div>
-    );
+    return <Navigate to="/login" replace />;
   }
 
 
