@@ -24,6 +24,19 @@ public class Boss {
     public static byte[] BOSS_LIVE = new byte[] { 0, 0, 0, 0, 0, 0 };
     public static byte[] BOSS_AREA = new byte[] { -1, -1, -1, -1, -1, -1 };
     public static byte[] TIME_NOW = new byte[] { 18, 0, 0 };
+    public static final int STATUS_RESPAWNING = 0;
+    public static final int STATUS_ALIVE = 1;
+    public static final int STATUS_DEAD = 2;
+
+    public long timeSpawn;
+    public long timeDeath;
+    public long timeNextRespawn;
+    public int status = STATUS_RESPAWNING;
+
+    public Map mapOrigin;
+    public short xOrigin;
+    public short yOrigin;
+
     public int id;
     public Mob mob;
     public byte levelBoss;
@@ -106,6 +119,152 @@ public class Boss {
         }
     }
 
+    public static List<Integer> getMapIdsForMob(int mobId) {
+        switch (mobId) {
+            case 4: return List.of(0, 2, 3, 4);
+            case 10: return List.of(8, 10, 11, 12);
+            case 16: return List.of(16, 18, 19, 20);
+            case 23: return List.of(24, 26, 27, 28);
+            case 29: return List.of(32, 34, 35, 36);
+            case 36: return List.of(40, 42, 43, 44);
+            case 43: return List.of(48, 50, 51, 52);
+            case 68: return List.of(68, 70, 71, 72);
+            case 78: return List.of(82, 84, 85, 86);
+            case 92: return List.of(92, 94, 95, 96, 97, 98, 99, 100, 101);
+            case 112: return List.of(112, 114, 115, 116, 117, 118, 124, 125, 126);
+            case 163: return List.of(192, 193, 194, 195, 196, 197);
+            default: return null;
+        }
+    }
+
+    public static int[] getInitialSpawnTime(int mobId) {
+        switch (mobId) {
+            case 4: return new int[]{9, 0};
+            case 10: return new int[]{9, 10};
+            case 16: return new int[]{9, 20};
+            case 23: return new int[]{9, 30};
+            case 29: return new int[]{9, 40};
+            case 36: return new int[]{9, 50};
+            case 43: return new int[]{10, 0};
+            case 68: return new int[]{10, 10};
+            case 78: return new int[]{10, 20};
+            case 92: return new int[]{10, 30};
+            case 112: return new int[]{10, 40};
+            case 163: return new int[]{10, 50};
+            case 172: return new int[]{11, 0};
+            default: return new int[]{0, 0}; // default spawn immediately at 00:00
+        }
+    }
+
+    public static boolean isTimeToShow(int[] spawnTime) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
+        int minute = cal.get(java.util.Calendar.MINUTE);
+        if (hour > spawnTime[0]) {
+            return true;
+        } else if (hour == spawnTime[0]) {
+            return minute >= spawnTime[1];
+        }
+        return false;
+    }
+
+    public static void spawn_boss_at_origin(Boss boss) {
+        long now = System.currentTimeMillis();
+        boss.mob.isdie = false;
+        boss.mob.hp = boss.mob.hp_max;
+        boss.mob.id_target = -1;
+        boss.levelBoss = 1;
+        boss.mob.index = boss.index_mob_save;
+        
+        List<Integer> allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
+        Map[] zones = null;
+        if (allowedMaps != null && allowedMaps.size() > 0) {
+            int randomMapId = allowedMaps.get(Util.random(allowedMaps.size()));
+            zones = Map.get_map_by_id(randomMapId);
+        }
+        
+        if (zones != null && zones.length > 0) {
+            Map randomMap = zones[Util.random(zones.length)];
+            boss.mob.map = randomMap;
+            
+            short temp_x = 300;
+            short temp_y = 300;
+            if (randomMap.template.npcs.size() > 0) {
+                Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
+                temp_x = npc.x;
+                temp_y = npc.y;
+            }
+            boss.mob.x = temp_x;
+            boss.mob.y = temp_y;
+        } else {
+            if (boss.mapOrigin != null) {
+                boss.mob.map = boss.mapOrigin;
+                boss.mob.x = boss.xOrigin;
+                boss.mob.y = boss.yOrigin;
+            }
+        }
+        
+        boss.timeSpawn = now;
+        boss.status = STATUS_ALIVE;
+        boss.TopDame.clear();
+        
+        try {
+            Manager.gI().chatKTG(0,
+                    ("Sự kiện: Siêu trùm " + boss.mob.mob_template.name + " đã xuất hiện tại "
+                            + boss.mob.map.template.name + " khu "
+                            + (boss.mob.map.zone_id + 1) + ". Hãy mau mau đi săn thôi!"),
+                    5);
+        } catch (Exception e) {
+        }
+        
+        try {
+            Message m_local = new Message(1);
+            m_local.writer().writeByte(1);
+            m_local.writer().writeShort(boss.mob.index);
+            m_local.writer().writeShort(boss.mob.x);
+            m_local.writer().writeShort(boss.mob.y);
+            boss.mob.map.send_msg_all_p(m_local, null, true);
+            m_local.cleanup();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        // Debug Log
+        System.out.println("[DEBUG LOG] Boss Respawned - ID: " + boss.mob.mob_template.mob_id
+                + " | Name: " + boss.mob.mob_template.name
+                + " | Village/Map ID: " + boss.mob.map.template.id
+                + " | Spawn Time: " + new java.util.Date(boss.timeSpawn));
+    }
+
+    public static void update_bosses() {
+        for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+            Boss boss = Boss.ENTRYS.get(i);
+            if (boss == null || boss.mob == null) continue;
+            
+            long now = System.currentTimeMillis();
+            
+            if (boss.status == STATUS_RESPAWNING) {
+                spawn_boss_at_origin(boss);
+            } else if (boss.status == STATUS_DEAD) {
+                if (now >= boss.timeNextRespawn) {
+                    spawn_boss_at_origin(boss);
+                }
+            } else if (boss.status == STATUS_ALIVE) {
+                if (boss.mob.isdie || boss.mob.hp <= 0) {
+                    boss.status = STATUS_DEAD;
+                    boss.timeDeath = now;
+                    boss.timeNextRespawn = now + 300000; // 5 minutes
+                    
+                    System.out.println("[DEBUG LOG] Boss Died - ID: " + boss.mob.mob_template.mob_id
+                            + " | Name: " + boss.mob.mob_template.name
+                            + " | Village/Map ID: " + boss.mob.map.template.id
+                            + " | Death Time: " + new java.util.Date(boss.timeDeath)
+                            + " | Next Respawn Time: " + new java.util.Date(boss.timeNextRespawn));
+                }
+            }
+        }
+    }
+
     public static void spawn_event_boss() {
         List<Boss> dead_bosses = new ArrayList<>();
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
@@ -117,21 +276,33 @@ public class Boss {
         if (dead_bosses.size() > 0) {
             Boss temp = dead_bosses.get(Util.random(dead_bosses.size()));
             Map[] zones = null;
-            int retries = 0;
-            while (zones == null && retries < 100) {
-                int randomIdx = Util.random(Map.ENTRYS.size());
-                zones = Map.ENTRYS.get(randomIdx);
-                if (zones == null || zones.length == 0) {
-                    zones = null;
-                } else {
-                    int mapId = zones[0].template.id;
-                    if (!ALLOWED_MAP_IDS.contains(mapId)
-                            || zones[0].list_mob == null || zones[0].list_mob.length == 0) {
-                        zones = null;
-                    }
-                }
-                retries++;
+            
+            // Try to get custom map list for the boss
+            List<Integer> allowedMaps = getMapIdsForMob(temp.mob.mob_template.mob_id);
+            if (allowedMaps != null && allowedMaps.size() > 0) {
+                int randomMapId = allowedMaps.get(Util.random(allowedMaps.size()));
+                zones = Map.get_map_by_id(randomMapId);
             }
+            
+            // Fallback to original random map logic if zones is null
+            if (zones == null) {
+                int retries = 0;
+                while (zones == null && retries < 100) {
+                    int randomIdx = Util.random(Map.ENTRYS.size());
+                    zones = Map.ENTRYS.get(randomIdx);
+                    if (zones == null || zones.length == 0) {
+                        zones = null;
+                    } else {
+                        int mapId = zones[0].template.id;
+                        if (!ALLOWED_MAP_IDS.contains(mapId)
+                                || zones[0].list_mob == null || zones[0].list_mob.length == 0) {
+                            zones = null;
+                        }
+                    }
+                    retries++;
+                }
+            }
+            
             if (zones != null && zones.length > 0) {
                 Map randomMap = zones[Util.random(zones.length)];
                 temp.mob.isdie = false;

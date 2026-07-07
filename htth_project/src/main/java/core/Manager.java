@@ -540,8 +540,9 @@ public class Manager {
                 short temp_y = Short.parseShort(js.get(2).toString());
                 Map[] map = Map.get_map_by_id(Short.parseShort(js.get(0).toString()));
                 js.clear();
+                int targetZoneIdx = map.length > 1 ? 1 : 0;
                 for (int i = 0; i < map.length; i++) {
-                    if (i == 0) {
+                    if (i != targetZoneIdx) {
                         continue;
                     }
                     Boss boss_temp = new Boss();
@@ -560,6 +561,9 @@ public class Manager {
                     this.index_mob += 10;
                     boss_temp.mob.boss_info = boss_temp;
                     boss_temp.mob.map = map[i];
+                    boss_temp.mapOrigin = map[i];
+                    boss_temp.xOrigin = temp_x;
+                    boss_temp.yOrigin = temp_y;
                     Mob.ENTRYS.put(boss_temp.mob.index, boss_temp.mob);
                     for (int j = 0; j < 10; j++) { // them 10slot cho 10 bac
                         Mob.ENTRYS.put((boss_temp.mob.index + j), boss_temp.mob);

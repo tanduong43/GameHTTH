@@ -295,9 +295,23 @@ public class UpgradeItem {
                     m.writer().writeShort(-1);
                 }
             }
+            short idTitle = -1;
+            short idFoot = -1;
+            if (p.idDanhHieu != -1) {
+                template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p.idDanhHieu);
+                if (dh != null) {
+                    if (dh.name.toLowerCase().contains("vòng chân")) {
+                        idFoot = (short) dh.idicon;
+                    } else {
+                        idTitle = (short) dh.idicon;
+                    }
+                } else {
+                    idTitle = (short) p.idDanhHieu;
+                }
+            }
             m.writer().writeShort(-1);
-            m.writer().writeShort(-1);
-            m.writer().writeShort(-1);
+            m.writer().writeShort(idTitle);
+            m.writer().writeShort(idFoot);
             p.conn.addmsg(m);
             m.cleanup();
             //

@@ -2739,42 +2739,54 @@ public class Map implements Runnable {
                     }
                     // boss
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)) {
+                        Boss boss = mob_target.boss_info;
+                        boss.status = Boss.STATUS_DEAD;
+                        boss.timeDeath = System.currentTimeMillis();
+                        boss.timeNextRespawn = boss.timeDeath + 300000; // 5 minutes
+                        
+                        // Debug Log
+                        System.out.println("[DEBUG LOG] Boss Died - ID: " + boss.mob.mob_template.mob_id
+                                + " | Name: " + boss.mob.mob_template.name
+                                + " | Village/Map ID: " + this.template.id
+                                + " | Death Time: " + new java.util.Date(boss.timeDeath)
+                                + " | Next Respawn Time: " + new java.util.Date(boss.timeNextRespawn));
+                        
                         String notice = "Tiêu diệt siêu trùm nhận: ";
                         this.remove_obj(mob_target.index, 1);
                         Manager.gI().chatKTG(0,
                                 p.name + " đã tiêu diệt " + mob_target.mob_template.name + " bậc "
-                                + mob_target.boss_info.levelBoss,
+                                + boss.levelBoss,
                                 5);
                         //
                         List<GiftBox> list_gift = new ArrayList<>();
-                        // 1. Gift 1: Ngẫu nhiên Khiên hoặc Búa siêu cấp (tỉ lệ 20%)
-                        if (Util.random(100) < 20) {
-                            GiftBox gift1 = new GiftBox();
-                            if (Util.random(2) == 0) {
-                                ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);
-                                if (it_bua != null) {
-                                    gift1.id = 323;
-                                    gift1.type = 4;
-                                    gift1.name = it_bua.name;
-                                    gift1.icon = it_bua.icon;
-                                    gift1.num = 1;
-                                    gift1.color = 0;
-                                    notice += "x1 búa siêu cấp, ";
-                                }
-                            } else {
-                                ItemTemplate7 it_temp7_in = ItemTemplate7.get_it_by_id(10);
-                                if (it_temp7_in != null) {
-                                    gift1.id = 10;
-                                    gift1.type = 7;
-                                    gift1.name = it_temp7_in.name;
-                                    gift1.icon = it_temp7_in.icon;
-                                    gift1.num = 1;
-                                    gift1.color = 0;
-                                    notice += "x1 khiên, ";
-                                }
+                        // 1. Gift 1: Búa siêu cấp (tỉ lệ 5%)
+                        if (Util.random(100) < 5) {
+                            ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);
+                            if (it_bua != null) {
+                                GiftBox giftBua = new GiftBox();
+                                giftBua.id = 323;
+                                giftBua.type = 4;
+                                giftBua.name = it_bua.name;
+                                giftBua.icon = it_bua.icon;
+                                giftBua.num = 1;
+                                giftBua.color = 0;
+                                list_gift.add(giftBua);
+                                notice += "x1 búa siêu cấp, ";
                             }
-                            if (gift1.name != null) {
-                                list_gift.add(gift1);
+                        }
+                        // 2. Gift 1.2: Khiên (tỉ lệ 10%)
+                        if (Util.random(100) < 10) {
+                            ItemTemplate7 it_temp7_in = ItemTemplate7.get_it_by_id(10);
+                            if (it_temp7_in != null) {
+                                GiftBox giftKhien = new GiftBox();
+                                giftKhien.id = 10;
+                                giftKhien.type = 7;
+                                giftKhien.name = it_temp7_in.name;
+                                giftKhien.icon = it_temp7_in.icon;
+                                giftKhien.num = 1;
+                                giftKhien.color = 0;
+                                list_gift.add(giftKhien);
+                                notice += "x1 khiên, ";
                             }
                         }
                         // Thêm Kỹ năng đơn (tỉ lệ 5%)
@@ -3312,17 +3324,6 @@ public class Map implements Runnable {
             Service.Weapon_fashion(p0, p, false);
             Service.getThanhTich(p0, p);
             Service.charWearing(p0, p, false);
-            if (p0.idDanhHieu != -1) {
-                DanhHieuTemplate dh = DanhHieuTemplate.get(p0.idDanhHieu);
-                int iconId = (dh != null) ? dh.idicon : p0.idDanhHieu;
-                Message m_eff = new Message(-15);
-                m_eff.writer().writeByte(iconId);
-                m_eff.writer().writeShort(p0.index_map);
-                m_eff.writer().writeByte(0); // player
-                m_eff.writer().writeShort(-1); // infinite
-                p.conn.addmsg(m_eff);
-                m_eff.cleanup();
-            }
             //
             this.update_boat(p0, p, false);
             this.update_boat(p, p0, false);

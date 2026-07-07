@@ -140,7 +140,8 @@ public class Skill_Template {
                     case 1: {
                         if (temp_ss.indexSkillInServer >= 0 && temp_ss.indexSkillInServer < 60
                                 || temp_ss.indexSkillInServer >= 375 && temp_ss.indexSkillInServer < 395
-                                || temp_ss.indexSkillInServer >= 566 && temp_ss.indexSkillInServer <= 583) {
+                                || temp_ss.indexSkillInServer >= 566 && temp_ss.indexSkillInServer <= 583
+                                || temp_ss.indexSkillInServer >= 667 && temp_ss.indexSkillInServer <= 678) {
                             result = temp_ss;
                         }
                         break;
@@ -148,7 +149,8 @@ public class Skill_Template {
                     case 2: {
                         if (temp_ss.indexSkillInServer >= 60 && temp_ss.indexSkillInServer < 120
                                 || temp_ss.indexSkillInServer >= 395 && temp_ss.indexSkillInServer < 415
-                                || temp_ss.indexSkillInServer >= 584 && temp_ss.indexSkillInServer <= 601) {
+                                || temp_ss.indexSkillInServer >= 584 && temp_ss.indexSkillInServer <= 601
+                                || temp_ss.indexSkillInServer >= 679 && temp_ss.indexSkillInServer <= 690) {
                             result = temp_ss;
                         }
                         break;
@@ -156,7 +158,8 @@ public class Skill_Template {
                     case 3: {
                         if (temp_ss.indexSkillInServer >= 120 && temp_ss.indexSkillInServer < 180
                                 || temp_ss.indexSkillInServer >= 415 && temp_ss.indexSkillInServer < 435
-                                || temp_ss.indexSkillInServer >= 602 && temp_ss.indexSkillInServer <= 619) {
+                                || temp_ss.indexSkillInServer >= 602 && temp_ss.indexSkillInServer <= 619
+                                || temp_ss.indexSkillInServer >= 691 && temp_ss.indexSkillInServer <= 702) {
                             result = temp_ss;
                         }
                         break;
@@ -164,7 +167,8 @@ public class Skill_Template {
                     case 4: {
                         if (temp_ss.indexSkillInServer >= 180 && temp_ss.indexSkillInServer < 240
                                 || temp_ss.indexSkillInServer >= 435 && temp_ss.indexSkillInServer < 455
-                                || temp_ss.indexSkillInServer >= 620 && temp_ss.indexSkillInServer <= 637) {
+                                || temp_ss.indexSkillInServer >= 620 && temp_ss.indexSkillInServer <= 637
+                                || temp_ss.indexSkillInServer >= 703 && temp_ss.indexSkillInServer <= 714) {
                             result = temp_ss;
                         }
                         break;
@@ -172,7 +176,8 @@ public class Skill_Template {
                     case 5: {
                         if (temp_ss.indexSkillInServer >= 240 && temp_ss.indexSkillInServer < 300
                                 || temp_ss.indexSkillInServer >= 455 && temp_ss.indexSkillInServer < 475
-                                || temp_ss.indexSkillInServer >= 638 && temp_ss.indexSkillInServer <= 655) {
+                                || temp_ss.indexSkillInServer >= 638 && temp_ss.indexSkillInServer <= 655
+                                || temp_ss.indexSkillInServer >= 715 && temp_ss.indexSkillInServer <= 726) {
                             result = temp_ss;
                         }
                         break;

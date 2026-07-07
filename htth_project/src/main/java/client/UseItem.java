@@ -632,6 +632,54 @@ public class UseItem {
                                 new String[] {"Đồng ý", "Hủy"}, new byte[] {-1, -1});
                         return false;
                     }
+                    case 228: {
+                        ItemFashion f109 = ItemFashion.get_item(109);
+                        ItemFashion f110 = ItemFashion.get_item(110);
+                        ItemFashion f119 = ItemFashion.get_item(119);
+                        ItemFashion f123 = ItemFashion.get_item(123);
+
+                        List<String> listOptions = new ArrayList<>();
+                        List<Integer> listIds = new ArrayList<>();
+
+                        if (f109 != null) {
+                            listOptions.add(f109.name);
+                            listIds.add(109);
+                        }
+                        if (f110 != null) {
+                            listOptions.add(f110.name);
+                            listIds.add(110);
+                        }
+                        if (f119 != null) {
+                            listOptions.add(f119.name);
+                            listIds.add(119);
+                        }
+                        if (f123 != null) {
+                            listOptions.add(f123.name);
+                            listIds.add(123);
+                        }
+
+                        if (listOptions.isEmpty()) {
+                            Service.send_box_ThongBao_OK(p, "Không tìm thấy thời trang trong hệ thống!");
+                            return false;
+                        }
+
+                        listOptions.add("Hủy");
+
+                        String[] str = listOptions.toArray(new String[0]);
+                        byte[] select = new byte[str.length];
+                        for (int i = 0; i < select.length; i++) {
+                            select[i] = (byte) -1;
+                        }
+
+                        p.data_yesno = new int[listIds.size() + 1];
+                        p.data_yesno[0] = 228;
+                        for (int i = 0; i < listIds.size(); i++) {
+                            p.data_yesno[i + 1] = listIds.get(i);
+                        }
+
+                        Service.send_box_yesno(p, 228, "Rương Trang Phục", "Chọn 1 trang phục mà bạn muốn nhận:", str, select);
+                        return false;
+                    }
                     case 80: {
                         EffTemplate eff = p.get_eff(2);
                         if (eff != null && (eff.time > (System.currentTimeMillis() + 3000L))) {

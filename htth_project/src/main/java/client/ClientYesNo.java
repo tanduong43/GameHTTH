@@ -27,6 +27,9 @@ import map.Vgo;
 import template.Clan_member;
 import template.DataTemplate;
 import template.ItemBag47;
+import template.ItemFashion;
+import template.ItemFashionP;
+import template.ItemFashionP2;
 import template.ItemMarket;
 import template.ItemTemplate3;
 import template.ItemTemplate4;
@@ -51,6 +54,54 @@ public class ClientYesNo {
         byte value = m2.reader().readByte();
         // System.out.println("id " + id);
         // System.out.println("value " + value);
+        if (id == 228 && p.data_yesno != null && p.data_yesno[0] == 228) {
+            int numIds = p.data_yesno.length - 1;
+            if (value >= 0 && value < numIds) {
+                int fashionId = p.data_yesno[value + 1];
+                ItemFashion itf = ItemFashion.get_item(fashionId);
+                if (itf != null) {
+                    if (p.check_fashion(itf.ID) != null) {
+                        Service.send_box_ThongBao_OK(p, "Bạn đã sở hữu thời trang này rồi!");
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
+                    int numChest = p.item.total_item_bag_by_id(4, 228);
+                    if (numChest <= 0) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không có Rương Trang Phục!");
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
+                    
+                    p.item.remove_item47(4, 228, 1);
+                    Message m3 = new Message(-13);
+                    m3.writer().writeShort(228);
+                    m3.writer().writeShort(p.item.total_item_bag_by_id(4, 228));
+                    p.conn.addmsg(m3);
+                    m3.cleanup();
+                    p.item.update_Inventory(-1, false);
+                    
+                    ItemFashionP2 temp2 = new ItemFashionP2();
+                    temp2.id = itf.ID;
+                    p.fashion.add(temp2);
+                    p.update_fashionP2(temp2);
+                    for (int i = 0; i < p.map.players.size(); i++) {
+                        Player p0 = p.map.players.get(i);
+                        Service.charWearing(p, p0, false);
+                    }
+                    Service.UpdateInfoMaincharInfo(p);
+                    ItemFashionP.show_table(p, 105);
+                    
+                    Service.send_box_ThongBao_OK(p, "Nhận thành công thời trang " + itf.name);
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Thời trang không hợp lệ!");
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
         if (id == 994) {
             if (value == 0) { // Đồng ý rời phó bản đơn
                 if (p.dungeon != null) {

@@ -2240,7 +2240,6 @@ public class Player {
                 Service.pet(this, p0, false);
             }
         }
-        this.send_title_eff_to_map();
     }
 
     public int getNumPassive() {
@@ -2665,27 +2664,5 @@ public class Player {
     }
 
     public void send_title_eff_to_map() {
-        if (this.map == null) return;
-        try {
-            if (this.idDanhHieu != -1) {
-                template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(this.idDanhHieu);
-                int iconId = (dh != null) ? dh.idicon : this.idDanhHieu;
-                
-                io.Message m_eff = new io.Message(-15);
-                m_eff.writer().writeByte(iconId);
-                m_eff.writer().writeShort(this.index_map);
-                m_eff.writer().writeByte(0); // player
-                m_eff.writer().writeShort(-1); // infinite
-                
-                for (int i = 0; i < this.map.players.size(); i++) {
-                    Player p0 = this.map.players.get(i);
-                    p0.conn.addmsg(m_eff);
-                }
-                m_eff.cleanup();
-                System.out.println("[DanhHieu Log] Broadcasted title visual effect ID " + iconId + " to map for player " + this.name);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }
