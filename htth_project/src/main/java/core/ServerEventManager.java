@@ -65,7 +65,21 @@ public class ServerEventManager {
                         Clan.reset_day();
                         LittleGarden.LIST.clear();
                     }
-                    // spawn_event_boss is disabled in favor of individual boss spawn system
+                    if (min % 5 == 0 && sec == 0) {
+                        Boss.spawn_event_boss();
+                    }
+                    if (hour == 18 && min == 0 && sec == 0) {
+                        Boss.create_boss();
+                    }
+                    if (hour == 19 && min == 0 && sec == 0) {
+                        Boss.result_boss();
+                    }
+                    if (hour == 22 && min == 0 && sec == 0) {
+                        Boss.create_boss();
+                    }
+                    if (hour == 23 && min == 0 && sec == 0) {
+                        Boss.result_boss();
+                    }
                     if (sec == 0) {
                         try {
                             StringBuilder sbBoss = new StringBuilder();
@@ -135,7 +149,7 @@ public class ServerEventManager {
                             }
                         }
                         Manager.gI().TaiXiu().upTime();
-                        map.Boss.update_bosses();
+                        Boss.update_bosses();
                     }
                     if (sec % 5 == 0) { // fine clan little garden
                         if ((Util.is_DayofWeek(2) || Util.is_DayofWeek(4) || Util.is_DayofWeek(6))

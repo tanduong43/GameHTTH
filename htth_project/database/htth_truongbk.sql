@@ -2589,8 +2589,8 @@ INSERT INTO `item4` VALUES (169, 'Bao Lì Xì', 124, 86, 0, 0, 1, 36, 0, 0, 0, '
 INSERT INTO `item4` VALUES (170, 'Rương Tết', 125, 87, 0, 0, 1, 37, 0, 0, 0, 'Sử dụng');
 INSERT INTO `item4` VALUES (171, 'Hộp Quà 8.3', 126, 87, 0, 0, 1, 38, 0, 0, 0, 'Sử dụng');
 INSERT INTO `item4` VALUES (172, 'Rương Vua Hùng', 127, 87, 0, 0, 1, 37, 0, 0, 0, 'Mở rương');
-INSERT INTO `item4` VALUES (173, 'Cơm hộp hải tặc', 128, 88, 0, 3, 1, 1, 5000, 10000, 2000, 'Sử dụng');
-INSERT INTO `item4` VALUES (174, 'Quả Conache', 129, 89, 0, 0, 1, 2, 5000, 12, 2000, 'Sử dụng');
+INSERT INTO `item4` VALUES (173, 'Cơm hộp hải tặc', 128, 88, 20000, 0, 1, 1, 5000, 10000, 2000, 'Sử dụng');
+INSERT INTO `item4` VALUES (174, 'Quả Conache', 129, 89, 10000, 0, 1, 2, 5000, 12, 2000, 'Sử dụng');
 INSERT INTO `item4` VALUES (175, 'Nước tăng lực', 130, 90, 0, 0, 1, 39, 0, 0, 0, 'Sử dụng');
 INSERT INTO `item4` VALUES (176, 'Thuốc hồi sức', 131, 91, 0, 0, 0, 39, 0, 0, 0, 'Sử dụng');
 INSERT INTO `item4` VALUES (177, 'Dược phẩm cứng cáp', 132, 92, 0, 0, 0, 39, 0, 0, 0, 'Sử dụng');
@@ -6572,7 +6572,7 @@ INSERT INTO `danhhieu` (`id`, `name`, `idicon`, `nframe`, `op`) VALUES
 (2, 'Trùm cuối', 3002, 7, '[[0,100]]'),
 (3, 'Trung Thu', 3003, 6, '[[0,100]]'),
 (60, 'VIP 1', 60, 1, '[]'),
-(61, 'VIP 2', 62, 1, '[]'),
+(61, 'VIP 2', 61, 1, '[]'),
 (62, 'VIP 3', 62, 1, '[]'),
 (63, 'VIP 4', 63, 1, '[]'),
 (64, 'Bất Bại', 64, 1, '[]'),

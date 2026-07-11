@@ -81,6 +81,9 @@ public class Player {
     public short id_ship_packet = -1;
     public Ship_pet ship_pet;
     public byte time_ship;
+    public byte time_namie;
+    public byte time_bosshunt;
+    public byte time_tower;
     public byte time_can_hs;
     public List<FriendTemp> enemy_list;
     public TableTickOption tableTickOption;
@@ -160,6 +163,8 @@ public class Player {
     public Wanted_Chest[] wanted_chest;
     public List<MyPet> my_pet;
     public long time_change_map;
+    public boolean isBot = false;
+    public long time_start_find_wanted = 0;
     public int diemdanh;
     public int diemdanhvip;
     public long[] time_sk = new long[10000];
@@ -170,6 +175,8 @@ public class Player {
     public Player(Session conn, String name) {
         this.conn = conn;
         this.name = name;
+        this.id_meet_in_map = new java.util.HashSet<>();
+        this.list_msg_cache = new java.util.concurrent.LinkedBlockingQueue<>();
     }
 
     public boolean setup() {
@@ -231,6 +238,21 @@ public class Player {
             time_nvl = Integer.parseInt(js.get(9).toString());
             time_ttvt = Byte.parseByte(js.get(10).toString());
             wanted_price = Integer.parseInt(js.get(11).toString());
+            if (js.size() > 12) {
+                time_namie = Byte.parseByte(js.get(12).toString());
+            } else {
+                time_namie = 0;
+            }
+            if (js.size() > 13) {
+                time_bosshunt = Byte.parseByte(js.get(13).toString());
+            } else {
+                time_bosshunt = 0;
+            }
+            if (js.size() > 14) {
+                time_tower = Byte.parseByte(js.get(14).toString());
+            } else {
+                time_tower = 0;
+            }
             js.clear();
             this.wanted_chest = new Wanted_Chest[2];
             js = (JSONArray) JSONValue.parse(rs.getString("wanted_chest"));
@@ -277,6 +299,7 @@ public class Player {
                 savedMapId = 1;
             }
             boolean wasTowerMap = (savedMapId >= 500 && savedMapId <= 512);
+            boolean wasNamieDefenseMap = (savedMapId == activities.NamieTreasureDefense.MAP_ID);
             Map[] map = null;
             if (wasTowerMap) {
                 activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(this.name);
@@ -285,6 +308,18 @@ public class Player {
                     map = new Map[] { activeChallenge.currentMap };
                 } else {
                     System.out.println("[TowerChallenge] Player " + this.name + " saved map was Tower map (" + savedMapId + ") but no active challenge. Redirecting to map 1 (Village).");
+                    savedMapId = 1;
+                    map = Map.get_map_by_id(1);
+                    x = 300;
+                    y = 250;
+                }
+            } else if (wasNamieDefenseMap) {
+                activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense.findActiveDefense(this.name);
+                if (activeDefense != null) {
+                    savedMapId = activeDefense.currentMap.template.id;
+                    map = new Map[] { activeDefense.currentMap };
+                } else {
+                    System.out.println("[NamieDefense] Player " + this.name + " saved map was Namie Defense map (" + savedMapId + ") but no active defense. Redirecting to map 1 (Village).");
                     savedMapId = 1;
                     map = Map.get_map_by_id(1);
                     x = 300;
@@ -759,6 +794,9 @@ public class Player {
             js.add(p.time_nvl);
             js.add(p.time_ttvt);
             js.add(p.wanted_price);
+            js.add(p.time_namie);
+            js.add(p.time_bosshunt);
+            js.add(p.time_tower);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -1124,7 +1162,8 @@ public class Player {
                 }
             }
         } else {
-            if (this.dungeon instanceof activities.TowerChallenge) {
+            if (this.dungeon instanceof activities.TowerChallenge
+                    || this.dungeon instanceof activities.NamieTreasureDefense) {
                 Service.send_time_cool_down(this, 0, "", 0);
                 this.dungeon = null;
             }
@@ -1190,16 +1229,18 @@ public class Player {
         }
         QuestP quest_select = this.list_quest.get(0);
         if (quest_select != null) {
+            int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
             for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-                if (MapCanGoTo.idQuest[i] <= quest_select.template.id) {
-                    if (mapId != 119 && mapId != 120 && mapId != 122 && mapId != 123 
-                            && mapId != 54 && mapId != 58 && mapId != 59 && mapId != 984 && mapId != 1000
-                            && mapId != 127 && !Map.is_map_dungeon(mapId) 
-                            && MapCanGoTo.idMap[i] < mapId) {
-                        return false;
-                    }
+                if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
+                    idMap = MapCanGoTo.idMap[i - 1];
                     break;
                 }
+            }
+            if (mapId != 119 && mapId != 120 && mapId != 122 && mapId != 123 
+                    && mapId != 54 && mapId != 58 && mapId != 59 && mapId != 984 && mapId != 1000
+                    && mapId != 127 && !Map.is_map_dungeon(mapId) 
+                    && idMap < mapId) {
+                return false;
             }
         }
         return true;
@@ -1217,16 +1258,18 @@ public class Player {
         //
         QuestP quest_select = this.list_quest.get(0);
         if (quest_select != null) {
+            int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
             for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-                if (MapCanGoTo.idQuest[i] <= quest_select.template.id) {
-                    if ( map_go[0].template.id !=119 && map_go[0].template.id!=120 &&map_go[0].template.id!=122 && map_go[0].template.id!=123 && map_go[0].template.id!=54 && map_go[0].template.id!=58 && map_go[0].template.id!= 59 && map_go[0].template.id!=123 && map_go[0].template.id!=984 && map_go[0].template.id!=1000
-                && map_go[0].template.id!=127&& !Map.is_map_dungeon(map_go[0].template.id) && MapCanGoTo.idMap[i] < map_go[0].template.id) {
-                        Service.send_box_ThongBao_OK(this,
-                                "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
-                        return;
-                    }
+                if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
+                    idMap = MapCanGoTo.idMap[i - 1];
                     break;
                 }
+            }
+            if (map_go[0].template.id != 119 && map_go[0].template.id != 120 && map_go[0].template.id != 122 && map_go[0].template.id != 123 && map_go[0].template.id != 54 && map_go[0].template.id != 58 && map_go[0].template.id != 59 && map_go[0].template.id != 123 && map_go[0].template.id != 984 && map_go[0].template.id != 1000
+                    && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id) && idMap < map_go[0].template.id) {
+                Service.send_box_ThongBao_OK(this,
+                        "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
+                return;
             }
         }
         //
@@ -1948,6 +1991,9 @@ public class Player {
             time_nvl = 0;
             diemdanh = 0;
             diemdanhvip = 0;
+            time_namie = 0;
+            time_bosshunt = 0;
+            time_tower = 0;
         }
     }
 
@@ -2240,6 +2286,7 @@ public class Player {
                 Service.pet(this, p0, false);
             }
         }
+        this.send_title_eff_to_map();
     }
 
     public int getNumPassive() {
@@ -2664,5 +2711,15 @@ public class Player {
     }
 
     public void send_title_eff_to_map() {
+        if (this.map == null || this.idDanhHieu == -1) {
+            return;
+        }
+        int effectId = Service.getDanhHieuEffectId(this);
+        if (effectId < 0) {
+            return;
+        }
+        for (int i = 0; i < this.map.players.size(); i++) {
+            Service.send_danhieu_effect(this.map.players.get(i), effectId);
+        }
     }
 }

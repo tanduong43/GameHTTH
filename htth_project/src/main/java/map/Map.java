@@ -34,6 +34,7 @@ public class Map implements Runnable {
     public activities.BossHunt map_bossHunt;
     public ItemMap[] list_it_map = new ItemMap[1_000];
     public boolean can_PK = true;
+    public long lastBotActionTime = 0;
 
     public Map() {
         this.running = false;
@@ -47,7 +48,7 @@ public class Map implements Runnable {
     }
 
     public static boolean is_map_dungeon(int id) {
-        return (id >= 167 && id <= 176) || (id >= 500 && id <= 512);
+        return (id >= 167 && id <= 176) || (id >= 500 && id <= 512) || id == 513;
     }
 
     public static void add_map_plus(Map map_boss) {
@@ -235,7 +236,7 @@ public class Map implements Runnable {
                 Quest.update_map_have_side_quest(p0[1], true);
                 //
                 map_create.map_pvp = new Map_pvp();
-                map_create.map_pvp.time_pvp = 5;
+                map_create.map_pvp.time_pvp = 1;
                 map_create.map_pvp.status_pvp = 0;
                 map_create.map_pvp.num_win_p1 = 0;
                 map_create.map_pvp.num_win_p2 = 0;
@@ -243,6 +244,96 @@ public class Map implements Runnable {
                 map_create.start_map();
                 Map.add_map_plus(map_create);
                 // System.out.println("map: " + map_create.hashCode());
+            } else {
+                Player p_waiting = Wanted.get_player_waiting_too_long();
+                if (p_waiting != null) {
+                    Wanted.wait_to_enter_round(p_waiting);
+                    
+                    // create map
+                    short[] mapID = new short[]{120, 122, 123};
+                    Map maptemp = Map.get_map_by_id(mapID[Util.random(mapID.length)])[0];
+                    Map map_create = new Map();
+                    map_create.template = maptemp.template;
+                    map_create.zone_id = (byte) 0;
+                    map_create.list_mob = new int[0];
+                    
+                    // set up human
+                    p_waiting.map.leave_map(p_waiting, 2);
+                    p_waiting.type_pk = -1;
+                    p_waiting.map = map_create;
+                    p_waiting.x = 320;
+                    p_waiting.y = 240;
+                    p_waiting.xold = p_waiting.x;
+                    p_waiting.yold = p_waiting.y;
+                    p_waiting.map.goto_map(p_waiting);
+                    Service.update_PK(p_waiting, p_waiting, true);
+                    Service.pet(p_waiting, p_waiting, true);
+                    Quest.update_map_have_side_quest(p_waiting, true);
+                    
+                    // select opponent name
+                    String opponentName = p_waiting.name;
+                    java.sql.Connection connDb = null;
+                    java.sql.Statement stmtDb = null;
+                    java.sql.ResultSet rsDb = null;
+                    try {
+                        connDb = database.SQL.gI().getCon();
+                        stmtDb = connDb.createStatement();
+                        rsDb = stmtDb.executeQuery("SELECT `name` FROM `players` WHERE `name` != '" + p_waiting.name + "' ORDER BY RAND() LIMIT 1;");
+                        if (rsDb.next()) {
+                            opponentName = rsDb.getString("name");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            if (rsDb != null) rsDb.close();
+                            if (stmtDb != null) stmtDb.close();
+                            if (connDb != null) connDb.close();
+                        } catch (Exception e) {}
+                    }
+                    Player bot = new Player(new io.Session(null), opponentName);
+                    bot.isBot = true;
+                    bot.conn.user = "bot_" + opponentName;
+                    bot.conn.pass = "bot";
+                    bot.conn.status = 1;
+                    
+                    if (!bot.setup() || opponentName.equals(p_waiting.name)) {
+                        bot = new Player(new io.Session(null), p_waiting.name);
+                        bot.isBot = true;
+                        bot.conn.user = "bot_" + p_waiting.name;
+                        bot.conn.pass = "bot";
+                        bot.conn.status = 1;
+                        bot.setup();
+                        bot.name = "Bản Sao " + p_waiting.name;
+                    }
+                    
+                    bot.id = -p_waiting.id;
+                    bot.index_map = (short) bot.id;
+                    bot.hp = bot.body.get_hp_max(true);
+                    bot.mp = bot.body.get_mp_max(true);
+                    
+                    // set up bot in map
+                    bot.type_pk = -1;
+                    bot.map = map_create;
+                    bot.x = 380;
+                    bot.y = 240;
+                    bot.xold = bot.x;
+                    bot.yold = bot.y;
+                    bot.map.goto_map(bot);
+                    Service.update_PK(bot, bot, true);
+                    Service.pet(bot, bot, true);
+                    Quest.update_map_have_side_quest(bot, true);
+                    
+                    // start map
+                    map_create.map_pvp = new Map_pvp();
+                    map_create.map_pvp.time_pvp = 1;
+                    map_create.map_pvp.status_pvp = 0;
+                    map_create.map_pvp.num_win_p1 = 0;
+                    map_create.map_pvp.num_win_p2 = 0;
+                    map_create.map_pvp.type_map = 2; // map fight truy na
+                    map_create.start_map();
+                    Map.add_map_plus(map_create);
+                }
             }
         }
     }
@@ -486,30 +577,51 @@ public class Map implements Runnable {
         if (this.map_pvp != null) { // map pvp
             this.map_pvp.time_pvp--;
             // System.out.println(this.map_pvp.time_pvp +" "+ this.map_pvp.status_pvp);
-            if (this.map_pvp.status_pvp == 0 && this.map_pvp.time_pvp <= 0) {
-                for (int i = 0; i < players.size(); i++) {
-                    Pvp.pvp_notice(players.get(i), 0);
+            if (this.map_pvp.type_map == 2) { // Wanted PvP
+                if (this.map_pvp.status_pvp == 0 && this.map_pvp.time_pvp <= 0) {
+                    for (int i = 0; i < players.size(); i++) {
+                        Pvp.pvp_notice(players.get(i), 1);
+                        Service.use_potion(players.get(i), 0, players.get(i).body.get_hp_max(true));
+                        Service.use_potion(players.get(i), 1, players.get(i).body.get_mp_max(true));
+                        change_flag(players.get(i), 0);
+                    }
+                    this.map_pvp.time_pvp = 3;
+                    this.map_pvp.status_pvp = 2;
+                } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
+                    for (int i = 0; i < players.size(); i++) {
+                        Pvp.pvp_notice(players.get(i), 2);
+                        Pvp.show_info(players.get(i), 180, (i == 0 ? this.map_pvp.num_win_p1 : this.map_pvp.num_win_p2), (i == 0 ? this.map_pvp.num_win_p2 : this.map_pvp.num_win_p1), 3);
+                        change_flag(players.get(i), 0);
+                    }
+                    this.map_pvp.time_pvp = 180;
+                    this.map_pvp.status_pvp = 3;
                 }
-                this.map_pvp.time_pvp = 5;
-                this.map_pvp.status_pvp = 1;
-            } else if (this.map_pvp.status_pvp == 1 && this.map_pvp.time_pvp <= 0) {
-                for (int i = 0; i < players.size(); i++) {
-                    Pvp.pvp_notice(players.get(i), 1);
-                    Service.use_potion(players.get(i), 0, players.get(i).body.get_hp_max(true));
-                    Service.use_potion(players.get(i), 1, players.get(i).body.get_mp_max(true));
-                }
-                this.map_pvp.time_pvp = 4;
-                this.map_pvp.status_pvp = 2;
-            } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
-                for (int i = 0; i < players.size(); i++) {
-                    Pvp.pvp_notice(players.get(i), 2);
+            } else { // Regular PvP
+                if (this.map_pvp.status_pvp == 0 && this.map_pvp.time_pvp <= 0) {
+                    for (int i = 0; i < players.size(); i++) {
+                        Pvp.pvp_notice(players.get(i), 0);
+                    }
+                    this.map_pvp.time_pvp = 5;
+                    this.map_pvp.status_pvp = 1;
+                } else if (this.map_pvp.status_pvp == 1 && this.map_pvp.time_pvp <= 0) {
+                    for (int i = 0; i < players.size(); i++) {
+                        Pvp.pvp_notice(players.get(i), 1);
+                        Service.use_potion(players.get(i), 0, players.get(i).body.get_hp_max(true));
+                        Service.use_potion(players.get(i), 1, players.get(i).body.get_mp_max(true));
+                    }
+                    this.map_pvp.time_pvp = 4;
+                    this.map_pvp.status_pvp = 2;
+                } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
+                    for (int i = 0; i < players.size(); i++) {
+                        Pvp.pvp_notice(players.get(i), 2);
+                        //
+                        Pvp.show_info(players.get(i), 180, 0, 0, 3);
+                        change_flag(players.get(i), (i == 0 ? 14 : 15));
+                    }
+                    this.map_pvp.time_pvp = 180;
+                    this.map_pvp.status_pvp = 3;
                     //
-                    Pvp.show_info(players.get(i), 180, 0, 0, 3);
-                    change_flag(players.get(i), (i == 0 ? 14 : 15));
                 }
-                this.map_pvp.time_pvp = 180;
-                this.map_pvp.status_pvp = 3;
-                //
             }
             if (this.map_pvp.status_pvp == 3 && players.size() == 2) {
                 for (int i = 0; i < players.size(); i++) {
@@ -518,6 +630,7 @@ public class Map implements Runnable {
                         break;
                     }
                 }
+                runBotAI();
             } else if (this.map_pvp.status_pvp == 91 && players.size() == 2) {
                 this.map_pvp.status_pvp = 90;
             } else if (this.map_pvp.status_pvp == 90 && players.size() == 2) {
@@ -525,15 +638,36 @@ public class Map implements Runnable {
                     if (this.map_pvp.num_win_p1 == 3 || this.map_pvp.num_win_p2 == 3) {
                         change_flag(players.get(i), -1);
                     }
-                    // if (players.get(i).isdie) {
-                    players.get(i).isdie = false;
-                    Service.use_potion(players.get(i), 0, players.get(i).body.get_hp_max(true));
-                    Service.use_potion(players.get(i), 1, players.get(i).body.get_mp_max(true));
-                    // }
+                    Player pl = players.get(i);
+                    pl.isdie = false;
+                    Service.use_potion(pl, 0, pl.body.get_hp_max(true));
+                    Service.use_potion(pl, 1, pl.body.get_mp_max(true));
+                    
+                    Message m2 = new Message(-71);
+                    m2.writer().writeByte(1);
+                    m2.writer().writeShort(pl.index_map);
+                    m2.writer().writeByte(0);
+                    m2.writer().writeInt(60 * 30);
+                    send_msg_all_p(m2, pl, true);
+                    m2.cleanup();
+
+                    if (this.map_pvp.type_map == 2 && this.map_pvp.num_win_p1 < 3 && this.map_pvp.num_win_p2 < 3) {
+                        change_flag(pl, 0);
+                    }
                 }
-                this.map_pvp.status_pvp = 3;
+                if (this.map_pvp.type_map == 2 && this.map_pvp.num_win_p1 < 3 && this.map_pvp.num_win_p2 < 3) {
+                    this.map_pvp.time_pvp = 1;
+                    this.map_pvp.status_pvp = 0;
+                } else {
+                    this.map_pvp.status_pvp = 3;
+                }
             } else if (this.map_pvp.status_pvp == 90) {
-                this.map_pvp.status_pvp = 3;
+                if (this.map_pvp.type_map == 2 && this.map_pvp.num_win_p1 < 3 && this.map_pvp.num_win_p2 < 3) {
+                    this.map_pvp.time_pvp = 1;
+                    this.map_pvp.status_pvp = 0;
+                } else {
+                    this.map_pvp.status_pvp = 3;
+                }
             }
             if (this.map_pvp.status_pvp == 3
                     && (this.map_pvp.num_win_p1 == 3 || this.map_pvp.num_win_p2 == 3)) {
@@ -590,6 +724,13 @@ public class Map implements Runnable {
                             players.get(1).update_wanted_point((int) -beri_lose);
                             //
                             Wanted_Chest.receiv_ruong(players.get(0));
+                            
+                            Service.send_box_ThongBao_OK(players.get(0), 
+                                    "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win + " điểm truy nã cùng 1 Rương Truy nã.");
+                            if (!players.get(1).isBot) {
+                                Service.send_box_ThongBao_OK(players.get(1), 
+                                        "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose + " điểm truy nã.");
+                            }
                         } else {
                             Pvp.pvp_notice(players.get(1), 3);
                             Pvp.pvp_notice(players.get(0), 4);
@@ -602,6 +743,13 @@ public class Map implements Runnable {
                             players.get(0).update_wanted_point((int) -beri_lose);
                             //
                             Wanted_Chest.receiv_ruong(players.get(1));
+                            
+                            Service.send_box_ThongBao_OK(players.get(0), 
+                                    "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose + " điểm truy nã.");
+                            if (!players.get(1).isBot) {
+                                Service.send_box_ThongBao_OK(players.get(1), 
+                                        "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win + " điểm truy nã cùng 1 Rương Truy nã.");
+                            }
                         }
                     }
                 } catch (IndexOutOfBoundsException e) {
@@ -674,11 +822,14 @@ public class Map implements Runnable {
                     playerList.add(players.get(i));
                 }
                 playerList.forEach(l -> {
+                    if (l.isBot) {
+                        return;
+                    }
                     try {
                         l.targetFight = null;
                         change_flag(l, -1);
                         l.goto_map(vgo);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
@@ -686,6 +837,97 @@ public class Map implements Runnable {
             } else if (this.map_pvp.status_pvp == 99) {
                 running = false;
                 this.map_pvp = null;
+            }
+        }
+    }
+
+    private void runBotAI() {
+        if (System.currentTimeMillis() - lastBotActionTime < 1000) {
+            return;
+        }
+        lastBotActionTime = System.currentTimeMillis();
+        
+        Player bot = null;
+        Player human = null;
+        for (int i = 0; i < players.size(); i++) {
+            Player p = players.get(i);
+            if (p.isBot) {
+                bot = p;
+            } else {
+                human = p;
+            }
+        }
+        if (bot != null && human != null && !bot.isdie && !human.isdie) {
+            try {
+                int dx = human.x - bot.x;
+                int dy = human.y - bot.y;
+                int dist = (int) Math.sqrt(dx * dx + dy * dy);
+                
+                // 1. Move bot closer to the human if they are too far
+                if (dist > 80) {
+                    int step = 45;
+                    if (dx > 0) bot.x += step;
+                    else bot.x -= step;
+                    
+                    if (Math.abs(dy) > 10) {
+                        if (dy > 0) bot.y += 10;
+                        else bot.y -= 10;
+                    }
+                    
+                    Message mmove = new Message(1);
+                    mmove.writer().writeByte(0);
+                    mmove.writer().writeShort(bot.index_map);
+                    mmove.writer().writeShort(bot.x);
+                    mmove.writer().writeShort(bot.y);
+                    send_msg_all_p(mmove, bot, false);
+                    mmove.cleanup();
+                    
+                    // Update distance
+                    dx = human.x - bot.x;
+                    dy = human.y - bot.y;
+                    dist = (int) Math.sqrt(dx * dx + dy * dy);
+                }
+                
+                // 2. Attack the human player if within range
+                if (dist <= 150) {
+                    Skill_info targetSkill = null;
+                    for (Skill_info sk : bot.skill_point) {
+                        if (sk.temp.typeSkill == 1 || sk.temp.typeSkill == 4) {
+                            if (bot.time_sk[sk.temp.ID] <= System.currentTimeMillis()) {
+                                targetSkill = sk;
+                                if (sk.temp.ID != 0) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (targetSkill != null) {
+                        bot.time_sk[targetSkill.temp.ID] = System.currentTimeMillis() + targetSkill.temp.timeDelay - ((targetSkill.temp.timeDelay * bot.body.get_agility(true)) / 1_000);
+                        if (bot.mp < targetSkill.temp.manaLost) {
+                            bot.mp = bot.body.get_mp_max(true);
+                        }
+                        bot.mp -= targetSkill.temp.manaLost;
+                        
+                        long dame = bot.body.get_dame(true);
+                        dame = (dame * bot.body.get_dame_devil_percent()) / 100;
+                        EffTemplate eff = bot.get_eff(5);
+                        if (eff != null) {
+                            dame *= 2;
+                        }
+                        eff = bot.get_eff(18);
+                        if (eff != null) {
+                            dame = (dame * eff.param) / 100;
+                        }
+                        if (dame > 2 && bot.get_eff(21) != null) {
+                            dame /= 2;
+                        }
+                        
+                        Player[] p_target = new Player[] { human };
+                        Fire_Player(p_target, bot, targetSkill.temp.ID, dame);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -698,6 +940,10 @@ public class Map implements Runnable {
                 Player p0 = players.get(0);
                 if (p0.dungeon instanceof activities.TowerChallenge) {
                     ((activities.TowerChallenge) p0.dungeon).update(this);
+                    return;
+                }
+                if (p0.dungeon instanceof activities.NamieTreasureDefense) {
+                    ((activities.NamieTreasureDefense) p0.dungeon).update(this);
                     return;
                 }
                 int num_mob = 0;
@@ -1297,8 +1543,10 @@ public class Map implements Runnable {
                     m.writer().writeByte(1);
                     m.writer().writeInt(mob.hp); // hp
                     m.writer().writeInt(mob.hp); // mp
-                    m.writer().writeShort(
-                    mob.mob_template.skill[Util.random(mob.mob_template.skill.length)]);
+                    short skillId = (mob.boss_info != null && mob.boss_info.skill != null && mob.boss_info.skill.length > 0)
+                            ? mob.boss_info.skill[Util.random(mob.boss_info.skill.length)]
+                            : mob.mob_template.skill[Util.random(mob.mob_template.skill.length)];
+                    m.writer().writeShort(skillId);
                     m.writer().writeByte(1); // size target
                     m.writer().writeShort(id_target);
                     m.writer().writeByte(0);
@@ -1351,16 +1599,14 @@ public class Map implements Runnable {
         if (this.map_pvp != null && !p.equals(p0)) {
             if (players.indexOf(p0) == 0) {
                 this.map_pvp.num_win_p2++;
-                Pvp.show_info(p, this.map_pvp.time_pvp, this.map_pvp.num_win_p1,
-                        this.map_pvp.num_win_p2, 3);
-                Pvp.show_info(p0, this.map_pvp.time_pvp, this.map_pvp.num_win_p2,
-                        this.map_pvp.num_win_p1, 3);
             } else {
                 this.map_pvp.num_win_p1++;
-                Pvp.show_info(p, this.map_pvp.time_pvp, this.map_pvp.num_win_p2,
-                        this.map_pvp.num_win_p1, 3);
-                Pvp.show_info(p0, this.map_pvp.time_pvp, this.map_pvp.num_win_p1,
-                        this.map_pvp.num_win_p2, 3);
+            }
+            for (int i = 0; i < players.size(); i++) {
+                Player pl = players.get(i);
+                int ownScore = (i == 0 ? this.map_pvp.num_win_p1 : this.map_pvp.num_win_p2);
+                int oppScore = (i == 0 ? this.map_pvp.num_win_p2 : this.map_pvp.num_win_p1);
+                Pvp.show_info(pl, this.map_pvp.time_pvp, oppScore, ownScore, 3);
             }
         }
     }
@@ -1372,6 +1618,9 @@ public class Map implements Runnable {
     }
 
     public void leave_map(Player p, int type) {
+        if (this.template.id == 119) {
+            Wanted.remove_player_wait(p);
+        }
         synchronized (this) {
             players.remove(p);
         }
@@ -2219,6 +2468,11 @@ public class Map implements Runnable {
                 if (p_target.hp <= 0) {
                     p_target.hp = 0;
                     p_target.isdie = true;
+                    if (this.map_pvp != null) {
+                        die_player(p_target, p);
+                    } else {
+                        die_player(p_target, p_target);
+                    }
                     if (p.type_pk == 0 && p_target.type_pk != 0) {
                         int delta = p.level / 10 - p_target.level / 10;
                         int plus = (p.pointPk > 0) ? (p.pointPk / 5) : 0;
@@ -2712,6 +2966,9 @@ public class Map implements Runnable {
                     exp_up[1] += mob_target.level * 2;
                     // dungeon
                     if (Map.is_map_dungeon(this.template.id) && p.dungeon != null) {
+                        if (p.dungeon instanceof activities.NamieTreasureDefense) {
+                            ((activities.NamieTreasureDefense) p.dungeon).onMobKilled(p, mob_target);
+                        }
                     } else {
                         // leave item
                         if (Math.abs(p.level - mob_target.level) <= 10) {
@@ -2742,7 +2999,11 @@ public class Map implements Runnable {
                         Boss boss = mob_target.boss_info;
                         boss.status = Boss.STATUS_DEAD;
                         boss.timeDeath = System.currentTimeMillis();
-                        boss.timeNextRespawn = boss.timeDeath + 300000; // 5 minutes
+                        if (boss.thegioi == 3) {
+                            boss.timeNextRespawn = boss.timeDeath + 900000; // 15 minutes
+                        } else {
+                            boss.timeNextRespawn = boss.timeDeath + 300000; // 5 minutes
+                        }
                         
                         // Debug Log
                         System.out.println("[DEBUG LOG] Boss Died - ID: " + boss.mob.mob_template.mob_id
@@ -2759,141 +3020,234 @@ public class Map implements Runnable {
                                 5);
                         //
                         List<GiftBox> list_gift = new ArrayList<>();
-                        // 1. Gift 1: Búa siêu cấp (tỉ lệ 5%)
-                        if (Util.random(100) < 5) {
-                            ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);
-                            if (it_bua != null) {
-                                GiftBox giftBua = new GiftBox();
-                                giftBua.id = 323;
-                                giftBua.type = 4;
-                                giftBua.name = it_bua.name;
-                                giftBua.icon = it_bua.icon;
-                                giftBua.num = 1;
-                                giftBua.color = 0;
-                                list_gift.add(giftBua);
-                                notice += "x1 búa siêu cấp, ";
+                        if (boss.thegioi == 1) {
+                            // 1. Rương cam cùng lv với boss
+                            int level = mob_target.level;
+                            if (level < 10) level = 10;
+                            if (level > 90) level = 90;
+                            int chestIdNormal = 111 + level / 10;
+                            ItemTemplate4 it_rcam = ItemTemplate4.get_it_by_id(chestIdNormal);
+                            if (it_rcam != null) {
+                                GiftBox giftChest = new GiftBox();
+                                giftChest.id = (short) chestIdNormal;
+                                giftChest.type = 4;
+                                giftChest.name = it_rcam.name;
+                                giftChest.icon = it_rcam.icon;
+                                giftChest.num = 1;
+                                giftChest.color = 0;
+                                list_gift.add(giftChest);
+                                notice += "x1 " + it_rcam.name + ", ";
                             }
-                        }
-                        // 2. Gift 1.2: Khiên (tỉ lệ 10%)
-                        if (Util.random(100) < 10) {
-                            ItemTemplate7 it_temp7_in = ItemTemplate7.get_it_by_id(10);
-                            if (it_temp7_in != null) {
-                                GiftBox giftKhien = new GiftBox();
-                                giftKhien.id = 10;
-                                giftKhien.type = 7;
-                                giftKhien.name = it_temp7_in.name;
-                                giftKhien.icon = it_temp7_in.icon;
-                                giftKhien.num = 1;
-                                giftKhien.color = 0;
-                                list_gift.add(giftKhien);
-                                notice += "x1 khiên, ";
+                            
+                            // 2. Rương cam cùng hệ cùng lv với boss
+                            int chestIdCungHe = 121 + level / 10;
+                            ItemTemplate4 it_cunghe = ItemTemplate4.get_it_by_id(chestIdCungHe);
+                            if (it_cunghe != null) {
+                                GiftBox giftCungHe = new GiftBox();
+                                giftCungHe.id = (short) chestIdCungHe;
+                                giftCungHe.type = 4;
+                                giftCungHe.name = it_cunghe.name;
+                                giftCungHe.icon = it_cunghe.icon;
+                                giftCungHe.num = 1;
+                                giftCungHe.color = 0;
+                                list_gift.add(giftCungHe);
+                                notice += "x1 " + it_cunghe.name + ", ";
                             }
-                        }
-                        // Thêm Kỹ năng đơn (tỉ lệ 5%)
-                        if (Util.random(100) < 5) {
-                            ItemTemplate4 it_kndon = ItemTemplate4.get_it_by_id(414);
-                            if (it_kndon != null) {
-                                GiftBox giftKnd = new GiftBox();
-                                giftKnd.id = 414;
-                                giftKnd.type = 4;
-                                giftKnd.name = it_kndon.name;
-                                giftKnd.icon = it_kndon.icon;
-                                giftKnd.num = 1;
-                                giftKnd.color = 0;
-                                list_gift.add(giftKnd);
-                                notice += "x1 " + it_kndon.name + ", ";
+                            
+                            // 3. 1000 vàng (Ruby)
+                            p.update_ngoc(1000);
+                            p.update_money();
+                            notice += "1000 ruby, ";
+                        } else if (boss.thegioi == 2) {
+                            // 1. Beri 10000
+                            ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
+                            if (it_beri != null) {
+                                GiftBox giftBeri = new GiftBox();
+                                giftBeri.id = 0;
+                                giftBeri.type = 4;
+                                giftBeri.name = it_beri.name;
+                                giftBeri.icon = it_beri.icon;
+                                giftBeri.num = 10000;
+                                giftBeri.color = 0;
+                                list_gift.add(giftBeri);
+                                notice += "10000 beri, ";
                             }
-                        }
-
-                        // 2. Gift 2: Item 339 (Tỉ lệ ngẫu nhiên) hoặc Rương cam cùng cấp
-                        GiftBox gift2 = new GiftBox();
-                        if (Util.random(100) < 50) { // 50% chance for Item 339
-                            ItemTemplate4 it_339 = ItemTemplate4.get_it_by_id(339);
-                            if (it_339 != null) {
-                                gift2.id = 339;
-                                gift2.type = 4;
-                                gift2.name = it_339.name;
-                                gift2.icon = it_339.icon;
-                                gift2.num = 1;
-                                gift2.color = 0;
-                                notice += "x1 " + it_339.name + ", ";
-                            }
-                        } else {
+                            
+                            // 2. Ruong cam cung cap
                             int chestId = ((p.level < 11 ? 11 : p.level) / 10) + 111;
                             ItemTemplate4 it_rcam = ItemTemplate4.get_it_by_id(chestId);
                             if (it_rcam != null) {
-                                gift2.id = (short) chestId;
-                                gift2.type = 4;
-                                gift2.name = it_rcam.name;
-                                gift2.icon = it_rcam.icon;
-                                gift2.num = 1;
-                                gift2.color = 0;
+                                GiftBox giftChest = new GiftBox();
+                                giftChest.id = (short) chestId;
+                                giftChest.type = 4;
+                                giftChest.name = it_rcam.name;
+                                giftChest.icon = it_rcam.icon;
+                                giftChest.num = 1;
+                                giftChest.color = 0;
+                                list_gift.add(giftChest);
                                 notice += "x1 rương cam cùng cấp, ";
                             }
-                        }
-                        if (gift2.name != null) {
-                            list_gift.add(gift2);
-                        }
+                            
+                            // 3. Da hanh trinh (100% co hoi)
+                            int id_random;
+                            if (5 > Util.random(120)) {
+                                id_random = GiftBox.DA_HANH_TRINH_V3[Util.random(GiftBox.DA_HANH_TRINH_V3.length)];
+                            } else if (20 > Util.random(120)) {
+                                id_random = GiftBox.DA_HANH_TRINH_V2[Util.random(GiftBox.DA_HANH_TRINH_V2.length)];
+                            } else if (70 > Util.random(120)) {
+                                id_random = GiftBox.DA_HANH_TRINH_V1[Util.random(GiftBox.DA_HANH_TRINH_V1.length)];
+                            } else {
+                                id_random = GiftBox.DA_HANH_TRINH_V0[Util.random(GiftBox.DA_HANH_TRINH_V0.length)];
+                            }
+                            ItemTemplate4 itemStone = ItemTemplate4.get_it_by_id(id_random);
+                            if (itemStone != null) {
+                                GiftBox giftStone = new GiftBox();
+                                giftStone.id = (short) id_random;
+                                giftStone.type = 4;
+                                giftStone.name = itemStone.name;
+                                giftStone.icon = itemStone.icon;
+                                giftStone.num = 1;
+                                giftStone.color = 0;
+                                list_gift.add(giftStone);
+                                notice += "x1 " + itemStone.name + ", ";
+                            }
+                        } else {
+                            // 1. Gift 1: Búa siêu cấp (tỉ lệ 5%)
+                            if (Util.random(100) < 5) {
+                                ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);
+                                if (it_bua != null) {
+                                    GiftBox giftBua = new GiftBox();
+                                    giftBua.id = 323;
+                                    giftBua.type = 4;
+                                    giftBua.name = it_bua.name;
+                                    giftBua.icon = it_bua.icon;
+                                    giftBua.num = 1;
+                                    giftBua.color = 0;
+                                    list_gift.add(giftBua);
+                                    notice += "x1 búa siêu cấp, ";
+                                }
+                            }
+                            // 2. Gift 1.2: Khiên (tỉ lệ 10%)
+                            if (Util.random(100) < 10) {
+                                ItemTemplate7 it_temp7_in = ItemTemplate7.get_it_by_id(10);
+                                if (it_temp7_in != null) {
+                                    GiftBox giftKhien = new GiftBox();
+                                    giftKhien.id = 10;
+                                    giftKhien.type = 7;
+                                    giftKhien.name = it_temp7_in.name;
+                                    giftKhien.icon = it_temp7_in.icon;
+                                    giftKhien.num = 1;
+                                    giftKhien.color = 0;
+                                    list_gift.add(giftKhien);
+                                    notice += "x1 khiên, ";
+                                }
+                            }
+                            // Thêm Kỹ năng đơn (tỉ lệ 5%)
+                            if (Util.random(100) < 5) {
+                                ItemTemplate4 it_kndon = ItemTemplate4.get_it_by_id(414);
+                                if (it_kndon != null) {
+                                    GiftBox giftKnd = new GiftBox();
+                                    giftKnd.id = 414;
+                                    giftKnd.type = 4;
+                                    giftKnd.name = it_kndon.name;
+                                    giftKnd.icon = it_kndon.icon;
+                                    giftKnd.num = 1;
+                                    giftKnd.color = 0;
+                                    list_gift.add(giftKnd);
+                                    notice += "x1 " + it_kndon.name + ", ";
+                                }
+                            }
 
-                        // 3. Gift 3: Ngẫu nhiên đá từ 44 đến 79 (type 4)
-                        int randomStoneId = Util.random(44, 80);
-                        ItemTemplate4 it_stone = ItemTemplate4.get_it_by_id(randomStoneId);
-                        if (it_stone != null) {
-                            GiftBox gift3 = new GiftBox();
-                            gift3.id = (short) randomStoneId;
-                            gift3.type = 4;
-                            gift3.name = it_stone.name;
-                            gift3.icon = it_stone.icon;
-                            gift3.num = 1;
-                            gift3.color = 0;
-                            list_gift.add(gift3);
-                            notice += "x1 " + it_stone.name + ", ";
+                            // 2. Gift 2: Item 339 (Tỉ lệ ngẫu nhiên) hoặc Rương cam cùng cấp
+                            GiftBox gift2 = new GiftBox();
+                            if (Util.random(100) < 50) { // 50% chance for Item 339
+                                ItemTemplate4 it_339 = ItemTemplate4.get_it_by_id(339);
+                                if (it_339 != null) {
+                                    gift2.id = 339;
+                                    gift2.type = 4;
+                                    gift2.name = it_339.name;
+                                    gift2.icon = it_339.icon;
+                                    gift2.num = 1;
+                                    gift2.color = 0;
+                                    notice += "x1 " + it_339.name + ", ";
+                                }
+                            } else {
+                                int chestId = ((p.level < 11 ? 11 : p.level) / 10) + 111;
+                                ItemTemplate4 it_rcam = ItemTemplate4.get_it_by_id(chestId);
+                                if (it_rcam != null) {
+                                    gift2.id = (short) chestId;
+                                    gift2.type = 4;
+                                    gift2.name = it_rcam.name;
+                                    gift2.icon = it_rcam.icon;
+                                    gift2.num = 1;
+                                    gift2.color = 0;
+                                    notice += "x1 rương cam cùng cấp, ";
+                                }
+                            }
+                            if (gift2.name != null) {
+                                list_gift.add(gift2);
+                            }
+
+                            // 3. Gift 3: Ngẫu nhiên đá từ 44 đến 79 (type 4)
+                            int randomStoneId = Util.random(44, 80);
+                            ItemTemplate4 it_stone = ItemTemplate4.get_it_by_id(randomStoneId);
+                            if (it_stone != null) {
+                                GiftBox gift3 = new GiftBox();
+                                gift3.id = (short) randomStoneId;
+                                gift3.type = 4;
+                                gift3.name = it_stone.name;
+                                gift3.icon = it_stone.icon;
+                                gift3.num = 1;
+                                gift3.color = 0;
+                                list_gift.add(gift3);
+                                notice += "x1 " + it_stone.name + ", ";
+                            }
+                            //
+                            int beri_receiv = 0;
+                            switch (mob_target.mob_template.mob_id) {
+                                case 135: {
+                                    beri_receiv = 30_000;
+                                    break;
+                                }
+                                case 136: {
+                                    beri_receiv = 50_000;
+                                    break;
+                                }
+                                case 137: {
+                                    beri_receiv = 70_000;
+                                    break;
+                                }
+                                case 138: {
+                                    beri_receiv = 100_000;
+                                    break;
+                                }
+                                case 139: {
+                                    beri_receiv = 150_000;
+                                    break;
+                                }
+                                case 140: {
+                                    beri_receiv = 200_000;
+                                    break;
+                                }
+                            }
+                            //
+                            if (mob_target.boss_info.levelBoss < 10) {
+                                beri_receiv = (beri_receiv / 100)
+                                        * (100 + mob_target.boss_info.levelBoss * 20);
+                            }
+                            GiftBox gb_beri = new GiftBox();
+                            ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
+                            if (it_temp4 != null) {
+                                gb_beri.id = it_temp4.id;
+                                gb_beri.type = 4;
+                                gb_beri.name = it_temp4.name;
+                                gb_beri.icon = it_temp4.icon;
+                                gb_beri.num = beri_receiv;
+                                gb_beri.color = 0;
+                                list_gift.add(gb_beri);
+                            }
+                            notice += (beri_receiv + " beri, ");
                         }
-                        //
-                        int beri_receiv = 0;
-                        switch (mob_target.mob_template.mob_id) {
-                            case 135: {
-                                beri_receiv = 30_000;
-                                break;
-                            }
-                            case 136: {
-                                beri_receiv = 50_000;
-                                break;
-                            }
-                            case 137: {
-                                beri_receiv = 70_000;
-                                break;
-                            }
-                            case 138: {
-                                beri_receiv = 100_000;
-                                break;
-                            }
-                            case 139: {
-                                beri_receiv = 150_000;
-                                break;
-                            }
-                            case 140: {
-                                beri_receiv = 200_000;
-                                break;
-                            }
-                        }
-                        //
-                        if (mob_target.boss_info.levelBoss < 10) {
-                            beri_receiv = (beri_receiv / 100)
-                                    * (100 + mob_target.boss_info.levelBoss * 20);
-                        }
-                        GiftBox gb_beri = new GiftBox();
-                        ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
-                        if (it_temp4 != null) {
-                            gb_beri.id = it_temp4.id;
-                            gb_beri.type = 4;
-                            gb_beri.name = it_temp4.name;
-                            gb_beri.icon = it_temp4.icon;
-                            gb_beri.num = beri_receiv;
-                            gb_beri.color = 0;
-                            list_gift.add(gb_beri);
-                        }
-                        notice += (beri_receiv + " beri, ");
                         // fragment drops removed
                         p.update_money();
                         if (list_gift.size() > 0) {

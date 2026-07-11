@@ -268,6 +268,7 @@ public class ClientYesNo {
                         // Bắt đầu Vượt ải
                         // 1. Validate all members again
                         boolean ok = true;
+                        String failReason = "Thông tin thành viên không hợp lệ (offline, khác map, không đủ chìa khóa hoặc đang trong phó bản khác)!";
                         for (int i = 0; i < lobby.party.list.size(); i++) {
                             Player memInList = lobby.party.list.get(i);
                             Player member = map.Map.get_player_by_name_allmap(memInList.name);
@@ -275,9 +276,14 @@ public class ClientYesNo {
                                 ok = false;
                                 break;
                             }
+                            if (member.time_tower >= 5) {
+                                ok = false;
+                                failReason = "Thành viên " + member.name + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!";
+                                break;
+                            }
                         }
                         if (!ok) {
-                            Service.send_box_ThongBao_OK(p, "Thông tin thành viên không hợp lệ (offline, khác map, không đủ chìa khóa hoặc đang trong phó bản khác)!");
+                            Service.send_box_ThongBao_OK(p, failReason);
                         } else {
                             // Deduct keys and enter
                             List<Player> onlineMembers = new ArrayList<>();
@@ -286,6 +292,7 @@ public class ClientYesNo {
                                 Player member = map.Map.get_player_by_name_allmap(memInList.name);
                                 if (member != null) {
                                     member.update_key_boss(-2);
+                                    member.time_tower++;
                                     member.update_money();
                                     member.originalMapId = member.map.template.id;
                                     member.originalX = member.x;
@@ -732,6 +739,13 @@ public class ClientYesNo {
                                     p.map_tele = null;
                                     return;
                                 }
+                                if (member.time_tower >= 5) {
+                                    System.out.println("[TowerChallenge] Registration failed: Party member " + member.name + " has reached the daily limit: " + member.time_tower + "/5.");
+                                    Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!");
+                                    p.data_yesno = null;
+                                    p.map_tele = null;
+                                    return;
+                                }
                                 if (member.dungeon != null) {
                                     System.out.println("[TowerChallenge] Registration failed: Party member " + member.name + " is already inside another dungeon.");
                                     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đang trong một phó bản khác!");
@@ -797,6 +811,74 @@ public class ClientYesNo {
                             p.goto_map(vgo);
                         }
                     }
+                    break;
+                }
+                case 139: {
+                    if (p.party == null) {
+                        Service.send_box_ThongBao_OK(p, "Bạn cần tạo nhóm trước khi bảo vệ kho báu Namie");
+                        p.data_yesno = null;
+                        return;
+                    }
+                    if (!p.party.list.get(0).name.equals(p.name)) {
+                        Service.send_box_ThongBao_OK(p, "Chỉ trưởng nhóm mới có quyền bắt đầu");
+                        p.data_yesno = null;
+                        return;
+                    }
+                    for (int i = 0; i < p.party.list.size(); i++) {
+                        Player memInList = p.party.list.get(i);
+                        Player member = Map.get_player_by_name_allmap(memInList.name);
+                        if (member == null || member.conn == null || !member.conn.connected) {
+                            Service.send_box_ThongBao_OK(p, "Thành viên " + memInList.name + " đang offline!");
+                            p.data_yesno = null;
+                            return;
+                        }
+                        if (member.map == null || !member.map.equals(p.map)) {
+                            Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không ở cùng bản đồ!");
+                            p.data_yesno = null;
+                            return;
+                        }
+                        if (member.get_key_boss() < 2) {
+                            Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 2 chìa khóa!");
+                            p.data_yesno = null;
+                            return;
+                        }
+                        if (member.time_namie >= 5) {
+                            Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 5 lần)!");
+                            p.data_yesno = null;
+                            return;
+                        }
+                        if (member.dungeon != null) {
+                            Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đang trong phó bản khác!");
+                            p.data_yesno = null;
+                            return;
+                        }
+                    }
+
+                    // Success: create TableTickOption and show to all members
+                    p.tableTickOption = new TableTickOption();
+                    p.tableTickOption.listP = new ArrayList<>();
+                    p.tableTickOption.idDialog = 2; // 2 is Namie Treasure Defense
+                    
+                    p.tableTickOption.listP.add(p);
+                    for (Player memInList : p.party.list) {
+                        if (!memInList.name.equals(p.name)) {
+                            Player member = Map.get_player_by_name_allmap(memInList.name);
+                            if (member != null) {
+                                p.tableTickOption.listP.add(member);
+                            }
+                        }
+                    }
+                    
+                    p.tableTickOption.list_check = new byte[p.tableTickOption.listP.size()];
+                    p.tableTickOption.list_check[0] = 1; // leader is checked
+                    for (int i = 1; i < p.tableTickOption.list_check.length; i++) {
+                        p.tableTickOption.list_check[i] = 0; // members are not checked
+                    }
+                    
+                    TableTickOption.show_table(p, "Bảo vệ kho báu Namie");
+                    
+                    p.data_yesno = null;
+                    p.map_tele = null;
                     break;
                 }
                 case 54: {

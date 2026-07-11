@@ -288,6 +288,8 @@ public class Service {
                 break;
             }
             case 20: {
+                send_item_template_4(p, 173);
+                send_item_template_4(p, 174);
                 m.writer().writeUTF("Quán ăn");
                 m.writer().writeByte(4);
                 short[] id_sell = ItemSell.get_it_sell_potion(p);
@@ -369,28 +371,95 @@ public class Service {
         }
         short idTitle = -1;
         short idFoot = -1;
+        short idIcon = -1;
+        int effectId = getDanhHieuEffectId(p0);
         if (p0.idDanhHieu != -1) {
             template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p0.idDanhHieu);
             if (dh != null) {
-                if (dh.name.toLowerCase().contains("vòng chân")) {
-                    idFoot = (short) dh.idicon;
+                if (dh.name != null && dh.name.toLowerCase().contains("vòng chân")) {
+                    idFoot = (short) dh.getEffectId();
                 } else {
-                    idTitle = (short) dh.idicon;
+                    idTitle = (short) dh.id;
+                    idIcon = (short) dh.getEffectId();
                 }
             } else {
-                idTitle = (short) p0.idDanhHieu;
+                idTitle = p0.idDanhHieu;
+                idIcon = p0.idDanhHieu;
+                System.out.println("[DanhHieu Log] WARNING: DanhHieuTemplate not found for id=" + p0.idDanhHieu);
             }
         }
-        m.writer().writeShort(-1);
+        if (idTitle != -1 && idTitle < 300) {
+            idTitle += 3000;
+        }
+        if (idIcon != -1 && idIcon < 300) {
+            idIcon += 3000;
+        }
+        if (idFoot != -1 && idFoot < 300) {
+            idFoot += 3000;
+        }
         m.writer().writeShort(idTitle);
+        m.writer().writeShort(idIcon != -1 ? idIcon : idTitle);
         m.writer().writeShort(idFoot);
-        System.out.println("[DanhHieu Log] Sent charWearing of player " + p0.name + " to player " + p.name + " with idTitle = " + idTitle + ", idFoot = " + idFoot);
+        System.out.println("[DanhHieu Log] Sent charWearing of player " + p0.name + " to player " + p.name
+                + " with idIcon = " + (idIcon != -1 ? idIcon : idTitle) + ", idTitle = " + idTitle + ", idFoot = " + idFoot);
         if (save_cache) {
             p.list_msg_cache.add(m);
         } else {
             p.conn.addmsg(m);
+            if (effectId != -1) {
+                send_danhieu_effect(p, effectId);
+            }
         }
         m.cleanup();
+    }
+
+    public static int getDanhHieuEffectId(Player p0) {
+        if (p0 == null || p0.idDanhHieu == -1) {
+            return -1;
+        }
+        template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p0.idDanhHieu);
+        return (dh != null) ? dh.getEffectId() : p0.idDanhHieu;
+    }
+
+    public static void send_danhieu_effect(Player viewer, int effectId) {
+        if (viewer == null || viewer.conn == null || effectId < 0) {
+            return;
+        }
+        try {
+            int zoom = viewer.conn.zoomlv;
+            int fileId = effectId;
+            String dataPath = "data/nro/data/effect/x" + zoom + "/data/DataEffect_" + fileId;
+            String imgPath = "data/nro/data/effect/x" + zoom + "/img/ImgEffect_" + fileId + ".png";
+            if (!new java.io.File(dataPath).exists() && fileId >= 3000) {
+                fileId = fileId - 3000;
+                dataPath = "data/nro/data/effect/x" + zoom + "/data/DataEffect_" + fileId;
+                imgPath = "data/nro/data/effect/x" + zoom + "/img/ImgEffect_" + fileId + ".png";
+            }
+            byte[] data1 = Util.loadfile(dataPath);
+            byte[] data2 = Util.loadfile(imgPath);
+            if (data2 == null) {
+                imgPath = "data/icon/x" + zoom + "/ImgEffect_" + fileId + ".png";
+                data2 = Util.loadfile(imgPath);
+            }
+            if (data1 == null || data2 == null) {
+                System.out.println("[DanhHieu Log] MISSING effect files fileId=" + fileId + ", zoom=x" + zoom
+                        + ", data=" + (data1 != null) + ", img=" + (data2 != null));
+                return;
+            }
+            int packetId = fileId < 300 ? fileId + 3000 : fileId;
+            Message m2 = new Message(74);
+            m2.writer().writeByte(1);
+            m2.writer().writeShort((short) packetId);
+            m2.writer().writeShort(data1.length);
+            m2.writer().write(data1);
+            m2.writer().write(data2);
+            viewer.conn.addmsg(m2);
+            m2.cleanup();
+            System.out.println("[DanhHieu Log] Pushed effect packetId=" + packetId + " (fileId=" + fileId
+                    + ") to viewer " + viewer.name);
+        } catch (IOException e) {
+            System.out.println("[DanhHieu Log] Push effect failed id=" + effectId + ": " + e.getMessage());
+        }
     }
 
     public static void send_icon(Message m, Session conn) {
@@ -414,7 +483,15 @@ public class Service {
                 }
                 Message m2 = new Message(-51);
                 m2.writer().writeShort(id);
-                path = "data/icon/x" + conn.zoomlv + "/" + id_request + ".png";
+                if (id_request >= 23000) {
+                    int subId = id_request - 23000;
+                    path = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + subId + ".png";
+                    if (!new java.io.File(path).exists() && subId >= 3000) {
+                        path = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + (subId - 3000) + ".png";
+                    }
+                } else {
+                    path = "data/icon/x" + conn.zoomlv + "/" + id_request + ".png";
+                }
                 m2.writer().write(Util.loadfile(path));
                 conn.addmsg(m2);
                 m2.cleanup();
@@ -484,6 +561,31 @@ public class Service {
         }
     }
 
+    public static void send_item_template_4(Player p, int id) {
+        try {
+            ItemTemplate4 it4 = ItemTemplate4.get_it_by_id(id);
+            if (it4 != null) {
+                Message m2 = new Message(48);
+                m2.writer().writeByte(4);
+                m2.writer().writeShort(it4.id);
+                m2.writer().writeShort(it4.icon);
+                m2.writer().writeUTF(it4.name);
+                m2.writer().writeShort(it4.indexInfoPotion);
+                m2.writer().writeInt(it4.beri);
+                m2.writer().writeShort(it4.ruby);
+                m2.writer().writeByte(it4.istrade);
+                m2.writer().writeByte(it4.type);
+                m2.writer().writeShort(it4.timedelay);
+                m2.writer().writeShort(it4.value);
+                m2.writer().writeShort(it4.timeactive);
+                m2.writer().writeUTF(it4.nameuse);
+                p.conn.addmsg(m2);
+                m2.cleanup();
+            }
+        } catch (Exception e) {
+        }
+    }
+
     public static void request_mob_in4(Player p, Message m2) throws IOException {
         int id = m2.reader().readShort();
         // System.out.println("request "+id);
@@ -518,7 +620,10 @@ public class Service {
         m.writer().writeShort(temp.level); // lv
         m.writer().writeInt(temp.hp);
         m.writer().writeInt(temp.hp_max);
-        m.writer().writeShort(temp.mob_template.skill[0]);
+        short skillId = (temp.boss_info != null && temp.boss_info.skill != null && temp.boss_info.skill.length > 0)
+                ? temp.boss_info.skill[0]
+                : temp.mob_template.skill[0];
+        m.writer().writeShort(skillId);
         m.writer().writeShort(Mob.TIME_RESPAWN); // tgian hs
         m.writer().writeByte(temp.mob_template.typemonster); // type mons
         //
@@ -691,6 +796,9 @@ public class Service {
         byte TypeShop = m2.reader().readByte();
         short id = m2.reader().readShort();
         short value = m2.reader().readShort();
+        if (TypeShop == 20 && value == 20) {
+            value = 1000;
+        }
         byte cat = -1;
         if (TypeShop == 116 || TypeShop == 118) {
             cat = m2.reader().readByte();
@@ -1865,67 +1973,127 @@ public class Service {
                             ItemBag47 it_select = new ItemBag47();
                             int cat = -1;
                             switch (p.map.template.id) {
-                                case 1:
-                                case 5: {
-                                    cat = 0;
-                                    break;
-                                }
-                                case 9:
-                                case 13: {
-                                    cat = 1;
-                                    break;
-                                }
-                                case 17:
-                                case 21: {
-                                    cat = 2;
-                                    break;
-                                }
-                                case 25:
-                                case 29: {
-                                    cat = 3;
-                                    break;
-                                }
-                                case 33:
-                                case 37: {
-                                    cat = 4;
-                                    break;
-                                }
-                                case 41:
-                                case 45: {
-                                    cat = 5;
-                                    break;
-                                }
-                                case 49:
-                                case 53: {
-                                    cat = 6;
-                                    break;
-                                }
-                                case 69:
-                                case 73: {
-                                    cat = 7;
-                                    break;
-                                }
-                                case 83:
-                                case 87: {
-                                    cat = 8;
-                                    break;
-                                }
-                                case 93:
-                                case 102: {
-                                    cat = 9;
-                                    break;
-                                }
-                                case 113:
-                                case 127: {
-                                    cat = 10;
-                                    break;
-                                }
-                                case 191:
-                                case 198: {
-                                    cat = 11;
-                                    break;
-                                }
-                            }
+                                 case 0:
+                                 case 1:
+                                 case 2:
+                                 case 3:
+                                 case 4:
+                                 case 5: {
+                                     cat = 0;
+                                     break;
+                                 }
+                                 case 8:
+                                 case 9:
+                                 case 10:
+                                 case 11:
+                                 case 12:
+                                 case 13: {
+                                     cat = 1;
+                                     break;
+                                 }
+                                 case 16:
+                                 case 17:
+                                 case 18:
+                                 case 19:
+                                 case 20:
+                                 case 21: {
+                                     cat = 2;
+                                     break;
+                                 }
+                                 case 24:
+                                 case 25:
+                                 case 26:
+                                 case 27:
+                                 case 28:
+                                 case 29: {
+                                     cat = 3;
+                                     break;
+                                 }
+                                 case 32:
+                                 case 33:
+                                 case 34:
+                                 case 35:
+                                 case 36:
+                                 case 37: {
+                                     cat = 4;
+                                     break;
+                                 }
+                                 case 40:
+                                 case 41:
+                                 case 42:
+                                 case 43:
+                                 case 44:
+                                 case 45: {
+                                     cat = 5;
+                                     break;
+                                 }
+                                 case 48:
+                                 case 49:
+                                 case 50:
+                                 case 51:
+                                 case 52:
+                                 case 53: {
+                                     cat = 6;
+                                     break;
+                                 }
+                                 case 68:
+                                 case 69:
+                                 case 70:
+                                 case 71:
+                                 case 72:
+                                 case 73: {
+                                     cat = 7;
+                                     break;
+                                 }
+                                 case 82:
+                                 case 83:
+                                 case 84:
+                                 case 85:
+                                 case 86:
+                                 case 87: {
+                                     cat = 8;
+                                     break;
+                                 }
+                                 case 92:
+                                 case 93:
+                                 case 94:
+                                 case 95:
+                                 case 96:
+                                 case 97:
+                                 case 98:
+                                 case 99:
+                                 case 100:
+                                 case 101:
+                                 case 102: {
+                                     cat = 9;
+                                     break;
+                                 }
+                                 case 112:
+                                 case 113:
+                                 case 114:
+                                 case 115:
+                                 case 116:
+                                 case 117:
+                                 case 118:
+                                 case 124:
+                                 case 125:
+                                 case 126:
+                                 case 127: {
+                                     cat = 10;
+                                     break;
+                                 }
+                                 case 191:
+                                 case 192:
+                                 case 193:
+                                 case 194:
+                                 case 195:
+                                 case 196:
+                                 case 197:
+                                 case 198: {
+                                     cat = 11;
+                                     break;
+                                 }
+                             }
                             it_select.category = (byte) cat;
                             it_select.id = template4.id;
                             it_select.quant = 0;

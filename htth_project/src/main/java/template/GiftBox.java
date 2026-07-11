@@ -24,41 +24,57 @@ public class GiftBox {
 
     public static List<GiftBox> get_gift_map_boss_by_level(Player p) {
         List<GiftBox> listGift = new ArrayList<>();
-        short[] id = new short[] { 0, (short) ((p.level / 10) + 7) };
-        short[] quant = new short[] { (short) Util.random(10, 100), 1 };
-        for (int i = 0; i < id.length; i++) {
-            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(id[i]);
-            GiftBox giftBox = new GiftBox();
-            giftBox.id = id[i];
-            giftBox.type = 4;
-            giftBox.name = itemTemplate4.name;
-            giftBox.icon = itemTemplate4.icon;
-            giftBox.num = quant[i];
-            giftBox.color = 0;
-            listGift.add(giftBox);
+        
+        // 1. Beri 10000
+        ItemTemplate4 itemBeri = ItemTemplate4.get_it_by_id(0);
+        if (itemBeri != null) {
+            GiftBox giftBeri = new GiftBox();
+            giftBeri.id = 0;
+            giftBeri.type = 4;
+            giftBeri.name = itemBeri.name;
+            giftBeri.icon = itemBeri.icon;
+            giftBeri.num = 10000;
+            giftBeri.color = 0;
+            listGift.add(giftBeri);
         }
-        //
-        if (35 > Util.random(120)) { // da hanh trinh
-            int id_random;
-            if (5 > Util.random(120)) {
-                id_random = DA_HANH_TRINH_V3[Util.random(DA_HANH_TRINH_V3.length)];
-            } else if (20 > Util.random(120)) {
-                id_random = DA_HANH_TRINH_V2[Util.random(DA_HANH_TRINH_V2.length)];
-            } else if (70 > Util.random(120)) {
-                id_random = DA_HANH_TRINH_V1[Util.random(DA_HANH_TRINH_V1.length)];
-            } else {
-                id_random = DA_HANH_TRINH_V0[Util.random(DA_HANH_TRINH_V0.length)];
-            }
-            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(id_random);
-            GiftBox giftBox = new GiftBox();
-            giftBox.id = (short) id_random;
-            giftBox.type = 4;
-            giftBox.name = itemTemplate4.name;
-            giftBox.icon = itemTemplate4.icon;
-            giftBox.num = 1;
-            giftBox.color = 0;
-            listGift.add(giftBox);
+        
+        // 2. Ruong cam cung cap
+        int chestId = ((p.level < 11 ? 11 : p.level) / 10) + 111;
+        ItemTemplate4 itemChest = ItemTemplate4.get_it_by_id(chestId);
+        if (itemChest != null) {
+            GiftBox giftChest = new GiftBox();
+            giftChest.id = (short) chestId;
+            giftChest.type = 4;
+            giftChest.name = itemChest.name;
+            giftChest.icon = itemChest.icon;
+            giftChest.num = 1;
+            giftChest.color = 0;
+            listGift.add(giftChest);
         }
+        
+        // 3. Da hanh trinh (100% co hoi)
+        int id_random;
+        if (5 > Util.random(120)) {
+            id_random = DA_HANH_TRINH_V3[Util.random(DA_HANH_TRINH_V3.length)];
+        } else if (20 > Util.random(120)) {
+            id_random = DA_HANH_TRINH_V2[Util.random(DA_HANH_TRINH_V2.length)];
+        } else if (70 > Util.random(120)) {
+            id_random = DA_HANH_TRINH_V1[Util.random(DA_HANH_TRINH_V1.length)];
+        } else {
+            id_random = DA_HANH_TRINH_V0[Util.random(DA_HANH_TRINH_V0.length)];
+        }
+        ItemTemplate4 itemStone = ItemTemplate4.get_it_by_id(id_random);
+        if (itemStone != null) {
+            GiftBox giftStone = new GiftBox();
+            giftStone.id = (short) id_random;
+            giftStone.type = 4;
+            giftStone.name = itemStone.name;
+            giftStone.icon = itemStone.icon;
+            giftStone.num = 1;
+            giftStone.color = 0;
+            listGift.add(giftStone);
+        }
+        
         return listGift;
     }
 

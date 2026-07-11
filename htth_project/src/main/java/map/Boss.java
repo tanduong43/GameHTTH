@@ -24,6 +24,8 @@ public class Boss {
     public static byte[] BOSS_LIVE = new byte[] { 0, 0, 0, 0, 0, 0 };
     public static byte[] BOSS_AREA = new byte[] { -1, -1, -1, -1, -1, -1 };
     public static byte[] TIME_NOW = new byte[] { 18, 0, 0 };
+    public static long nextWorldBossSpawnTime = 0;
+    public static Boss activeWorldBoss = null;
     public static final int STATUS_RESPAWNING = 0;
     public static final int STATUS_ALIVE = 1;
     public static final int STATUS_DEAD = 2;
@@ -38,6 +40,7 @@ public class Boss {
     public short yOrigin;
 
     public int id;
+    public int thegioi; // 1: Boss thế giới, 2: Boss làng
     public Mob mob;
     public byte levelBoss;
     public short[] skill;
@@ -119,6 +122,12 @@ public class Boss {
         }
     }
 
+    /**
+     * Lấy danh sách ID các bản đồ (map) mà Boss tương ứng với mobId có thể xuất hiện (spawn).
+     *
+     * @param mobId ID của quái/Boss (mob template ID)
+     * @return Danh sách ID các bản đồ Boss có thể xuất hiện, hoặc null nếu không cấu hình
+     */
     public static List<Integer> getMapIdsForMob(int mobId) {
         switch (mobId) {
             case 4: return List.of(0, 2, 3, 4);
@@ -137,6 +146,12 @@ public class Boss {
         }
     }
 
+    /**
+     * Lấy thời gian xuất hiện ban đầu (giờ, phút) của Boss tương ứng với mobId.
+     *
+     * @param mobId ID của quái/Boss (mob template ID)
+     * @return Mảng gồm 2 phần tử [giờ, phút] biểu thị thời gian spawn đầu tiên, mặc định là [0, 0] (xuất hiện ngay lập tức)
+     */
     public static int[] getInitialSpawnTime(int mobId) {
         switch (mobId) {
             case 4: return new int[]{9, 0};
@@ -152,7 +167,7 @@ public class Boss {
             case 112: return new int[]{10, 40};
             case 163: return new int[]{10, 50};
             case 172: return new int[]{11, 0};
-            default: return new int[]{0, 0}; // default spawn immediately at 00:00
+            default: return new int[]{0, 0}; // mặc định xuất hiện ngay lúc 00:00
         }
     }
 
@@ -166,6 +181,17 @@ public class Boss {
             return minute >= spawnTime[1];
         }
         return false;
+    }
+
+    /**
+     * Kiểm tra xem Boss có phải là Boss Thế Giới (Siêu trùm) hay không.
+     * Boss Thế Giới có mob_id từ 135 đến 140.
+     *
+     * @param mobId ID của quái/Boss
+     * @return true nếu là Boss Thế Giới, ngược lại là false
+     */
+    public static boolean isWorldBoss(int mobId) {
+        return mobId >= 135 && mobId <= 140;
     }
 
     public static void spawn_boss_at_origin(Boss boss) {
@@ -236,10 +262,104 @@ public class Boss {
                 + " | Spawn Time: " + new java.util.Date(boss.timeSpawn));
     }
 
+    public static void spawn_world_boss(Boss boss) {
+        long now = System.currentTimeMillis();
+        boss.mob.isdie = false;
+        boss.mob.hp = boss.mob.hp_max;
+        boss.mob.id_target = -1;
+        boss.levelBoss = 1;
+        boss.mob.index = boss.index_mob_save;
+        boss.TopDame.clear();
+        
+        // Chọn ngẫu nhiên 1 map ID từ ALLOWED_MAP_IDS
+        List<Integer> allowedMapList = new ArrayList<>(ALLOWED_MAP_IDS);
+        int randomMapId = allowedMapList.get(Util.random(allowedMapList.size()));
+        
+        Map[] zones = Map.get_map_by_id(randomMapId);
+        if (zones != null && zones.length > 0) {
+            Map randomMap = zones[Util.random(zones.length)];
+            boss.mob.map = randomMap;
+            
+            short temp_x = 300;
+            short temp_y = 300;
+            if (randomMap.template.npcs.size() > 0) {
+                Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
+                temp_x = npc.x;
+                temp_y = npc.y;
+            }
+            boss.mob.x = temp_x;
+            boss.mob.y = temp_y;
+            
+            try {
+                boss.mob.map.can_PK = false;
+                Manager.gI().chatKTG(0,
+                        ("Sự kiện: Siêu trùm thế giới " + boss.mob.mob_template.name + " đã xuất hiện tại "
+                                + boss.mob.map.template.name + " khu "
+                                + (boss.mob.map.zone_id + 1) + ". Hãy mau mau đi săn thôi!"),
+                        5);
+                System.out.println("[DEBUG LOG] World Boss Spawned - ID: " + boss.mob.mob_template.mob_id
+                        + " | Name: " + boss.mob.mob_template.name
+                        + " | Village/Map ID: " + boss.mob.map.template.id
+                        + " | Spawn Time: " + new java.util.Date(now));
+                
+                Message m_local = new Message(1);
+                m_local.writer().writeByte(1);
+                m_local.writer().writeShort(boss.mob.index);
+                m_local.writer().writeShort(boss.mob.x);
+                m_local.writer().writeShort(boss.mob.y);
+                boss.mob.map.send_msg_all_p(m_local, null, true);
+                m_local.cleanup();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        boss.timeSpawn = now;
+        boss.status = STATUS_ALIVE;
+    }
+
+    public static void update_world_bosses() {
+        long now = System.currentTimeMillis();
+        
+        // 1. Kiểm tra nếu đang có Boss thế giới hoạt động
+        if (activeWorldBoss != null) {
+            if (activeWorldBoss.mob.isdie || activeWorldBoss.mob.hp <= 0) {
+                System.out.println("[DEBUG LOG] World Boss Died - ID: " + activeWorldBoss.mob.mob_template.mob_id 
+                        + " | Name: " + activeWorldBoss.mob.mob_template.name);
+                
+                // Hồi sinh con tiếp theo sau 10 phút (600.000 ms)
+                nextWorldBossSpawnTime = now + 600000;
+                activeWorldBoss = null;
+            }
+            return;
+        }
+        
+        // 2. Sinh Boss thế giới mới nếu đến thời gian hồi sinh
+        if (now >= nextWorldBossSpawnTime) {
+            List<Boss> worldBosses = new ArrayList<>();
+            for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+                Boss b = Boss.ENTRYS.get(i);
+                if (b != null && b.thegioi == 1 && b.mob != null && b.mob.isdie) {
+                    worldBosses.add(b);
+                }
+            }
+            
+            if (worldBosses.size() > 0) {
+                Boss bossToSpawn = worldBosses.get(Util.random(worldBosses.size()));
+                spawn_world_boss(bossToSpawn);
+                activeWorldBoss = bossToSpawn;
+            }
+        }
+    }
+
     public static void update_bosses() {
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
             Boss boss = Boss.ENTRYS.get(i);
             if (boss == null || boss.mob == null) continue;
+            
+            // Chỉ cập nhật Boss thế giới hoạt động liên tục 24/7 (thegioi == 3)
+            if (boss.thegioi != 3) {
+                continue;
+            }
             
             long now = System.currentTimeMillis();
             
@@ -253,9 +373,9 @@ public class Boss {
                 if (boss.mob.isdie || boss.mob.hp <= 0) {
                     boss.status = STATUS_DEAD;
                     boss.timeDeath = now;
-                    boss.timeNextRespawn = now + 300000; // 5 minutes
+                    boss.timeNextRespawn = now + 900000; // 15 phút hồi sinh
                     
-                    System.out.println("[DEBUG LOG] Boss Died - ID: " + boss.mob.mob_template.mob_id
+                    System.out.println("[DEBUG LOG] Boss thegioi=3 Died - ID: " + boss.mob.mob_template.mob_id
                             + " | Name: " + boss.mob.mob_template.name
                             + " | Village/Map ID: " + boss.mob.map.template.id
                             + " | Death Time: " + new java.util.Date(boss.timeDeath)
@@ -269,7 +389,7 @@ public class Boss {
         List<Boss> dead_bosses = new ArrayList<>();
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
             Boss temp = Boss.ENTRYS.get(i);
-            if (temp.mob.isdie) {
+            if (temp.mob.isdie && temp.thegioi == 2) {
                 dead_bosses.add(temp);
             }
         }

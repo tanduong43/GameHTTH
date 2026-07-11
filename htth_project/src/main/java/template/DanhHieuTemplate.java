@@ -20,4 +20,14 @@ public class DanhHieuTemplate {
         }
         return null;
     }
+
+    public int getEffectId() {
+        if (name != null && name.toLowerCase().contains("vòng chân")) {
+            return idicon;
+        }
+        if (idicon > 0) {
+            return idicon;
+        }
+        return id;
+    }
 }

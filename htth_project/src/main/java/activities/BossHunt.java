@@ -142,9 +142,14 @@ public class BossHunt {
                 cancelRoom("Thành viên " + member.name + " không đủ 2 chìa khóa phó bản để bắt đầu.");
                 return;
             }
+            if (member.time_bosshunt >= 5) {
+                cancelRoom("Thành viên " + member.name + " đã vượt giới hạn Săn Trùm hôm nay (tối đa 5 lần)!");
+                return;
+            }
         }
         for (Player member : members) {
             member.update_key_boss(-2);
+            member.time_bosshunt++;
             Service.CountDown_Ticket(member);
         }
 

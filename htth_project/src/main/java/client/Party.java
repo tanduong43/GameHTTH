@@ -176,6 +176,9 @@ public class Party {
                 if (p0.dungeon instanceof activities.TowerChallenge) {
                     ((activities.TowerChallenge) p0.dungeon).handlePlayerLeftParty(p0);
                 }
+                if (p0.dungeon instanceof activities.NamieTreasureDefense) {
+                    ((activities.NamieTreasureDefense) p0.dungeon).handlePlayerLeftParty(p0);
+                }
                 break;
             }
         }
@@ -194,6 +197,9 @@ public class Party {
             }
             if (p0.dungeon instanceof activities.TowerChallenge) {
                 ((activities.TowerChallenge) p0.dungeon).handlePlayerLeftParty(p0);
+            }
+            if (p0.dungeon instanceof activities.NamieTreasureDefense) {
+                ((activities.NamieTreasureDefense) p0.dungeon).handlePlayerLeftParty(p0);
             }
         }
         m.cleanup();

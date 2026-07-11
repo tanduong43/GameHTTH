@@ -1723,6 +1723,11 @@ public class MenuController {
             hasEnoughKeys = false;
             break;
           }
+          if (member.time_bosshunt >= 5) {
+            Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đã vượt giới hạn Săn Trùm hôm nay (tối đa 5 lần)!");
+            hasEnoughKeys = false;
+            break;
+          }
         }
         if (!hasEnoughKeys) {
           break;
@@ -1777,18 +1782,27 @@ public class MenuController {
             }
           }
           send_dynamic_menu(p, 988, "Vượt ải đơn", name, icon);
-        } else if (p.map.template.id == 49) { // lenh truy na
+        } else if (p.map.template.id == 41) { // Bảo vệ kho báu Namie
+          if (p.dungeon != null) {
+            Service.send_box_ThongBao_OK(p, "Bạn đang trong phó bản, hãy thoát ra trước");
+            break;
+          }
+          if (p.bossHunt != null) {
+            Service.send_box_ThongBao_OK(p, "Bạn đang trong Săn Trùm, hãy thoát ra trước");
+            break;
+          }
+          p.data_yesno = new int[] { 0 };
+          Service.send_box_yesno(p, 139, "Thông báo",
+              "Hải quân sắp tấn công để cướp kho báu của Namie. Cần 2 chìa khóa phó bản mỗi người "
+              + "và phải có nhóm. Bạn có muốn bảo vệ kho báu không?",
+              new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+        } else if (p.map.template.id == 49) { // Lệnh truy nã
           Vgo vgo = new Vgo();
           vgo.map_go = Map.get_map_by_id(119);
           if (vgo.map_go != null) {
-            boolean full = false;
-            if (!full) {
-              vgo.xnew = (short) Util.random(120, 380);
-              vgo.ynew = (short) Util.random(230, 330);
-              p.goto_map(vgo);
-            } else {
-              Service.send_box_ThongBao_OK(p, "Map đầy hãy quay lại sau");
-            }
+            vgo.xnew = (short) (vgo.map_go[0].template.maxW / 2);
+            vgo.ynew = (short) (vgo.map_go[0].template.maxH / 2);
+            p.goto_map(vgo);
           }
         }
       }
@@ -2177,7 +2191,7 @@ public class MenuController {
               .append(": ").append(b.mob.map.template.name)
               .append(" (Khu ").append(b.mob.map.zone_id + 1).append(")\n");
           }
-          Service.send_box_ThongBao_OK(p, sb.toString());
+          Service.Help_From_Server(p, -997, sb.toString());
         }
         break;
       }
@@ -2786,6 +2800,22 @@ public class MenuController {
               System.out.println("[DanhHieu Log] Player " + p.name + " equipped title ID " + selected_id + " (" + getTitleName(selected_id) + ")");
           } else {
               System.out.println("[DanhHieu Log] Player " + p.name + " clicked invalid index " + index + " (list_idx = " + list_idx + ", options size = " + options.size() + ")");
+          }
+      }
+  }
+
+  private static void broadcast_title_to_map(Player p) throws IOException {
+      if (p.map == null) {
+          return;
+      }
+      int effectId = Service.getDanhHieuEffectId(p);
+      for (int j = 0; j < p.map.players.size(); j++) {
+          Player p0 = p.map.players.get(j);
+          if (p0.index_map != p.index_map) {
+              Service.charWearing(p, p0, false);
+          }
+          if (effectId >= 0) {
+              Service.send_danhieu_effect(p0, effectId);
           }
       }
   }

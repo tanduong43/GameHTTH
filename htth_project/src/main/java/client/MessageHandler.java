@@ -120,6 +120,38 @@ public class MessageHandler {
                         m2.cleanup();
                     } catch (Exception e) {
                     }
+                } else if (conn.p != null && type == 1) {
+                    System.out.println("[DanhHieu Log] Client " + conn.p.name + " requested title effect id=" + id
+                            + ", zoom=x" + conn.zoomlv);
+                    try {
+                        String dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id;
+                        String imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png";
+                        if (!new java.io.File(dataPath).exists() && id >= 3000) {
+                            dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + (id - 3000);
+                            imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + (id - 3000) + ".png";
+                        }
+                        byte[] data1 = Util.loadfile(dataPath);
+                        byte[] data2 = Util.loadfile(imgPath);
+                        if (data2 == null) {
+                            data2 = Util.loadfile(
+                                     "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
+                        }
+                        if (data1 != null && data2 != null) {
+                            Message m2 = new Message(74);
+                            m2.writer().writeByte(1);
+                            m2.writer().writeShort(id);
+                            m2.writer().writeShort(data1.length);
+                            m2.writer().write(data1);
+                            m2.writer().write(data2);
+                            conn.addmsg(m2);
+                            m2.cleanup();
+                        } else {
+                            System.out.println("[DanhHieu Log] Client request failed id=" + id + ", zoom=x"
+                                    + conn.zoomlv + ", data=" + (data1 != null) + ", img=" + (data2 != null));
+                        }
+                    } catch (Exception e) {
+                        System.out.println("[DanhHieu Log] Client request error id=" + id + ": " + e.getMessage());
+                    }
                 }
                 break;
             }
@@ -596,6 +628,10 @@ public class MessageHandler {
                             e.printStackTrace();
                         }
                     }
+                    int loginEffectId = Service.getDanhHieuEffectId(conn.p);
+                    if (loginEffectId >= 0) {
+                        Service.send_danhieu_effect(conn.p, loginEffectId);
+                    }
                     Service.getThanhTich(conn.p, conn.p);
                     conn.p.map.send_in4_obj_inmap(conn.p);
                     conn.p.wait_change_map = false;
@@ -632,8 +668,14 @@ public class MessageHandler {
                             activities.TowerChallenge tc = (activities.TowerChallenge) conn.p.dungeon;
                             Service.send_time_cool_down(conn.p, tc.stageEndTime, "Tầng " + (tc.currentStageIndex + 1),
                                     2);
+                        } else if (conn.p.dungeon instanceof activities.NamieTreasureDefense) {
+                            activities.NamieTreasureDefense nd = (activities.NamieTreasureDefense) conn.p.dungeon;
+                            int waveNum = nd.currentWaveIndex == -1 ? 1 : (nd.currentWaveIndex + 1);
+                            Service.send_time_cool_down(conn.p, nd.dungeonEndTime, "Tầng " + waveNum, 2);
                         } else {
-                            Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Thời gian", 2);
+                            conn.p.dungeon.time = System.currentTimeMillis() + 120_000L;
+                            int floorNum = conn.p.map.template.id - 167 + 1;
+                            Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Tầng " + floorNum, 2);
                         }
                     } else if (conn.p.map.template.id == 9999 && conn.p.map.clan_resource != null) {
                         Service.send_time_cool_down(conn.p, conn.p.map.clan_resource.time,
@@ -875,20 +917,26 @@ public class MessageHandler {
             Clan.send_info(conn.p, true);
             conn.p.item.update_assets_Inventory(true);
 
-            Message m3 = new Message(18);
-            m3.writer().writeUTF("Đua Top OPEN");
-            m3.writer().writeUTF("\nThời gian: 12:00 ngày 30/12/2023 - 12:00 ngày 30/1/2024\n"
-                    + "Phần thưởng:\n"
-                    + "- Top 1: 1 trái ác quỷ bóng tối, 15 khiên, 1 đá Hổ phách - Ruby siêu cấp, 1 thời trang UTA (vĩnh viễn)\n"
-                    + "- Top 2-3: 1 trái ác quỷ bóng tối, 10 khiên, 1 đá Hổ phách cấp 6\n"
-                    + "- Top 4-10: 1 trái ác quỷ sét, 5 khiên, 1 đá hổ phách cấp 5.\n"
-                    + "TOP 10 nhân vật nạp nhiều nhất:\n"
-                    + "- TOP 1: Trái ác quỷ Bóng Tối, Thời trang Mihawk Gold, 1 Đá khảm vô cực S, 100 Đá hải thạch cấp 6, 500.000.000 Beri\n"
-                    + "- TOP 2: 1 Trang bị Max +12, Thời trang Mihawk Gold, 1 Đá khảm vô cực S, 80 Đá hải thạch cấp 6, 400.000.000 Beri\n"
-                    + "- TOP 3: 1 Trang bị Max +12, Thời trang Mihawk, 1 Đá khảm vô cực S, 50 Đá hải thạch cấp 6, 300.000.000 Beri\n"
-                    + "- TOP 4-10: 1 Trang bị Max +10, Thời trang Mihawk, 1 Đá khảm vô cực, 30 Đá hải thạch cấp 6, 100.000.000 Beri\n"
-                    + "");
-            conn.p.list_msg_cache.add(m3);
+            // Message m3 = new Message(18);
+            // m3.writer().writeUTF("Đua Top OPEN");
+            // m3.writer().writeUTF("\nThời gian: 12:00 ngày 30/12/2023 - 12:00 ngày
+            // 30/1/2024\n"
+            // + "Phần thưởng:\n"
+            // + "- Top 1: 1 trái ác quỷ bóng tối, 15 khiên, 1 đá Hổ phách - Ruby siêu cấp,
+            // 1 thời trang UTA (vĩnh viễn)\n"
+            // + "- Top 2-3: 1 trái ác quỷ bóng tối, 10 khiên, 1 đá Hổ phách cấp 6\n"
+            // + "- Top 4-10: 1 trái ác quỷ sét, 5 khiên, 1 đá hổ phách cấp 5.\n"
+            // + "TOP 10 nhân vật nạp nhiều nhất:\n"
+            // + "- TOP 1: Trái ác quỷ Bóng Tối, Thời trang Mihawk Gold, 1 Đá khảm vô cực S,
+            // 100 Đá hải thạch cấp 6, 500.000.000 Beri\n"
+            // + "- TOP 2: 1 Trang bị Max +12, Thời trang Mihawk Gold, 1 Đá khảm vô cực S,
+            // 80 Đá hải thạch cấp 6, 400.000.000 Beri\n"
+            // + "- TOP 3: 1 Trang bị Max +12, Thời trang Mihawk, 1 Đá khảm vô cực S, 50 Đá
+            // hải thạch cấp 6, 300.000.000 Beri\n"
+            // + "- TOP 4-10: 1 Trang bị Max +10, Thời trang Mihawk, 1 Đá khảm vô cực, 30 Đá
+            // hải thạch cấp 6, 100.000.000 Beri\n"
+            // + "");
+            // conn.p.list_msg_cache.add(m3);
             // Message m4 = new Message(18);
             // m4.writer().writeUTF("GiftCode");
             // m4.writer().writeUTF(
@@ -918,7 +966,7 @@ public class MessageHandler {
             Message m2 = new Message(18);
             m2.writer().writeUTF("Tin đến");
             m2.writer().writeUTF(
-                    "Chào mừng bạn đến với Hải Tặc Đại Chiến - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
+                    "Chào mừng bạn đến với Thế Giới Hải Tặc - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
             conn.p.list_msg_cache.add(m2);
 
             // === Rejoin dialog — đợi người dùng vào game hoàn toàn và sau 2 giây mới gửi

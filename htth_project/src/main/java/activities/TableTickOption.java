@@ -136,6 +136,10 @@ public class TableTickOption {
                                         Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
+                                    if (member.time_tower >= 5) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!");
+                                        return;
+                                    }
                                     if (member.get_key_boss() < 2) {
                                         Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 2 chìa khóa!");
                                         return;
@@ -153,6 +157,7 @@ public class TableTickOption {
                                     Player member = Map.get_player_by_name_allmap(memInList.name);
                                     if (member != null) {
                                         member.update_key_boss(-2);
+                                        member.time_tower++;
                                         Service.CountDown_Ticket(member);
                                         member.update_money();
                                         member.originalMapId = member.map.template.id;
@@ -200,6 +205,123 @@ public class TableTickOption {
                             Message m = new Message(-74);
                             m.writer().writeByte(3);
                             m.writer().writeShort(1); // id dialog
+                            m.writer().writeShort(p.index_map);
+                            
+                            TableTickOption lobby = p.tableTickOption;
+                            boolean isLeader = lobby.listP.get(0).name.equals(p.name);
+                            for (int i = 0; i < lobby.listP.size(); i++) {
+                                Player p0 = Map.get_player_by_name_allmap(lobby.listP.get(i).name);
+                                if (p0 != null) {
+                                    p0.conn.addmsg(m);
+                                    if (isLeader || p0.name.equals(p.name)) {
+                                        p0.tableTickOption = null;
+                                    }
+                                }
+                                if (p.name.equals(lobby.listP.get(i).name)) {
+                                    lobby.list_check[i] = -1;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    case 2: { // Bao ve kho bau Namie
+                        if (type == 1) { // leader clicked Start OR member clicked Ready
+                            TableTickOption lobby = p.tableTickOption;
+                            if (lobby == null) return;
+                            if (lobby.listP.get(0).name.equals(p.name)) {
+                                // Leader clicked "Bắt đầu"
+                                // Check if all members are ready (ticked)
+                                for (int i = 0; i < lobby.list_check.length; i++) {
+                                    if (lobby.list_check[i] == 0) {
+                                        Service.send_box_ThongBao_OK(p,
+                                                lobby.listP.get(i).name
+                                                        + " chưa sẵn sàng!");
+                                        return;
+                                    }
+                                }
+                                
+                                // Validate all members
+                                for (int i = 0; i < lobby.listP.size(); i++) {
+                                    Player memInList = lobby.listP.get(i);
+                                    Player member = Map.get_player_by_name_allmap(memInList.name);
+                                    if (member == null || member.conn == null || !member.conn.connected) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + memInList.name + " hiện đang offline!");
+                                        return;
+                                    }
+                                    if (member.map == null || !member.map.equals(p.map)) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
+                                        return;
+                                    }
+                                    if (member.time_namie >= 5) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 5 lần)!");
+                                        return;
+                                    }
+                                    if (member.get_key_boss() < 2) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 2 chìa khóa!");
+                                        return;
+                                    }
+                                    if (member.dungeon != null) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đang trong một phó bản khác!");
+                                        return;
+                                    }
+                                }
+
+                                // Create list of participants and start challenge
+                                java.util.List<Player> onlineMembers = new java.util.ArrayList<>();
+                                for (int i = 0; i < lobby.listP.size(); i++) {
+                                    Player memInList = lobby.listP.get(i);
+                                    Player member = Map.get_player_by_name_allmap(memInList.name);
+                                    if (member != null) {
+                                        member.update_key_boss(-2);
+                                        member.time_namie++;
+                                        Service.CountDown_Ticket(member);
+                                        member.update_money();
+                                        member.originalMapId = member.map.template.id;
+                                        member.originalX = member.x;
+                                        member.originalY = member.y;
+                                        onlineMembers.add(member);
+                                    }
+                                }
+
+                                // Close dialog for everyone
+                                Message m = new Message(-74);
+                                m.writer().writeByte(2); // finish/close type
+                                m.writer().writeShort(2); // id dialog
+                                for (int i = 0; i < lobby.listP.size(); i++) {
+                                    Player p0 = Map.get_player_by_name_allmap(lobby.listP.get(i).name);
+                                    if (p0 != null) {
+                                        p0.conn.addmsg(m);
+                                        p0.tableTickOption = null;
+                                    }
+                                }
+                                m.cleanup();
+
+                                activities.NamieTreasureDefense defense =
+                                        new activities.NamieTreasureDefense(onlineMembers, p);
+                                defense.start();
+
+                            } else {
+                                // Member clicked Ready (Tick)
+                                Message m = new Message(-74);
+                                m.writer().writeByte(1);
+                                m.writer().writeShort(2); // id dialog
+                                m.writer().writeShort(p.index_map);
+                                for (int i = 0; i < lobby.listP.size(); i++) {
+                                    Player p0 = Map.get_player_by_name_allmap(
+                                            lobby.listP.get(i).name);
+                                    if (p0 != null) {
+                                        p0.conn.addmsg(m);
+                                    }
+                                    if (p.name.equals(lobby.listP.get(i).name)) {
+                                        lobby.list_check[i] = 1;
+                                    }
+                                }
+                                m.cleanup();
+                            }
+                        } else if (type == 2) { // Cancel clicked
+                            Message m = new Message(-74);
+                            m.writer().writeByte(3);
+                            m.writer().writeShort(2); // id dialog
                             m.writer().writeShort(p.index_map);
                             
                             TableTickOption lobby = p.tableTickOption;

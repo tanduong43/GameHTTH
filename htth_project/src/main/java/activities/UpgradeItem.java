@@ -297,22 +297,38 @@ public class UpgradeItem {
             }
             short idTitle = -1;
             short idFoot = -1;
+            short idIcon = -1;
+            int effectId = Service.getDanhHieuEffectId(p);
             if (p.idDanhHieu != -1) {
                 template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p.idDanhHieu);
                 if (dh != null) {
-                    if (dh.name.toLowerCase().contains("vòng chân")) {
-                        idFoot = (short) dh.idicon;
+                    if (dh.name != null && dh.name.toLowerCase().contains("vòng chân")) {
+                        idFoot = (short) dh.getEffectId();
                     } else {
-                        idTitle = (short) dh.idicon;
+                        idTitle = (short) dh.id;
+                        idIcon = (short) dh.getEffectId();
                     }
                 } else {
-                    idTitle = (short) p.idDanhHieu;
+                    idTitle = p.idDanhHieu;
+                    idIcon = p.idDanhHieu;
                 }
             }
-            m.writer().writeShort(-1);
+            if (idTitle != -1 && idTitle < 300) {
+                idTitle += 3000;
+            }
+            if (idIcon != -1 && idIcon < 300) {
+                idIcon += 3000;
+            }
+            if (idFoot != -1 && idFoot < 300) {
+                idFoot += 3000;
+            }
             m.writer().writeShort(idTitle);
+            m.writer().writeShort(idIcon != -1 ? idIcon : idTitle);
             m.writer().writeShort(idFoot);
             p.conn.addmsg(m);
+            if (effectId != -1) {
+                Service.send_danhieu_effect(p, effectId);
+            }
             m.cleanup();
             //
         }

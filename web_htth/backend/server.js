@@ -5,16 +5,23 @@ require('dotenv').config();
 
 const apiRouter = require('./routes/api');
 const initNewsTable = require('./config/init_news');
+const initIpLogTable = require('./config/init_ip_log');
 
 // Initialize news table and seed data
 initNewsTable();
+initIpLogTable();
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
 // CORS setup
 const corsOptions = {
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, postman)
+        if (!origin) return callback(null, true);
+        // Allow any origin during local development
+        return callback(null, true);
+    },
     credentials: true,
 };
 app.use(cors(corsOptions));

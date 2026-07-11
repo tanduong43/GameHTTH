@@ -69,6 +69,17 @@ public class Session implements Runnable {
         this.controller = new MessageHandler(this);
     }
 
+    public Socket getSocket() {
+        return this.socket;
+    }
+
+    public String getIpAddress() {
+        if (this.socket != null && this.socket.getInetAddress() != null) {
+            return this.socket.getInetAddress().getHostAddress();
+        }
+        return "";
+    }
+
     public void init() {
         try {
             this.dis = new DataInputStream(socket.getInputStream());
@@ -162,7 +173,7 @@ public class Session implements Runnable {
             } else if (msg.cmd == -39) {
                 dos.writeInt(size);
             } else {
-                final int byte1 = (byte) (size & 0xFF00);
+                final int byte1 = (byte) ((size >> 8) & 0xFF);
                 this.dos.writeByte(byte1);
                 final int byte2 = (byte) (size & 0xFF);
                 this.dos.writeByte(byte2);
@@ -491,42 +502,72 @@ public class Session implements Runnable {
             getImgAPK = true;
         }
         this.zoomlv = m.reader().readByte();
+        System.out.println("[DEBUG] send_data_from_server: zoomlv=" + this.zoomlv + ", ip=" + getIpAddress());
+        // Validate zoomlv
+        if (this.zoomlv < 1 || this.zoomlv > 4) {
+            System.out.println("[WARN] Invalid zoomlv=" + this.zoomlv + " from " + getIpAddress() + ", defaulting to 2");
+            this.zoomlv = 2;
+        }
         Thread send = new Thread(() -> {
             try {
                 String path = "data/datafromsver/x" + this.zoomlv;
                 File folder = new File(path);
                 if (folder.isDirectory()) {
                     File[] files = folder.listFiles();
-                    Arrays.sort(files, new Comparator<File>() {
-                        @Override
-                        public int compare(File o1, File o2) {
-                            int name1 = solve_name(o1.getName());
-                            int name2 = solve_name(o2.getName());
-                            return (name1 > name2) ? 1 : -1;
-                        }
-
-                        private int solve_name(String name) {
-                            String num = "";
-                            for (int i = 0; i < name.length(); i++) {
-                                if (name.charAt(i) == '_') {
-                                    break;
-                                }
-                                num += name.charAt(i);
-                            }
-                            return Integer.parseInt(num);
-                        }
-                    });
-                    for (int i = 0; i < files.length; i++) {
-                        int cmd = Integer.parseInt(files[i].getName().substring(
-                                (files[i].getName().length() - 3), files[i].getName().length()));
-                        Service.send_msg_data(this, cmd, files[i].getAbsolutePath(), false);
+                    if (files == null || files.length == 0) {
+                        System.out.println("[WARN] No data files found in " + path);
+                        return;
                     }
+                    // Filter out .DS_Store and non-data files
+                    List<File> validFiles = new ArrayList<>();
+                    for (File f : files) {
+                        if (f.getName().startsWith(".") || f.length() == 0) {
+                            continue;
+                        }
+                        validFiles.add(f);
+                    }
+                    validFiles.sort((o1, o2) -> {
+                        int name1 = solve_name(o1.getName());
+                        int name2 = solve_name(o2.getName());
+                        return Integer.compare(name1, name2);
+                    });
+                    System.out.println("[DEBUG] Sending " + validFiles.size() + " data files for zoomlv=" + this.zoomlv);
+                    for (int i = 0; i < validFiles.size(); i++) {
+                        File file = validFiles.get(i);
+                        try {
+                            int cmd = Integer.parseInt(file.getName().substring(
+                                    (file.getName().length() - 3), file.getName().length()));
+                            Service.send_msg_data(this, cmd, file.getAbsolutePath(), false);
+                        } catch (NumberFormatException e) {
+                            System.out.println("[WARN] Skipping invalid data file: " + file.getName());
+                        }
+                    }
+                    System.out.println("[DEBUG] Finished sending data files for zoomlv=" + this.zoomlv);
+                } else {
+                    System.out.println("[ERROR] Data directory not found: " + path);
                 }
             } catch (IOException e) {
+                System.err.println("[ERROR] send_data_from_server IOException: " + e.getMessage());
                 e.printStackTrace();
+                this.disconnect();
+            } catch (Exception e) {
+                System.err.println("[ERROR] send_data_from_server Exception: " + e.getMessage());
+                e.printStackTrace();
+                this.disconnect();
             }
         });
         send.start();
+    }
+
+    private static int solve_name(String name) {
+        String num = "";
+        for (int i = 0; i < name.length(); i++) {
+            if (name.charAt(i) == '_') {
+                break;
+            }
+            num += name.charAt(i);
+        }
+        return Integer.parseInt(num);
     }
 
     public void login(Message m) throws IOException {
@@ -695,6 +736,10 @@ public class Session implements Runnable {
         this.version = m.reader().readUTF();
         m.reader().readByte();
         byte IndexCharSelected = m.reader().readByte();
+        if (!user_.equals("admin") && SessionManager.getNumOnlinePlayers() >= Manager.gI().max_ccu) {
+            login_notice("Máy chủ đã đầy (" + Manager.gI().max_ccu + "/" + Manager.gI().max_ccu + " người chơi). Vui lòng quay lại sau!");
+            return;
+        }
         this.user = user_;
         this.pass = pass_;
         if (!this.check_onl()) {
@@ -924,7 +969,7 @@ public class Session implements Runnable {
         m2.cleanup();
     }
 
-    private void login_notice(String s) throws IOException {
+    public void login_notice(String s) throws IOException {
         Message m = new Message(-11);
         m.writer().writeShort(0);
         m.writer().writeByte(0);

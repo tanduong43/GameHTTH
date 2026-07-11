@@ -7,6 +7,14 @@ require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_for_development_only';
 
+const getClientIp = (req) => {
+    const xForwardedFor = req.headers['x-forwarded-for'];
+    if (xForwardedFor) {
+        return xForwardedFor.split(',')[0].trim();
+    }
+    return req.ip || req.connection?.remoteAddress || '';
+};
+
 // POST /api/register/
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
@@ -16,6 +24,19 @@ router.post('/register', async (req, res) => {
     }
 
     try {
+        const clientIp = getClientIp(req);
+
+        // Check registration limit (max 5 accounts per day per IP)
+        const [ipCountRows] = await db.execute(
+            'SELECT COUNT(*) AS count FROM ip_register_logs WHERE ip = ? AND created_at >= NOW() - INTERVAL 1 DAY',
+            [clientIp]
+        );
+        const registrationCount = ipCountRows[0]?.count || 0;
+
+        if (registrationCount >= 5) {
+            return res.json({ success: false, message: 'Mỗi địa chỉ IP chỉ được phép đăng ký tối đa 5 tài khoản trong 1 ngày!' });
+        }
+
         const [existing] = await db.execute('SELECT * FROM accounts WHERE user = ?', [username]);
         if (existing.length > 0) {
             return res.json({ success: false, message: 'Tài khoản đã tồn tại!' });
@@ -24,6 +45,12 @@ router.post('/register', async (req, res) => {
         await db.execute(
             'INSERT INTO accounts (user, `pass`, `char`, onl, `lock`, status, coin, vip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [username, password, '[]', 0, 0, 0, 0, 0]
+        );
+
+        // Log the successful registration IP
+        await db.execute(
+            'INSERT INTO ip_register_logs (ip) VALUES (?)',
+            [clientIp]
         );
 
         return res.json({ success: true, message: 'Đăng ký thành công! Hãy đăng nhập.' });

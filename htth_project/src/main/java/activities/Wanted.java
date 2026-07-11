@@ -69,12 +69,23 @@ public class Wanted {
 
     public synchronized static void add_player_wait(Player p) {
         if (!LIST.contains(p)) {
+            p.time_start_find_wanted = System.currentTimeMillis();
             LIST.add(p);
         }
     }
 
     public synchronized static void remove_player_wait(Player p) {
         LIST.remove(p);
+        p.time_start_find_wanted = 0;
+    }
+
+    public synchronized static Player get_player_waiting_too_long() {
+        for (Player p : LIST) {
+            if (p.time_start_find_wanted > 0 && (System.currentTimeMillis() - p.time_start_find_wanted) >= 10000) {
+                return p;
+            }
+        }
+        return null;
     }
 
     public synchronized static Player[] get_p_random_waiting() throws IOException {
@@ -99,7 +110,7 @@ public class Wanted {
         return result;
     }
 
-    private static void wait_to_enter_round(Player p) throws IOException {
+    public static void wait_to_enter_round(Player p) throws IOException {
         LIST.remove(p);
         Message m = new Message(-85);
         m.writer().writeByte(2);

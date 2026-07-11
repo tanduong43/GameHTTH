@@ -20,15 +20,15 @@ import org.json.simple.JSONValue;
 import database.SQL;
 import io.Message;
 import template.*;
+
 /**
  *
  * @author Truongbk
  */
 public class Manager {
     private static Manager instance;
-    public static String[] NAME_ITEM_SELL_TEMP =
-            new String[] {"Shop Trang Bị Võ Sĩ", "Shop Trang Bị Kiếm Khách",
-                    "Shop Trang Bị Đầu Bếp", "Shop Trang Bị Hoa Tiêu", "Shop Trang Bị Xạ Thủ"};
+    public static String[] NAME_ITEM_SELL_TEMP = new String[] { "Shop Trang Bị Võ Sĩ", "Shop Trang Bị Kiếm Khách",
+            "Shop Trang Bị Đầu Bếp", "Shop Trang Bị Hoa Tiêu", "Shop Trang Bị Xạ Thủ" };
     public boolean debug;
     public String mysql_host;
     public String mysql_database;
@@ -37,6 +37,8 @@ public class Manager {
     public int server_port;
     public int exp;
     public boolean server_admin;
+    public int max_ip_connection;
+    public int max_ccu;
     private int index_mob;
     private TaiXiu tx;
     private static int a = 0;
@@ -184,7 +186,7 @@ public class Manager {
                 ShopTichLuy.ENTRY.add(temp);
             }
             rs.close();
-            
+
             // load map
             query = "SELECT * FROM `maps`;";
             rs = ps.executeQuery(query);
@@ -218,16 +220,14 @@ public class Manager {
                     npc.wBlock = Byte.parseByte(js_npc_temp.get(8).toString());
                     npc.hBlock = Byte.parseByte(js_npc_temp.get(9).toString());
                     npc.b3 = Byte.parseByte(js_npc_temp.get(10).toString());
-                    JSONArray js_npc_temp_2 =
-                            (JSONArray) JSONValue.parse(js_npc_temp.get(11).toString());
+                    JSONArray js_npc_temp_2 = (JSONArray) JSONValue.parse(js_npc_temp.get(11).toString());
                     npc.dataFrame = new byte[js_npc_temp_2.size()];
                     for (int j = 0; j < npc.dataFrame.length; j++) {
                         npc.dataFrame[j] = Byte.parseByte(js_npc_temp_2.get(j).toString());
                     }
                     npc.head = Short.parseShort(js_npc_temp.get(12).toString());
                     npc.hair = Short.parseShort(js_npc_temp.get(13).toString());
-                    JSONArray js_npc_temp_3 =
-                            (JSONArray) JSONValue.parse(js_npc_temp.get(14).toString());
+                    JSONArray js_npc_temp_3 = (JSONArray) JSONValue.parse(js_npc_temp.get(14).toString());
                     npc.wearing = new short[js_npc_temp_3.size()];
                     for (int k = 0; k < npc.wearing.length; k++) {
                         npc.wearing[k] = Short.parseShort(js_npc_temp_3.get(k).toString());
@@ -273,7 +273,7 @@ public class Manager {
                     }
                 }
                 js_npc.clear();
-                //System.out.println(id_map);
+                // System.out.println(id_map);
                 js_npc = (JSONArray) JSONValue.parse(rs.getString("MapBack"));
                 map_temp.IDBack = Byte.parseByte(js_npc.get(0).toString());
                 map_temp.HBack = Short.parseShort(js_npc.get(1).toString());
@@ -307,8 +307,7 @@ public class Manager {
                     for (int i = 0; i < js.size(); i++) {
                         JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
                         Mob temp = new Mob();
-                        temp.mob_template =
-                                MobTemplate.ENTRYS.get(Integer.parseInt(js2.get(0).toString()));
+                        temp.mob_template = MobTemplate.ENTRYS.get(Integer.parseInt(js2.get(0).toString()));
                         temp.x = Short.parseShort(js2.get(1).toString());
                         temp.y = Short.parseShort(js2.get(2).toString());
                         temp.hp_max = temp.mob_template.hp_max;
@@ -432,6 +431,13 @@ public class Manager {
                 temp.value = rs.getShort("value");
                 temp.timeactive = rs.getShort("timeactive");
                 temp.nameuse = rs.getString("nameuse");
+                if (temp.id == 173) {
+                    temp.beri = 10000;
+                    temp.ruby = 0;
+                } else if (temp.id == 174) {
+                    temp.beri = 10000;
+                    temp.ruby = 0;
+                }
                 ItemTemplate4.ENTRYS.add(temp);
             }
             rs.close();
@@ -535,6 +541,14 @@ public class Manager {
                 String skill = rs.getString("skill");
                 String buff = rs.getString("buff");
                 int level = rs.getInt("level");
+                int thegioi = 2; // mặc định là boss làng
+                try {
+                    thegioi = rs.getInt("thegioi");
+                } catch (Exception e) {
+                    if (mob_id >= 135 && mob_id <= 140) {
+                        thegioi = 1;
+                    }
+                }
                 JSONArray js = (JSONArray) JSONValue.parse(site);
                 short temp_x = Short.parseShort(js.get(1).toString());
                 short temp_y = Short.parseShort(js.get(2).toString());
@@ -547,6 +561,7 @@ public class Manager {
                     }
                     Boss boss_temp = new Boss();
                     boss_temp.id = id;
+                    boss_temp.thegioi = thegioi;
                     boss_temp.mob = new Mob();
                     boss_temp.mob.mob_template = MobTemplate.ENTRYS.get(mob_id);
                     boss_temp.mob.x = temp_x;
@@ -670,7 +685,7 @@ public class Manager {
                 clan.ruby = Integer.parseInt(js.get(7).toString());
                 clan.beri = Integer.parseInt(js.get(8).toString());
                 clan.allowRequest = Byte.parseByte(js.get(9).toString());
-                clan.opAttri = new short[] {0, 0, 0, 0, 0};
+                clan.opAttri = new short[] { 0, 0, 0, 0, 0 };
                 JSONArray js2 = (JSONArray) js.get(10);
                 for (int i = 0; i < clan.opAttri.length; i++) {
                     clan.opAttri[i] = Short.parseShort(js2.get(i).toString());
@@ -812,7 +827,8 @@ public class Manager {
                     if (js_ar != null) {
                         for (int i = 0; i < js_ar.size(); i++) {
                             JSONArray js_in = (JSONArray) js_ar.get(i);
-                            temp.op.add(new template.Option(Byte.parseByte(js_in.get(0).toString()), Integer.parseInt(js_in.get(1).toString())));
+                            temp.op.add(new template.Option(Byte.parseByte(js_in.get(0).toString()),
+                                    Integer.parseInt(js_in.get(1).toString())));
                         }
                     }
                 }
@@ -913,6 +929,16 @@ public class Manager {
             this.server_admin = Boolean.parseBoolean(configMap.get("serveradmin"));
         } else {
             this.server_admin = false;
+        }
+        if (configMap.containsKey("max-ip-connection")) {
+            this.max_ip_connection = Integer.parseInt(configMap.get("max-ip-connection"));
+        } else {
+            this.max_ip_connection = 10;
+        }
+        if (configMap.containsKey("max-ccu")) {
+            this.max_ccu = Integer.parseInt(configMap.get("max-ccu"));
+        } else {
+            this.max_ccu = 500;
         }
     }
 
