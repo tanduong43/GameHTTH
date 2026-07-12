@@ -14,6 +14,7 @@ function Navbar() {
   const isHomeActive = location.pathname === '/' && hash !== '#download';
   const isDownloadActive = location.pathname === '/' && hash === '#download';
   const isNewsActive = location.pathname.startsWith('/news');
+  const isTopupActive = location.pathname === '/nap-tien';
   const isForumActive = location.pathname === '/tai-khoan' || location.pathname === '/login' || location.pathname === '/register';
 
   const handleHomeClick = (e) => {
@@ -73,6 +74,12 @@ function Navbar() {
         >
           Tải Game
         </a>
+        <Link 
+          to="/nap-tien" 
+          className={`nav-btn ${isTopupActive ? 'active' : ''}`}
+        >
+          Nạp Tiền
+        </Link>
         <Link 
           to={user ? "/tai-khoan" : "/login"} 
           className={`nav-btn ${isForumActive ? 'active' : ''}`}

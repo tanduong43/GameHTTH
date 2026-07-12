@@ -19,6 +19,12 @@ export default function UserSubnav({ activeTab }) {
       >
         🔒 Đổi Mật Khẩu
       </button>
+      <button
+        className={`subnav-btn ${activeTab === 'topup' ? 'active' : ''}`}
+        onClick={() => navigate('/nap-tien')}
+      >
+        🪙 Nạp Tiền
+      </button>
 
       <button className="subnav-btn subnav-logout" onClick={handleLogout}>
         🚪 Đăng Xuất

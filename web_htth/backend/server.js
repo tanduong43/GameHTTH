@@ -1,15 +1,19 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 const apiRouter = require('./routes/api');
 const initNewsTable = require('./config/init_news');
 const initIpLogTable = require('./config/init_ip_log');
+const initRechargeTable = require('./config/init_recharge');
 
 // Initialize news table and seed data
 initNewsTable();
 initIpLogTable();
+initRechargeTable();
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -53,6 +57,25 @@ app.use((req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: corsOptions
+});
+app.set('io', io);
+
+io.on('connection', (socket) => {
+    console.log(`Socket connected: ${socket.id}`);
+    socket.on('join', (data) => {
+        if (data && data.username) {
+            socket.join(`user_${data.username}`);
+            console.log(`User ${data.username} joined room user_${data.username}`);
+        }
+    });
+    socket.on('disconnect', () => {
+        console.log(`Socket disconnected: ${socket.id}`);
+    });
+});
+
+server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

@@ -979,11 +979,6 @@ public class MenuController {
               break;
             }
             case 3: {
-              if (p.conn.status != 1) {
-                Service.send_box_ThongBao_OK(p,
-                    "Bạn chưa kích hoạt tài khoản!\nHãy kích hoạt tài khoản trước khi nhập Giftcode.");
-                return;
-              }
               Service.input_text(p, 1, "Quà tặng máy chủ", new String[] { "Nhập giftcode" });
               break;
             }
@@ -2340,7 +2335,7 @@ public class MenuController {
         }
         case 7: {
           Service.input_text(p, 32005, "Tạo Giftcode",
-              new String[] { "Tên mã", "Số Beri", "Số Ruby", "Giới hạn", "ID Item (-1 nếu ko có)", "Số lượng Item" });
+              new String[] { "Tên mã", "Số Beri", "Số Ruby", "Giới hạn", "Loại Item (-1 nếu ko có)", "ID Item", "Số lượng Item", "MTV (1: Có, 0: Không)" });
           break;
         }
         case 4: {

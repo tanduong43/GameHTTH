@@ -3,7 +3,10 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { jwtRequired, isAdmin } = require('../middleware/auth');
+const bankingRouter = require('./banking');
 require('dotenv').config();
+
+router.use('/', bankingRouter);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_for_development_only';
 
@@ -75,7 +78,7 @@ router.post('/login', async (req, res) => {
         }
 
         const account = rows[0];
-        const token = jwt.sign({ user_id: account.id }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ user_id: account.id }, JWT_SECRET, { expiresIn: '2h' });
 
         return res.json({
             success: true,
@@ -140,8 +143,13 @@ router.post('/activate', jwtRequired, async (req, res) => {
             return res.json({ success: false, message: 'Tài khoản đã được kích hoạt!' });
         }
 
-        await db.execute('UPDATE accounts SET status = 1 WHERE id = ?', [req.jwt_user_id]);
-        return res.json({ success: true, message: 'Kích hoạt thành công!' });
+        const currentCoin = parseInt(account.coin || 0, 10);
+        if (currentCoin < 10) {
+            return res.json({ success: false, message: `Bạn không đủ Coin để kích hoạt! Cần tối thiểu 10 Coin (hiện có ${currentCoin} Coin). Vui lòng nạp thêm.` });
+        }
+
+        await db.execute('UPDATE accounts SET status = 1, coin = coin - 10 WHERE id = ?', [req.jwt_user_id]);
+        return res.json({ success: true, message: 'Kích hoạt thành công! Đã trừ 10 Coin phí kích hoạt.' });
     } catch (err) {
         console.error('Activate error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
@@ -181,6 +189,57 @@ router.post('/change-password', jwtRequired, async (req, res) => {
 });
 
 // ================= ADMIN ROUTING =================
+
+// GET /api/admin/stats (Thống kê tài chính & giao dịch)
+router.get('/admin/stats', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        // Query 1: Tổng tiền nạp, Tổng giao dịch, Thành công, Lỗi, Chờ duyệt
+        const [summaryRows] = await db.execute(`
+            SELECT 
+                COALESCE(SUM(CASE WHEN status IN (1, 2) THEN real_amount ELSE 0 END), 0) AS total_recharged,
+                COUNT(*) AS total_txns,
+                COALESCE(SUM(CASE WHEN status IN (1, 2) THEN 1 ELSE 0 END), 0) AS success_txns,
+                COALESCE(SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END), 0) AS failed_txns,
+                COALESCE(SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END), 0) AS pending_txns
+            FROM recharge_history
+        `);
+        const summary = summaryRows[0];
+
+        // Query 2: Xếp hạng top 5 nạp tiền nhiều nhất
+        const [topDepositors] = await db.execute(`
+            SELECT username, COALESCE(SUM(real_amount), 0) AS total_amount, COUNT(*) AS txn_count
+            FROM recharge_history
+            WHERE status IN (1, 2)
+            GROUP BY username
+            ORDER BY total_amount DESC
+            LIMIT 5
+        `);
+
+        // Query 3: Danh sách 15 giao dịch nạp thẻ gần đây nhất
+        const [recentTxns] = await db.execute(`
+            SELECT username, amount, real_amount, type, status, created_at, description, request_id, telco, serial, code
+            FROM recharge_history
+            ORDER BY id DESC
+            LIMIT 15
+        `);
+
+        return res.json({
+            success: true,
+            stats: {
+                totalRecharged: Number(summary.total_recharged),
+                totalTxns: Number(summary.total_txns),
+                successTxns: Number(summary.success_txns),
+                failedTxns: Number(summary.failed_txns),
+                pendingTxns: Number(summary.pending_txns),
+                topDepositors,
+                recentTxns
+            }
+        });
+    } catch (err) {
+        console.error('Admin get stats error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống khi tải thống kê: ${err.message}` });
+    }
+});
 
 // POST /api/admin/add_coin/
 router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
@@ -261,8 +320,9 @@ router.post('/admin/update_user', jwtRequired, isAdmin, async (req, res) => {
             await db.execute('UPDATE accounts SET `lock` = ? WHERE user = ?', [newLock, username]);
             return res.json({ success: true, message: 'Đã cập nhật trạng thái khóa!' });
         } else if (action === 'activate') {
-            await db.execute('UPDATE accounts SET status = 1 WHERE user = ?', [username]);
-            return res.json({ success: true, message: 'Đã kích hoạt thành viên!' });
+            const newStatus = acc.status === 1 ? 0 : 1;
+            await db.execute('UPDATE accounts SET status = ? WHERE user = ?', [newStatus, username]);
+            return res.json({ success: true, message: newStatus === 1 ? 'Đã kích hoạt thành viên!' : 'Đã hủy kích hoạt thành viên!' });
         } else if (action === 'password') {
             if (!password) {
                 return res.json({ success: false, message: 'Thiếu mật khẩu mới!' });
@@ -280,7 +340,7 @@ router.post('/admin/update_user', jwtRequired, isAdmin, async (req, res) => {
 
 // POST /api/admin/create_giftcode/
 router.post('/admin/create_giftcode', jwtRequired, isAdmin, async (req, res) => {
-    const { code, beri, ruby, gioihan, item, thongbao, luotnhap, used, special } = req.body;
+    const { code, beri, ruby, gioihan, item, thongbao, luotnhap, used, special, is_member } = req.body;
 
     const beriInt = parseInt(beri || 0, 10);
     const rubyInt = parseInt(ruby || 0, 10);
@@ -290,6 +350,7 @@ router.post('/admin/create_giftcode', jwtRequired, isAdmin, async (req, res) => 
     const thongbaoStr = thongbao ?? '';
     const usedStr = used ?? '';
     const specialStr = special ?? '';
+    const isMemberInt = parseInt(is_member || 0, 10);
 
     if (!code) {
         return res.json({ success: false, message: 'Thiếu mã giftcode!' });
@@ -320,8 +381,8 @@ router.post('/admin/create_giftcode', jwtRequired, isAdmin, async (req, res) => 
         }
 
         await db.execute(
-            'INSERT INTO giftcode (giftname, beri, ruby, item, thongbao, luotnhap, gioihan, used, special) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [code, beriInt, rubyInt, itemJson, thongbaoStr, luotnhapInt, gioihanInt, usedStr, specialStr]
+            'INSERT INTO giftcode (giftname, beri, ruby, item, thongbao, luotnhap, gioihan, used, special, is_member) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [code, beriInt, rubyInt, itemJson, thongbaoStr, luotnhapInt, gioihanInt, usedStr, specialStr, isMemberInt]
         );
 
         return res.json({ success: true, message: 'Tạo Giftcode thành công!' });
@@ -345,7 +406,7 @@ router.get('/admin/giftcodes', jwtRequired, isAdmin, async (req, res) => {
 // PUT /api/admin/giftcode/:id
 router.put('/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
     const { id } = req.params;
-    const { code, beri, ruby, gioihan, item, thongbao, luotnhap, used, special } = req.body;
+    const { code, beri, ruby, gioihan, item, thongbao, luotnhap, used, special, is_member } = req.body;
 
     const beriInt = parseInt(beri || 0, 10);
     const rubyInt = parseInt(ruby || 0, 10);
@@ -355,6 +416,7 @@ router.put('/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
     const thongbaoStr = thongbao ?? '';
     const usedStr = used ?? '';
     const specialStr = special ?? '';
+    const isMemberInt = parseInt(is_member || 0, 10);
 
     if (!code) {
         return res.json({ success: false, message: 'Thiếu mã giftcode!' });
@@ -386,8 +448,8 @@ router.put('/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
         }
 
         const [result] = await db.execute(
-            'UPDATE giftcode SET giftname = ?, beri = ?, ruby = ?, item = ?, thongbao = ?, luotnhap = ?, gioihan = ?, used = ?, special = ? WHERE id = ?',
-            [code, beriInt, rubyInt, itemJson, thongbaoStr, luotnhapInt, gioihanInt, usedStr, specialStr, id]
+            'UPDATE giftcode SET giftname = ?, beri = ?, ruby = ?, item = ?, thongbao = ?, luotnhap = ?, gioihan = ?, used = ?, special = ?, is_member = ? WHERE id = ?',
+            [code, beriInt, rubyInt, itemJson, thongbaoStr, luotnhapInt, gioihanInt, usedStr, specialStr, isMemberInt, id]
         );
 
         if (result.affectedRows === 0) {
@@ -688,6 +750,183 @@ router.post('/admin/upload', jwtRequired, isAdmin, async (req, res) => {
         return res.json({ success: false, message: `Lỗi lưu tệp tin: ${err.message}` });
     }
 });
+
+// GET /api/recharge/bank_config (Lấy cấu hình ngân hàng công khai)
+router.get('/recharge/bank_config', async (req, res) => {
+    return res.json({
+        success: true,
+        bankId: process.env.BANK_ID || 'MB',
+        accountNo: process.env.BANK_ACCOUNT_NO || process.env.BANK_ACCOUNT || '123456789999',
+        accountName: process.env.BANK_ACCOUNT_NAME || process.env.BANK_OWNER || 'NGUYEN VAN A',
+        bankName: process.env.BANK_NAME || `${process.env.BANK_ID || 'MB'} Bank`,
+        momoPhone: process.env.MOMO_PHONE || '0987654321',
+        momoName: process.env.MOMO_NAME || 'NGUYEN VAN A',
+    });
+});
+
+// ==================== CẤU HÌNH API NẠP THẺ CÀO (TSR / DOITHE1S) ====================
+const crypto = require('crypto');
+
+const PARTNER_ID = process.env.PARTNER_ID || '123456789'; // Điền Partner ID của bạn
+const PARTNER_KEY = process.env.PARTNER_KEY || 'abcdef1234567890'; // Điền Partner Key của bạn
+const CHARGING_URL = process.env.CHARGING_URL || 'https://thesieure.com/chargingws/v2'; // Hoặc doithe1s.vn...
+
+function md5(string) {
+    return crypto.createHash('md5').update(string).digest('hex');
+}
+
+// POST /api/recharge/card
+router.post('/recharge/card', jwtRequired, async (req, res) => {
+    const { telco, serial, pin, amount } = req.body;
+    
+    if (!telco || !serial || !pin || !amount) {
+        return res.json({ success: false, message: 'Vui lòng điền đầy đủ các thông tin thẻ nạp!' });
+    }
+
+    const declaredValue = parseInt(amount, 10);
+    if (isNaN(declaredValue) || declaredValue <= 0) {
+        return res.json({ success: false, message: 'Mệnh giá thẻ không hợp lệ!' });
+    }
+
+    try {
+        // Lấy thông tin tài khoản người nạp từ JWT
+        const [userRows] = await db.execute('SELECT user FROM accounts WHERE id = ?', [req.jwt_user_id]);
+        if (userRows.length === 0) {
+            return res.json({ success: false, message: 'Tài khoản không tồn tại!' });
+        }
+        const username = userRows[0].user;
+
+        // Tạo mã giao dịch duy nhất
+        const requestId = `${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+
+        // Tính chữ ký gửi sang cổng
+        const sign = md5(PARTNER_KEY + pin + serial);
+
+        // Gửi yêu cầu nạp thẻ sang cổng thanh toán
+        const response = await fetch(CHARGING_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telco: telco.toUpperCase(),
+                code: pin,
+                serial: serial,
+                amount: declaredValue,
+                request_id: requestId,
+                partner_id: PARTNER_ID,
+                sign: sign,
+                command: 'charging'
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Cổng thẻ trả về mã HTTP ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        
+        // Cổng thẻ chuẩn API V2 sẽ trả về status: 99 (Chờ duyệt), hoặc 1 (Thành công ngay lập tức)
+        if (data.status === 99 || data.status === 1) {
+            // Lưu giao dịch thẻ cào vào cơ sở dữ liệu với trạng thái chờ duyệt (status = 0)
+            await db.execute(
+                'INSERT INTO recharge_history (username, amount, real_amount, type, status, request_id, telco, serial, code, description) VALUES (?, ?, 0, ?, 0, ?, ?, ?, ?, ?)',
+                [username, declaredValue, 'card', requestId, telco.toUpperCase(), serial, pin, 'Thẻ gửi lên hệ thống, đang chờ cổng duyệt']
+            );
+
+            return res.json({ 
+                success: true, 
+                message: 'Gửi thẻ thành công! Hệ thống đang xử lý và sẽ cộng Coin tự động sau 1-2 phút.' 
+            });
+        } else {
+            // Thẻ bị từ chối ngay lập tức bởi cổng
+            await db.execute(
+                'INSERT INTO recharge_history (username, amount, real_amount, type, status, request_id, telco, serial, code, description) VALUES (?, ?, 0, ?, 3, ?, ?, ?, ?, ?)',
+                [username, declaredValue, 'card', requestId, telco.toUpperCase(), serial, pin, `Thẻ bị cổng từ chối: ${data.message || 'Lỗi mã thẻ/seri'}`]
+            );
+
+            return res.json({ 
+                success: false, 
+                message: `Thẻ lỗi hoặc không đúng: ${data.message || 'Vui lòng kiểm tra lại mã thẻ và seri!'}` 
+            });
+        }
+    } catch (err) {
+        console.error('Recharge card error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống khi nạp thẻ: ${err.message}` });
+    }
+});
+
+// GET /api/recharge/callback và POST /api/recharge/callback (Nhận kết quả từ cổng thẻ)
+const handleCallback = async (req, res) => {
+    // Cổng thẻ có thể gửi qua GET (query) hoặc POST (body)
+    const params = req.method === 'POST' ? req.body : req.query;
+    const { status, amount, value, request_id, callback_sign } = params;
+
+    if (!status || !request_id || !callback_sign) {
+        return res.status(400).send('Missing callback parameters');
+    }
+
+    try {
+        // Xác minh chữ ký số callback từ cổng gửi về
+        const localSign = md5(PARTNER_KEY + status + request_id);
+        if (localSign !== callback_sign) {
+            console.warn(`[Recharge Callback] Sai chữ ký callback cho request_id: ${request_id}`);
+            return res.status(400).send('Invalid signature');
+        }
+
+        // Tìm giao dịch chờ duyệt trong Database
+        const [rows] = await db.execute('SELECT * FROM recharge_history WHERE request_id = ? LIMIT 1', [request_id]);
+        if (rows.length === 0) {
+            return res.status(404).send('Transaction not found');
+        }
+
+        const trans = rows[0];
+        // Chỉ xử lý nếu giao dịch cũ đang ở trạng thái Chờ duyệt (status = 0)
+        if (trans.status === 0) {
+            const realValue = parseInt(value || amount, 10);
+            const coinAmount = Math.floor(realValue / 1000); // Tỷ lệ: 1,000đ = 1 Coin
+            const statusInt = parseInt(status, 10);
+
+            if (statusInt === 1) {
+                // TH1: Nạp thẻ thành công đúng mệnh giá
+                await db.execute('UPDATE accounts SET coin = coin + ? WHERE user = ?', [coinAmount, trans.username]);
+                
+                // Cập nhật trạng thái lịch sử thành công (status = 1)
+                await db.execute(
+                    'UPDATE recharge_history SET status = 1, real_amount = ?, description = ? WHERE request_id = ?',
+                    [realValue, `Nạp thẻ cào thành công (${realValue.toLocaleString()}đ → ${coinAmount} Coin)`, request_id]
+                );
+                console.log(`[Recharge Callback] Nạp thẻ thành công cho ${trans.username}: ${realValue}đ → +${coinAmount} Coin`);
+            } 
+            else if (statusInt === 2) {
+                // TH2: Thành công nhưng sai mệnh giá
+                await db.execute('UPDATE accounts SET coin = coin + ? WHERE user = ?', [coinAmount, trans.username]);
+                
+                await db.execute(
+                    'UPDATE recharge_history SET status = 2, real_amount = ?, description = ? WHERE request_id = ?',
+                    [realValue, `Nạp thành công nhưng sai mệnh giá (Khai báo ${trans.amount}đ, thực tế ${realValue}đ → ${coinAmount} Coin)`, request_id]
+                );
+                console.log(`[Recharge Callback] Nạp sai mệnh giá cho ${trans.username}: Khai báo ${trans.amount}đ, Thực tế nhận ${realValue}đ → ${coinAmount} Coin`);
+            } 
+            else {
+                // TH3: Thẻ lỗi/thất bại (status = 3 hoặc các mã lỗi khác)
+                await db.execute(
+                    'UPDATE recharge_history SET status = 3, description = ? WHERE request_id = ?',
+                    ['Thẻ lỗi hoặc đã được sử dụng trước đó', request_id]
+                );
+                console.log(`[Recharge Callback] Thẻ lỗi hoặc nạp thất bại cho ${trans.username}`);
+            }
+        }
+
+        // Phản hồi cổng thẻ là đã nhận kết quả thành công (để không gửi lại callback)
+        return res.send('ok');
+    } catch (err) {
+        console.error('Recharge callback error:', err);
+        return res.status(500).send('Internal server error');
+    }
+};
+
+router.post('/recharge/callback', handleCallback);
+router.get('/recharge/callback', handleCallback);
 
 module.exports = router;
 

@@ -638,7 +638,7 @@ function LandingPage() {
             <div className="footer-links">
               <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Trang Chủ</a>
               <a href="#download" onClick={(e) => { e.preventDefault(); document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' }); }}>Tải Game</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/nap-the'); }}>Nạp Thẻ</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/nap-tien'); }}>Nạp Thẻ</a>
               <a href="#" onClick={(e) => { e.preventDefault(); navigate('/tai-khoan'); }}>Tài Khoản</a>
             </div>
           </div>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useSearchParams, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/api';
-import AuthForm from '../../components/AuthForm';
 import UserSubnav from '../../components/UserSubnav';
 import '../../styles/App.css';
 

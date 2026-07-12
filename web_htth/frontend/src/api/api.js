@@ -5,7 +5,7 @@ const getBaseURL = () => {
         return import.meta.env.VITE_API_URL;
     }
     const hostname = window.location.hostname;
-    return `http://${hostname}:8000/api/`;
+    return `http://${hostname}:5000/api/`;
 };
 
 const api = axios.create({

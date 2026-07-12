@@ -63,6 +63,7 @@ export default function AdminLayout() {
           <SidebarLink to="/admin/coins" currentPath={location.pathname}>💰 Quản lý Nạp tiền</SidebarLink>
           <SidebarLink to="/admin/giftcodes" currentPath={location.pathname}>🎁 Quản lý Giftcode</SidebarLink>
           <SidebarLink to="/admin/news" currentPath={location.pathname}>📰 Quản lý Tin Tức</SidebarLink>
+          <SidebarLink to="/admin/banking" currentPath={location.pathname}>🏦 Quản lý Banking</SidebarLink>
         </nav>
 
         <div style={{ padding: '20px', marginTop: 'auto' }}>

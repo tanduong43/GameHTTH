@@ -353,11 +353,6 @@ public class ClientInput {
                 break;
             }
             case 1: {
-                if (p.conn.status != 1) {
-                            Service.send_box_ThongBao_OK(p,
-                                    "Chưa Kích hoạt không thể nhận Giftcode");
-                            return;
-                        }
                 if (name.length == 1) {
                     
                     Pattern pattern = Pattern.compile("^[a-zA-Z0-9]{1,20}$");
@@ -370,6 +365,7 @@ public class ClientInput {
                     ResultSet rs = null;
                     Statement st = null;
                     GiftTemplate temp = null;
+                    int isMember = 0;
                     try {
                         conn = SQL.gI().getCon();
                         st = conn.createStatement();
@@ -380,6 +376,7 @@ public class ClientInput {
                                     "Giftcode không tồn tại hoặc đã được nhập");
                             return;
                         }
+                        isMember = rs.getInt("is_member");
                         temp = new GiftTemplate(rs.getString("giftname"), rs.getInt("luotnhap"),
                                 rs.getInt("gioihan"), rs.getString("thongbao"), rs.getInt("beri"),
                                 rs.getInt("ruby"), rs.getString("item"), rs.getString("used"),
@@ -404,6 +401,11 @@ public class ClientInput {
                         }
                     }
                     if (temp != null) {
+                        if (isMember == 1 && p.conn.status != 1) {
+                            Service.send_box_ThongBao_OK(p,
+                                    "Giftcode này chỉ dành cho người chơi đã kích hoạt thành viên!");
+                            return;
+                        }
                         if (temp.luotnhap >= temp.gioihan) {
                             Service.send_box_ThongBao_OK(p,
                                     "Giftcode này đã đạt lượt nhập tối đa!");
@@ -593,32 +595,36 @@ public class ClientInput {
             }
             case 32005: {
                 if (p.conn.user.equals("admin")) {
-                    if (name.length == 6) {
+                    if (name.length == 8) {
                         String giftName = name[0];
-                        if (!Util.isnumber(name[1]) || !Util.isnumber(name[2]) || !Util.isnumber(name[3]) || !Util.isnumber(name[4]) || !Util.isnumber(name[5])) {
-                            Service.send_box_ThongBao_OK(p, "Beri, Ruby, Giới hạn, ID Item và Số lượng phải là số!");
+                        if (!Util.isnumber(name[1]) || !Util.isnumber(name[2]) || !Util.isnumber(name[3]) 
+                                || !Util.isnumber(name[4]) || !Util.isnumber(name[5]) || !Util.isnumber(name[6]) || !Util.isnumber(name[7])) {
+                            Service.send_box_ThongBao_OK(p, "Beri, Ruby, Giới hạn, Loại Item, ID Item, Số lượng và MTV phải là số!");
                             return;
                         }
                         int beri = Integer.parseInt(name[1]);
                         int ruby = Integer.parseInt(name[2]);
                         int gioihan = Integer.parseInt(name[3]);
-                        int id_item = Integer.parseInt(name[4]);
-                        int so_luong = Integer.parseInt(name[5]);
+                        int type_item = Integer.parseInt(name[4]);
+                        int id_item = Integer.parseInt(name[5]);
+                        int so_luong = Integer.parseInt(name[6]);
+                        int is_member = Integer.parseInt(name[7]);
                         
                         String itemJson = "[]";
-                        if (id_item >= 0 && so_luong > 0) {
-                            itemJson = "[[" + id_item + "," + so_luong + "]]";
+                        if (type_item >= 0 && id_item >= 0 && so_luong > 0) {
+                            itemJson = "[[" + type_item + "," + id_item + "," + so_luong + "]]";
                         }
                         
                         try (Connection conn = SQL.gI().getCon();
-                             PreparedStatement ps = conn.prepareStatement("INSERT INTO `giftcode` (`giftname`, `beri`, `ruby`, `item`, `thongbao`, `luotnhap`, `gioihan`, `used`, `special`) VALUES (?, ?, ?, ?, '', 0, ?, '[]', '')")) {
+                             PreparedStatement ps = conn.prepareStatement("INSERT INTO `giftcode` (`giftname`, `beri`, `ruby`, `item`, `thongbao`, `luotnhap`, `gioihan`, `used`, `special`, `is_member`) VALUES (?, ?, ?, ?, '', 0, ?, '[]', '', ?)")) {
                             ps.setString(1, giftName);
                             ps.setInt(2, beri);
                             ps.setInt(3, ruby);
                             ps.setString(4, itemJson);
                             ps.setInt(5, gioihan);
+                            ps.setInt(6, is_member);
                             ps.executeUpdate();
-                            Service.send_box_ThongBao_OK(p, "Tạo Giftcode thành công!\nMã: " + giftName + "\nBeri: " + beri + "\nRuby: " + ruby + "\nItem: " + (id_item >= 0 ? "ID " + id_item + " (x" + so_luong + ")" : "Không có") + "\nGiới hạn: " + gioihan);
+                            Service.send_box_ThongBao_OK(p, "Tạo Giftcode thành công!\nMã: " + giftName + "\nBeri: " + beri + "\nRuby: " + ruby + "\nItem: " + (type_item >= 0 ? "Loại " + type_item + ", ID " + id_item + " (x" + so_luong + ")" : "Không có") + "\nGiới hạn: " + gioihan + "\nChỉ MTV: " + (is_member == 1 ? "Có" : "Không"));
                         } catch (SQLException e) {
                             e.printStackTrace();
                             Service.send_box_ThongBao_OK(p, "Lỗi: Giftcode này có thể đã tồn tại trong CSDL!");

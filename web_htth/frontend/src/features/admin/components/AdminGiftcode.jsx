@@ -7,148 +7,164 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '24px',
-    maxWidth: '1200px',
+    maxWidth: '1300px',
     margin: '0 auto',
-    fontFamily: '"Times New Roman", Times, serif',
+    padding: '20px',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    color: '#eee',
   },
   title: {
     color: '#ff3366',
-    marginBottom: '20px',
+    marginBottom: '24px',
     textAlign: 'center',
-    fontSize: '22px',
-    fontWeight: '700',
+    fontSize: '26px',
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: '0.5px'
+    letterSpacing: '1.5px',
+    background: 'linear-gradient(135deg, #ff3366 0%, #ff5e62 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    textShadow: '0 2px 10px rgba(255, 51, 102, 0.15)',
   },
   layout: {
     display: 'flex',
     gap: '24px',
     flexWrap: 'wrap',
+    alignItems: 'flex-start',
   },
   formCol: {
-    flex: '1 1 420px',
+    flex: '1 1 380px',
     minWidth: '320px',
   },
   listCol: {
-    flex: '1.5 1 650px',
+    flex: '2 1 650px',
     minWidth: '320px',
-    background: 'rgba(26, 26, 26, 0.6)',
-    border: '1px solid #333',
-    borderRadius: '12px',
-    padding: '24px',
-    alignSelf: 'flex-start'
+    background: 'rgba(20, 20, 20, 0.75)',
+    backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    borderRadius: '16px',
+    padding: '28px',
+    alignSelf: 'flex-start',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.4)',
   },
   form: {
     textAlign: 'left',
-    background: 'rgba(26, 26, 26, 0.6)',
-    padding: '24px',
-    borderRadius: '12px',
-    border: '1px solid #333',
-    color: '#fff'
+    background: 'rgba(20, 20, 20, 0.75)',
+    backdropFilter: 'blur(12px)',
+    padding: '28px',
+    borderRadius: '16px',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    color: '#fff',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.4)',
   },
   formTitle: {
     color: '#ff3366',
     marginBottom: '20px',
-    fontSize: '18px',
-    fontWeight: '600',
-    borderBottom: '1px solid #333',
-    paddingBottom: '10px'
+    fontSize: '19px',
+    fontWeight: '700',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+    paddingBottom: '12px',
+    letterSpacing: '0.5px'
   },
   formGroup: {
-    marginBottom: '16px',
+    marginBottom: '18px',
   },
   flexRow: {
     display: 'flex',
-    gap: '12px',
-    marginBottom: '16px',
+    gap: '14px',
+    marginBottom: '18px',
   },
   flexItem: {
     flex: 1,
   },
   label: {
     display: 'block',
-    marginBottom: '6px',
+    marginBottom: '8px',
     fontWeight: '600',
     textAlign: 'left',
-    color: '#aaa',
-    fontSize: '13px'
+    color: '#b3b3b3',
+    fontSize: '13.5px',
+    letterSpacing: '0.3px',
   },
   input: {
     width: '100%',
-    padding: '10px 12px',
-    borderRadius: '6px',
-    border: '1px solid #444',
-    backgroundColor: '#111',
+    padding: '11px 14px',
+    borderRadius: '8px',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     color: '#fff',
     boxSizing: 'border-box',
-    fontSize: '14px',
+    fontSize: '14.5px',
     outline: 'none',
-    transition: 'border-color 0.2s',
+    transition: 'all 0.25s ease',
   },
   itemsContainer: {
-    marginBottom: '16px',
-    padding: '12px',
-    backgroundColor: '#1c1c1c',
-    border: '1px solid #333',
-    borderRadius: '8px'
+    marginBottom: '18px',
+    padding: '14px',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    border: '1px solid rgba(255, 255, 255, 0.05)',
+    borderRadius: '10px'
   },
   itemRow: {
     display: 'flex',
     gap: '8px',
-    marginBottom: '8px',
+    marginBottom: '10px',
     alignItems: 'center',
   },
   btnAddItem: {
     width: '100%',
-    padding: '8px',
-    marginTop: '4px',
+    padding: '10px',
+    marginTop: '6px',
     backgroundColor: 'transparent',
     color: '#00e5ff',
-    border: '1px dashed #00e5ff',
-    borderRadius: '6px',
+    border: '1px dashed rgba(0, 229, 255, 0.5)',
+    borderRadius: '8px',
     fontWeight: '600',
     cursor: 'pointer',
-    transition: 'all 0.3s'
+    transition: 'all 0.25s ease',
+    outline: 'none',
   },
   btnRemove: {
-    padding: '10px 12px',
-    backgroundColor: '#ff4d4f',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
+    padding: '10px 14px',
+    backgroundColor: 'rgba(255, 77, 79, 0.15)',
+    color: '#ff4d4f',
+    border: '1px solid rgba(255, 77, 79, 0.3)',
+    borderRadius: '8px',
     fontWeight: 'bold',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '38px',
+    height: '39px',
+    transition: 'all 0.25s ease',
   },
   btnSubmit: {
     width: '100%',
-    padding: '12px',
-    backgroundColor: '#ff3366',
+    padding: '13px',
+    background: 'linear-gradient(135deg, #ff3366 0%, #ff5e62 100%)',
     color: '#fff',
     border: 'none',
-    borderRadius: '6px',
+    borderRadius: '8px',
     fontWeight: '700',
-    fontSize: '15px',
+    fontSize: '15.5px',
     cursor: 'pointer',
-    boxShadow: '0 2px 4px rgba(255, 51, 102, 0.3)',
-    transition: 'background-color 0.3s',
-    marginTop: '12px'
+    boxShadow: '0 4px 15px rgba(255, 51, 102, 0.3)',
+    transition: 'all 0.25s ease',
+    marginTop: '12px',
+    letterSpacing: '0.5px'
   },
   btnCancel: {
     width: '100%',
-    padding: '10px',
-    backgroundColor: '#444',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
+    padding: '11px',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    color: '#eee',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '8px',
     fontWeight: '600',
-    fontSize: '14px',
+    fontSize: '14.5px',
     cursor: 'pointer',
-    transition: 'background-color 0.3s',
-    marginTop: '8px',
+    transition: 'all 0.25s ease',
+    marginTop: '10px',
     textAlign: 'center',
     display: 'block',
     textDecoration: 'none'
@@ -157,37 +173,40 @@ const styles = {
     width: '100%',
     borderCollapse: 'collapse',
     textAlign: 'left',
-    fontSize: '13px',
+    fontSize: '13.5px',
     color: '#eee',
   },
   th: {
-    padding: '12px 10px',
-    borderBottom: '2px solid #444',
-    color: '#aaa',
+    padding: '14px 12px',
+    borderBottom: '2px solid rgba(255, 255, 255, 0.12)',
+    color: '#999',
     fontWeight: '600',
+    textTransform: 'uppercase',
+    fontSize: '12px',
+    letterSpacing: '0.5px',
   },
   td: {
-    padding: '12px 10px',
-    borderBottom: '1px solid #222',
+    padding: '14px 12px',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
     verticalAlign: 'top',
   },
   badge: {
     display: 'inline-block',
-    padding: '2px 6px',
-    borderRadius: '4px',
-    fontSize: '11px',
+    padding: '3px 8px',
+    borderRadius: '6px',
+    fontSize: '11.5px',
     fontWeight: '500',
     margin: '2px 0',
   },
   actionBtn: {
-    padding: '4px 8px',
-    borderRadius: '4px',
+    padding: '5px 10px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '12px',
+    fontSize: '12.5px',
     fontWeight: 'bold',
-    marginRight: '6px',
+    marginRight: '8px',
     background: 'transparent',
-    transition: 'all 0.2s',
+    transition: 'all 0.25s ease',
   }
 };
 
@@ -205,6 +224,7 @@ function AdminGiftcode() {
   const [gioihan, setGioihan] = useState(1);
   const [used, setUsed] = useState('');
   const [special, setSpecial] = useState('');
+  const [isMember, setIsMember] = useState(0);
 
   // State for list
   const [giftcodes, setGiftcodes] = useState([]);
@@ -239,6 +259,7 @@ function AdminGiftcode() {
     setGioihan(1);
     setUsed('');
     setSpecial('');
+    setIsMember(0);
   };
 
   const handleAddItem = () => {
@@ -280,6 +301,7 @@ function AdminGiftcode() {
     setGioihan(gc.gioihan || 1);
     setUsed(gc.used || '');
     setSpecial(gc.special || '');
+    setIsMember(gc.is_member || 0);
     
     // Scroll to form on mobile
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -311,6 +333,7 @@ function AdminGiftcode() {
         gioihan: Number(gioihan),
         used,
         special,
+        is_member: isMember,
       });
       showMessage(res.data.success ? 'success' : 'error', res.data.message);
       if (res.data.success) {
@@ -348,6 +371,7 @@ function AdminGiftcode() {
         gioihan: Number(gioihan),
         used,
         special,
+        is_member: isMember,
       });
       showMessage(res.data.success ? 'success' : 'error', res.data.message);
       if (res.data.success) {
@@ -555,6 +579,17 @@ function AdminGiftcode() {
                 style={styles.input}
               />
             </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Đối tượng nhận (is_member):</label>
+              <select
+                value={isMember}
+                onChange={(e) => setIsMember(Number(e.target.value))}
+                style={styles.input}
+              >
+                <option value={0}>Tất cả người chơi (Thành viên + Chưa kích hoạt)</option>
+                <option value={1}>Chỉ người chơi đã mở thành viên (Kích hoạt tài khoản)</option>
+              </select>
+            </div>
 
             <button type="submit" style={styles.btnSubmit}>
               {editId ? 'Cập Nhật Code' : 'Tạo Mã Code'}
@@ -595,11 +630,11 @@ function AdminGiftcode() {
             <div style={{ overflowX: 'auto' }}>
               <table style={styles.table}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #444', background: 'rgba(0,0,0,0.3)' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)' }}>
                     <th style={styles.th}>Mã Code</th>
                     <th style={styles.th}>Quà Tặng</th>
-                    <th style={styles.th}>Lượt Nhập</th>
-                    <th style={styles.th}>Giới Hạn / Used</th>
+                    <th style={styles.th}>Lượt Nhập / Giới Hạn</th>
+                    <th style={styles.th}>Nhân Vật Đã Nhập</th>
                     <th style={styles.th}>Hành Động</th>
                   </tr>
                 </thead>
@@ -610,6 +645,18 @@ function AdminGiftcode() {
                       <tr key={gc.id} style={{ borderBottom: '1px solid #222' }}>
                         <td style={{ ...styles.td, fontWeight: 'bold', color: '#00e5ff' }}>
                           {gc.giftname}
+                          <span style={{
+                            marginLeft: '8px',
+                            fontSize: '10px',
+                            padding: '1px 5px',
+                            borderRadius: '3px',
+                            backgroundColor: gc.is_member === 1 ? 'rgba(255, 172, 48, 0.15)' : 'rgba(82, 196, 26, 0.15)',
+                            color: gc.is_member === 1 ? '#ffac30' : '#52c41a',
+                            border: `1px solid ${gc.is_member === 1 ? 'rgba(255, 172, 48, 0.3)' : 'rgba(82, 196, 26, 0.3)'}`,
+                            fontWeight: 'bold'
+                          }}>
+                            {gc.is_member === 1 ? '👑 MTV' : '🌍 Tất cả'}
+                          </span>
                           {gc.special && (
                             <div style={{ fontSize: '11px', color: '#ffac30', marginTop: '4px', fontWeight: 'normal' }}>
                               🎯 Special: {gc.special}
