@@ -8,12 +8,17 @@ export default function AdminLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const [message, setMessage] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const showMessage = (type, text) => {
     setMessage({ type, text });
     setTimeout(() => {
       setMessage((prev) => (prev && prev.text === text ? null : prev));
     }, 5000);
+  };
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
   };
 
   if (loading) {
@@ -52,18 +57,18 @@ export default function AdminLayout() {
 
   // Sidebar Layout cho admin
   return (
-    <div className="admin-layout" style={{ display: 'flex', minHeight: '100vh', width: '100vw', background: '#111', margin: 0, padding: 0 }}>
+    <div className="admin-layout">
       {/* Sidebar */}
-      <div className="admin-sidebar" style={{ width: '250px', background: '#1a1a1a', borderRight: '1px solid #333', padding: '20px 0', display: 'flex', flexDirection: 'column' }}>
+      <div className="admin-sidebar">
         <h2 style={{ color: '#ff3366', textAlign: 'center', marginBottom: '30px' }}>🛡️ ADMIN PANEL</h2>
         
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
-          <SidebarLink to="/admin" currentPath={location.pathname} exact>📊 Dashboard</SidebarLink>
-          <SidebarLink to="/admin/accounts" currentPath={location.pathname}>👤 Quản lý Tài khoản</SidebarLink>
-          <SidebarLink to="/admin/coins" currentPath={location.pathname}>💰 Quản lý Nạp tiền</SidebarLink>
-          <SidebarLink to="/admin/giftcodes" currentPath={location.pathname}>🎁 Quản lý Giftcode</SidebarLink>
-          <SidebarLink to="/admin/news" currentPath={location.pathname}>📰 Quản lý Tin Tức</SidebarLink>
-          <SidebarLink to="/admin/banking" currentPath={location.pathname}>🏦 Quản lý Banking</SidebarLink>
+          <SidebarLink to="/admin" currentPath={location.pathname} onRefresh={handleRefresh} exact>📊 Dashboard</SidebarLink>
+          <SidebarLink to="/admin/accounts" currentPath={location.pathname} onRefresh={handleRefresh}>👤 Quản lý Tài khoản</SidebarLink>
+          <SidebarLink to="/admin/coins" currentPath={location.pathname} onRefresh={handleRefresh}>💰 Quản lý Nạp tiền</SidebarLink>
+          <SidebarLink to="/admin/giftcodes" currentPath={location.pathname} onRefresh={handleRefresh}>🎁 Quản lý Giftcode</SidebarLink>
+          <SidebarLink to="/admin/news" currentPath={location.pathname} onRefresh={handleRefresh}>📰 Quản lý Tin Tức</SidebarLink>
+          <SidebarLink to="/admin/banking" currentPath={location.pathname} onRefresh={handleRefresh}>🏦 Quản lý Banking</SidebarLink>
         </nav>
 
         <div style={{ padding: '20px', marginTop: 'auto' }}>
@@ -72,27 +77,25 @@ export default function AdminLayout() {
       </div>
 
       {/* Main Content */}
-      <div className="admin-main-content" style={{ flex: 1, padding: '30px', overflowY: 'auto', background: '#0a0a0a' }}>
+      <div className="admin-main-content">
         {message && (
           <div className={`alert alert-${message.type}`} style={{ marginBottom: '20px' }}>
             {message.text}
           </div>
         )}
-        <Outlet context={{ showMessage }} />
+        <Outlet key={refreshKey} context={{ showMessage }} />
       </div>
     </div>
   );
 }
 
-function SidebarLink({ to, currentPath, children, exact = false }) {
+function SidebarLink({ to, currentPath, onRefresh, children, exact = false }) {
   const isActive = exact ? currentPath === to : currentPath.startsWith(to);
 
   const handleClick = (e) => {
-    e.preventDefault();
     if (isActive) {
-      window.location.reload();
-    } else {
-      window.location.href = to;
+      e.preventDefault();
+      onRefresh();
     }
   };
 
@@ -100,16 +103,7 @@ function SidebarLink({ to, currentPath, children, exact = false }) {
     <Link 
       to={to} 
       onClick={handleClick}
-      style={{
-        padding: '12px 20px',
-        color: isActive ? '#fff' : '#aaa',
-        background: isActive ? 'rgba(255, 51, 102, 0.1)' : 'transparent',
-        borderRight: isActive ? '3px solid #ff3366' : '3px solid transparent',
-        textDecoration: 'none',
-        transition: 'all 0.2s',
-        fontWeight: isActive ? 'bold' : 'normal',
-        display: 'block'
-      }}
+      className={`admin-sidebar-link ${isActive ? 'active' : ''}`}
     >
       {children}
     </Link>

@@ -77,10 +77,13 @@ function App() {
   const location = useLocation();
   const element = useRoutes(routes, location);
 
+  // Use a stable key for all admin sub-routes to keep AdminLayout mounted
+  const animatedKey = location.pathname.startsWith('/admin') ? '/admin' : location.pathname;
+
   return (
     <AnimatePresence mode="wait">
       {element && (
-        <AnimatedPage key={location.pathname} style={getPageStyle(location.pathname)}>
+        <AnimatedPage key={animatedKey} style={getPageStyle(location.pathname)}>
           {element}
         </AnimatedPage>
       )}
