@@ -55,17 +55,41 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
             ? `Nạp tiền tự động qua ${gatewayType} thành công (${actualAmount.toLocaleString()}đ → ${coinAmount} Coin)` 
             : `Nạp thành công sai mệnh giá (Yêu cầu ${deposit.amount}đ, thực nhận ${actualAmount}đ → ${coinAmount} Coin)`;
         
-        // 1. Get current balance with lock
-        const [userRows] = await connection.execute('SELECT coin FROM accounts WHERE user = ? FOR UPDATE', [username]);
+        // 1. Get current balance, sumamount, and vip with lock
+        const [userRows] = await connection.execute('SELECT coin, sumamount, vip FROM accounts WHERE user = ? FOR UPDATE', [username]);
         if (userRows.length === 0) {
             throw new Error(`User not found: ${username}`);
         }
         
         const currentBalance = parseInt(userRows[0].coin || 0, 10);
+        const currentSumAmount = parseInt(userRows[0].sumamount || 0, 10);
+        const currentVip = parseInt(userRows[0].vip || 0, 10);
+
         const newBalance = currentBalance + coinAmount;
+        const newSumAmount = currentSumAmount + actualAmount;
+
+        // Calculate VIP level based on newSumAmount
+        let calculatedVip = 0;
+        if (newSumAmount >= 10000000) {
+            calculatedVip = 7;
+        } else if (newSumAmount >= 5000000) {
+            calculatedVip = 6;
+        } else if (newSumAmount >= 3000000) {
+            calculatedVip = 5;
+        } else if (newSumAmount >= 2000000) {
+            calculatedVip = 4;
+        } else if (newSumAmount >= 1000000) {
+            calculatedVip = 3;
+        } else if (newSumAmount >= 500000) {
+            calculatedVip = 2;
+        } else if (newSumAmount >= 200000) {
+            calculatedVip = 1;
+        }
+
+        const newVip = Math.max(currentVip, calculatedVip);
         
-        // 2. Update user's coin balance
-        await connection.execute('UPDATE accounts SET coin = ? WHERE user = ?', [newBalance, username]);
+        // 2. Update user's coin balance, sumamount, and vip
+        await connection.execute('UPDATE accounts SET coin = ?, sumamount = ?, vip = ? WHERE user = ?', [newBalance, newSumAmount, newVip, username]);
         
         // 3. Update deposit history
         await connection.execute(

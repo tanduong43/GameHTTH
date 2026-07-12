@@ -2090,8 +2090,8 @@ public class MenuController {
       case 6: {
         if (p.diemdanh == 0) {
           p.diemdanh = 1;
-          int ruby = Util.random(1, 2000);
-          int beri = Util.random(1, 1000000);
+          int ruby = Util.random(1, 200);
+          int beri = Util.random(1, 10000);
           p.update_ngoc(ruby);
           p.update_vang(beri);
           p.update_money();
@@ -2104,62 +2104,40 @@ public class MenuController {
       case 7: {
         if (p.diemdanhvip == 0) {
           p.diemdanhvip = 1;
-          if (p.conn.vip == 0) {
-            int ruby = 100;
-            p.update_ngoc(ruby);
-            p.update_money();
-            Service.send_box_ThongBao_OK(p,
-                "Bạn đã điểm danh vip 0 thành công, được " + ruby + " ruby " + "Hơi ít nha NẠP thêm vô nào");
-            return;
-          }
+          int ruby = 100;
+          String vipName = "VIP 0";
+
           if (p.conn.vip == 1) {
-            int ruby = 215;
-            p.update_ngoc(ruby);
-            p.update_money();
-            Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip 1 thành công, được " + ruby + " ruby ");
-            return;
+            ruby = 215;
+            vipName = "VIP 1";
+          } else if (p.conn.vip == 2) {
+            ruby = 1000;
+            vipName = "VIP 2";
+          } else if (p.conn.vip == 3) {
+            ruby = 2000;
+            vipName = "VIP 3";
+          } else if (p.conn.vip == 4) {
+            ruby = 3000;
+            vipName = "VIP 4";
+          } else if (p.conn.vip == 5) {
+            ruby = 7000;
+            vipName = "VIP 5";
+          } else if (p.conn.vip == 6) {
+            ruby = 20000;
+            vipName = "VIP 6";
+          } else if (p.conn.vip >= 7) {
+            ruby = 50000;
+            vipName = "VIP " + p.conn.vip;
           }
-          if (p.conn.vip == 2) {
-            int ruby = 1000;
-            p.update_ngoc(ruby);
-            p.update_money();
-            Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip 2 thành công, được " + ruby + " ruby ");
-            return;
-          }
-          if (p.conn.vip == 3) {
-            int ruby = 2000;
-            p.update_ngoc(ruby);
-            p.update_money();
-            Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip 3 thành công, được " + ruby + " ruby ");
-            return;
-          }
-          if (p.conn.vip == 4) {
-            int ruby = 3000;
-            p.update_ngoc(ruby);
-            p.update_money();
-            Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip 4 thành công, được " + ruby + " ruby ");
-            return;
-          }
-          if (p.conn.vip == 5) {
-            int ruby = 7000;
-            p.update_ngoc(ruby);
-            p.update_money();
-            Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip 5 thành công, được " + ruby + " ruby ");
-            return;
-          }
-          if (p.conn.vip == 6) {
-            int ruby = 20000;
-            p.update_ngoc(ruby);
-            p.update_money();
-            Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip 6 thành công, được " + ruby + " ruby ");
-            return;
-          }
-          if (p.conn.vip == 7) {
-            int ruby = 50000;
-            p.update_ngoc(ruby);
-            p.update_money();
-            Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip thành công, được " + ruby + " ruby ");
-            return;
+
+          p.update_ngoc(ruby);
+          p.update_money();
+
+          if (p.conn.vip == 0) {
+            Service.send_box_ThongBao_OK(p,
+                "Bạn đã điểm danh VIP 0 thành công, được " + ruby + " ruby. Hơi ít nha NẠP thêm vô nào!");
+          } else {
+            Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh " + vipName + " thành công, được " + ruby + " ruby!");
           }
         } else {
           Service.send_box_ThongBao_OK(p, "Bạn đã điểm danh vip hôm nay rồi");
