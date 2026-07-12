@@ -125,7 +125,7 @@ public class Wanted_Chest {
                                 list_gift.add(gb_);
                             }
                         }
-                        if (p.level >= 10 && 5 > Util.random(120)) {
+                        if (p.level >= 10 && 24 > Util.random(120)) {
                             GiftBox gb_ = new GiftBox();
                             it_temp4 = ItemTemplate4.get_it_by_id(158);
                             if (it_temp4 != null) {
