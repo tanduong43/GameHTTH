@@ -1015,7 +1015,7 @@ public class Session implements Runnable {
                     "[]", body_wear, "[5,1,1,1,1,1,0,[]]", "[]",
                     "[[],[],[],[],[0,18],[],[],[],[],[],[]]", skill_by_clazz, "[]", "[]", fashion_,
                     "[]", "[]", "[]", "[[0,[]]]", DateTime.now(), 0, "[]", "[]", "[]", 0, "[]",
-                    "[[0,1,1]]", "[0,1,1,1,1,0]");
+                    "[]", "[0,1,1,1,1,0]");
             st.execute(query);
         } catch (SQLException e) {
             e.printStackTrace();

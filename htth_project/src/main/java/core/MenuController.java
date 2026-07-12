@@ -1108,7 +1108,7 @@ public class MenuController {
         case -21:
         case -13:
         case -1: {
-          Menu_TruongLang(p, index);
+          Menu_TruongLang(p, idNPC, index);
           break;
         }
         case 120: { // bhx - bảng xếp hạng
@@ -2046,7 +2046,7 @@ public class MenuController {
     }
   }
 
-  private static void Menu_TruongLang(Player p, byte index) throws IOException {
+  private static void Menu_TruongLang(Player p, short idNPC, byte index) throws IOException {
     if (!(p.conn.status != 1)) {
       index++;
     }
@@ -2188,7 +2188,7 @@ public class MenuController {
                 .append(": ").append(b.mob.map.template.name)
                 .append(" (Khu ").append(b.mob.map.zone_id + 1).append(")\n");
           }
-          Service.Help_From_Server(p, -997, sb.toString());
+          Service.Help_From_Server(p, idNPC, sb.toString());
         }
         break;
       }
