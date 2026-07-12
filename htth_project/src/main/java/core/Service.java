@@ -2,14 +2,40 @@ package core;
 
 import java.io.IOException;
 import java.util.List;
+
 import activities.Rebuild_Item;
-import client.*;
+import client.Body;
+import client.Clan;
+import client.Item;
+import client.MapBossInfo;
+import client.MyPet;
+import client.Player;
 import io.Message;
 import io.Session;
 import map.Boss;
 import map.Map;
 import map.Mob;
-import template.*;
+import template.DataTemplate;
+import template.EffTemplate;
+import template.GiftBox;
+import template.ItemBag47;
+import template.ItemBoat;
+import template.ItemBoatP;
+import template.ItemFashion;
+import template.ItemFashionP;
+import template.ItemFashionP2;
+import template.ItemHair;
+import template.ItemSell;
+import template.ItemTemplate3;
+import template.ItemTemplate4;
+import template.ItemTemplate4_Info;
+import template.ItemTemplate7;
+import template.ItemTemplate8;
+import template.Item_wear;
+import template.Option;
+import template.ShopTichLuy;
+import template.Skill_info;
+
 /**
  *
  * @author Truongbk
@@ -166,9 +192,9 @@ public class Service {
             m.writer().writeByte(1);
             m.writer().writeByte(1);
         }
-        byte[] a = new byte[] {0, 1, 2, 3, 4, 25, 15, 16, 26, 27, 17, 18, 10, 11, 12, 13, 14, 19,
+        byte[] a = new byte[] { 0, 1, 2, 3, 4, 25, 15, 16, 26, 27, 17, 18, 10, 11, 12, 13, 14, 19,
                 20, 21, 22, 23, 24, 46, 48, 47, 49, 50, 51, 52, 53, 63, 55, 56, 57, 58, 59, 62, 67,
-                68, 69, 70, 71, 72, 73, 74, 75, 76};
+                68, 69, 70, 71, 72, 73, 74, 75, 76 };
         int[] b = new int[a.length];
         for (int i = 0; i < b.length; i++) {
             b[i] = p.body.view_in4(a[i]);
@@ -300,7 +326,7 @@ public class Service {
                 }
                 break;
             }
-            
+
             case 99: {
                 m.writer().writeUTF("Rương đồ");
                 m.writer().writeByte(99);
@@ -369,97 +395,15 @@ public class Service {
                 m.writer().writeShort(-1);
             }
         }
-        short idTitle = -1;
-        short idFoot = -1;
-        short idIcon = -1;
-        int effectId = getDanhHieuEffectId(p0);
-        if (p0.idDanhHieu != -1) {
-            template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p0.idDanhHieu);
-            if (dh != null) {
-                if (dh.name != null && dh.name.toLowerCase().contains("vòng chân")) {
-                    idFoot = (short) dh.getEffectId();
-                } else {
-                    idTitle = (short) dh.id;
-                    idIcon = (short) dh.getEffectId();
-                }
-            } else {
-                idTitle = p0.idDanhHieu;
-                idIcon = p0.idDanhHieu;
-                System.out.println("[DanhHieu Log] WARNING: DanhHieuTemplate not found for id=" + p0.idDanhHieu);
-            }
-        }
-        if (idTitle != -1 && idTitle < 300) {
-            idTitle += 3000;
-        }
-        if (idIcon != -1 && idIcon < 300) {
-            idIcon += 3000;
-        }
-        if (idFoot != -1 && idFoot < 300) {
-            idFoot += 3000;
-        }
-        m.writer().writeShort(idTitle);
-        m.writer().writeShort(idIcon != -1 ? idIcon : idTitle);
-        m.writer().writeShort(idFoot);
-        System.out.println("[DanhHieu Log] Sent charWearing of player " + p0.name + " to player " + p.name
-                + " with idIcon = " + (idIcon != -1 ? idIcon : idTitle) + ", idTitle = " + idTitle + ", idFoot = " + idFoot);
+        m.writer().writeShort(-1);
+        m.writer().writeShort(-1);
+        m.writer().writeShort(-1);
         if (save_cache) {
             p.list_msg_cache.add(m);
         } else {
             p.conn.addmsg(m);
-            if (effectId != -1) {
-                send_danhieu_effect(p, effectId);
-            }
         }
         m.cleanup();
-    }
-
-    public static int getDanhHieuEffectId(Player p0) {
-        if (p0 == null || p0.idDanhHieu == -1) {
-            return -1;
-        }
-        template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p0.idDanhHieu);
-        return (dh != null) ? dh.getEffectId() : p0.idDanhHieu;
-    }
-
-    public static void send_danhieu_effect(Player viewer, int effectId) {
-        if (viewer == null || viewer.conn == null || effectId < 0) {
-            return;
-        }
-        try {
-            int zoom = viewer.conn.zoomlv;
-            int fileId = effectId;
-            String dataPath = "data/nro/data/effect/x" + zoom + "/data/DataEffect_" + fileId;
-            String imgPath = "data/nro/data/effect/x" + zoom + "/img/ImgEffect_" + fileId + ".png";
-            if (!new java.io.File(dataPath).exists() && fileId >= 3000) {
-                fileId = fileId - 3000;
-                dataPath = "data/nro/data/effect/x" + zoom + "/data/DataEffect_" + fileId;
-                imgPath = "data/nro/data/effect/x" + zoom + "/img/ImgEffect_" + fileId + ".png";
-            }
-            byte[] data1 = Util.loadfile(dataPath);
-            byte[] data2 = Util.loadfile(imgPath);
-            if (data2 == null) {
-                imgPath = "data/icon/x" + zoom + "/ImgEffect_" + fileId + ".png";
-                data2 = Util.loadfile(imgPath);
-            }
-            if (data1 == null || data2 == null) {
-                System.out.println("[DanhHieu Log] MISSING effect files fileId=" + fileId + ", zoom=x" + zoom
-                        + ", data=" + (data1 != null) + ", img=" + (data2 != null));
-                return;
-            }
-            int packetId = fileId < 300 ? fileId + 3000 : fileId;
-            Message m2 = new Message(74);
-            m2.writer().writeByte(1);
-            m2.writer().writeShort((short) packetId);
-            m2.writer().writeShort(data1.length);
-            m2.writer().write(data1);
-            m2.writer().write(data2);
-            viewer.conn.addmsg(m2);
-            m2.cleanup();
-            System.out.println("[DanhHieu Log] Pushed effect packetId=" + packetId + " (fileId=" + fileId
-                    + ") to viewer " + viewer.name);
-        } catch (IOException e) {
-            System.out.println("[DanhHieu Log] Push effect failed id=" + effectId + ": " + e.getMessage());
-        }
     }
 
     public static void send_icon(Message m, Session conn) {
@@ -483,15 +427,7 @@ public class Service {
                 }
                 Message m2 = new Message(-51);
                 m2.writer().writeShort(id);
-                if (id_request >= 23000) {
-                    int subId = id_request - 23000;
-                    path = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + subId + ".png";
-                    if (!new java.io.File(path).exists() && subId >= 3000) {
-                        path = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + (subId - 3000) + ".png";
-                    }
-                } else {
-                    path = "data/icon/x" + conn.zoomlv + "/" + id_request + ".png";
-                }
+                path = "data/icon/x" + conn.zoomlv + "/" + id_request + ".png";
                 m2.writer().write(Util.loadfile(path));
                 conn.addmsg(m2);
                 m2.cleanup();
@@ -1837,8 +1773,7 @@ public class Service {
                         Item_wear it_add = new Item_wear();
                         it_add.setup_template_by_id(template3);
                         if (it_add.template != null) {
-                            int numLoKham =
-                                    (60 > Util.random(120)) ? 0 : ((70 > Util.random(120)) ? 1 : 2);
+                            int numLoKham = (60 > Util.random(120)) ? 0 : ((70 > Util.random(120)) ? 1 : 2);
                             it_add.numLoKham = (byte) numLoKham;
                             p.item.add_item_bag3(it_add);
                             //
@@ -1973,127 +1908,127 @@ public class Service {
                             ItemBag47 it_select = new ItemBag47();
                             int cat = -1;
                             switch (p.map.template.id) {
-                                 case 0:
-                                 case 1:
-                                 case 2:
-                                 case 3:
-                                 case 4:
-                                 case 5: {
-                                     cat = 0;
-                                     break;
-                                 }
-                                 case 8:
-                                 case 9:
-                                 case 10:
-                                 case 11:
-                                 case 12:
-                                 case 13: {
-                                     cat = 1;
-                                     break;
-                                 }
-                                 case 16:
-                                 case 17:
-                                 case 18:
-                                 case 19:
-                                 case 20:
-                                 case 21: {
-                                     cat = 2;
-                                     break;
-                                 }
-                                 case 24:
-                                 case 25:
-                                 case 26:
-                                 case 27:
-                                 case 28:
-                                 case 29: {
-                                     cat = 3;
-                                     break;
-                                 }
-                                 case 32:
-                                 case 33:
-                                 case 34:
-                                 case 35:
-                                 case 36:
-                                 case 37: {
-                                     cat = 4;
-                                     break;
-                                 }
-                                 case 40:
-                                 case 41:
-                                 case 42:
-                                 case 43:
-                                 case 44:
-                                 case 45: {
-                                     cat = 5;
-                                     break;
-                                 }
-                                 case 48:
-                                 case 49:
-                                 case 50:
-                                 case 51:
-                                 case 52:
-                                 case 53: {
-                                     cat = 6;
-                                     break;
-                                 }
-                                 case 68:
-                                 case 69:
-                                 case 70:
-                                 case 71:
-                                 case 72:
-                                 case 73: {
-                                     cat = 7;
-                                     break;
-                                 }
-                                 case 82:
-                                 case 83:
-                                 case 84:
-                                 case 85:
-                                 case 86:
-                                 case 87: {
-                                     cat = 8;
-                                     break;
-                                 }
-                                 case 92:
-                                 case 93:
-                                 case 94:
-                                 case 95:
-                                 case 96:
-                                 case 97:
-                                 case 98:
-                                 case 99:
-                                 case 100:
-                                 case 101:
-                                 case 102: {
-                                     cat = 9;
-                                     break;
-                                 }
-                                 case 112:
-                                 case 113:
-                                 case 114:
-                                 case 115:
-                                 case 116:
-                                 case 117:
-                                 case 118:
-                                 case 124:
-                                 case 125:
-                                 case 126:
-                                 case 127: {
-                                     cat = 10;
-                                     break;
-                                 }
-                                 case 191:
-                                 case 192:
-                                 case 193:
-                                 case 194:
-                                 case 195:
-                                 case 196:
-                                 case 197:
-                                 case 198: {
-                                     cat = 11;
-                                     break;
-                                 }
-                             }
+                                case 0:
+                                case 1:
+                                case 2:
+                                case 3:
+                                case 4:
+                                case 5: {
+                                    cat = 0;
+                                    break;
+                                }
+                                case 8:
+                                case 9:
+                                case 10:
+                                case 11:
+                                case 12:
+                                case 13: {
+                                    cat = 1;
+                                    break;
+                                }
+                                case 16:
+                                case 17:
+                                case 18:
+                                case 19:
+                                case 20:
+                                case 21: {
+                                    cat = 2;
+                                    break;
+                                }
+                                case 24:
+                                case 25:
+                                case 26:
+                                case 27:
+                                case 28:
+                                case 29: {
+                                    cat = 3;
+                                    break;
+                                }
+                                case 32:
+                                case 33:
+                                case 34:
+                                case 35:
+                                case 36:
+                                case 37: {
+                                    cat = 4;
+                                    break;
+                                }
+                                case 40:
+                                case 41:
+                                case 42:
+                                case 43:
+                                case 44:
+                                case 45: {
+                                    cat = 5;
+                                    break;
+                                }
+                                case 48:
+                                case 49:
+                                case 50:
+                                case 51:
+                                case 52:
+                                case 53: {
+                                    cat = 6;
+                                    break;
+                                }
+                                case 68:
+                                case 69:
+                                case 70:
+                                case 71:
+                                case 72:
+                                case 73: {
+                                    cat = 7;
+                                    break;
+                                }
+                                case 82:
+                                case 83:
+                                case 84:
+                                case 85:
+                                case 86:
+                                case 87: {
+                                    cat = 8;
+                                    break;
+                                }
+                                case 92:
+                                case 93:
+                                case 94:
+                                case 95:
+                                case 96:
+                                case 97:
+                                case 98:
+                                case 99:
+                                case 100:
+                                case 101:
+                                case 102: {
+                                    cat = 9;
+                                    break;
+                                }
+                                case 112:
+                                case 113:
+                                case 114:
+                                case 115:
+                                case 116:
+                                case 117:
+                                case 118:
+                                case 124:
+                                case 125:
+                                case 126:
+                                case 127: {
+                                    cat = 10;
+                                    break;
+                                }
+                                case 191:
+                                case 192:
+                                case 193:
+                                case 194:
+                                case 195:
+                                case 196:
+                                case 197:
+                                case 198: {
+                                    cat = 11;
+                                    break;
+                                }
+                            }
                             it_select.category = (byte) cat;
                             it_select.id = template4.id;
                             it_select.quant = 0;
@@ -2115,8 +2050,7 @@ public class Service {
                         if (p.clan != null) {
                             p.clan.update_xp(num_item);
                             for (int i1 = 0; i1 < p.clan.members.size(); i1++) {
-                                Player p0 =
-                                        Map.get_player_by_name_allmap(p.clan.members.get(i1).name);
+                                Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i1).name);
                                 if (p0 != null) {
                                     Clan.set_data(p0, false);
                                 }
@@ -2126,8 +2060,7 @@ public class Service {
                         if (p.clan != null) {
                             p.clan.update_beri(num_item);
                             for (int i1 = 0; i1 < p.clan.members.size(); i1++) {
-                                Player p0 =
-                                        Map.get_player_by_name_allmap(p.clan.members.get(i1).name);
+                                Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i1).name);
                                 if (p0 != null) {
                                     Clan.send_money(p0, false);
                                 }
@@ -2137,8 +2070,7 @@ public class Service {
                         if (p.clan != null) {
                             p.clan.update_ruby(num_item);
                             for (int i1 = 0; i1 < p.clan.members.size(); i1++) {
-                                Player p0 =
-                                        Map.get_player_by_name_allmap(p.clan.members.get(i1).name);
+                                Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i1).name);
                                 if (p0 != null) {
                                     Clan.send_money(p0, false);
                                 }

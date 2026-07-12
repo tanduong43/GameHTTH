@@ -290,8 +290,9 @@ public class MenuController {
         case -125:
         case -123: {
           if (p.dungeon != null || Map.is_map_dungeon(p.map.template.id)) {
-              Service.send_box_yesno(p, 994, "Thông báo", "Bạn có muốn rời khỏi phó bản đơn và quay về Làng Sirup không?", new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
-              break;
+            Service.send_box_yesno(p, 994, "Thông báo", "Bạn có muốn rời khỏi phó bản đơn và quay về Làng Sirup không?",
+                new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+            break;
           }
           Show_List_Map_Tele(p, 0, -124);
           break;
@@ -1006,10 +1007,7 @@ public class MenuController {
           Menu_Nami(p, index);
           break;
         }
-        case 950: { // menu danh hieu
-          process_title_menu(p, index);
-          break;
-        }
+
         case 994: {
           if (index == 0) {
           } else if (index == 1) {
@@ -1681,10 +1679,6 @@ public class MenuController {
           break;
         }
         case 5:
-        case 6: {
-          show_title_menu(p);
-          break;
-        }
 
       }
     }
@@ -1724,7 +1718,8 @@ public class MenuController {
             break;
           }
           if (member.time_bosshunt >= 5) {
-            Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đã vượt giới hạn Săn Trùm hôm nay (tối đa 5 lần)!");
+            Service.send_box_ThongBao_OK(p,
+                "Thành viên " + member.name + " đã vượt giới hạn Săn Trùm hôm nay (tối đa 5 lần)!");
             hasEnoughKeys = false;
             break;
           }
@@ -1794,7 +1789,7 @@ public class MenuController {
           p.data_yesno = new int[] { 0 };
           Service.send_box_yesno(p, 139, "Thông báo",
               "Hải quân sắp tấn công để cướp kho báu của Namie. Cần 2 chìa khóa phó bản mỗi người "
-              + "và phải có nhóm. Bạn có muốn bảo vệ kho báu không?",
+                  + "và phải có nhóm. Bạn có muốn bảo vệ kho báu không?",
               new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
         } else if (p.map.template.id == 49) { // Lệnh truy nã
           Vgo vgo = new Vgo();
@@ -2068,7 +2063,8 @@ public class MenuController {
         p.update_coin(-10);
         p.conn.status = 1;
         p.update_status(1);
-        Service.send_box_ThongBao_OK(p, "Bạn đã kích hoạt thành công! Bạn đã bị trừ 10 Coin.\nBây giờ bạn có thể nhập Giftcode tại NPC Nami.");
+        Service.send_box_ThongBao_OK(p,
+            "Bạn đã kích hoạt thành công! Bạn đã bị trừ 10 Coin.\nBây giờ bạn có thể nhập Giftcode tại NPC Nami.");
         break;
       }
       case 1: {
@@ -2176,7 +2172,8 @@ public class MenuController {
         if (map.Boss.ENTRYS != null) {
           for (int i = 0; i < map.Boss.ENTRYS.size(); i++) {
             map.Boss temp = map.Boss.ENTRYS.get(i);
-            if (temp != null && temp.mob != null && !temp.mob.isdie && temp.mob.map != null && temp.mob.mob_template != null) {
+            if (temp != null && temp.mob != null && !temp.mob.isdie && temp.mob.map != null
+                && temp.mob.mob_template != null) {
               aliveBosses.add(temp);
             }
           }
@@ -2188,8 +2185,8 @@ public class MenuController {
           for (int i = 0; i < aliveBosses.size(); i++) {
             map.Boss b = aliveBosses.get(i);
             sb.append("- ").append(b.mob.mob_template.name)
-              .append(": ").append(b.mob.map.template.name)
-              .append(" (Khu ").append(b.mob.map.zone_id + 1).append(")\n");
+                .append(": ").append(b.mob.map.template.name)
+                .append(" (Khu ").append(b.mob.map.zone_id + 1).append(")\n");
           }
           Service.Help_From_Server(p, -997, sb.toString());
         }
@@ -2716,107 +2713,4 @@ public class MenuController {
     }
   }
 
-  public static String getTitleName(int id) {
-      template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(id);
-      if (dh != null) {
-          return dh.name;
-      }
-      return "Danh Hiệu " + id;
-  }
-
-  private static void show_title_menu(Player p) throws IOException {
-      if (p.listDanhHieu == null || p.listDanhHieu.isEmpty()) {
-          Service.send_box_ThongBao_OK(p, "Bạn chưa sở hữu danh hiệu nào! Hãy tham gia sự kiện để nhận thêm.");
-          return;
-      }
-      
-      List<String> menu_options = new ArrayList<>();
-      List<Integer> menu_icons = new ArrayList<>();
-      
-      // Option to remove title (if currently wearing one)
-      if (p.idDanhHieu != -1) {
-          menu_options.add("Tháo Danh Hiệu (Đang đeo: " + getTitleName(p.idDanhHieu) + ")");
-          menu_icons.add(-1);
-      }
-      
-      // List all unlocked titles
-      for (int id : p.listDanhHieu) {
-          if (id == p.idDanhHieu) {
-              // skip since it's already shown as active/remove
-              continue;
-          }
-          template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(id);
-          if (dh == null) {
-              continue;
-          }
-          menu_options.add("Sử dụng: " + dh.name);
-          menu_icons.add(-1);
-      }
-      
-      // Send the dynamic menu with ID 950
-      send_dynamic_menu(p, 950, "Danh Hiệu", menu_options, menu_icons);
-  }
-
-  private static void process_title_menu(Player p, byte index) throws IOException {
-      if (p.listDanhHieu == null || p.listDanhHieu.isEmpty()) {
-          return;
-      }
-      
-      List<Integer> options = new ArrayList<>();
-      int removeIndex = -1;
-      
-      if (p.idDanhHieu != -1) {
-          removeIndex = 0;
-      }
-      
-      for (int id : p.listDanhHieu) {
-          if (id != p.idDanhHieu) {
-              template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(id);
-              if (dh != null) {
-                  options.add(id);
-              }
-          }
-      }
-      
-      if (index == removeIndex) {
-          // Remove active title
-          p.idDanhHieu = -1;
-          Player.flush(p, false);
-          p.update_info_to_all();
-          Service.send_box_ThongBao_OK(p, "Đã tháo danh hiệu thành công!");
-          System.out.println("[DanhHieu Log] Player " + p.name + " removed title (set idDanhHieu = -1)");
-      } else {
-          // Select title
-          int list_idx = index;
-          if (removeIndex != -1) {
-              list_idx = index - 1;
-          }
-          if (list_idx >= 0 && list_idx < options.size()) {
-              int selected_id = options.get(list_idx);
-              p.idDanhHieu = (short) selected_id;
-              Player.flush(p, false);
-              p.update_info_to_all();
-              Service.send_box_ThongBao_OK(p, "Sử dụng danh hiệu " + getTitleName(selected_id) + " thành công!");
-              System.out.println("[DanhHieu Log] Player " + p.name + " equipped title ID " + selected_id + " (" + getTitleName(selected_id) + ")");
-          } else {
-              System.out.println("[DanhHieu Log] Player " + p.name + " clicked invalid index " + index + " (list_idx = " + list_idx + ", options size = " + options.size() + ")");
-          }
-      }
-  }
-
-  private static void broadcast_title_to_map(Player p) throws IOException {
-      if (p.map == null) {
-          return;
-      }
-      int effectId = Service.getDanhHieuEffectId(p);
-      for (int j = 0; j < p.map.players.size(); j++) {
-          Player p0 = p.map.players.get(j);
-          if (p0.index_map != p.index_map) {
-              Service.charWearing(p, p0, false);
-          }
-          if (effectId >= 0) {
-              Service.send_danhieu_effect(p0, effectId);
-          }
-      }
-  }
 }

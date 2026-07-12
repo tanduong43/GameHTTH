@@ -7,13 +7,22 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import activities.*;
+
 import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
+
+import activities.Dungeon;
+import activities.HanhTrinh;
+import activities.Learn_Skill;
+import activities.Pvp;
+import activities.TableTickOption;
 import core.Manager;
 import core.Service;
 import core.Util;
@@ -24,7 +33,27 @@ import map.Map;
 import map.MapCanGoTo;
 import map.Npc;
 import map.Vgo;
-import template.*;
+import template.DataTemplate;
+import template.EffTemplate;
+import template.FriendTemp;
+import template.ItemBag47;
+import template.ItemBoat;
+import template.ItemBoatP;
+import template.ItemFashion;
+import template.ItemFashionP;
+import template.ItemFashionP2;
+import template.ItemMap;
+import template.ItemTemplate3;
+import template.ItemTemplate4;
+import template.Item_wear;
+import template.Level;
+import template.Option;
+import template.QuestP;
+import template.Ship_pet;
+import template.Skill_Template;
+import template.Skill_info;
+import template.Upgrade_Skin_Info;
+
 /**
  *
  * @author Truongbk
@@ -289,13 +318,15 @@ public class Player {
                     }
                 }
             }
-            System.out.println("[DanhHieu Log] Loaded player " + this.name + " idDanhHieu = " + idDanhHieu + ", list size = " + listDanhHieu.size());
+            System.out.println("[DanhHieu Log] Loaded player " + this.name + " idDanhHieu = " + idDanhHieu
+                    + ", list size = " + listDanhHieu.size());
             js = (JSONArray) JSONValue.parse(rs.getString("site"));
             //
             int savedMapId = Integer.parseInt(js.get(0).toString());
             boolean wasBossHuntMap = activities.BossHunt.isBossHuntMap(savedMapId);
             if (wasBossHuntMap) {
-                System.out.println("[BossHunt] Player " + this.name + " saved map was BossHunt map (" + savedMapId + "). Redirecting to map 1 (Village).");
+                System.out.println("[BossHunt] Player " + this.name + " saved map was BossHunt map (" + savedMapId
+                        + "). Redirecting to map 1 (Village).");
                 savedMapId = 1;
             }
             boolean wasTowerMap = (savedMapId >= 500 && savedMapId <= 512);
@@ -307,19 +338,22 @@ public class Player {
                     savedMapId = activeChallenge.currentMap.template.id;
                     map = new Map[] { activeChallenge.currentMap };
                 } else {
-                    System.out.println("[TowerChallenge] Player " + this.name + " saved map was Tower map (" + savedMapId + ") but no active challenge. Redirecting to map 1 (Village).");
+                    System.out.println("[TowerChallenge] Player " + this.name + " saved map was Tower map ("
+                            + savedMapId + ") but no active challenge. Redirecting to map 1 (Village).");
                     savedMapId = 1;
                     map = Map.get_map_by_id(1);
                     x = 300;
                     y = 250;
                 }
             } else if (wasNamieDefenseMap) {
-                activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense.findActiveDefense(this.name);
+                activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense
+                        .findActiveDefense(this.name);
                 if (activeDefense != null) {
                     savedMapId = activeDefense.currentMap.template.id;
                     map = new Map[] { activeDefense.currentMap };
                 } else {
-                    System.out.println("[NamieDefense] Player " + this.name + " saved map was Namie Defense map (" + savedMapId + ") but no active defense. Redirecting to map 1 (Village).");
+                    System.out.println("[NamieDefense] Player " + this.name + " saved map was Namie Defense map ("
+                            + savedMapId + ") but no active defense. Redirecting to map 1 (Village).");
                     savedMapId = 1;
                     map = Map.get_map_by_id(1);
                     x = 300;
@@ -659,7 +693,7 @@ public class Player {
         ischangemap = false;
         list_msg_cache = new LinkedBlockingQueue<>();
         it_map = new ItemMap[3];
-        tool_upgrade = new int[] {-1, -1};
+        tool_upgrade = new int[] { -1, -1 };
         item_chuyenhoa_save_0 = null;
         item_chuyenhoa_save_1 = null;
         item_to_kham_ngoc = null;
@@ -706,14 +740,13 @@ public class Player {
     @SuppressWarnings("unchecked")
     public static int flush(Player p, boolean print) {
         int result = 0;
-        String query =
-                "UPDATE `players` SET `level` = ?, `date` = ?, `site` = ?, `point_inven` = ?, "
-                        + "`bag3` = ?, `it_body` = ?, `potential` = ?, `bag47` = ?, "
-                        + "`rms` = ?, `skill` = ?, `friend` = ?, `enemy` = ?, `fashion` = ?, `eff` = ?, `box47` = ?, `box3` = ?, `quest` = ?, "
-                        + "`exp` = ?, `pvppoint` = ?, `save_it3` = ?, `save_it47` = ?, "
-                        + "`hanhtrinh` = ?, `wanted_point` = ?, `wanted_chest` = ?, `mypet` = ?, `diemdanh` = ?, `diemdanhvip` = ?, `lucthuc` = ?, "
-                        + "`danhhieu` = ?, `list_danhhieu` = ? WHERE `id` = "
-                        + p.id + ";";
+        String query = "UPDATE `players` SET `level` = ?, `date` = ?, `site` = ?, `point_inven` = ?, "
+                + "`bag3` = ?, `it_body` = ?, `potential` = ?, `bag47` = ?, "
+                + "`rms` = ?, `skill` = ?, `friend` = ?, `enemy` = ?, `fashion` = ?, `eff` = ?, `box47` = ?, `box3` = ?, `quest` = ?, "
+                + "`exp` = ?, `pvppoint` = ?, `save_it3` = ?, `save_it47` = ?, "
+                + "`hanhtrinh` = ?, `wanted_point` = ?, `wanted_chest` = ?, `mypet` = ?, `diemdanh` = ?, `diemdanhvip` = ?, `lucthuc` = ?, "
+                + "`danhhieu` = ?, `list_danhhieu` = ? WHERE `id` = "
+                + p.id + ";";
         Connection connection = null;
         PreparedStatement ps = null;
         try {
@@ -1094,8 +1127,12 @@ public class Player {
                 }
             }
         }
-        if ( map_go[0].template.id !=119 && map_go[0].template.id!=120 &&map_go[0].template.id!=122 && map_go[0].template.id!=123 && map_go[0].template.id!=54 && map_go[0].template.id!=58 && map_go[0].template.id!= 59 && map_go[0].template.id!=123 && map_go[0].template.id!=984 && map_go[0].template.id!=1000
-                && map_go[0].template.id!=127&& !Map.is_map_dungeon(map_go[0].template.id) && map_go[0].template.id > idMap ) {
+        if (map_go[0].template.id != 119 && map_go[0].template.id != 120 && map_go[0].template.id != 122
+                && map_go[0].template.id != 123 && map_go[0].template.id != 54 && map_go[0].template.id != 58
+                && map_go[0].template.id != 59 && map_go[0].template.id != 123 && map_go[0].template.id != 984
+                && map_go[0].template.id != 1000
+                && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
+                && map_go[0].template.id > idMap) {
             Service.send_box_ThongBao_OK(this,
                     "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
             return;
@@ -1178,7 +1215,7 @@ public class Player {
                 Service.send_box_yesno(this, 16, "Thông báo",
                         (map_go[0].template.name + " rất nguy hiểm và phải mất 1.000 ruby "
                                 + "để vô, bạn có thật sự muốn đi một mình?"),
-                        new String[] {"Đồng ý", "Hủy"}, new byte[] {-1, -1});
+                        new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
             }
         } else {
             if (this.hp > 0 && this.ship_pet != null && this.map.equals(this.ship_pet.map)
@@ -1236,9 +1273,9 @@ public class Player {
                     break;
                 }
             }
-            if (mapId != 119 && mapId != 120 && mapId != 122 && mapId != 123 
+            if (mapId != 119 && mapId != 120 && mapId != 122 && mapId != 123
                     && mapId != 54 && mapId != 58 && mapId != 59 && mapId != 984 && mapId != 1000
-                    && mapId != 127 && !Map.is_map_dungeon(mapId) 
+                    && mapId != 127 && !Map.is_map_dungeon(mapId)
                     && idMap < mapId) {
                 return false;
             }
@@ -1265,8 +1302,12 @@ public class Player {
                     break;
                 }
             }
-            if (map_go[0].template.id != 119 && map_go[0].template.id != 120 && map_go[0].template.id != 122 && map_go[0].template.id != 123 && map_go[0].template.id != 54 && map_go[0].template.id != 58 && map_go[0].template.id != 59 && map_go[0].template.id != 123 && map_go[0].template.id != 984 && map_go[0].template.id != 1000
-                    && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id) && idMap < map_go[0].template.id) {
+            if (map_go[0].template.id != 119 && map_go[0].template.id != 120 && map_go[0].template.id != 122
+                    && map_go[0].template.id != 123 && map_go[0].template.id != 54 && map_go[0].template.id != 58
+                    && map_go[0].template.id != 59 && map_go[0].template.id != 123 && map_go[0].template.id != 984
+                    && map_go[0].template.id != 1000
+                    && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
+                    && idMap < map_go[0].template.id) {
                 Service.send_box_ThongBao_OK(this,
                         "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
                 return;
@@ -1357,12 +1398,12 @@ public class Player {
             if (pointPk < 20) {
                 Service.send_box_yesno(this, 14, "Thông báo",
                         ("Hồi sinh tại chỗ mất 500 beri, bạn có muốn hồi sinh không?"),
-                        new String[] {"500", "Hủy"}, new byte[] {6, -1});
+                        new String[] { "500", "Hủy" }, new byte[] { 6, -1 });
             } else {
                 int fee = pointPk / 4;
                 Service.send_box_yesno(this, 14, "Thông báo",
                         ("Hồi sinh tại chỗ mất " + fee + " ruby, bạn có muốn hồi sinh không?"),
-                        new String[] {"" + fee, "Hủy"}, new byte[] {7, -1});
+                        new String[] { "" + fee, "Hủy" }, new byte[] { 7, -1 });
             }
         } else { // ve lang
             if (this.isdie) {
@@ -1392,7 +1433,7 @@ public class Player {
     public void update_money() throws IOException {
         this.item.update_assets_Inventory(false);
     }
-    
+
     public long get_vang() {
         return this.vang;
     }
@@ -1420,84 +1461,89 @@ public class Player {
             this.kimcuong += par;
         }
     }
+
     public synchronized boolean update_coin(int coin_exchange) throws IOException {
-		String query = "SELECT `coin` FROM `accounts` WHERE BINARY `user` = '" + conn.user + "' LIMIT 1;";
-		int coin_old = 0;
-		Connection connection = null;
-		Statement st = null;
-		ResultSet rs = null;
-		try {
-			connection = SQL.gI().getCon();
-			st = connection.createStatement();
-			rs = st.executeQuery(query);
-			rs.next();
-			coin_old = rs.getInt("coin");
-			if (coin_old + coin_exchange < 0) {
-				Service.send_box_ThongBao_OK(this, "Không đủ coin");
-				return false;
-			}
-			coin_old += coin_exchange;
-			st.executeUpdate("UPDATE `accounts` SET `coin` = " + coin_old + " WHERE BINARY `user` = '" + conn.user + "'");
-		} catch (SQLException e) {
-			Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");
-			e.printStackTrace();
-			return false;
-		} finally {
-			try {
-				if (rs != null) {
-					rs.close();
-				}
-				if (st != null) {
-					st.close();
-				}
-				if (connection != null) {
-					connection.close();
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-		return true;
-	}
+        String query = "SELECT `coin` FROM `accounts` WHERE BINARY `user` = '" + conn.user + "' LIMIT 1;";
+        int coin_old = 0;
+        Connection connection = null;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            connection = SQL.gI().getCon();
+            st = connection.createStatement();
+            rs = st.executeQuery(query);
+            rs.next();
+            coin_old = rs.getInt("coin");
+            if (coin_old + coin_exchange < 0) {
+                Service.send_box_ThongBao_OK(this, "Không đủ coin");
+                return false;
+            }
+            coin_old += coin_exchange;
+            st.executeUpdate(
+                    "UPDATE `accounts` SET `coin` = " + coin_old + " WHERE BINARY `user` = '" + conn.user + "'");
+        } catch (SQLException e) {
+            Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
     public synchronized boolean update_status(int status_exchange) throws IOException {
-		String query = "SELECT `status` FROM `accounts` WHERE BINARY `user` = '" + conn.user + "' LIMIT 1;";
-		int status_old = 0;
-		Connection connection = null;
-		Statement st = null;
-		ResultSet rs = null;
-		try {
-			connection = SQL.gI().getCon();
-			st = connection.createStatement();
-			rs = st.executeQuery(query);
-			rs.next();
-			status_old = rs.getInt("status");
-			if (status_old + status_exchange < 0) {
-				Service.send_box_ThongBao_OK(this, "Không đủ coin");
-				return false;
-			}
-			status_old += status_exchange;
-			st.executeUpdate("UPDATE `accounts` SET `status` = " + status_old + " WHERE BINARY `user` = '" + conn.user + "'");
-		} catch (SQLException e) {
-			Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");
-			e.printStackTrace();
-			return false;
-		} finally {
-			try {
-				if (rs != null) {
-					rs.close();
-				}
-				if (st != null) {
-					st.close();
-				}
-				if (connection != null) {
-					connection.close();
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-		return true;
-	}
+        String query = "SELECT `status` FROM `accounts` WHERE BINARY `user` = '" + conn.user + "' LIMIT 1;";
+        int status_old = 0;
+        Connection connection = null;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            connection = SQL.gI().getCon();
+            st = connection.createStatement();
+            rs = st.executeQuery(query);
+            rs.next();
+            status_old = rs.getInt("status");
+            if (status_old + status_exchange < 0) {
+                Service.send_box_ThongBao_OK(this, "Không đủ coin");
+                return false;
+            }
+            status_old += status_exchange;
+            st.executeUpdate(
+                    "UPDATE `accounts` SET `status` = " + status_old + " WHERE BINARY `user` = '" + conn.user + "'");
+        } catch (SQLException e) {
+            Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
     public synchronized void update_TichLuy(long par) {
         if ((((long) par) + this.tichLuy) < 2_000_000_000L) {
             this.tichLuy += par;
@@ -1927,7 +1973,7 @@ public class Player {
 
     public short[] get_fashion() {
         if (get_eff(21) != null) {
-            return new short[] {-1, -2, -1, 766, -1, 767, 765, -2};
+            return new short[] { -1, -2, -1, 766, -1, 767, 765, -2 };
         }
         //
         short[] result = null;
@@ -2057,7 +2103,7 @@ public class Player {
         list_remove.clear();
         switch (id) {
             case 4032: {
-                int[] id_ = new int[] {478, 476, 475};
+                int[] id_ = new int[] { 478, 476, 475 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2069,7 +2115,7 @@ public class Player {
                 break;
             }
             case 4033: {
-                int[] id_ = new int[] {480, 479, 477};
+                int[] id_ = new int[] { 480, 479, 477 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2081,7 +2127,7 @@ public class Player {
                 break;
             }
             case 4034: {
-                int[] id_ = new int[] {483, 482, 481};
+                int[] id_ = new int[] { 483, 482, 481 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2093,7 +2139,7 @@ public class Player {
                 break;
             }
             case 4088: {
-                int[] id_ = new int[] {484, 485, 486};
+                int[] id_ = new int[] { 484, 485, 486 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2105,7 +2151,7 @@ public class Player {
                 break;
             }
             case 4090: {
-                int[] id_ = new int[] {514, 513, 512};
+                int[] id_ = new int[] { 514, 513, 512 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2117,7 +2163,7 @@ public class Player {
                 break;
             }
             case 4091: {
-                int[] id_ = new int[] {517, 516, 515};
+                int[] id_ = new int[] { 517, 516, 515 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2129,7 +2175,7 @@ public class Player {
                 break;
             }
             case 4092: {
-                int[] id_ = new int[] {523, 522, 519};
+                int[] id_ = new int[] { 523, 522, 519 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2141,7 +2187,7 @@ public class Player {
                 break;
             }
             case 4093: {
-                int[] id_ = new int[] {521, 520, 518};
+                int[] id_ = new int[] { 521, 520, 518 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2153,7 +2199,7 @@ public class Player {
                 break;
             }
             case 4160: {
-                int[] id_ = new int[] {527, 526, 525, 524};
+                int[] id_ = new int[] { 527, 526, 525, 524 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2165,7 +2211,7 @@ public class Player {
                 break;
             }
             case 4161: {
-                int[] id_ = new int[] {531, 530, 529, 528};
+                int[] id_ = new int[] { 531, 530, 529, 528 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2177,7 +2223,7 @@ public class Player {
                 break;
             }
             case 4219: {
-                int[] id_ = new int[] {538, 537, 536};
+                int[] id_ = new int[] { 538, 537, 536 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2189,7 +2235,7 @@ public class Player {
                 break;
             }
             case 4220: {
-                int[] id_ = new int[] {535, 534, 533};
+                int[] id_ = new int[] { 535, 534, 533 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2201,7 +2247,7 @@ public class Player {
                 break;
             }
             case 4240: {
-                int[] id_ = new int[] {542, 541, 539, 540};
+                int[] id_ = new int[] { 542, 541, 539, 540 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2213,7 +2259,7 @@ public class Player {
                 break;
             }
             case 4316: {
-                int[] id_ = new int[] {548, 547, 546};
+                int[] id_ = new int[] { 548, 547, 546 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2225,7 +2271,7 @@ public class Player {
                 break;
             }
             case 4317: {
-                int[] id_ = new int[] {545, 544, 543};
+                int[] id_ = new int[] { 545, 544, 543 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2239,7 +2285,7 @@ public class Player {
             case 4318: {
                 // String[] name_ = new String[]{"Thần hộ thể", "Tăng trọng", "Sức nặng ngàn
                 // cân"};
-                int[] id_ = new int[] {551, 550, 549};
+                int[] id_ = new int[] { 551, 550, 549 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2253,7 +2299,7 @@ public class Player {
             case 4427: {
                 // String[] name_ = new String[]{"Dòng chảy ma pháp", "Vòng xoáy ma pháp", "Giải
                 // phóng", "Xoáy đen"};
-                int[] id_ = new int[] {656, 657, 658, 659};
+                int[] id_ = new int[] { 656, 657, 658, 659 };
                 for (int i = 0; i < id_.length; i++) {
                     Skill_info sk_add = new Skill_info();
                     sk_add.exp = 0;
@@ -2276,7 +2322,6 @@ public class Player {
         Service.getThanhTich(this, this);
         Service.update_PK(this, this, false);
         Service.pet(this, this, false);
-        Service.charWearing(this, this, false);
         for (int i = 0; i < this.map.players.size(); i++) {
             Player p0 = this.map.players.get(i);
             if (p0.index_map != this.index_map) {
@@ -2286,7 +2331,6 @@ public class Player {
                 Service.pet(this, p0, false);
             }
         }
-        this.send_title_eff_to_map();
     }
 
     public int getNumPassive() {
@@ -2323,7 +2367,7 @@ public class Player {
     }
 
     public short[] get_part_boat() {
-        short[] result = new short[] {0, 1, 2, 3};
+        short[] result = new short[] { 0, 1, 2, 3 };
         for (int i = 0; i < this.itemboat.size(); i++) {
             if (this.itemboat.get(i).is_use) {
                 ItemBoat temp = ItemBoat.get_item(this.itemboat.get(i).id);
@@ -2588,8 +2632,8 @@ public class Player {
     }
 
     public boolean check_already_have_devil_fruit() {
-        short[] id_check = new short[] {32, 33, 34, 86, 87, 88, 90, 91, 92, 93, 160, 161, 219, 220,
-                240, 316, 317, 318, 427};
+        short[] id_check = new short[] { 32, 33, 34, 86, 87, 88, 90, 91, 92, 93, 160, 161, 219, 220,
+                240, 316, 317, 318, 427 };
         for (int i = 0; i < id_check.length; i++) {
             if (item.total_item_bag_by_id(4, id_check[i]) > 0
                     || item.total_item_box_by_id(4, id_check[i]) > 0) {
@@ -2701,25 +2745,4 @@ public class Player {
         return null;
     }
 
-    public void unlockDanhHieu(int id) {
-        if (this.listDanhHieu == null) {
-            this.listDanhHieu = new ArrayList<>();
-        }
-        if (!this.listDanhHieu.contains(id)) {
-            this.listDanhHieu.add(id);
-        }
-    }
-
-    public void send_title_eff_to_map() {
-        if (this.map == null || this.idDanhHieu == -1) {
-            return;
-        }
-        int effectId = Service.getDanhHieuEffectId(this);
-        if (effectId < 0) {
-            return;
-        }
-        for (int i = 0; i < this.map.players.size(); i++) {
-            Service.send_danhieu_effect(this.map.players.get(i), effectId);
-        }
-    }
 }

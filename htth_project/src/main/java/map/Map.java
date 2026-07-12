@@ -4,11 +4,44 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import activities.*;
-import client.*;
-import core.*;
+
+import activities.Dungeon;
+import activities.LittleGarden;
+import activities.Pvp;
+import activities.Trade;
+import activities.Wanted;
+import client.Buff;
+import client.Clan;
+import client.MapBossInfo;
+import client.MyPet;
+import client.Player;
+import client.Quest;
+import client.Wanted_Chest;
+import core.BXH;
+import core.Manager;
+import core.MenuController;
+import core.Service;
+import core.Util;
 import io.Message;
-import template.*;
+import template.DataTemplate;
+import template.EffTemplate;
+import template.FriendTemp;
+import template.GiftBox;
+import template.ItemFashionP2;
+import template.ItemMap;
+import template.ItemTemplate3;
+import template.ItemTemplate4;
+import template.ItemTemplate7;
+import template.Item_wear;
+import template.Map_Little_Garden;
+import template.Map_ThuThachVeThan;
+import template.Map_clan_resource;
+import template.Map_pvp;
+import template.Option_Dame_Msg;
+import template.Ship_pet;
+import template.Skill_info;
+import template.Top_Dame;
+
 /**
  *
  * @author Truongbk
@@ -122,11 +155,12 @@ public class Map implements Runnable {
     }
 
     private void update_map_bossHunt() throws IOException {
-        if (this.map_bossHunt == null) return;
+        if (this.map_bossHunt == null)
+            return;
         activities.BossHunt hunt = this.map_bossHunt;
         if (!hunt.active) {
             System.out.println("[BossHunt] map_bossHunt inactive on map "
-                + this.template.id + ", clearing reference.");
+                    + this.template.id + ", clearing reference.");
             this.map_bossHunt = null;
             return;
         }
@@ -137,7 +171,7 @@ public class Map implements Runnable {
         // Kiểm tra hết giờ (2 phút)
         if (hunt.floorTime > 0 && System.currentTimeMillis() >= hunt.floorTime) {
             System.out.println("[BossHunt] Floor " + (hunt.currentFloor + 1)
-                + " timed out! Returning players to registered village mapId=" + hunt.registeredMapId);
+                    + " timed out! Returning players to registered village mapId=" + hunt.registeredMapId);
             this.map_bossHunt = null;
             hunt.returnAllToVillage("Đã hết thời gian khiêu chiến Boss!", hunt.registeredMapId);
             return;
@@ -150,14 +184,15 @@ public class Map implements Runnable {
                 break;
             }
         }
-        if (!allBossDead) return;
+        if (!allBossDead)
+            return;
         // Tất cả boss tầng này đã chết
         if (!hunt.isTransitioning) {
             hunt.isTransitioning = true;
             int nextFloor = hunt.currentFloor + 1;
             System.out.println("[BossHunt] Floor " + (hunt.currentFloor + 1)
-                + " cleared! All bosses dead. Next floor=" + (nextFloor + 1)
-                + "/" + activities.BossHunt.BOSS_MAPS.length);
+                    + " cleared! All bosses dead. Next floor=" + (nextFloor + 1)
+                    + "/" + activities.BossHunt.BOSS_MAPS.length);
             if (nextFloor >= activities.BossHunt.BOSS_MAPS.length) {
                 // Đã hoàn thành Boss7 (tầng cuối) -> báo thắng, sau 5s về làng đã đăng ký
                 hunt.transitionTime = System.currentTimeMillis() + 5_000L;
@@ -166,7 +201,7 @@ public class Map implements Runnable {
                     if (member.conn != null) {
                         hunt.giveRewardsForFloor(member, hunt.currentFloor, true);
                         core.Service.send_time_cool_down(member,
-                            hunt.transitionTime, "Quay về làng", 2);
+                                hunt.transitionTime, "Quay về làng", 2);
                     }
                 }
             } else {
@@ -187,7 +222,8 @@ public class Map implements Runnable {
                 this.map_bossHunt = null;
                 int nextFloor = hunt.currentFloor + 1;
                 if (nextFloor >= activities.BossHunt.BOSS_MAPS.length) {
-                    System.out.println("[BossHunt] Returning all players to registered village mapId=" + hunt.registeredMapId);
+                    System.out.println(
+                            "[BossHunt] Returning all players to registered village mapId=" + hunt.registeredMapId);
                     hunt.returnAllToVillage(null, hunt.registeredMapId);
                 } else {
                     System.out.println("[BossHunt] Starting floor " + (nextFloor + 1));
@@ -208,7 +244,7 @@ public class Map implements Runnable {
                 p0[1].type_pk = -1;
                 //
                 // create map
-                short[] mapID = new short[]{120, 122, 123};
+                short[] mapID = new short[] { 120, 122, 123 };
                 Map maptemp = Map.get_map_by_id(mapID[Util.random(mapID.length)])[0];
                 Map map_create = new Map();
                 map_create.template = maptemp.template;
@@ -248,15 +284,15 @@ public class Map implements Runnable {
                 Player p_waiting = Wanted.get_player_waiting_too_long();
                 if (p_waiting != null) {
                     Wanted.wait_to_enter_round(p_waiting);
-                    
+
                     // create map
-                    short[] mapID = new short[]{120, 122, 123};
+                    short[] mapID = new short[] { 120, 122, 123 };
                     Map maptemp = Map.get_map_by_id(mapID[Util.random(mapID.length)])[0];
                     Map map_create = new Map();
                     map_create.template = maptemp.template;
                     map_create.zone_id = (byte) 0;
                     map_create.list_mob = new int[0];
-                    
+
                     // set up human
                     p_waiting.map.leave_map(p_waiting, 2);
                     p_waiting.type_pk = -1;
@@ -269,7 +305,7 @@ public class Map implements Runnable {
                     Service.update_PK(p_waiting, p_waiting, true);
                     Service.pet(p_waiting, p_waiting, true);
                     Quest.update_map_have_side_quest(p_waiting, true);
-                    
+
                     // select opponent name
                     String opponentName = p_waiting.name;
                     java.sql.Connection connDb = null;
@@ -278,7 +314,8 @@ public class Map implements Runnable {
                     try {
                         connDb = database.SQL.gI().getCon();
                         stmtDb = connDb.createStatement();
-                        rsDb = stmtDb.executeQuery("SELECT `name` FROM `players` WHERE `name` != '" + p_waiting.name + "' ORDER BY RAND() LIMIT 1;");
+                        rsDb = stmtDb.executeQuery("SELECT `name` FROM `players` WHERE `name` != '" + p_waiting.name
+                                + "' ORDER BY RAND() LIMIT 1;");
                         if (rsDb.next()) {
                             opponentName = rsDb.getString("name");
                         }
@@ -286,17 +323,21 @@ public class Map implements Runnable {
                         e.printStackTrace();
                     } finally {
                         try {
-                            if (rsDb != null) rsDb.close();
-                            if (stmtDb != null) stmtDb.close();
-                            if (connDb != null) connDb.close();
-                        } catch (Exception e) {}
+                            if (rsDb != null)
+                                rsDb.close();
+                            if (stmtDb != null)
+                                stmtDb.close();
+                            if (connDb != null)
+                                connDb.close();
+                        } catch (Exception e) {
+                        }
                     }
                     Player bot = new Player(new io.Session(null), opponentName);
                     bot.isBot = true;
                     bot.conn.user = "bot_" + opponentName;
                     bot.conn.pass = "bot";
                     bot.conn.status = 1;
-                    
+
                     if (!bot.setup() || opponentName.equals(p_waiting.name)) {
                         bot = new Player(new io.Session(null), p_waiting.name);
                         bot.isBot = true;
@@ -306,12 +347,12 @@ public class Map implements Runnable {
                         bot.setup();
                         bot.name = "Bản Sao " + p_waiting.name;
                     }
-                    
+
                     bot.id = -p_waiting.id;
                     bot.index_map = (short) bot.id;
                     bot.hp = bot.body.get_hp_max(true);
                     bot.mp = bot.body.get_mp_max(true);
-                    
+
                     // set up bot in map
                     bot.type_pk = -1;
                     bot.map = map_create;
@@ -323,7 +364,7 @@ public class Map implements Runnable {
                     Service.update_PK(bot, bot, true);
                     Service.pet(bot, bot, true);
                     Quest.update_map_have_side_quest(bot, true);
-                    
+
                     // start map
                     map_create.map_pvp = new Map_pvp();
                     map_create.map_pvp.time_pvp = 1;
@@ -380,8 +421,7 @@ public class Map implements Runnable {
                             for (int i = 0; i < l.skill_point.size(); i++) {
                                 if (l.skill_point.get(i).temp.indexSkillInServer >= 661
                                         && l.skill_point.get(i).temp.indexSkillInServer <= 666) {
-                                    int percent
-                                            = (l.skill_point.get(i).temp.indexSkillInServer - 661)
+                                    int percent = (l.skill_point.get(i).temp.indexSkillInServer - 661)
                                             * 50;
                                     num1 = (num1 * (100 + percent)) / 100;
                                     num2 = (num2 * (100 + percent)) / 100;
@@ -476,8 +516,8 @@ public class Map implements Runnable {
                             this.map_little_garden.clan1.members.get(0).id,
                             this.map_little_garden.clan1.members.get(0).name,
                             ("Phó bản khổng lồ với: " + this.map_little_garden.clan2.name
-                            + ": nhận được " + xp_receiv1 + " xp băng và " + rb_receiv1
-                            + " ruby băng"),
+                                    + ": nhận được " + xp_receiv1 + " xp băng và " + rb_receiv1
+                                    + " ruby băng"),
                             -3);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -502,8 +542,8 @@ public class Map implements Runnable {
                             this.map_little_garden.clan2.members.get(0).id,
                             this.map_little_garden.clan2.members.get(0).name,
                             ("Phó bản khổng lồ với: " + this.map_little_garden.clan1.name
-                            + ": nhận được " + xp_receiv2 + " xp băng và " + rb_receiv2
-                            + " ruby băng"),
+                                    + ": nhận được " + xp_receiv2 + " xp băng và " + rb_receiv2
+                                    + " ruby băng"),
                             -3);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -590,7 +630,8 @@ public class Map implements Runnable {
                 } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
                     for (int i = 0; i < players.size(); i++) {
                         Pvp.pvp_notice(players.get(i), 2);
-                        Pvp.show_info(players.get(i), 180, (i == 0 ? this.map_pvp.num_win_p1 : this.map_pvp.num_win_p2), (i == 0 ? this.map_pvp.num_win_p2 : this.map_pvp.num_win_p1), 3);
+                        Pvp.show_info(players.get(i), 180, (i == 0 ? this.map_pvp.num_win_p1 : this.map_pvp.num_win_p2),
+                                (i == 0 ? this.map_pvp.num_win_p2 : this.map_pvp.num_win_p1), 3);
                         change_flag(players.get(i), 0);
                     }
                     this.map_pvp.time_pvp = 180;
@@ -642,7 +683,7 @@ public class Map implements Runnable {
                     pl.isdie = false;
                     Service.use_potion(pl, 0, pl.body.get_hp_max(true));
                     Service.use_potion(pl, 1, pl.body.get_mp_max(true));
-                    
+
                     Message m2 = new Message(-71);
                     m2.writer().writeByte(1);
                     m2.writer().writeShort(pl.index_map);
@@ -682,8 +723,7 @@ public class Map implements Runnable {
                             players.get(0).pvp_win++;
                             players.get(1).pvp_lose++;
                             //
-                            int chenhLech
-                                    = players.get(1).get_pvpPoint() - players.get(0).get_pvpPoint();
+                            int chenhLech = players.get(1).get_pvpPoint() - players.get(0).get_pvpPoint();
                             if (chenhLech > 15) {
                                 chenhLech = 15;
                             } else if (chenhLech < -15) {
@@ -699,8 +739,7 @@ public class Map implements Runnable {
                             players.get(1).pvp_win++;
                             players.get(0).pvp_lose++;
                             //
-                            int chenhLech
-                                    = players.get(0).get_pvpPoint() - players.get(1).get_pvpPoint();
+                            int chenhLech = players.get(0).get_pvpPoint() - players.get(1).get_pvpPoint();
                             if (chenhLech > 15) {
                                 chenhLech = 15;
                             } else if (chenhLech < -15) {
@@ -716,39 +755,39 @@ public class Map implements Runnable {
                             Pvp.pvp_notice(players.get(0), 3);
                             Pvp.pvp_notice(players.get(1), 4);
                             //
-                            long beri_win
-                                    = (10_000L + (long) players.get(1).get_wanted_point()) / 100L;
-                            long beri_lose
-                                    = (5_000L + (long) players.get(1).get_wanted_point()) / 100L;
+                            long beri_win = (10_000L + (long) players.get(1).get_wanted_point()) / 100L;
+                            long beri_lose = (5_000L + (long) players.get(1).get_wanted_point()) / 100L;
                             players.get(0).update_wanted_point((int) beri_win);
                             players.get(1).update_wanted_point((int) -beri_lose);
                             //
                             Wanted_Chest.receiv_ruong(players.get(0));
-                            
-                            Service.send_box_ThongBao_OK(players.get(0), 
-                                    "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win + " điểm truy nã cùng 1 Rương Truy nã.");
+
+                            Service.send_box_ThongBao_OK(players.get(0),
+                                    "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win
+                                            + " điểm truy nã cùng 1 Rương Truy nã.");
                             if (!players.get(1).isBot) {
-                                Service.send_box_ThongBao_OK(players.get(1), 
-                                        "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose + " điểm truy nã.");
+                                Service.send_box_ThongBao_OK(players.get(1),
+                                        "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
+                                                + " điểm truy nã.");
                             }
                         } else {
                             Pvp.pvp_notice(players.get(1), 3);
                             Pvp.pvp_notice(players.get(0), 4);
                             //
-                            long beri_win
-                                    = (10_000L + (long) players.get(0).get_wanted_point()) / 100L;
-                            long beri_lose
-                                    = (5_000L + (long) players.get(0).get_wanted_point()) / 100L;
+                            long beri_win = (10_000L + (long) players.get(0).get_wanted_point()) / 100L;
+                            long beri_lose = (5_000L + (long) players.get(0).get_wanted_point()) / 100L;
                             players.get(1).update_wanted_point((int) beri_win);
                             players.get(0).update_wanted_point((int) -beri_lose);
                             //
                             Wanted_Chest.receiv_ruong(players.get(1));
-                            
-                            Service.send_box_ThongBao_OK(players.get(0), 
-                                    "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose + " điểm truy nã.");
+
+                            Service.send_box_ThongBao_OK(players.get(0),
+                                    "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
+                                            + " điểm truy nã.");
                             if (!players.get(1).isBot) {
-                                Service.send_box_ThongBao_OK(players.get(1), 
-                                        "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win + " điểm truy nã cùng 1 Rương Truy nã.");
+                                Service.send_box_ThongBao_OK(players.get(1),
+                                        "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win
+                                                + " điểm truy nã cùng 1 Rương Truy nã.");
                             }
                         }
                     }
@@ -846,7 +885,7 @@ public class Map implements Runnable {
             return;
         }
         lastBotActionTime = System.currentTimeMillis();
-        
+
         Player bot = null;
         Player human = null;
         for (int i = 0; i < players.size(); i++) {
@@ -862,18 +901,22 @@ public class Map implements Runnable {
                 int dx = human.x - bot.x;
                 int dy = human.y - bot.y;
                 int dist = (int) Math.sqrt(dx * dx + dy * dy);
-                
+
                 // 1. Move bot closer to the human if they are too far
                 if (dist > 80) {
                     int step = 45;
-                    if (dx > 0) bot.x += step;
-                    else bot.x -= step;
-                    
+                    if (dx > 0)
+                        bot.x += step;
+                    else
+                        bot.x -= step;
+
                     if (Math.abs(dy) > 10) {
-                        if (dy > 0) bot.y += 10;
-                        else bot.y -= 10;
+                        if (dy > 0)
+                            bot.y += 10;
+                        else
+                            bot.y -= 10;
                     }
-                    
+
                     Message mmove = new Message(1);
                     mmove.writer().writeByte(0);
                     mmove.writer().writeShort(bot.index_map);
@@ -881,13 +924,13 @@ public class Map implements Runnable {
                     mmove.writer().writeShort(bot.y);
                     send_msg_all_p(mmove, bot, false);
                     mmove.cleanup();
-                    
+
                     // Update distance
                     dx = human.x - bot.x;
                     dy = human.y - bot.y;
                     dist = (int) Math.sqrt(dx * dx + dy * dy);
                 }
-                
+
                 // 2. Attack the human player if within range
                 if (dist <= 150) {
                     Skill_info targetSkill = null;
@@ -902,12 +945,13 @@ public class Map implements Runnable {
                         }
                     }
                     if (targetSkill != null) {
-                        bot.time_sk[targetSkill.temp.ID] = System.currentTimeMillis() + targetSkill.temp.timeDelay - ((targetSkill.temp.timeDelay * bot.body.get_agility(true)) / 1_000);
+                        bot.time_sk[targetSkill.temp.ID] = System.currentTimeMillis() + targetSkill.temp.timeDelay
+                                - ((targetSkill.temp.timeDelay * bot.body.get_agility(true)) / 1_000);
                         if (bot.mp < targetSkill.temp.manaLost) {
                             bot.mp = bot.body.get_mp_max(true);
                         }
                         bot.mp -= targetSkill.temp.manaLost;
-                        
+
                         long dame = bot.body.get_dame(true);
                         dame = (dame * bot.body.get_dame_devil_percent()) / 100;
                         EffTemplate eff = bot.get_eff(5);
@@ -921,7 +965,7 @@ public class Map implements Runnable {
                         if (dame > 2 && bot.get_eff(21) != null) {
                             dame /= 2;
                         }
-                        
+
                         Player[] p_target = new Player[] { human };
                         Fire_Player(p_target, bot, targetSkill.temp.ID, dame);
                     }
@@ -1019,7 +1063,7 @@ public class Map implements Runnable {
                             GiftBox gb_ = new GiftBox();
                             it_temp4 = ItemTemplate4.get_it_by_id(
                                     (45 > Util.random(120)) ? ((15 > Util.random(120)) ? 364 : 363)
-                                    : 362);
+                                            : 362);
                             if (it_temp4 != null) {
                                 gb_.id = it_temp4.id;
                                 gb_.type = 4;
@@ -1257,12 +1301,12 @@ public class Map implements Runnable {
                                         || (p0.type_pk == 3 && p_target.type_pk == 3)
                                         || (p_target.type_pk == 0)
                                         || (p0.type_pk == 3 && p_target.type_pk >= 4
-                                        && p_target.type_pk <= 8)
+                                                && p_target.type_pk <= 8)
                                         || (p_target.type_pk == 3 && p0.type_pk >= 4
-                                        && p0.type_pk <= 8)
+                                                && p0.type_pk <= 8)
                                         || (p0.type_pk >= 4 && p0.type_pk <= 8
-                                        && p_target.type_pk >= 4 && p_target.type_pk <= 8
-                                        && p0.type_pk != p_target.type_pk))) {
+                                                && p_target.type_pk >= 4 && p_target.type_pk <= 8
+                                                && p0.type_pk != p_target.type_pk))) {
                                 } else {
                                     Message m = new Message(-15);
                                     m.writer().writeByte(3);
@@ -1273,8 +1317,7 @@ public class Map implements Runnable {
                                     m.cleanup();
                                     //
                                     int dame_to_target = p0.body.get_dame(true);
-                                    dame_to_target
-                                            = (dame_to_target * (100 - Util.random(10))) / 100;
+                                    dame_to_target = (dame_to_target * (100 - Util.random(10))) / 100;
                                     if (p_target.hp - dame_to_target > 0) {
                                         p_target.hp -= dame_to_target;
                                     } else {
@@ -1303,8 +1346,7 @@ public class Map implements Runnable {
                                     }
                                 }
                                 if (list_random.size() > 0) {
-                                    Mob mob_select
-                                            = list_random.get(Util.random(list_random.size()));
+                                    Mob mob_select = list_random.get(Util.random(list_random.size()));
                                     Message m = new Message(-15);
                                     m.writer().writeByte(3);
                                     m.writer().writeShort(mob_select.index);
@@ -1314,8 +1356,7 @@ public class Map implements Runnable {
                                     m.cleanup();
                                     //
                                     int dame_to_target = p0.body.get_dame(true);
-                                    dame_to_target
-                                            = (dame_to_target * (100 - Util.random(10))) / 100;
+                                    dame_to_target = (dame_to_target * (100 - Util.random(10))) / 100;
                                     if (mob_select.hp - dame_to_target > 0) {
                                         mob_select.hp -= dame_to_target;
                                     } else {
@@ -1512,7 +1553,7 @@ public class Map implements Runnable {
                     long def = p0.body.get_def(true);
                     def = (def * (1000L + (long) p0.body.get_def_percent(true))) / 10_000L;
                     dame -= def;
-                    //miss enemy 
+                    // miss enemy
                     int get_miss = p0.body.get_miss(true) - p0.body.get_miss_reduce();
                     boolean miss = ((p0.get_eff(205) != null || get_miss > Util.random(1000)));
                     if (miss) { // miss
@@ -1543,9 +1584,10 @@ public class Map implements Runnable {
                     m.writer().writeByte(1);
                     m.writer().writeInt(mob.hp); // hp
                     m.writer().writeInt(mob.hp); // mp
-                    short skillId = (mob.boss_info != null && mob.boss_info.skill != null && mob.boss_info.skill.length > 0)
-                            ? mob.boss_info.skill[Util.random(mob.boss_info.skill.length)]
-                            : mob.mob_template.skill[Util.random(mob.mob_template.skill.length)];
+                    short skillId = (mob.boss_info != null && mob.boss_info.skill != null
+                            && mob.boss_info.skill.length > 0)
+                                    ? mob.boss_info.skill[Util.random(mob.boss_info.skill.length)]
+                                    : mob.mob_template.skill[Util.random(mob.mob_template.skill.length)];
                     m.writer().writeShort(skillId);
                     m.writer().writeByte(1); // size target
                     m.writer().writeShort(id_target);
@@ -1636,12 +1678,13 @@ public class Map implements Runnable {
                 this.stop_map();
             }
         }
-        // BossHunt: when player disconnects/leaves, keep them in hunt but mark conn gone
+        // BossHunt: when player disconnects/leaves, keep them in hunt but mark conn
+        // gone
         // They will be prompted to rejoin on next login via findActiveHunt
         if (this.map_bossHunt != null && p.bossHunt != null) {
             System.out.println("[BossHunt] Player " + p.name
-                + " left BossHunt map (floor " + (p.bossHunt.currentFloor + 1) + ")."
-                + " Keeping in hunt for reconnect.");
+                    + " left BossHunt map (floor " + (p.bossHunt.currentFloor + 1) + ")."
+                    + " Keeping in hunt for reconnect.");
             // Player's map location will be saved as BossHunt map,
             // Player.setup() will redirect them to map 1 on next login.
         }
@@ -1864,18 +1907,19 @@ public class Map implements Runnable {
             if (p.time_sk[sk_temp.temp.ID] > System.currentTimeMillis()) {
                 return;
             }
-            p.time_sk[sk_temp.temp.ID] = System.currentTimeMillis() + sk_temp.temp.timeDelay -((sk_temp.temp.timeDelay * p.body.get_agility(true)) / 1_000);
+            p.time_sk[sk_temp.temp.ID] = System.currentTimeMillis() + sk_temp.temp.timeDelay
+                    - ((sk_temp.temp.timeDelay * p.body.get_agility(true)) / 1_000);
             if ((p.mp - sk_temp.temp.manaLost) < 0) {
                 Service.send_box_ThongBao_OK(p, "MP không đủ!");
                 return;
             }
-            
-            int hp_= p.body.get_hp_atk_absorb(true);
+
+            int hp_ = p.body.get_hp_atk_absorb(true);
             int mp_ = p.body.get_mp_atk_absorb(true);
-            
-             Service.use_potion(p, 0, hp_);
-             Service.use_potion(p, 1, mp_);
-            
+
+            Service.use_potion(p, 0, hp_);
+            Service.use_potion(p, 1, mp_);
+
             p.mp -= sk_temp.temp.manaLost;
             long dame = p.body.get_dame(true);
             dame = (dame * p.body.get_dame_devil_percent()) / 100;
@@ -1943,8 +1987,8 @@ public class Map implements Runnable {
                             mob_target[i] = p.bossHunt.get_mob(p, id_target);
                             if (mob_target[i] != null) {
                                 System.out.println("[BossHunt] Player " + p.name
-                                    + " attacking BossHunt mob index=" + id_target
-                                    + " floor=" + (p.bossHunt.currentFloor + 1));
+                                        + " attacking BossHunt mob index=" + id_target
+                                        + " floor=" + (p.bossHunt.currentFloor + 1));
                             }
                         }
                         if (mob_target[i] == null && Map.is_map_dungeon(this.template.id)
@@ -2066,7 +2110,7 @@ public class Map implements Runnable {
         Skill_info sk_temp = p.get_skill_temp(idSkill);
         if (!this.can_PK || sk_temp == null
                 || (this.map_pvp != null && (this.map_pvp.num_win_p1 == 3
-                || this.map_pvp.num_win_p2 == 3 || this.map_pvp.status_pvp != 3))) {
+                        || this.map_pvp.num_win_p2 == 3 || this.map_pvp.status_pvp != 3))) {
             return;
         }
         int dame_plus_percent = 0;
@@ -2097,7 +2141,7 @@ public class Map implements Runnable {
                         || (p.type_pk == 3 && p_target.type_pk >= 4 && p_target.type_pk <= 8)
                         || (p_target.type_pk == 3 && p.type_pk >= 4 && p.type_pk <= 8)
                         || (p.type_pk >= 4 && p.type_pk <= 8 && p_target.type_pk >= 4
-                        && p_target.type_pk <= 8 && p.type_pk != p_target.type_pk))) {
+                                && p_target.type_pk <= 8 && p.type_pk != p_target.type_pk))) {
                     continue;
                 }
                 ItemFashionP2 checkF = p.check_fashion(120);
@@ -2126,8 +2170,7 @@ public class Map implements Runnable {
                 dame_inf.data = new ArrayList<>();
                 dame_inf.targetP = p_target;
                 if (dame2 > 0 && idSkill != 0) {
-                    dame_inf.dameM
-                            = (p.get_skill_temp(idSkill).get_dame(p) * (dame_magic_plus_percent))
+                    dame_inf.dameM = (p.get_skill_temp(idSkill).get_dame(p) * (dame_magic_plus_percent))
                             / 1000;
                 }
                 if (dame_inf.dameM < 0) {
@@ -2146,8 +2189,7 @@ public class Map implements Runnable {
                         }
                     }
                 }
-                int react_dame_
-                        = p_target.body.get_dame_react(true) - p.body.get_dame_react_reduce();
+                int react_dame_ = p_target.body.get_dame_react(true) - p.body.get_dame_react_reduce();
                 int MienThuong = p_target.body.get_dame_skip(true) - p.body.get_dame_skip_reduce();
                 if (MienThuong < 0) {
                     MienThuong = 0;
@@ -2621,7 +2663,7 @@ public class Map implements Runnable {
 
     private long[] Fire_Monster(Mob[] list_target, Player p, int idSkill, long dame)
             throws IOException {
-        long[] exp_up = new long[]{0, 0};
+        long[] exp_up = new long[] { 0, 0 };
         Skill_info sk_temp = p.get_skill_temp(idSkill);
         if (sk_temp == null) {
             return exp_up;
@@ -2652,8 +2694,7 @@ public class Map implements Runnable {
                 dame_inf.data = new ArrayList<>();
                 dame_inf.targetM = mob_target;
                 if (dame2 > 0 && idSkill != 0) {
-                    dame_inf.dameM
-                            = (p.get_skill_temp(idSkill).get_dame(p) * (dame_magic_plus_percent))
+                    dame_inf.dameM = (p.get_skill_temp(idSkill).get_dame(p) * (dame_magic_plus_percent))
                             / 1000;
                 }
                 dame2 = (dame2 * (1000L + p.body.get_percent_final_dame())) / 1000L;
@@ -2722,8 +2763,7 @@ public class Map implements Runnable {
                     for (int j = value1 - 1; j >= value2; j--) { // 10%
                         //
                         int beri_receiv = (mob_target.mob_template.mob_id - 130) * 1000;
-                        beri_receiv
-                                = (beri_receiv / 100) * (100 + mob_target.boss_info.levelBoss * 10);
+                        beri_receiv = (beri_receiv / 100) * (100 + mob_target.boss_info.levelBoss * 10);
                         GiftBox gb_beri = new GiftBox();
                         ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
                         if (it_temp4 != null) {
@@ -2900,8 +2940,7 @@ public class Map implements Runnable {
                             }
                         }
                         // beri
-                        beri_receiv
-                                = (beri_receiv / 100) * (100 + mob_target.boss_info.levelBoss * 10);
+                        beri_receiv = (beri_receiv / 100) * (100 + mob_target.boss_info.levelBoss * 10);
                         GiftBox gb_beri = new GiftBox();
                         ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
                         if (it_temp4 != null) {
@@ -3004,27 +3043,29 @@ public class Map implements Runnable {
                         } else {
                             boss.timeNextRespawn = boss.timeDeath + 300000; // 5 minutes
                         }
-                        
+
                         // Debug Log
                         System.out.println("[DEBUG LOG] Boss Died - ID: " + boss.mob.mob_template.mob_id
                                 + " | Name: " + boss.mob.mob_template.name
                                 + " | Village/Map ID: " + this.template.id
                                 + " | Death Time: " + new java.util.Date(boss.timeDeath)
                                 + " | Next Respawn Time: " + new java.util.Date(boss.timeNextRespawn));
-                        
+
                         String notice = "Tiêu diệt siêu trùm nhận: ";
                         this.remove_obj(mob_target.index, 1);
                         Manager.gI().chatKTG(0,
                                 p.name + " đã tiêu diệt " + mob_target.mob_template.name + " bậc "
-                                + boss.levelBoss,
+                                        + boss.levelBoss,
                                 5);
                         //
                         List<GiftBox> list_gift = new ArrayList<>();
                         if (boss.thegioi == 1) {
                             // 1. Rương cam cùng lv với boss
                             int level = mob_target.level;
-                            if (level < 10) level = 10;
-                            if (level > 90) level = 90;
+                            if (level < 10)
+                                level = 10;
+                            if (level > 90)
+                                level = 90;
                             int chestIdNormal = 111 + level / 10;
                             ItemTemplate4 it_rcam = ItemTemplate4.get_it_by_id(chestIdNormal);
                             if (it_rcam != null) {
@@ -3038,7 +3079,7 @@ public class Map implements Runnable {
                                 list_gift.add(giftChest);
                                 notice += "x1 " + it_rcam.name + ", ";
                             }
-                            
+
                             // 2. Rương cam cùng hệ cùng lv với boss
                             int chestIdCungHe = 121 + level / 10;
                             ItemTemplate4 it_cunghe = ItemTemplate4.get_it_by_id(chestIdCungHe);
@@ -3053,7 +3094,7 @@ public class Map implements Runnable {
                                 list_gift.add(giftCungHe);
                                 notice += "x1 " + it_cunghe.name + ", ";
                             }
-                            
+
                             // 3. 1000 vàng (Ruby)
                             p.update_ngoc(1000);
                             p.update_money();
@@ -3072,7 +3113,7 @@ public class Map implements Runnable {
                                 list_gift.add(giftBeri);
                                 notice += "10000 beri, ";
                             }
-                            
+
                             // 2. Ruong cam cung cap
                             int chestId = ((p.level < 11 ? 11 : p.level) / 10) + 111;
                             ItemTemplate4 it_rcam = ItemTemplate4.get_it_by_id(chestId);
@@ -3087,7 +3128,7 @@ public class Map implements Runnable {
                                 list_gift.add(giftChest);
                                 notice += "x1 rương cam cùng cấp, ";
                             }
-                            
+
                             // 3. Da hanh trinh (100% co hoi)
                             int id_random;
                             if (5 > Util.random(120)) {
@@ -3275,16 +3316,19 @@ public class Map implements Runnable {
                 long c = (mob_target.level - p.level) * a;
                 exp_up_add = (b / 2) + (b * c / 100);
 
-//                if (p.level < 10){
-//                    exp_up_add = exp_up_add * 5;
-//                }
+                // if (p.level < 10){
+                // exp_up_add = exp_up_add * 5;
+                // }
                 if (Math.abs(p.level - mob_target.level) >= 10) {
                     exp_up_add = 0;
 
                 }
-                if (mob_target.mob_template.mob_id == 4 || mob_target.mob_template.mob_id == 10 || mob_target.mob_template.mob_id == 16 || mob_target.mob_template.mob_id == 23
-                        || mob_target.mob_template.mob_id == 29 || mob_target.mob_template.mob_id == 36 || mob_target.mob_template.mob_id == 43 || mob_target.mob_template.mob_id == 68
-                        || mob_target.mob_template.mob_id == 78 || mob_target.mob_template.mob_id == 92 || mob_target.mob_template.mob_id == 112 || mob_target.mob_template.mob_id == 163) {
+                if (mob_target.mob_template.mob_id == 4 || mob_target.mob_template.mob_id == 10
+                        || mob_target.mob_template.mob_id == 16 || mob_target.mob_template.mob_id == 23
+                        || mob_target.mob_template.mob_id == 29 || mob_target.mob_template.mob_id == 36
+                        || mob_target.mob_template.mob_id == 43 || mob_target.mob_template.mob_id == 68
+                        || mob_target.mob_template.mob_id == 78 || mob_target.mob_template.mob_id == 92
+                        || mob_target.mob_template.mob_id == 112 || mob_target.mob_template.mob_id == 163) {
 
                     exp_up_add = 0;
 
@@ -3398,44 +3442,35 @@ public class Map implements Runnable {
     public void send_chat(Player p, Message m2) throws IOException {
         String s = m2.reader().readUTF();
         String txt = s.trim().toLowerCase();
-        if (txt.startsWith("danhhieu ")) {
-            try {
-                String arg = txt.substring(9).trim();
-                if (arg.equals("all")) {
-                    for (int i = 0; i < DanhHieuTemplate.ENTRYS.size(); i++) {
-                        p.unlockDanhHieu(DanhHieuTemplate.ENTRYS.get(i).id);
-                    }
-                    client.Player.flush(p, false);
-                    Service.send_box_ThongBao_OK(p, "Đã mở khóa toàn bộ danh hiệu!");
-                } else {
-                    int title_id = Integer.parseInt(arg);
-                    p.unlockDanhHieu(title_id);
-                    client.Player.flush(p, false);
-                    Service.send_box_ThongBao_OK(p, "Đã mở khóa danh hiệu " + core.MenuController.getTitleName(title_id));
-                }
-            } catch (Exception e) {
-                Service.send_box_ThongBao_OK(p, "Lệnh không hợp lệ! Cú pháp: danhhieu [id] hoặc danhhieu all");
-            }
-            return;
-        }
+
         if (p.conn.user.equals("admin")) {
             if (txt.equals("menu")) {
-                MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[]{"Bảo trì",
-                    "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tạo Giftcode"},
+                MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[] { "Bảo trì",
+                        "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tạo Giftcode" },
                         null);
-                Service.send_box_ThongBao_OK(p, "Nếu menu không hiện, hãy dùng lệnh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode");
+                Service.send_box_ThongBao_OK(p,
+                        "Nếu menu không hiện, hãy dùng lệnh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode");
                 return;
             } else if (txt.startsWith("admin ")) {
                 String cmd = txt.substring(6);
-                if (cmd.equals("baotri")) MenuController.Menu_Admin(p, (byte) 0);
-                else if (cmd.equals("tien")) MenuController.Menu_Admin(p, (byte) 1);
-                else if (cmd.equals("level")) MenuController.Menu_Admin(p, (byte) 2);
-                else if (cmd.equals("setxp")) MenuController.Menu_Admin(p, (byte) 3);
-                else if (cmd.equals("item")) MenuController.Menu_Admin(p, (byte) 4);
-                else if (cmd.equals("save")) MenuController.Menu_Admin(p, (byte) 5);
-                else if (cmd.equals("updatetb")) MenuController.Menu_Admin(p, (byte) 6);
-                else if (cmd.equals("taocode")) MenuController.Menu_Admin(p, (byte) 7);
-                else Service.send_box_ThongBao_OK(p, "Lệnh admin không hợp lệ!");
+                if (cmd.equals("baotri"))
+                    MenuController.Menu_Admin(p, (byte) 0);
+                else if (cmd.equals("tien"))
+                    MenuController.Menu_Admin(p, (byte) 1);
+                else if (cmd.equals("level"))
+                    MenuController.Menu_Admin(p, (byte) 2);
+                else if (cmd.equals("setxp"))
+                    MenuController.Menu_Admin(p, (byte) 3);
+                else if (cmd.equals("item"))
+                    MenuController.Menu_Admin(p, (byte) 4);
+                else if (cmd.equals("save"))
+                    MenuController.Menu_Admin(p, (byte) 5);
+                else if (cmd.equals("updatetb"))
+                    MenuController.Menu_Admin(p, (byte) 6);
+                else if (cmd.equals("taocode"))
+                    MenuController.Menu_Admin(p, (byte) 7);
+                else
+                    Service.send_box_ThongBao_OK(p, "Lệnh admin không hợp lệ!");
                 return;
             }
         }
@@ -3879,8 +3914,7 @@ public class Map implements Runnable {
                                                 if (p0 != null && p0.conn != null && p0.type_pk == 5
                                                         && !p0.isdie) {
                                                     die_player(p0, p);
-                                                    p0.time_hs_little_garden
-                                                            = System.currentTimeMillis() + 10_000L;
+                                                    p0.time_hs_little_garden = System.currentTimeMillis() + 10_000L;
                                                     Service.send_time_cool_down(p0,
                                                             p0.time_hs_little_garden, "Hồi sinh",
                                                             3);
@@ -3892,8 +3926,7 @@ public class Map implements Runnable {
                                                 if (p0 != null && p0.conn != null && p0.type_pk == 4
                                                         && !p0.isdie) {
                                                     die_player(p0, p);
-                                                    p0.time_hs_little_garden
-                                                            = System.currentTimeMillis() + 10_000L;
+                                                    p0.time_hs_little_garden = System.currentTimeMillis() + 10_000L;
                                                     Service.send_time_cool_down(p0,
                                                             p0.time_hs_little_garden, "Hồi sinh",
                                                             3);
@@ -3945,7 +3978,7 @@ public class Map implements Runnable {
                                         || (list_it_map[i].id >= 7 && list_it_map[i].id <= 17)) {
                                     if (list_it_map[i].id_master == -1
                                             || (list_it_map[i].id_master != -1
-                                            && list_it_map[i].id_master == p.index_map)) {
+                                                    && list_it_map[i].id_master == p.index_map)) {
                                         if (list_it_map[i].id == 0) { // beri
                                             if (p.rms.length > 2 && p.rms[2].length > 3
                                                     && p.rms[2][3] == 1) {

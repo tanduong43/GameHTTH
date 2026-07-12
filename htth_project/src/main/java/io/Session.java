@@ -32,6 +32,7 @@ import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
 import template.*;
+
 /**
  *
  * @author Truongbk
@@ -67,17 +68,6 @@ public class Session implements Runnable {
         this.sendKeyComplete = false;
         this.connected = false;
         this.controller = new MessageHandler(this);
-    }
-
-    public Socket getSocket() {
-        return this.socket;
-    }
-
-    public String getIpAddress() {
-        if (this.socket != null && this.socket.getInetAddress() != null) {
-            return this.socket.getInetAddress().getHostAddress();
-        }
-        return "";
     }
 
     public void init() {
@@ -173,7 +163,7 @@ public class Session implements Runnable {
             } else if (msg.cmd == -39) {
                 dos.writeInt(size);
             } else {
-                final int byte1 = (byte) ((size >> 8) & 0xFF);
+                final int byte1 = (byte) (size & 0xFF00);
                 this.dos.writeByte(byte1);
                 final int byte2 = (byte) (size & 0xFF);
                 this.dos.writeByte(byte2);
@@ -281,8 +271,7 @@ public class Session implements Runnable {
                 case 6: {
                     m2.writer().writeByte(6);
                     byte[] ab = null;
-                    try (FileInputStream fis =
-                            new FileInputStream("data/msg/login/request/msg-7_6")) {
+                    try (FileInputStream fis = new FileInputStream("data/msg/login/request/msg-7_6")) {
                         ab = new byte[fis.available() - 2];
                         fis.read(ab, 0, ab.length);
                     } catch (IOException e) {
@@ -502,72 +491,42 @@ public class Session implements Runnable {
             getImgAPK = true;
         }
         this.zoomlv = m.reader().readByte();
-        System.out.println("[DEBUG] send_data_from_server: zoomlv=" + this.zoomlv + ", ip=" + getIpAddress());
-        // Validate zoomlv
-        if (this.zoomlv < 1 || this.zoomlv > 4) {
-            System.out.println("[WARN] Invalid zoomlv=" + this.zoomlv + " from " + getIpAddress() + ", defaulting to 2");
-            this.zoomlv = 2;
-        }
         Thread send = new Thread(() -> {
             try {
                 String path = "data/datafromsver/x" + this.zoomlv;
                 File folder = new File(path);
                 if (folder.isDirectory()) {
                     File[] files = folder.listFiles();
-                    if (files == null || files.length == 0) {
-                        System.out.println("[WARN] No data files found in " + path);
-                        return;
-                    }
-                    // Filter out .DS_Store and non-data files
-                    List<File> validFiles = new ArrayList<>();
-                    for (File f : files) {
-                        if (f.getName().startsWith(".") || f.length() == 0) {
-                            continue;
+                    Arrays.sort(files, new Comparator<File>() {
+                        @Override
+                        public int compare(File o1, File o2) {
+                            int name1 = solve_name(o1.getName());
+                            int name2 = solve_name(o2.getName());
+                            return (name1 > name2) ? 1 : -1;
                         }
-                        validFiles.add(f);
-                    }
-                    validFiles.sort((o1, o2) -> {
-                        int name1 = solve_name(o1.getName());
-                        int name2 = solve_name(o2.getName());
-                        return Integer.compare(name1, name2);
+
+                        private int solve_name(String name) {
+                            String num = "";
+                            for (int i = 0; i < name.length(); i++) {
+                                if (name.charAt(i) == '_') {
+                                    break;
+                                }
+                                num += name.charAt(i);
+                            }
+                            return Integer.parseInt(num);
+                        }
                     });
-                    System.out.println("[DEBUG] Sending " + validFiles.size() + " data files for zoomlv=" + this.zoomlv);
-                    for (int i = 0; i < validFiles.size(); i++) {
-                        File file = validFiles.get(i);
-                        try {
-                            int cmd = Integer.parseInt(file.getName().substring(
-                                    (file.getName().length() - 3), file.getName().length()));
-                            Service.send_msg_data(this, cmd, file.getAbsolutePath(), false);
-                        } catch (NumberFormatException e) {
-                            System.out.println("[WARN] Skipping invalid data file: " + file.getName());
-                        }
+                    for (int i = 0; i < files.length; i++) {
+                        int cmd = Integer.parseInt(files[i].getName().substring(
+                                (files[i].getName().length() - 3), files[i].getName().length()));
+                        Service.send_msg_data(this, cmd, files[i].getAbsolutePath(), false);
                     }
-                    System.out.println("[DEBUG] Finished sending data files for zoomlv=" + this.zoomlv);
-                } else {
-                    System.out.println("[ERROR] Data directory not found: " + path);
                 }
             } catch (IOException e) {
-                System.err.println("[ERROR] send_data_from_server IOException: " + e.getMessage());
                 e.printStackTrace();
-                this.disconnect();
-            } catch (Exception e) {
-                System.err.println("[ERROR] send_data_from_server Exception: " + e.getMessage());
-                e.printStackTrace();
-                this.disconnect();
             }
         });
         send.start();
-    }
-
-    private static int solve_name(String name) {
-        String num = "";
-        for (int i = 0; i < name.length(); i++) {
-            if (name.charAt(i) == '_') {
-                break;
-            }
-            num += name.charAt(i);
-        }
-        return Integer.parseInt(num);
     }
 
     public void login(Message m) throws IOException {
@@ -663,30 +622,30 @@ public class Session implements Runnable {
             if (user_.equals("") && pass_.equals("")) {
                 login_notice("Truy cập hanhtrinhhaitac.com để đăng ký");
                 return;
-//                user_ = "htth_truongbk_" + System.nanoTime();
-//                pass_ = "1";
-//                Connection conn = null;
-//                Statement st = null;
-//                try {
-//                    conn = SQL.gI().getCon();
-//                    st = conn.createStatement();
-//                    st.execute("INSERT INTO `accounts` (`user`, `pass`,`lock`) VALUES ('" + user_
-//                            + "', '1', 0)");
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                    return;
-//                } finally {
-//                    try {
-//                        if (st != null) {
-//                            st.close();
-//                        }
-//                        if (conn != null) {
-//                            conn.close();
-//                        }
-//                    } catch (SQLException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
+                // user_ = "htth_truongbk_" + System.nanoTime();
+                // pass_ = "1";
+                // Connection conn = null;
+                // Statement st = null;
+                // try {
+                // conn = SQL.gI().getCon();
+                // st = conn.createStatement();
+                // st.execute("INSERT INTO `accounts` (`user`, `pass`,`lock`) VALUES ('" + user_
+                // + "', '1', 0)");
+                // } catch (SQLException e) {
+                // e.printStackTrace();
+                // return;
+                // } finally {
+                // try {
+                // if (st != null) {
+                // st.close();
+                // }
+                // if (conn != null) {
+                // conn.close();
+                // }
+                // } catch (SQLException e) {
+                // e.printStackTrace();
+                // }
+                // }
             } else {
                 pass_ = "1";
                 Connection conn = null;
@@ -736,10 +695,6 @@ public class Session implements Runnable {
         this.version = m.reader().readUTF();
         m.reader().readByte();
         byte IndexCharSelected = m.reader().readByte();
-        if (!user_.equals("admin") && SessionManager.getNumOnlinePlayers() >= Manager.gI().max_ccu) {
-            login_notice("Máy chủ đã đầy (" + Manager.gI().max_ccu + "/" + Manager.gI().max_ccu + " người chơi). Vui lòng quay lại sau!");
-            return;
-        }
         this.user = user_;
         this.pass = pass_;
         if (!this.check_onl()) {
@@ -854,8 +809,7 @@ public class Session implements Runnable {
                     JSONArray js0 = (JSONArray) JSONValue.parse(rs.getString("fashion"));
                     JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js0.get(0).toString());
                     for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
-                        JSONArray js_temp =
-                                (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
                         ItemFashionP tempf = new ItemFashionP();
                         tempf.category = Byte.parseByte(js_temp.get(0).toString());
                         tempf.id = Short.parseShort(js_temp.get(1).toString());
@@ -866,8 +820,7 @@ public class Session implements Runnable {
                     js_temp_2.clear();
                     js_temp_2 = (JSONArray) JSONValue.parse(js0.get(1).toString());
                     for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
-                        JSONArray js_temp =
-                                (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
                         ItemFashionP2 tempf = new ItemFashionP2();
                         tempf.id = Short.parseShort(js_temp.get(0).toString());
                         tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
@@ -969,7 +922,7 @@ public class Session implements Runnable {
         m2.cleanup();
     }
 
-    public void login_notice(String s) throws IOException {
+    private void login_notice(String s) throws IOException {
         Message m = new Message(-11);
         m.writer().writeShort(0);
         m.writer().writeByte(0);
@@ -998,7 +951,7 @@ public class Session implements Runnable {
     }
 
     public void create_char(Message m2) throws IOException {
-        if (list_char.size() >= 1 ) {
+        if (list_char.size() >= 1) {
             login_notice("Chỉ có thể tạo tối đa 1 nhân vật!");
             return;
         }
@@ -1017,53 +970,42 @@ public class Session implements Runnable {
         try {
             connection = SQL.gI().getCon();
             st = connection.createStatement();
-            String query =
-                    "INSERT INTO `players` (`name`, `body`, `level`, `clazz`, `point_inven`, `site`, `bag3`, `it_body`, `potential`,"
-                            + " `bag47`, `rms`, `skill`, `friend`, `enemy`, `fashion`, `eff`, `box3`, `box47`, `quest`, `date`,"
-                            + " `pvppoint`, `save_it3`, `save_it47`, `hanhtrinh`, `wanted_point`, `wanted_chest`, `mypet`, `lucthuc`) "
-                            + "VALUES ('%s', '%s', '%s', %s, '%s', '%s', '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',"
-                            + "'%s','%s','%s','%s', %s, '%s', '%s', '%s', %s, '%s', '%s','%s')";
+            String query = "INSERT INTO `players` (`name`, `body`, `level`, `clazz`, `point_inven`, `site`, `bag3`, `it_body`, `potential`,"
+                    + " `bag47`, `rms`, `skill`, `friend`, `enemy`, `fashion`, `eff`, `box3`, `box47`, `quest`, `date`,"
+                    + " `pvppoint`, `save_it3`, `save_it47`, `hanhtrinh`, `wanted_point`, `wanted_chest`, `mypet`, `lucthuc`) "
+                    + "VALUES ('%s', '%s', '%s', %s, '%s', '%s', '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',"
+                    + "'%s','%s','%s','%s', %s, '%s', '%s', '%s', %s, '%s', '%s','%s')";
             String body_wear = "";
             String skill_by_clazz = "";
             String fashion_ = "";
             switch (clazz) {
                 case 1: {
-                    body_wear =
-                            "[[0,0,1,-1,0,0,0,-1,[[1,61],[4,7]],[],0,[],0],[40,0,1,-1,0,0,0,-1,[[3,4],[15,1]],[],0,[],3],[80,0,1,-1,0,0,0,-1,[[3,3],[15,3]],[],0,[],5]]";
-                    skill_by_clazz =
-                            "[[0,0,0,0],[20,-1,0,0],[40,-1,0,0],[375,-1,0,0],[487,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
+                    body_wear = "[[0,0,1,-1,0,0,0,-1,[[1,61],[4,7]],[],0,[],0],[40,0,1,-1,0,0,0,-1,[[3,4],[15,1]],[],0,[],3],[80,0,1,-1,0,0,0,-1,[[3,3],[15,3]],[],0,[],5]]";
+                    skill_by_clazz = "[[0,0,0,0],[20,-1,0,0],[40,-1,0,0],[375,-1,0,0],[487,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
                     fashion_ = "[[[103,5,1,1],[108,0,0,1]],[],[[1,1],[5,1],[3,1],[7,1]]]";
                     break;
                 }
                 case 2: {
-                    body_wear =
-                            "[[8,0,1,-1,0,1,0,-1,[[1,72]],[],0,[],0],[48,0,1,-1,0,1,0,-1,[[3,2],[15,3]],[],0,[],3],[88,0,1,-1,0,1,0,-1,[[3,1],[15,5]],[],0,[],5]]";
-                    skill_by_clazz =
-                            "[[60,0,0,0],[80,-1,0,0],[100,-1,0,0],[395,-1,0,0],[492,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
+                    body_wear = "[[8,0,1,-1,0,1,0,-1,[[1,72]],[],0,[],0],[48,0,1,-1,0,1,0,-1,[[3,2],[15,3]],[],0,[],3],[88,0,1,-1,0,1,0,-1,[[3,1],[15,5]],[],0,[],5]]";
+                    skill_by_clazz = "[[60,0,0,0],[80,-1,0,0],[100,-1,0,0],[395,-1,0,0],[492,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
                     fashion_ = "[[[103,1,24,1],[108,0,0,1]],[],[[1,1],[5,1],[3,1],[7,1]]]";
                     break;
                 }
                 case 3: {
-                    body_wear =
-                            "[[16,0,1,-1,0,1,0,-1,[[1,73]],[],0,[],0],[56,0,1,-1,0,0,0,-1,[[3,3],[15,2]],[],0,[],3],[96,0,1,-1,0,0,0,-1,[[3,3],[15,4]],[],0,[],5]]";
-                    skill_by_clazz =
-                            "[[120,0,0,0],[140,-1,0,0],[160,-1,0,0],[415,-1,0,0],[497,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
+                    body_wear = "[[16,0,1,-1,0,1,0,-1,[[1,73]],[],0,[],0],[56,0,1,-1,0,0,0,-1,[[3,3],[15,2]],[],0,[],3],[96,0,1,-1,0,0,0,-1,[[3,3],[15,4]],[],0,[],5]]";
+                    skill_by_clazz = "[[120,0,0,0],[140,-1,0,0],[160,-1,0,0],[415,-1,0,0],[497,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
                     fashion_ = "[[[103,2,28,1],[108,0,0,1]],[],[[1,1],[5,1],[3,1],[7,1]]]";
                     break;
                 }
                 case 4: {
-                    body_wear =
-                            "[[24,0,1,-1,0,1,0,-1,[[1,55],[23,18]],[],0,[],0],[64,0,1,-1,0,0,0,-1,[[3,2],[15,3]],[],0,[],3],[104,0,1,-1,0,1,0,-1,[[3,1],[15,5]],[],0,[],5]]";
-                    skill_by_clazz =
-                            "[[180,0,0,0],[200,-1,0,0],[220,-1,0,0],[435,-1,0,0],[502,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
+                    body_wear = "[[24,0,1,-1,0,1,0,-1,[[1,55],[23,18]],[],0,[],0],[64,0,1,-1,0,0,0,-1,[[3,2],[15,3]],[],0,[],3],[104,0,1,-1,0,1,0,-1,[[3,1],[15,5]],[],0,[],5]]";
+                    skill_by_clazz = "[[180,0,0,0],[200,-1,0,0],[220,-1,0,0],[435,-1,0,0],[502,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
                     fashion_ = "[[[103,3,32,1],[108,0,0,1]],[],[[1,1],[5,1],[3,1],[7,1]]]";
                     break;
                 }
                 case 5: {
-                    body_wear =
-                            "[[32,0,1,-1,0,1,0,-1,[[1,66],[16,1]],[],0,[],0],[72,0,1,-1,0,0,0,-1,[[3,3],[15,2]],[],0,[],3],[112,0,1,-1,0,0,0,-1,[[3,2],[15,4]],[],0,[],5]]";
-                    skill_by_clazz =
-                            "[[240,0,0,0],[260,-1,0,0],[280,-1,0,0],[455,-1,0,0],[507,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
+                    body_wear = "[[32,0,1,-1,0,1,0,-1,[[1,66],[16,1]],[],0,[],0],[72,0,1,-1,0,0,0,-1,[[3,3],[15,2]],[],0,[],3],[112,0,1,-1,0,0,0,-1,[[3,2],[15,4]],[],0,[],5]]";
+                    skill_by_clazz = "[[240,0,0,0],[260,-1,0,0],[280,-1,0,0],[455,-1,0,0],[507,-1,0,0],[300,-1,0,0],[305,-1,0,0],[310,-1,0,0],[315,-1,0,0],[320,-1,0,0],[325,-1,0,0],[552,-1,0,0],[557,-1,0,0]]";
                     fashion_ = "[[[103,4,36,1],[108,0,0,1]],[],[[1,1],[5,1],[3,1],[7,1]]]";
                     break;
                 }
@@ -1073,7 +1015,7 @@ public class Session implements Runnable {
                     "[]", body_wear, "[5,1,1,1,1,1,0,[]]", "[]",
                     "[[],[],[],[],[0,18],[],[],[],[],[],[]]", skill_by_clazz, "[]", "[]", fashion_,
                     "[]", "[]", "[]", "[[0,[]]]", DateTime.now(), 0, "[]", "[]", "[]", 0, "[]",
-                    "[[0,1,1]]","[0,1,1,1,1,0]");
+                    "[[0,1,1]]", "[0,1,1,1,1,0]");
             st.execute(query);
         } catch (SQLException e) {
             e.printStackTrace();

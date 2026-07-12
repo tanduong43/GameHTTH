@@ -134,7 +134,7 @@ public class MessageHandler {
                         byte[] data2 = Util.loadfile(imgPath);
                         if (data2 == null) {
                             data2 = Util.loadfile(
-                                     "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
+                                    "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
                         }
                         if (data1 != null && data2 != null) {
                             Message m2 = new Message(74);
@@ -628,10 +628,10 @@ public class MessageHandler {
                             e.printStackTrace();
                         }
                     }
-                    int loginEffectId = Service.getDanhHieuEffectId(conn.p);
-                    if (loginEffectId >= 0) {
-                        Service.send_danhieu_effect(conn.p, loginEffectId);
-                    }
+                    // int loginEffectId = Service.getDanhHieuEffectId(conn.p);
+                    // if (loginEffectId >= 0) {
+                    // Service.send_danhieu_effect(conn.p, loginEffectId);
+                    // }
                     Service.getThanhTich(conn.p, conn.p);
                     conn.p.map.send_in4_obj_inmap(conn.p);
                     conn.p.wait_change_map = false;

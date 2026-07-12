@@ -5,12 +5,18 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import client.Item;
 import client.Player;
 import core.Service;
 import core.Util;
 import io.Message;
-import template.*;
+import template.DataUpgrade;
+import template.ItemTemplate3;
+import template.ItemTemplate7;
+import template.Item_wear;
+import template.UpgradeMaterialTemplate;
+
 /**
  *
  * @author Truongbk
@@ -18,8 +24,7 @@ import template.*;
 public class UpgradeItem {
     public static List<DataUpgrade> DATA = new ArrayList<>();
     static {
-        try (ByteArrayInputStream bais =
-                new ByteArrayInputStream(Util.loadfile("data/msg/login/request/msg-7_12"));
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(Util.loadfile("data/msg/login/request/msg-7_12"));
                 DataInputStream dis = new DataInputStream(bais)) {
             int n = dis.readByte();
             for (int i = 0; i < n; i++) {
@@ -49,7 +54,7 @@ public class UpgradeItem {
         m.writer().writeByte(7);
         p.conn.addmsg(m);
         m.cleanup();
-        p.tool_upgrade = new int[] {-1, -1};
+        p.tool_upgrade = new int[] { -1, -1 };
     }
 
     public static void process(Player p, Message m2) throws IOException {
@@ -226,13 +231,13 @@ public class UpgradeItem {
                                         1_200_000L + (p.item.it_heart.levelup * 200_000L))
                                 + " beri" + ((ruby_req > 0) ? (" và " + ruby_req + " ruby ") : "")
                                 + ". " + "Bạn thật sự muốn phẫu thuật?"),
-                        new String[] {"Đồng ý", "Hủy"}, new byte[] {-1, -1});
+                        new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
             }
         }
     }
 
     private static int[] get_material(int level, int color) {
-        int[] result = new int[] {-1, -1, -1, -1};
+        int[] result = new int[] { -1, -1, -1, -1 };
         DataUpgrade temp = UpgradeItem.DATA.get(level);
         for (int i = 0; i < temp.material.length; i++) {
             if (temp.material[i].type == -1) {
@@ -295,40 +300,10 @@ public class UpgradeItem {
                     m.writer().writeShort(-1);
                 }
             }
-            short idTitle = -1;
-            short idFoot = -1;
-            short idIcon = -1;
-            int effectId = Service.getDanhHieuEffectId(p);
-            if (p.idDanhHieu != -1) {
-                template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p.idDanhHieu);
-                if (dh != null) {
-                    if (dh.name != null && dh.name.toLowerCase().contains("vòng chân")) {
-                        idFoot = (short) dh.getEffectId();
-                    } else {
-                        idTitle = (short) dh.id;
-                        idIcon = (short) dh.getEffectId();
-                    }
-                } else {
-                    idTitle = p.idDanhHieu;
-                    idIcon = p.idDanhHieu;
-                }
-            }
-            if (idTitle != -1 && idTitle < 300) {
-                idTitle += 3000;
-            }
-            if (idIcon != -1 && idIcon < 300) {
-                idIcon += 3000;
-            }
-            if (idFoot != -1 && idFoot < 300) {
-                idFoot += 3000;
-            }
-            m.writer().writeShort(idTitle);
-            m.writer().writeShort(idIcon != -1 ? idIcon : idTitle);
-            m.writer().writeShort(idFoot);
+            m.writer().writeShort(-1);
+            m.writer().writeShort(-1);
+            m.writer().writeShort(-1);
             p.conn.addmsg(m);
-            if (effectId != -1) {
-                Service.send_danhieu_effect(p, effectId);
-            }
             m.cleanup();
             //
         }
