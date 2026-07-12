@@ -300,6 +300,33 @@ public class ClientInput {
                 }
                 break;
             }
+            case 12: {
+                if (name.length == 1 && p.data_yesno == null) {
+                    if (!Util.isnumber(name[0])) {
+                        Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
+                        return;
+                    }
+                    long value = Long.parseLong(name[0]);
+                    if (value <= 0) {
+                        Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
+                        return;
+                    }
+                    if (p.conn.coin < value) {
+                        Service.send_box_ThongBao_OK(p,
+                                "Bạn không đủ " + Util.number_format(value) + " coin");
+                        return;
+                    }
+                    int coin = (int) value;
+                    p.data_yesno = new int[] {coin};
+                    Service.send_box_yesno(p, 62, "Thông báo",
+                            "Bạn có thật sự muốn đổi " + Util.number_format(coin) + " Coin để"
+                                    + " đổi lấy " + Util.number_format(coin * 100L) + " Ruby và "
+                                    + Util.number_format(coin * 1000L) + " Extol không?",
+                            new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                    break;
+                }
+                break;
+            }
             case 2: {
                 if (name.length == 2) {
                     name[0] = name[0].replace(" ", "");

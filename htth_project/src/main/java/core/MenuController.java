@@ -995,6 +995,10 @@ public class MenuController {
                   + "Nếu bạn vừa đổi coin vui lòng thoát game vào lại để xem chính xác coin");
               break;
             }
+            case 7: {
+              Service.input_text(p, 12, "Đổi Coin", new String[] { "Nhập số coin muốn đổi" });
+              break;
+            }
           }
           break;
         }
@@ -1653,7 +1657,7 @@ public class MenuController {
         case 0: {
           send_dynamic_menu(p, 993, "Nami",
               new String[] { "Đổi Ruby", "Đổi extol", "Nạp tiền", "GiftCode", "Đổi Ruby",
-                  "Đổi Beri", "Xem Coin", "Mã quà tặng" },
+                  "Đổi Beri", "Xem Coin", "Đổi Coin" },
               new short[] { 128, 128, 132, 161, 127, 162, 140, 140 });
           break;
         }
@@ -2335,7 +2339,8 @@ public class MenuController {
         }
         case 7: {
           Service.input_text(p, 32005, "Tạo Giftcode",
-              new String[] { "Tên mã", "Số Beri", "Số Ruby", "Giới hạn", "Loại Item (-1 nếu ko có)", "ID Item", "Số lượng Item", "MTV (1: Có, 0: Không)" });
+              new String[] { "Tên mã", "Số Beri", "Số Ruby", "Giới hạn", "Loại Item (-1 nếu ko có)", "ID Item",
+                  "Số lượng Item", "MTV (1: Có, 0: Không)" });
           break;
         }
         case 4: {

@@ -387,6 +387,32 @@ public class ClientYesNo {
         }
         if (value == 0) { // ok
             switch (id) {
+                case 62: {
+                    if (p.data_yesno != null && p.data_yesno.length == 1) {
+                        int coin = p.data_yesno[0];
+                        if (p.conn.coin < coin) {
+                            Service.send_box_ThongBao_OK(p,
+                                    "Bạn không đủ " + Util.number_format(coin) + " coin");
+                            p.data_yesno = null;
+                            p.map_tele = null;
+
+                            return;
+                        }
+                        if (p.update_coin(-coin)) {
+                            int rubyRec = coin * 100;
+                            int extolRec = coin * 1000;
+                            p.update_ngoc(rubyRec);
+                            p.update_vnd(extolRec);
+                            p.update_money();
+                            Service.send_box_ThongBao_OK(p,
+                                    "Bạn đã đổi thành công " + Util.number_format(coin) + " coin ra "
+                                            + Util.number_format(rubyRec) + " Ruby và "
+                                            + Util.number_format(extolRec) + " Extol.");
+                        }
+
+                    }
+                    break;
+                }
                 case 61: {
                     if (p.data_yesno != null && p.data_yesno.length == 1) {
                         int coin = p.data_yesno[0] / 5000;

@@ -1481,6 +1481,11 @@ public class Player {
             coin_old += coin_exchange;
             st.executeUpdate(
                     "UPDATE `accounts` SET `coin` = " + coin_old + " WHERE BINARY `user` = '" + conn.user + "'");
+            conn.coin = coin_old;
+            if (coin_exchange < 0) {
+                this.update_TichLuy((long) -coin_exchange * 1000L);
+                System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange) + " Coin. Tích lũy nạp hiện tại: " + this.tichLuy + " VND (" + (this.tichLuy / 1000) + " điểm)");
+            }
         } catch (SQLException e) {
             Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");
             e.printStackTrace();

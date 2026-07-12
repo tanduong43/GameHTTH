@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../config/db');
 const { jwtRequired, isAdmin } = require('../middleware/auth');
 const PayOS = require('@payos/node');
+const { sendAdminDepositNotification } = require('../utils/mailer');
 require('dotenv').config();
 
 // Initialize PayOS SDK
@@ -181,6 +182,9 @@ router.post('/banking/deposit', jwtRequired, async (req, res) => {
 
         // Flow 2: Sinh link VietQR động
         const vietqrUrl = `https://img.vietqr.io/image/${bankConfig.bankId}-${bankConfig.accountNo}-compact2.png?amount=${depositAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(bankConfig.accountName)}`;
+
+        // Send email notification to admin asynchronously
+        sendAdminDepositNotification(username, depositAmount, transferContent, code);
 
         return res.json({
             success: true,

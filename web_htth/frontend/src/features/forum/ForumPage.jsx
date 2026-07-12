@@ -67,7 +67,7 @@ function ForumPage() {
       const res = await api.post('activate/');
       if (res.data.success) {
         await fetchUser();
-        showMessage('success', 'Kích hoạt tài khoản thành công! Bây giờ bạn đã có thể tham gia game.');
+        showMessage('success', 'Kích hoạt tài khoản thành công! Đã trừ 10 Coin. Bây giờ bạn đã có thể tham gia game.');
       } else {
         showMessage('error', res.data.message || 'Kích hoạt thất bại!');
       }
@@ -76,6 +76,7 @@ function ForumPage() {
       showMessage('error', 'Lỗi kết nối máy chủ!');
     } finally {
       setSubmitting(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -147,7 +148,7 @@ function ForumPage() {
                     onClick={handleActivateAccount}
                     disabled={submitting}
                   >
-                    {submitting ? 'ĐANG KÍCH HOẠT...' : '⚡ KÍCH HOẠT THÀNH VIÊN (MIỄN PHÍ)'}
+                    {submitting ? 'ĐANG KÍCH HOẠT...' : '⚡ KÍCH HOẠT THÀNH VIÊN (10 Coin)'}
                   </button>
                 </div>
               )}
