@@ -202,6 +202,121 @@ router.post('/banking/deposit', jwtRequired, async (req, res) => {
     }
 });
 
+// GET /api/banking/active - Get the user's currently active deposit order (status = 0 and not expired)
+router.get('/banking/active', jwtRequired, async (req, res) => {
+    try {
+        const [userRows] = await db.execute('SELECT user FROM accounts WHERE id = ?', [req.jwt_user_id]);
+        if (userRows.length === 0) {
+            return res.json({ success: false, message: 'Tài khoản không tồn tại!' });
+        }
+        const username = userRows[0].user;
+
+        // Fetch bank public details
+        const bankConfig = {
+            bankId: process.env.BANK_ID || 'MB',
+            accountNo: process.env.BANK_ACCOUNT_NO || process.env.BANK_ACCOUNT || '123456789999',
+            accountName: process.env.BANK_ACCOUNT_NAME || process.env.BANK_OWNER || 'NGUYEN VAN A'
+        };
+
+        const [rows] = await db.execute(
+            'SELECT id, amount, code, request_id, status, description, created_at FROM recharge_history WHERE username = ? AND type = "bank" AND status = 0 ORDER BY id DESC LIMIT 1',
+            [username]
+        );
+
+        if (rows.length === 0) {
+            return res.json({ success: true, activeDeposit: null });
+        }
+
+        const deposit = rows[0];
+        const createdAtTime = new Date(deposit.created_at).getTime();
+        const now = Date.now();
+        const expiryDuration = 15 * 60 * 1000; // 15 minutes
+
+        if (now - createdAtTime > expiryDuration) {
+            // It has expired. Update status to 3 (Failed/Expired) in the database.
+            await db.execute(
+                'UPDATE recharge_history SET status = 3, description = "Đơn nạp đã hết thời gian thanh toán (15 phút)" WHERE id = ?',
+                [deposit.id]
+            );
+            return res.json({ success: true, activeDeposit: null });
+        }
+
+        const cleanUsername = username.replace(/[^a-zA-Z0-9]/g, '');
+        const transferContent = `WSAC ${deposit.code} ${cleanUsername}`.slice(0, 25).trim();
+        
+        // Dynamic VietQR link
+        const vietqrUrl = `https://img.vietqr.io/image/${bankConfig.bankId}-${bankConfig.accountNo}-compact2.png?amount=${deposit.amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(bankConfig.accountName)}`;
+
+        // Reconstruct payosUrl if PayOS is configured and request_id is present
+        let payosUrl = null;
+        if (payos && deposit.request_id) {
+            try {
+                const paymentLink = await payos.getPaymentLinkInformation(deposit.request_id);
+                if (paymentLink) {
+                    payosUrl = paymentLink.checkoutUrl;
+                }
+            } catch (payosErr) {
+                // Not a payos order or error
+            }
+        }
+
+        return res.json({
+            success: true,
+            activeDeposit: {
+                id: deposit.id,
+                amount: deposit.amount,
+                code: deposit.code,
+                transferContent: transferContent,
+                payosUrl: payosUrl,
+                vietqrUrl: vietqrUrl,
+                created_at: deposit.created_at,
+                expires_at: new Date(createdAtTime + expiryDuration).toISOString(),
+                status: deposit.status
+            }
+        });
+    } catch (err) {
+        console.error('Get active deposit error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/banking/cancel - Cancel a pending deposit order
+router.post('/banking/cancel', jwtRequired, async (req, res) => {
+    const { code } = req.body;
+    if (!code) {
+        return res.json({ success: false, message: 'Thiếu mã code đơn nạp' });
+    }
+
+    try {
+        const [userRows] = await db.execute('SELECT user FROM accounts WHERE id = ?', [req.jwt_user_id]);
+        if (userRows.length === 0) {
+            return res.json({ success: false, message: 'Tài khoản không tồn tại!' });
+        }
+        const username = userRows[0].user;
+
+        const [rows] = await db.execute(
+            'SELECT id FROM recharge_history WHERE code = ? AND username = ? AND status = 0 LIMIT 1',
+            [code, username]
+        );
+
+        if (rows.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy đơn nạp đang chờ với mã code này.' });
+        }
+
+        // Update status to 4 (Cancelled)
+        await db.execute(
+            'UPDATE recharge_history SET status = 4, description = ? WHERE id = ?',
+            ['Đơn nạp đã bị người dùng hủy', rows[0].id]
+        );
+
+        return res.json({ success: true, message: 'Đã hủy đơn nạp thành công.' });
+    } catch (err) {
+        console.error('Cancel deposit error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống khi hủy: ${err.message}` });
+    }
+});
+
+
 // GET /api/banking/history - View user's deposit history
 router.get('/banking/history', jwtRequired, async (req, res) => {
     try {

@@ -5,15 +5,6 @@ import AuthForm from '../../components/AuthForm';
 import api from '../../api/api';
 import '../../styles/App.css';
 
-const AMOUNT_OPTIONS = [
-  { value: '10000', label: '10,000đ (Nhận 10 Coin)' },
-  { value: '20000', label: '20,000đ (Nhận 20 Coin)' },
-  { value: '50000', label: '50,000đ (Nhận 50 Coin)' },
-  { value: '100000', label: '100,000đ (Nhận 100 Coin)' },
-  { value: '200000', label: '200,000đ (Nhận 200 Coin)' },
-  { value: '500000', label: '500,000đ (Nhận 500 Coin)' },
-];
-
 function TopupPage() {
   const { user, loading, fetchUser } = useAuth();
   const socket = useSocket();
@@ -24,6 +15,7 @@ function TopupPage() {
   const [activeDeposit, setActiveDeposit] = useState(null);
   const [creating, setCreating] = useState(false);
   const [history, setHistory] = useState([]);
+  const [timeLeft, setTimeLeft] = useState('');
 
   const [bankConfig, setBankConfig] = useState({
     bankId: 'MB',
@@ -32,64 +24,30 @@ function TopupPage() {
     bankName: 'MB Bank (Ngân hàng Quân Đội)',
   });
 
-  // Fetch configuration and transaction history
+  // Fetch configuration, transaction history, and active deposit
   const fetchHistoryAndConfig = async () => {
     try {
       const configRes = await api.get('recharge/bank_config');
-      let currentBankConfig = bankConfig;
       if (configRes.data && configRes.data.success) {
-        currentBankConfig = {
+        setBankConfig({
           bankId: configRes.data.bankId,
           accountNo: configRes.data.accountNo,
           accountName: configRes.data.accountName,
           bankName: configRes.data.bankName,
-        };
-        setBankConfig(currentBankConfig);
+        });
       }
 
       const historyRes = await api.get('banking/history');
       if (historyRes.data && historyRes.data.success) {
-        const historyList = historyRes.data.history;
-        setHistory(historyList);
+        setHistory(historyRes.data.history);
+      }
 
-        // Reconcile active deposit
-        const storedDepositStr = localStorage.getItem('active_banking_deposit');
-        let foundActive = null;
-
-        if (storedDepositStr) {
-          try {
-            const storedDeposit = JSON.parse(storedDepositStr);
-            const stillPending = historyList.some(item => item.code === storedDeposit.code && item.status === 0);
-            if (stillPending) {
-              foundActive = storedDeposit;
-            } else {
-              localStorage.removeItem('active_banking_deposit');
-            }
-          } catch (e) {
-            localStorage.removeItem('active_banking_deposit');
-          }
-        }
-
-        // If no stored deposit in localStorage, but history has a pending deposit, reconstruct it!
-        if (!foundActive) {
-          const pendingTx = historyList.find(item => item.status === 0);
-          if (pendingTx) {
-            const cleanUser = user.username.replace(/[^a-zA-Z0-9]/g, '');
-            const transferContent = `WSAC ${pendingTx.code} ${cleanUser}`.slice(0, 25).trim();
-            const vietqrUrl = `https://img.vietqr.io/image/${currentBankConfig.bankId}-${currentBankConfig.accountNo}-compact2.png?amount=${pendingTx.amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(currentBankConfig.accountName)}`;
-
-            foundActive = {
-              amount: pendingTx.amount,
-              code: pendingTx.code,
-              transferContent: transferContent,
-              payosUrl: null,
-              vietqrUrl: vietqrUrl
-            };
-            localStorage.setItem('active_banking_deposit', JSON.stringify(foundActive));
-          }
-        }
-
-        setActiveDeposit(foundActive);
+      // Check active deposit from backend directly
+      const activeRes = await api.get('banking/active');
+      if (activeRes.data && activeRes.data.success) {
+        setActiveDeposit(activeRes.data.activeDeposit);
+      } else {
+        setActiveDeposit(null);
       }
     } catch (err) {
       console.error('Lỗi khi tải cấu hình và lịch sử nạp:', err);
@@ -102,6 +60,54 @@ function TopupPage() {
     }
   }, [user]);
 
+  // Countdown timer hook for active deposit expiration
+  useEffect(() => {
+    if (!activeDeposit || !activeDeposit.expires_at) {
+      setTimeLeft('');
+      return;
+    }
+
+    const updateTimer = () => {
+      const expiresAt = new Date(activeDeposit.expires_at).getTime();
+      const now = Date.now();
+      const diff = expiresAt - now;
+
+      if (diff <= 0) {
+        setTimeLeft('Đã hết hạn');
+        handleExpiry();
+      } else {
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      }
+    };
+
+    updateTimer(); // run once immediately
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeDeposit]);
+
+  const handleExpiry = async () => {
+    try {
+      const res = await api.get('banking/active');
+      if (res.data && res.data.success) {
+        if (!res.data.activeDeposit) {
+          setActiveDeposit(null);
+          showMessage('warning', 'Đơn nạp tiền đã hết hạn thanh toán!');
+
+          const historyRes = await api.get('banking/history');
+          if (historyRes.data && historyRes.data.success) {
+            setHistory(historyRes.data.history);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi khi kiểm tra hết hạn đơn:', err);
+      setActiveDeposit(null);
+    }
+  };
+
   // Socket success listener
   useEffect(() => {
     if (!socket) return;
@@ -110,7 +116,6 @@ function TopupPage() {
       console.log('TopupPage received local deposit_success:', data);
       showMessage('success', `🎉 Nạp tiền thành công! Bạn đã được cộng ${data.amount.toLocaleString()} Coin.`);
       setActiveDeposit(null);
-      localStorage.removeItem('active_banking_deposit');
       fetchUser(); // Sync user balance
 
       // Reload history after 2 seconds
@@ -146,22 +151,58 @@ function TopupPage() {
     }
   };
 
-  const handleCreateDeposit = async (e) => {
-    e.preventDefault();
-    const finalAmount = parseInt(transferAmountOption === 'custom' ? transferAmount : transferAmountOption, 10);
+  const handleCreateDeposit = async (amountToCreate) => {
+    const finalAmount = parseInt(amountToCreate, 10);
 
     if (isNaN(finalAmount) || finalAmount < 10000) {
       showMessage('error', 'Vui lòng chọn hoặc nhập số tiền tối thiểu là 10,000đ VNĐ');
       return;
     }
 
+    if (activeDeposit) {
+      const confirmCancel = window.confirm(
+        `Bạn đang có đơn nạp ${activeDeposit.amount.toLocaleString()}đ đang chờ thanh toán.\n\nNhấn OK nếu bạn muốn HỦY đơn cũ để tạo đơn mới.\nNhấn Cancel để tiếp tục thanh toán đơn cũ.`
+      );
+      if (!confirmCancel) {
+        showMessage('info', 'Tiếp tục thanh toán đơn hàng hiện tại.');
+        return;
+      }
+
+      // User chose to cancel the old order
+      try {
+        setCreating(true);
+        const cancelRes = await api.post('banking/cancel', { code: activeDeposit.code });
+        if (!cancelRes.data || !cancelRes.data.success) {
+          showMessage('error', cancelRes.data?.message || 'Không thể hủy đơn cũ.');
+          setCreating(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Lỗi khi hủy đơn cũ:', err);
+        showMessage('error', 'Lỗi khi hủy đơn cũ.');
+        setCreating(false);
+        return;
+      }
+    }
+
     try {
       setCreating(true);
       const res = await api.post('banking/deposit', { amount: finalAmount });
       if (res.data && res.data.success) {
-        setActiveDeposit(res.data.deposit);
-        localStorage.setItem('active_banking_deposit', JSON.stringify(res.data.deposit));
+        // Query the active endpoint immediately to get full information (including backend created_at / expires_at)
+        const activeRes = await api.get('banking/active');
+        if (activeRes.data && activeRes.data.success && activeRes.data.activeDeposit) {
+          setActiveDeposit(activeRes.data.activeDeposit);
+        } else {
+          setActiveDeposit(res.data.deposit);
+        }
         showMessage('success', 'Đã tạo yêu cầu nạp tiền! Vui lòng chuyển khoản.');
+
+        // Refresh history
+        const historyRes = await api.get('banking/history');
+        if (historyRes.data && historyRes.data.success) {
+          setHistory(historyRes.data.history);
+        }
       } else {
         showMessage('error', res.data.message || 'Tạo đơn nạp thất bại.');
       }
@@ -173,12 +214,40 @@ function TopupPage() {
     }
   };
 
+  const handleCancelDeposit = async () => {
+    if (!activeDeposit) return;
+    const confirmCancel = window.confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');
+    if (!confirmCancel) return;
+
+    try {
+      setCreating(true);
+      const res = await api.post('banking/cancel', { code: activeDeposit.code });
+      if (res.data && res.data.success) {
+        setActiveDeposit(null);
+        showMessage('info', 'Đã hủy đơn nạp tiền.');
+
+        const historyRes = await api.get('banking/history');
+        if (historyRes.data && historyRes.data.success) {
+          setHistory(historyRes.data.history);
+        }
+      } else {
+        showMessage('error', res.data.message || 'Hủy đơn nạp thất bại.');
+      }
+    } catch (err) {
+      console.error('Lỗi khi hủy đơn:', err);
+      showMessage('error', 'Lỗi hệ thống khi hủy đơn.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 0: return <span className="badge badge-pending">Chờ thanh toán</span>;
       case 1: return <span className="badge badge-success">Thành công</span>;
       case 2: return <span className="badge badge-warning">Sai số tiền</span>;
       case 3: return <span className="badge badge-failed">Thất bại</span>;
+      case 4: return <span className="badge badge-cancelled">Đã hủy</span>;
       default: return <span className="badge badge-unknown">Không rõ</span>;
     }
   };
@@ -214,187 +283,202 @@ function TopupPage() {
             <strong className="coin-text">{Number(user.coin || 0).toLocaleString()} Coin</strong>
           </div>
 
-          {!activeDeposit ? (
-            /* ================= CREATE DEPOSIT STATE ================= */
-            <div className="topup-section">
-              <p className="topup-transfer-title">
-                🏦 NHẬP SỐ TIỀN MUỐN NẠP
-              </p>
+          <div className="topup-section">
+            <div className="topup-layout">
+              {/* ================= LEFT COLUMN: QR CODE (ALWAYS DISPLAYED) ================= */}
+              <div className="topup-left-col" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <h3 className="topup-col-title" style={{ width: '100%', textAlign: 'center' }}>
+                  {activeDeposit ? 'QUÉT MÃ QR THANH TOÁN' : 'MÃ QR THANH TOÁN MẪU'}
+                </h3>
 
-              <form onSubmit={handleCreateDeposit}>
-                <div className="topup-amount-bar">
-                  <div className="input-group">
-                    <label>Chọn số tiền nạp</label>
-                    <select
-                      value={transferAmountOption}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setTransferAmountOption(val);
-                        if (val === 'custom' || val === '') {
-                          setTransferAmount('');
-                        } else {
-                          setTransferAmount(val);
-                        }
-                      }}
-                      className="topup-select"
-                      required
+                <div className="topup-qr-panel" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <img
+                    src={
+                      activeDeposit
+                        ? activeDeposit.vietqrUrl
+                        : `https://img.vietqr.io/image/${bankConfig.bankId}-${bankConfig.accountNo}-compact2.png?addInfo=${encodeURIComponent('NAP ' + user.username.replace(/[^a-zA-Z0-9]/g, ''))}&accountName=${encodeURIComponent(bankConfig.accountName)}`
+                    }
+                    alt="VietQR Chuyển khoản"
+                    style={{ width: '220px', height: '220px', objectFit: 'contain' }}
+                  />
+                  <p style={{ color: '#000', fontSize: '12px', marginTop: '8px', fontWeight: '500', textAlign: 'center' }}>
+                    {activeDeposit ? 'Mã VietQR động MB Bank' : 'Mã VietQR mẫu MB Bank'}
+                  </p>
+                </div>
+
+                {activeDeposit && activeDeposit.payosUrl && (
+                  <div style={{ marginTop: '15px', width: '100%', textAlign: 'center' }}>
+                    <a
+                      href={activeDeposit.payosUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary"
+                      style={{ display: 'inline-block', width: '100%', padding: '10px 15px', textDecoration: 'none', background: 'linear-gradient(135deg, #0052cc 0%, #002266 100%)', border: 'none', borderRadius: '6px', fontWeight: 'bold' }}
                     >
-                      <option value="">-- Chọn mức nạp --</option>
-                      {AMOUNT_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                      <option value="custom">-- Nhập số tiền khác --</option>
-                    </select>
+                      💳 Thanh toán qua cổng PayOS
+                    </a>
                   </div>
+                )}
 
-                  {transferAmountOption === 'custom' && (
-                    <div className="input-group">
-                      <label>Nhập số tiền khác (VNĐ)</label>
+                {activeDeposit ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px', color: '#888', fontSize: '13px' }}>
+                    <div className="spinner-border text-primary" role="status" style={{ width: '20px', height: '20px', border: '3px solid #ff3366', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                    <span>Đang chờ bạn thanh toán ngân hàng...</span>
+                  </div>
+                ) : (
+                  <p style={{ color: '#666', fontSize: '12px', marginTop: '20px', textAlign: 'center', maxWidth: '280px' }}>
+                    💡 Nhập số tiền và tạo mã QR ở bên cạnh để có nội dung chuyển khoản tự động chính xác nhất.
+                  </p>
+                )}
+              </div>
+
+              {/* ================= RIGHT COLUMN: SELECT AMOUNT OR DETAILS ================= */}
+              <div className="topup-right-col">
+                {activeDeposit ? (
+                  /* Giao diện Đơn nạp đang chờ */
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '10px', marginBottom: '15px' }}>
+                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#000' }}>🛒 Đơn nạp đang thực hiện</span>
+                      <button
+                        onClick={handleCancelDeposit}
+                        className="btn btn-outline"
+                        style={{ fontSize: '11px', padding: '4px 10px', height: 'auto', width: 'auto', border: '1px solid #ff4d4f', color: '#ff4d4f' }}
+                        disabled={creating}
+                      >
+                        Hủy đơn này
+                      </button>
+                    </div>
+
+                    <div className="topup-info-block">
+                      <p className="topup-info-label">Mã giao dịch (Code)</p>
+                      <span className="topup-info-value" style={{ color: '#ffac30', fontSize: '18px', fontWeight: 'bold' }}>{activeDeposit.code}</span>
+                    </div>
+
+                    <div className="topup-info-block">
+                      <p className="topup-info-label">Số tiền cần chuyển</p>
+                      <div className="topup-info-row">
+                        <span className="topup-info-value" style={{ color: '#52c41a', fontWeight: 'bold', fontSize: '18px' }}>
+                          {activeDeposit.amount.toLocaleString()}đ
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText(activeDeposit.amount.toString(), 'Số tiền')}
+                          className="topup-copy-badge"
+                        >
+                          Sao chép
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="topup-info-block">
+                      <p className="topup-info-label">Nội dung chuyển khoản</p>
+                      <div className="topup-transfer-code topup-transfer-code--row" style={{ margin: '4px 0' }}>
+                        <span style={{ fontSize: '16px', color: '#ffac30' }}>{activeDeposit.transferContent}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText(activeDeposit.transferContent, 'Nội dung chuyển khoản')}
+                          className="topup-copy-badge topup-copy-badge--content"
+                        >
+                          📋 Copy
+                        </button>
+                      </div>
+                      <p className="topup-transfer-note" style={{ fontSize: '11px', textAlign: 'left', color: '#ff4d4f' }}>
+                        ⚠️ Chuyển chính xác số tiền và ghi đúng nội dung để hệ thống tự động cộng Coin!
+                      </p>
+                    </div>
+
+                    <div className="topup-info-block">
+                      <p className="topup-info-label">Thời gian hết hạn</p>
+                      <span className="topup-info-value" style={{ color: '#ff4d4f', fontWeight: 'bold', fontSize: '16px' }}>
+                        ⏳ {timeLeft || 'Đang tính toán...'}
+                      </span>
+                    </div>
+
+                    <div className="topup-info-block topup-info-block--last">
+                      <p className="topup-info-label">Trạng thái thanh toán</p>
+                      <div style={{ marginTop: '5px' }}>
+                        {getStatusBadge(activeDeposit.status)}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Giao diện Chọn số tiền */
+                  <div>
+                    <h3 className="topup-col-title">🏦 NHẬP SỐ TIỀN MUỐN NẠP</h3>
+
+                    {/* Preset Amount Grid */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000' }}>
+                        Chọn nhanh mức nạp
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        {[100000, 200000, 500000, 1000000].map((amt) => (
+                          <button
+                            key={amt}
+                            type="button"
+                            onClick={() => {
+                              setTransferAmountOption(amt.toString());
+                              setTransferAmount(amt.toString());
+                            }}
+                            className={`btn ${transferAmount === amt.toString() ? 'btn-primary' : 'btn-outline'}`}
+                            style={{
+                              padding: '10px',
+                              fontSize: '13px',
+                              fontWeight: 'bold',
+                              borderColor: transferAmount === amt.toString() ? 'var(--primary)' : '#ccc',
+                              color: transferAmount === amt.toString() ? '#fff' : '#000',
+                              background: transferAmount === amt.toString() ? 'var(--primary)' : '#fff',
+                            }}
+                          >
+                            {amt.toLocaleString()}đ
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom Amount Field */}
+                    <div className="input-group" style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000' }}>
+                        Hoặc nhập số tiền khác (VNĐ)
+                      </label>
                       <input
                         type="number"
                         min="10000"
                         step="1000"
                         placeholder="Ví dụ: 150000..."
                         value={transferAmount}
-                        onChange={(e) => setTransferAmount(e.target.value)}
+                        onChange={(e) => {
+                          setTransferAmount(e.target.value);
+                          setTransferAmountOption('custom');
+                        }}
                         className="topup-input"
+                        style={{ color: '#000', background: '#fff', border: '1px solid #ccc' }}
                         required
                       />
                     </div>
-                  )}
-                </div>
 
-                <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                  <button type="submit" className="btn btn-primary" style={{ width: '100%', maxWidth: '220px', fontSize: '14px', padding: '10px' }} disabled={creating}>
-                    {creating ? 'Đang khởi tạo...' : '⚓ TẠO YÊU CẦU NẠP TIỀN'}
-                  </button>
-                </div>
-              </form>
+                    <button
+                      onClick={() => handleCreateDeposit(transferAmount)}
+                      className="btn btn-primary"
+                      style={{ width: '100%', fontSize: '14px', padding: '12px', fontWeight: 'bold' }}
+                      disabled={creating}
+                    >
+                      {creating ? 'Đang khởi tạo...' : '⚓ TẠO MÃ QR'}
+                    </button>
 
-              <div className="topup-tip topup-tip--success" style={{ marginTop: '30px' }}>
-                <p>
-                  💡 <strong>Tỷ lệ nạp:</strong> 10.000 VNĐ = 10.000 Coin.
-                </p>
-                <p>
-                  Hệ thống hỗ trợ nạp tiền tự động 24/7. Ngay sau khi bạn chuyển khoản đúng số tiền và nội dung, Coin sẽ được cộng vào ví của bạn trong vòng vài giây mà không cần tải lại trang.
-                </p>
+                    <div className="topup-tip topup-tip--success" style={{ marginTop: '20px' }}>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#52c41a' }}>
+                        💡 <strong>Tỷ lệ nạp:</strong> 1.000 VNĐ = 1 Coin. (Ví dụ: 10.000đ = 10 Coin)
+                      </p>
+                      <p style={{ margin: '5px 0 0 0', fontSize: '11px', color: '#666', lineHeight: '1.4' }}>
+                        Ngay sau khi bạn chuyển khoản đúng số tiền và nội dung, Coin sẽ được cộng vào ví của bạn trong vòng vài giây mà không cần tải lại trang.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          ) : (
-            /* ================= ACTIVE DEPOSIT / WAITING STATE ================= */
-            <div className="topup-section">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '15px', marginBottom: '20px', width: '100%' }}>
-                <span style={{ color: '#000', fontSize: '16px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', margin: 0, whiteSpace: 'nowrap' }}>🛒 Đơn nạp đang thực hiện</span>
-                <button
-                  onClick={() => {
-                    setActiveDeposit(null);
-                    localStorage.removeItem('active_banking_deposit');
-                    showMessage('info', 'Đã hủy đơn nạp hiện tại. Bạn có thể tạo đơn mới.');
-                  }}
-                  className="btn btn-outline"
-                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 8px', height: '30px', width: '120px', fontSize: '10px', borderColor: '#000', color: '#000', borderRadius: '4px', margin: 0, whiteSpace: 'nowrap' }}
-                >
-                  Hủy đơn này
-                </button>
-              </div>
-
-              <div className="topup-layout">
-                <div className="topup-left-col">
-                  <h3 className="topup-col-title">Thông tin chuyển khoản</h3>
-
-                  <div className="topup-info-block">
-                    <p className="topup-info-label">Ngân hàng nhận</p>
-                    <p className="topup-info-value topup-info-bank">{bankConfig.bankName}</p>
-                  </div>
-
-                  <div className="topup-info-block">
-                    <p className="topup-info-label">Số tài khoản</p>
-                    <div className="topup-info-row">
-                      <span className="topup-info-value">{bankConfig.accountNo}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyText(bankConfig.accountNo, 'Số tài khoản')}
-                        className="topup-copy-badge"
-                      >
-                        Sao chép
-                      </button>
-                    </div>
-                    <p className="topup-info-sub">Chủ tài khoản: {bankConfig.accountName}</p>
-                  </div>
-
-                  <div className="topup-info-block">
-                    <p className="topup-info-label">Số tiền chuyển khoản</p>
-                    <div className="topup-info-row">
-                      <span className="topup-info-value" style={{ color: '#52c41a', fontWeight: 'bold' }}>
-                        {activeDeposit.amount.toLocaleString()}đ
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyText(activeDeposit.amount.toString(), 'Số tiền')}
-                        className="topup-copy-badge"
-                      >
-                        Sao chép
-                      </button>
-                    </div>
-                    <p className="topup-info-sub" style={{ color: '#ff4d79' }}>⚠️ Chuyển chính xác số tiền này</p>
-                  </div>
-
-                  <div className="topup-info-block topup-info-block--last">
-                    <p className="topup-info-label">Nội dung chuyển khoản</p>
-                    <div className="topup-transfer-code topup-transfer-code--row">
-                      <span style={{ fontSize: '18px', color: '#ffac30' }}>{activeDeposit.transferContent}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyText(activeDeposit.transferContent, 'Nội dung chuyển khoản')}
-                        className="topup-copy-badge topup-copy-badge--content"
-                      >
-                        📋 Copy
-                      </button>
-                    </div>
-                    <p className="topup-transfer-note" style={{ fontSize: '11px' }}>
-                      ⚠️ Ghi đúng nội dung trên để hệ thống tự động cộng Coin!
-                    </p>
-                  </div>
-                </div>
-
-                <div className="topup-right-col" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                  <h3 className="topup-col-title" style={{ width: '100%', textAlign: 'center' }}>Quét mã QR để thanh toán</h3>
-
-                  {activeDeposit.payosUrl && (
-                    <div style={{ marginBottom: '15px', width: '100%', textAlign: 'center' }}>
-                      <a
-                        href={activeDeposit.payosUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-primary"
-                        style={{ display: 'inline-block', width: '100%', padding: '10px 15px', textDecoration: 'none', background: 'linear-gradient(135deg, #0052cc 0%, #002266 100%)', border: 'none', borderRadius: '6px', fontWeight: 'bold' }}
-                      >
-                        💳 Thanh toán qua cổng PayOS
-                      </a>
-                      <p style={{ fontSize: '11px', color: '#aaa', marginTop: '6px' }}>Mở cổng thanh toán ngân hàng bảo mật của PayOS</p>
-                    </div>
-                  )}
-
-                  <div className="topup-qr-panel" style={{ background: '#fff', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <img
-                      src={activeDeposit.vietqrUrl}
-                      alt="VietQR Chuyển khoản"
-                      style={{ width: '220px', height: '220px', objectFit: 'contain' }}
-                    />
-                    <p style={{ color: '#000', fontSize: '12px', marginTop: '8px', fontWeight: '500', textAlign: 'center' }}>
-                      Mã VietQR động MB Bank
-                    </p>
-                  </div>
-
-                  {/* Payment Spinner */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px', color: '#aaa', fontSize: '13px' }}>
-                    <div className="spinner-border text-primary" role="status" style={{ width: '20px', height: '20px', border: '3px solid #ff3366', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                    <span>Đang chờ bạn thanh toán ngân hàng...</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* ================= RECENT BANK DEPOSITS HISTORY ================= */}
           {history.length > 0 && (
@@ -431,7 +515,7 @@ function TopupPage() {
         </div>
       </div>
 
-      {/* Dynamic Keyframes for spinner animation */}
+      {/* Dynamic Keyframes for spinner and style definitions */}
       <style>{`
         @keyframes spin {
           to { transform: rotate(360deg); }
@@ -447,12 +531,12 @@ function TopupPage() {
         .badge-success { color: #52c41a; background: rgba(82,196,26,0.1); }
         .badge-warning { color: #1890ff; background: rgba(24,144,255,0.1); }
         .badge-failed { color: #f5222d; background: rgba(245,34,45,0.1); }
+        .badge-cancelled { color: #8c8c8c; background: rgba(140,140,140,0.1); }
         .badge-unknown { color: #888; background: rgba(255,255,255,0.05); }
 
-        /* Force black text color for TopupPage */
+        /* Force black text color for TopupPage in light mode */
         .topup-page,
         .topup-page .section-heading,
-        .topup-page .topup-transfer-title,
         .topup-page .topup-col-title,
         .topup-page .topup-info-label,
         .topup-page .topup-info-sub,
@@ -467,9 +551,6 @@ function TopupPage() {
         .topup-page .topup-info-value:not([style*="color"]),
         .topup-page span:not(.badge):not(.coin-text):not(.topup-info-value) {
           color: #000000 !important;
-        }
-        .topup-page .topup-info-bank {
-          color: #1e293b !important;
         }
         .topup-page select.topup-select,
         .topup-page input.topup-input {
