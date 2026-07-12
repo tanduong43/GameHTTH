@@ -202,7 +202,12 @@ public class Boss {
         boss.levelBoss = 1;
         boss.mob.index = boss.index_mob_save;
         
-        List<Integer> allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
+        List<Integer> allowedMaps;
+        if (boss.thegioi == 3) {
+            allowedMaps = new ArrayList<>(ALLOWED_MAP_IDS);
+        } else {
+            allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
+        }
         Map[] zones = null;
         if (allowedMaps != null && allowedMaps.size() > 0) {
             int randomMapId = allowedMaps.get(Util.random(allowedMaps.size()));
