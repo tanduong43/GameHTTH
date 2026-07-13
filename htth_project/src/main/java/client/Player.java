@@ -122,6 +122,8 @@ public class Player {
     public List<ItemBag47> daHanhTrinh;
     private int tichLuy;
     public List<Integer> claimedMilestones = new ArrayList<>();
+    public int tichtieu_ruby;
+    public List<Integer> claimedTichtieuRuby = new ArrayList<>();
     private short ticket;
     private long vang;
     private int kimcuong;
@@ -260,7 +262,7 @@ public class Player {
             kimcuong = Integer.parseInt(js.get(1).toString());
             vnd = Integer.parseInt(js.get(2).toString());
             bua = Integer.parseInt(js.get(3).toString());
-            tichLuy = Integer.parseInt(js.get(4).toString());
+            tichLuy = 0;
             pvp_win = Integer.parseInt(js.get(5).toString());
             pvp_lose = Integer.parseInt(js.get(6).toString());
             time_ship = Byte.parseByte(js.get(7).toString());
@@ -283,16 +285,28 @@ public class Player {
             } else {
                 time_tower = 0;
             }
-            if (js.size() > 15) {
-                String val = js.get(15).toString();
-                this.claimedMilestones = new ArrayList<>();
-                if (!val.isEmpty()) {
-                    for (String s : val.split(",")) {
-                        this.claimedMilestones.add(Integer.parseInt(s));
+            this.claimedMilestones = new ArrayList<>();
+            if (this.conn != null && this.conn.claimed_milestones != null && !this.conn.claimed_milestones.isEmpty()) {
+                for (String s : this.conn.claimed_milestones.split(",")) {
+                    try {
+                        this.claimedMilestones.add(Integer.parseInt(s.trim()));
+                    } catch (NumberFormatException e) {
+                        // ignore
                     }
                 }
-            } else {
-                this.claimedMilestones = new ArrayList<>();
+            }
+            // Đọc tích tiêu ruby từ bảng players
+            this.tichtieu_ruby = rs.getInt("tichtieu_ruby");
+            this.claimedTichtieuRuby = new ArrayList<>();
+            String valTieu = rs.getString("claimed_tichtieu_ruby");
+            if (valTieu != null && !valTieu.isEmpty()) {
+                for (String s : valTieu.split(",")) {
+                    try {
+                        this.claimedTichtieuRuby.add(Integer.parseInt(s.trim()));
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                }
             }
             js.clear();
             this.wanted_chest = new Wanted_Chest[2];
@@ -831,7 +845,7 @@ public class Player {
             js.add(p.kimcuong);
             js.add(p.vnd);
             js.add(p.bua);
-            js.add(p.tichLuy);
+            js.add(0);
             js.add(p.pvp_win);
             js.add(p.pvp_lose);
             js.add(p.time_ship);
@@ -842,18 +856,7 @@ public class Player {
             js.add(p.time_namie);
             js.add(p.time_bosshunt);
             js.add(p.time_tower);
-            String val = "";
-            if (p.claimedMilestones != null && !p.claimedMilestones.isEmpty()) {
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < p.claimedMilestones.size(); i++) {
-                    sb.append(p.claimedMilestones.get(i));
-                    if (i < p.claimedMilestones.size() - 1) {
-                        sb.append(",");
-                    }
-                }
-                val = sb.toString();
-            }
-            js.add(val);
+            js.add("");
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -1113,6 +1116,20 @@ public class Player {
             ps.setNString(30, js_dh.toJSONString());
             //
             result = ps.executeUpdate();
+
+            // Lưu tích tiêu ruby riêng biệt (tránh lệch chỉ số tham số trong câu lệnh chính)
+            StringBuilder sbTichTieu = new StringBuilder();
+            for (int i = 0; i < p.claimedTichtieuRuby.size(); i++) {
+                sbTichTieu.append(p.claimedTichtieuRuby.get(i));
+                if (i < p.claimedTichtieuRuby.size() - 1) sbTichTieu.append(",");
+            }
+            java.sql.PreparedStatement psTieu = connection.prepareStatement(
+                "UPDATE `players` SET `tichtieu_ruby` = ?, `claimed_tichtieu_ruby` = ? WHERE `id` = ?");
+            psTieu.setInt(1, p.tichtieu_ruby);
+            psTieu.setString(2, sbTichTieu.toString());
+            psTieu.setInt(3, p.id);
+            psTieu.executeUpdate();
+            psTieu.close();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -1483,6 +1500,10 @@ public class Player {
     public synchronized void update_ngoc(long par) {
         if ((((long) par) + this.kimcuong) < 2_000_000_000L) {
             this.kimcuong += par;
+            // Cộng dồn tích tiêu khi người chơi tiêu ngọc (par âm = tiêu ngọc)
+            if (par < 0) {
+                this.tichtieu_ruby += (int) (-par);
+            }
         }
     }
 
@@ -1511,8 +1532,7 @@ public class Player {
             }
 
             if (coin_exchange < 0) {
-                this.update_TichLuy((long) -coin_exchange * 1000L);
-                System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange) + " Coin. Tích lũy nạp hiện tại: " + this.tichLuy + " VND (" + (this.tichLuy / 1000) + " điểm)");
+                System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange) + " Coin.");
             }
         } catch (SQLException e) {
             Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");
@@ -2677,7 +2697,10 @@ public class Player {
     }
 
     public int getTichLuy() {
-        return tichLuy;
+        if (this.conn != null) {
+            return this.conn.tichnap;
+        }
+        return 0;
     }
 
     public void update_pvpPoint(int i) {

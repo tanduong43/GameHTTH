@@ -3445,11 +3445,11 @@ public class Map implements Runnable {
 
         if (p.conn.user.equals("admin")) {
             if (txt.equals("menu")) {
-                MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[] { "Bảo trì",
-                        "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tạo Giftcode" },
+                MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[] { "Bao tri",
+                        "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tao Giftcode", "Reset Tich Luy", "Reset Tich Tieu" },
                         null);
                 Service.send_box_ThongBao_OK(p,
-                        "Nếu menu không hiện, hãy dùng lệnh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode");
+                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu");
                 return;
             } else if (txt.startsWith("admin ")) {
                 String cmd = txt.substring(6);
@@ -3469,8 +3469,12 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 6);
                 else if (cmd.equals("taocode"))
                     MenuController.Menu_Admin(p, (byte) 7);
+                else if (cmd.equals("resetnap") || cmd.equals("reset_tichluy"))
+                    MenuController.Menu_Admin(p, (byte) 8);
+                else if (cmd.equals("resettieu") || cmd.equals("reset_tichtieu"))
+                    MenuController.Menu_Admin(p, (byte) 9);
                 else
-                    Service.send_box_ThongBao_OK(p, "Lệnh admin không hợp lệ!");
+                    Service.send_box_ThongBao_OK(p, "Lenh admin khong hop le!");
                 return;
             }
         }

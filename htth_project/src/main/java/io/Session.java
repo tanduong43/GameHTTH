@@ -60,6 +60,8 @@ public class Session implements Runnable {
     public byte status;
     public int coin;
     public int vip;
+    public int tichnap;
+    public String claimed_milestones;
     private boolean getImgAPK = false;
 
     public Session(Socket socket) {
@@ -590,6 +592,11 @@ public class Session implements Runnable {
                 this.coin = rs.getInt("coin");
                 this.status = rs.getByte("status");
                 this.lock = rs.getByte("lock");
+                this.tichnap = rs.getInt("tichnap");
+                this.claimed_milestones = rs.getString("claimed_milestones");
+                if (this.claimed_milestones == null) {
+                    this.claimed_milestones = "";
+                }
                 if (this.lock != 0) {
                     login_notice("Tài khoản bị khóa để kiểm tra, liên hệ admin để biết chi tiết, "
                             + "đừng spam tin nhắn kẻo bị t tắt thông báo!");

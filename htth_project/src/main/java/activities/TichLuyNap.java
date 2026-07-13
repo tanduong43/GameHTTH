@@ -59,52 +59,32 @@ public class TichLuyNap {
      * =====================================================================
      *  CẤU HÌNH CÁC MỐC TÍCH LUỸ NẠP - CHỈNH SỬA TẠI ĐÂY
      * =====================================================================
-     *  Cách thêm/sửa mốc:
-     *    1. Tạo Milestone(id, "tiêu đề", soExtolYeuCau)
-     *       - id          : ID duy nhất, client dùng để nhận diện (VD: 100 = 100k)
-     *       - extolReq    : số Extol tích luỹ cần đạt (đơn vị: 1 Extol)
-     *    2. Gọi .addReward(tên, type, id_item, icon, số_lượng)
-     *       - type 4  = vật phẩm thường (ItemTemplate4)
-     *       - type 3  = trang bị (ItemTemplate3)
-     *       - type 7  = ItemTemplate7
-     *       - type 8  = ItemTemplate8
-     *       - Nếu type=4 và id=1 → sẽ được cộng Ruby (ngọc) thay vì vào hành trang
-     *    3. Thêm vào MILESTONES.add(...)
-     * =====================================================================
      */
     private static void initMilestones() {
         MILESTONES.clear();
 
-        // ------------------------------------------------------------------
         // MỐC 1: 100k Extol
-        // ------------------------------------------------------------------
         Milestone m1 = new Milestone(100, "Tích luỹ nạp 100k Extol", 100000);
         m1.addReward("Chest",        (byte) 4, (short)  7, (short)  7,   5); // Rương châu báu x5
         m1.addReward("Blue stone",   (byte) 4, (short) 70, (short) 70,  50); // Đá Saphia cấp 3 x50
         m1.addReward("Purple stone", (byte) 4, (short) 76, (short) 76,  10); // Thạch anh tím cấp 3 x10
         MILESTONES.add(m1);
 
-        // ------------------------------------------------------------------
         // MỐC 2: 200k Extol
-        // ------------------------------------------------------------------
         Milestone m2 = new Milestone(200, "Tích luỹ nạp 200k Extol", 200000);
         m2.addReward("Ruby",         (byte) 4, (short)  1, (short)  1,  60); // Ruby x60
         m2.addReward("Chest",        (byte) 4, (short)  7, (short)  7,  10); // Rương châu báu x10
         m2.addReward("Blue stone",   (byte) 4, (short) 70, (short) 70, 100); // Đá Saphia cấp 3 x100
         MILESTONES.add(m2);
 
-        // ------------------------------------------------------------------
         // MỐC 3: 300k Extol
-        // ------------------------------------------------------------------
         Milestone m3 = new Milestone(300, "Tích luỹ nạp 300k Extol", 300000);
         m3.addReward("Ruby",         (byte) 4, (short)  1, (short)  1, 100); // Ruby x100
         m3.addReward("Chest",        (byte) 4, (short)  7, (short)  7,  15); // Rương châu báu x15
         m3.addReward("Purple stone", (byte) 4, (short) 76, (short) 76,  30); // Thạch anh tím cấp 3 x30
         MILESTONES.add(m3);
 
-        // ------------------------------------------------------------------
         // MỐC 4: 500k Extol
-        // ------------------------------------------------------------------
         Milestone m4 = new Milestone(500, "Tích luỹ nạp 500k Extol", 500000);
         m4.addReward("Ruby",         (byte) 4, (short)  1, (short)  1, 200); // Ruby x200
         m4.addReward("Chest",        (byte) 4, (short)  7, (short)  7,  25); // Rương châu báu x25
@@ -112,9 +92,7 @@ public class TichLuyNap {
         m4.addReward("Purple stone", (byte) 4, (short) 76, (short) 76,  50); // Thạch anh tím cấp 3 x50
         MILESTONES.add(m4);
 
-        // ------------------------------------------------------------------
-        // MỐC 5: 1M Extol (1.000.000)
-        // ------------------------------------------------------------------
+        // MỐC 5: 1M Extol
         Milestone m5 = new Milestone(1000, "Tích luỹ nạp 1M Extol", 1000000);
         m5.addReward("Ruby",         (byte) 4, (short)  1, (short)  1, 500); // Ruby x500
         m5.addReward("Chest",        (byte) 4, (short)  7, (short)  7,  50); // Rương châu báu x50
@@ -212,28 +190,54 @@ public class TichLuyNap {
         return requiredSpace;
     }
 
+    public static void syncAccountTichNap(Player p) {
+        if (p.conn == null) return;
+        java.sql.Connection connection = null;
+        java.sql.PreparedStatement ps = null;
+        java.sql.ResultSet rs = null;
+        try {
+            connection = database.SQL.gI().getCon();
+            ps = connection.prepareStatement("SELECT `tichnap`, `claimed_milestones` FROM `accounts` WHERE `user` = ? LIMIT 1;");
+            ps.setString(1, p.conn.user);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                p.conn.tichnap = rs.getInt("tichnap");
+                p.conn.claimed_milestones = rs.getString("claimed_milestones");
+                if (p.conn.claimed_milestones == null) {
+                    p.conn.claimed_milestones = "";
+                }
+                
+                p.claimedMilestones.clear();
+                if (!p.conn.claimed_milestones.isEmpty()) {
+                    for (String s : p.conn.claimed_milestones.split(",")) {
+                        try {
+                            p.claimedMilestones.add(Integer.parseInt(s.trim()));
+                        } catch (NumberFormatException e) {
+                            // ignore
+                        }
+                    }
+                }
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (connection != null) connection.close();
+            } catch (java.sql.SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static void sendUI(Player p) throws IOException {
+        syncAccountTichNap(p);
         System.out.println("[TichLuyNap] sendUI called for player: " + p.name
                 + " | tichLuy=" + p.getTichLuy()
                 + " | milestones=" + MILESTONES.size()
                 + " | isdie=" + p.isdie);
-        /*
-         * FORMAT CLIENT ĐỌC (ListTichNapThe - Opcode -90):
-         *   writeByte(0)                    ← type = 0: mở UI
-         *   writeInt(rubyDaNap)             ← Tổng điểm tích luỹ hiện tại của player
-         *   writeByte(MILESTONES.size())    ← số mốc
-         *   loop (index i):
-         *     writeByte(i)                  ← ID mốc dạng byte (chỉ số index: 0, 1, 2...)
-         *     writeInt(milestone.extolReq)  ← số lượng cần để nhận (e.g. 100000, 200000...)
-         *     writeByte(status)             ← Trạng thái: 0 = "Xem" (chưa đủ), 1 = "Nhận" (đủ chưa nhận), 2 = "Đã nhận"
-         *     writeShort(numQua)            ← số lượng phần thưởng
-         *     loop numQua:
-         *       writeUTF(name)             ← tên item
-         *       writeByte(type)            ← loại item
-         *       writeShort(id)             ← id item (được client dùng làm idIcon)
-         *       writeShort(quantity)       ← số lượng
-         *       writeByte(color)           ← màu chữ tên item (0=trắng, 5=vàng...)
-         */
+        
         Message m = new Message(-90);
         m.writer().writeByte(0); // type = 0: Open UI
         m.writer().writeInt(p.getTichLuy()); // Tổng điểm tích luỹ
@@ -242,10 +246,6 @@ public class TichLuyNap {
         for (int i = 0; i < MILESTONES.size(); i++) {
             Milestone milestone = MILESTONES.get(i);
             
-            // Trạng thái mốc:
-            // 2: Đã nhận quà
-            // 1: Đủ điểm tích lũy và chưa nhận
-            // 0: Chưa đủ điểm tích lũy
             byte status = 0;
             if (p.claimedMilestones.contains(milestone.id)) {
                 status = 2;
@@ -263,7 +263,6 @@ public class TichLuyNap {
                 m.writer().writeByte(reward.type);            // loại item
                 m.writer().writeShort(reward.id);             // id item
                 m.writer().writeShort(reward.quantity);       // số lượng
-                // màu tên: 5=vàng (Ruby), 0=trắng (item thường)
                 m.writer().writeByte(isRubyReward(reward) ? 5 : 0);
             }
         }
@@ -271,7 +270,6 @@ public class TichLuyNap {
         m.cleanup();
         System.out.println("[TichLuyNap] sendUI (Opcode -90) packet sent OK to: " + p.name);
     }
-
 
     public static Milestone getMilestoneByIndex(int index) {
         if (index >= 0 && index < MILESTONES.size()) {
@@ -290,6 +288,7 @@ public class TichLuyNap {
     }
 
     public static void claimReward(Player p, int index) throws IOException {
+        syncAccountTichNap(p);
         Milestone milestone = getMilestoneByIndex(index);
         if (milestone == null) {
             return;
@@ -327,6 +326,37 @@ public class TichLuyNap {
         }
 
         p.claimedMilestones.add(milestone.id);
+        
+        // Cập nhật lại chuỗi claimed_milestones trong Session tài khoản
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < p.claimedMilestones.size(); i++) {
+            sb.append(p.claimedMilestones.get(i));
+            if (i < p.claimedMilestones.size() - 1) {
+                sb.append(",");
+            }
+        }
+        p.conn.claimed_milestones = sb.toString();
+        
+        // Lưu lại cột claimed_milestones vào bảng accounts dưới DB
+        java.sql.Connection connection = null;
+        java.sql.PreparedStatement ps = null;
+        try {
+            connection = database.SQL.gI().getCon();
+            ps = connection.prepareStatement("UPDATE `accounts` SET `claimed_milestones` = ? WHERE `user` = ?");
+            ps.setString(1, p.conn.claimed_milestones);
+            ps.setString(2, p.conn.user);
+            ps.executeUpdate();
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (ps != null) ps.close();
+                if (connection != null) connection.close();
+            } catch (java.sql.SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
         p.update_money();
         p.item.update_Inventory(-1, false);
 

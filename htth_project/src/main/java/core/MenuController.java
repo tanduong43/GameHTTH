@@ -248,7 +248,7 @@ public class MenuController {
         }
         case -100: {
           send_dynamic_menu(p, type, "Sự kiện",
-              new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu" },
+              new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu" },
               null);
           break;
         }
@@ -703,6 +703,10 @@ public class MenuController {
           } else {
             Service.send_box_ThongBao_OK(p, "Hãy nhận hàng trước");
           }
+          break;
+        }
+        case 983: { // Tich Tieu Menu Npc Text
+          activities.TichLuyTieu.claimReward(p, index);
           break;
         }
         case 984: {
@@ -1939,10 +1943,18 @@ public class MenuController {
       }
       case 3: {
         if (p.conn.status != 1) {
-          Service.send_box_ThongBao_OK(p, "Chưa kích hoạt không thể tham gia");
+          Service.send_box_ThongBao_OK(p, "Chua kich hoat khong the tham gia");
           return;
         }
-        send_dynamic_menu(p, 989, "Tài xỉu", new String[] { "Tham gia", "Nhận thưởng" }, null);
+        send_dynamic_menu(p, 989, "Tai xiu", new String[] { "Tham gia", "Nhan thuong" }, null);
+        break;
+      }
+      case 4: { // Tich Tieu Ruby
+        if (p.conn.status != 1) {
+          Service.send_box_ThongBao_OK(p, "Chua kich hoat khong the tham gia");
+          return;
+        }
+        activities.TichLuyTieu.sendUI(p);
         break;
       }
     }
@@ -2327,6 +2339,85 @@ public class MenuController {
         case 5: {
           SaveData.process();
           Service.send_box_ThongBao_OK(p, "Thành công");
+          break;
+        }
+        case 8: {
+          // Reset cumulative top-up in database
+          java.sql.Connection connection = null;
+          java.sql.Statement st = null;
+          try {
+            connection = database.SQL.gI().getCon();
+            st = connection.createStatement();
+            st.executeUpdate("UPDATE `accounts` SET `tichnap` = 0, `claimed_milestones` = ''");
+          } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+          } finally {
+            try {
+              if (st != null)
+                st.close();
+              if (connection != null)
+                connection.close();
+            } catch (java.sql.SQLException e) {
+              e.printStackTrace();
+            }
+          }
+
+          // Reset currently online players
+          synchronized (SessionManager.CLIENT_ENTRYS) {
+            for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
+              io.Session sess = SessionManager.CLIENT_ENTRYS.get(i);
+              if (sess != null && sess.p != null) {
+                sess.tichnap = 0;
+                sess.claimed_milestones = "";
+                sess.p.claimedMilestones.clear();
+                try {
+                  activities.TichLuyNap.sendUI(sess.p);
+                } catch (Exception e) {
+                  // ignore UI update error for specific offline/disconnecting players
+                }
+              }
+            }
+          }
+
+          Service.send_box_ThongBao_OK(p, "Da reset tich luy nap cua toan bo tai khoan thanh cong!");
+          break;
+        }
+        case 9: {
+          // Reset tich tieu ruby trong database
+          java.sql.Connection connDb = null;
+          java.sql.Statement st = null;
+          try {
+              connDb = database.SQL.gI().getCon();
+              st = connDb.createStatement();
+              st.executeUpdate("UPDATE `players` SET `tichtieu_ruby` = 0, `claimed_tichtieu_ruby` = ''");
+          } catch (java.sql.SQLException e) {
+              e.printStackTrace();
+          } finally {
+              try {
+                  if (st != null) st.close();
+                  if (connDb != null) connDb.close();
+              } catch (java.sql.SQLException e) {
+                  e.printStackTrace();
+              }
+          }
+
+          // Reset nong nguoi choi dang online
+          synchronized (SessionManager.CLIENT_ENTRYS) {
+            for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
+              io.Session sess = SessionManager.CLIENT_ENTRYS.get(i);
+              if (sess != null && sess.p != null) {
+                sess.p.tichtieu_ruby = 0;
+                sess.p.claimedTichtieuRuby.clear();
+                try {
+                  activities.TichLuyTieu.sendUI(sess.p);
+                } catch (Exception e) {
+                  // ignore UI update error for disconnecting players
+                }
+              }
+            }
+          }
+
+          Service.send_box_ThongBao_OK(p, "Da reset tich tieu ruby cua toan bo nhan vat thanh cong!");
           break;
         }
       }
