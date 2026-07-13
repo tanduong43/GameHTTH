@@ -991,8 +991,7 @@ public class MenuController {
               break;
             }
             case 6: {
-              Service.send_box_ThongBao_OK(p, "Bạn đang sở hữu " + Util.number_format(p.conn.coin) + " Coin.\n"
-                  + "Nếu bạn vừa đổi coin vui lòng thoát game vào lại để xem chính xác coin");
+              Service.send_box_ThongBao_OK(p, "Bạn đang sở hữu " + Util.number_format(p.conn.coin) + " Coin.");
               break;
             }
             case 7: {
@@ -1665,8 +1664,7 @@ public class MenuController {
           break;
         }
         case 2: {
-          Service.send_box_ThongBao_OK(p, "Bạn đã tích lũy nạp: " + Util.number_format(p.getTichLuy()) + " VND ("
-              + (p.getTichLuy() / 1000) + " điểm)");
+          activities.TichLuyNap.sendUI(p);
           break;
         }
         case 3: {

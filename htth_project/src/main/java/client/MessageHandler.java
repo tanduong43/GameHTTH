@@ -449,6 +449,16 @@ public class MessageHandler {
                 }
                 break;
             }
+            case -97: {
+                if (conn.p != null) {
+                    byte type = m.reader().readByte();
+                    short id = m.reader().readShort();
+                    if (type == 1) {
+                        activities.TichLuyNap.claimReward(conn.p, id);
+                    }
+                }
+                break;
+            }
             case -16: {
                 if (conn.p != null) {
                     conn.p.plus_point(m);

@@ -263,7 +263,7 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
 // GET /api/admin/accounts/
 router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
     try {
-        const [rows] = await db.execute('SELECT id, user, coin, status, `lock` FROM accounts ORDER BY id DESC');
+        const [rows] = await db.execute('SELECT id, user, coin, status, `lock`, onl FROM accounts ORDER BY id DESC');
         return res.json({ success: true, accounts: rows });
     } catch (err) {
         console.error('Admin get accounts error:', err);

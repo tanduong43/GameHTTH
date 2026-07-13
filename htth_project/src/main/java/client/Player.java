@@ -121,6 +121,7 @@ public class Player {
     public byte[] tool_dial;
     public List<ItemBag47> daHanhTrinh;
     private int tichLuy;
+    public List<Integer> claimedMilestones = new ArrayList<>();
     private short ticket;
     private long vang;
     private int kimcuong;
@@ -281,6 +282,17 @@ public class Player {
                 time_tower = Byte.parseByte(js.get(14).toString());
             } else {
                 time_tower = 0;
+            }
+            if (js.size() > 15) {
+                String val = js.get(15).toString();
+                this.claimedMilestones = new ArrayList<>();
+                if (!val.isEmpty()) {
+                    for (String s : val.split(",")) {
+                        this.claimedMilestones.add(Integer.parseInt(s));
+                    }
+                }
+            } else {
+                this.claimedMilestones = new ArrayList<>();
             }
             js.clear();
             this.wanted_chest = new Wanted_Chest[2];
@@ -830,6 +842,18 @@ public class Player {
             js.add(p.time_namie);
             js.add(p.time_bosshunt);
             js.add(p.time_tower);
+            String val = "";
+            if (p.claimedMilestones != null && !p.claimedMilestones.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < p.claimedMilestones.size(); i++) {
+                    sb.append(p.claimedMilestones.get(i));
+                    if (i < p.claimedMilestones.size() - 1) {
+                        sb.append(",");
+                    }
+                }
+                val = sb.toString();
+            }
+            js.add(val);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -1463,25 +1487,29 @@ public class Player {
     }
 
     public synchronized boolean update_coin(int coin_exchange) throws IOException {
-        String query = "SELECT `coin` FROM `accounts` WHERE BINARY `user` = '" + conn.user + "' LIMIT 1;";
-        int coin_old = 0;
         Connection connection = null;
         Statement st = null;
         ResultSet rs = null;
         try {
             connection = SQL.gI().getCon();
             st = connection.createStatement();
-            rs = st.executeQuery(query);
-            rs.next();
-            coin_old = rs.getInt("coin");
-            if (coin_old + coin_exchange < 0) {
+            
+            // Perform atomic update first to avoid race conditions with web deposits
+            int rows = st.executeUpdate(
+                "UPDATE `accounts` SET `coin` = `coin` + " + coin_exchange + " WHERE BINARY `user` = '" + conn.user + "' AND `coin` + " + coin_exchange + " >= 0"
+            );
+            
+            if (rows == 0) {
                 Service.send_box_ThongBao_OK(this, "Không đủ coin");
                 return false;
             }
-            coin_old += coin_exchange;
-            st.executeUpdate(
-                    "UPDATE `accounts` SET `coin` = " + coin_old + " WHERE BINARY `user` = '" + conn.user + "'");
-            conn.coin = coin_old;
+            
+            // Read back the exact updated value
+            rs = st.executeQuery("SELECT `coin` FROM `accounts` WHERE BINARY `user` = '" + conn.user + "' LIMIT 1;");
+            if (rs.next()) {
+                conn.coin = rs.getInt("coin");
+            }
+
             if (coin_exchange < 0) {
                 this.update_TichLuy((long) -coin_exchange * 1000L);
                 System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange) + " Coin. Tích lũy nạp hiện tại: " + this.tichLuy + " VND (" + (this.tichLuy / 1000) + " điểm)");

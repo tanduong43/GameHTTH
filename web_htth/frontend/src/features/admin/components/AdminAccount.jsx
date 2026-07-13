@@ -42,6 +42,10 @@ function AdminAccount() {
     }
   };
 
+  const totalAccounts = accounts.length;
+  const totalOnline = accounts.filter(acc => acc.onl === 1).length;
+  const totalMembers = accounts.filter(acc => acc.status === 1).length;
+
   // Filter accounts
   const filteredAccounts = accounts.filter(acc => {
     if (searchQuery.trim()) {
@@ -82,6 +86,116 @@ function AdminAccount() {
         🔍 QUẢN LÝ TÀI KHOẢN
       </h3>
       
+      {/* Stats Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '20px',
+        marginBottom: '24px'
+      }}>
+        {/* Total Accounts */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(20,20,20,0.8) 0%, rgba(30,30,30,0.8) 100%)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '16px',
+          padding: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            background: 'rgba(52, 152, 219, 0.15)',
+            width: '60px',
+            height: '60px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+            marginRight: '20px',
+            border: '1px solid rgba(52, 152, 219, 0.3)'
+          }}>
+            👥
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', color: '#aaa', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Tổng Tài Khoản</div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#fff' }}>{totalAccounts.toLocaleString()}</div>
+          </div>
+          <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '80px', opacity: 0.05 }}>👥</div>
+        </div>
+
+        {/* Total Online */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(20,20,20,0.8) 0%, rgba(30,30,30,0.8) 100%)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '16px',
+          padding: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            background: 'rgba(46, 204, 113, 0.15)',
+            width: '60px',
+            height: '60px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+            marginRight: '20px',
+            border: '1px solid rgba(46, 204, 113, 0.3)'
+          }}>
+            🟢
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', color: '#aaa', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Đang Online</div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#fff' }}>{totalOnline.toLocaleString()}</div>
+          </div>
+          <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '80px', opacity: 0.05 }}>🟢</div>
+        </div>
+
+        {/* Total Members */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(20,20,20,0.8) 0%, rgba(30,30,30,0.8) 100%)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '16px',
+          padding: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            background: 'rgba(241, 196, 15, 0.15)',
+            width: '60px',
+            height: '60px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+            marginRight: '20px',
+            border: '1px solid rgba(241, 196, 15, 0.3)'
+          }}>
+            👑
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', color: '#aaa', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px' }}>Mở Thành Viên</div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#fff' }}>{totalMembers.toLocaleString()}</div>
+          </div>
+          <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '80px', opacity: 0.05 }}>👑</div>
+        </div>
+      </div>
+
       {/* Search and Filters */}
       <div style={{
         display: 'flex',
