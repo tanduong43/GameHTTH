@@ -16,6 +16,7 @@ function TopupPage() {
   const [creating, setCreating] = useState(false);
   const [history, setHistory] = useState([]);
   const [timeLeft, setTimeLeft] = useState('');
+  const [confirming, setConfirming] = useState(false);
 
   const [bankConfig, setBankConfig] = useState({
     bankId: 'MB',
@@ -108,30 +109,84 @@ function TopupPage() {
     }
   };
 
-  // Socket success listener
+  // Socket success and reject listener
   useEffect(() => {
     if (!socket) return;
 
     const handleDepositSuccess = (data) => {
       console.log('TopupPage received local deposit_success:', data);
       showMessage('success', `🎉 Nạp tiền thành công! Bạn đã được cộng ${data.amount.toLocaleString()} Coin.`);
-      setActiveDeposit(null);
+      
+      // Update activeDeposit status in real-time
+      setActiveDeposit((prev) => {
+        if (prev && prev.code === data.code) {
+          return { ...prev, status: data.status, real_amount: data.real_amount };
+        }
+        return prev;
+      });
+
+      // Update history in real-time
+      setHistory((prev) => {
+        return prev.map((tx) => {
+          if (tx.code === data.code) {
+            return { ...tx, status: data.status, real_amount: data.real_amount };
+          }
+          return tx;
+        });
+      });
+
       fetchUser(); // Sync user balance
 
-      // Reload history after 2 seconds
+      // Clear active deposit and reload full history after 4 seconds
       setTimeout(() => {
+        setActiveDeposit(null);
         api.get('banking/history').then((res) => {
           if (res.data && res.data.success) {
             setHistory(res.data.history);
           }
         });
-      }, 2000);
+      }, 4000);
+    };
+
+    const handleDepositRejected = (data) => {
+      console.log('TopupPage received local deposit_rejected:', data);
+      showMessage('error', `❌ Đơn nạp ${data.code} đã bị từ chối bởi Admin.`);
+      
+      // Update activeDeposit status in real-time
+      setActiveDeposit((prev) => {
+        if (prev && prev.code === data.code) {
+          return { ...prev, status: data.status };
+        }
+        return prev;
+      });
+
+      // Update history in real-time
+      setHistory((prev) => {
+        return prev.map((tx) => {
+          if (tx.code === data.code) {
+            return { ...tx, status: data.status };
+          }
+          return tx;
+        });
+      });
+
+      // Clear active deposit and reload full history after 4 seconds
+      setTimeout(() => {
+        setActiveDeposit(null);
+        api.get('banking/history').then((res) => {
+          if (res.data && res.data.success) {
+            setHistory(res.data.history);
+          }
+        });
+      }, 4000);
     };
 
     socket.on('deposit_success', handleDepositSuccess);
+    socket.on('deposit_rejected', handleDepositRejected);
 
     return () => {
       socket.off('deposit_success', handleDepositSuccess);
+      socket.off('deposit_rejected', handleDepositRejected);
     };
   }, [socket, fetchUser]);
 
@@ -140,6 +195,53 @@ function TopupPage() {
     setTimeout(() => {
       setMessage((prev) => (prev && prev.text === text ? null : prev));
     }, 8000);
+
+    // Show floating toast for high visibility when scrolled down
+    let container = document.getElementById('global-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'global-toast-container';
+      container.style.position = 'fixed';
+      container.style.top = '20px';
+      container.style.right = '20px';
+      container.style.zIndex = '999999';
+      container.style.display = 'flex';
+      container.style.flexDirection = 'column';
+      container.style.gap = '10px';
+      document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.style.background = 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%)';
+    toast.style.color = '#fff';
+    toast.style.borderLeft = type === 'success' ? '4px solid #52c41a' : type === 'error' ? '4px solid #ff4d4f' : '4px solid #ffac30';
+    toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)';
+    toast.style.padding = '14px 20px';
+    toast.style.borderRadius = '8px';
+    toast.style.fontFamily = 'system-ui, sans-serif';
+    toast.style.fontSize = '14px';
+    toast.style.fontWeight = '600';
+    toast.style.minWidth = '300px';
+    toast.style.maxWidth = '400px';
+    toast.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    toast.style.transform = 'translateX(120%)';
+    toast.style.opacity = '0';
+    toast.innerHTML = text;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.transform = 'translateX(0)';
+      toast.style.opacity = '1';
+    }, 50);
+
+    setTimeout(() => {
+      toast.style.transform = 'translateX(120%)';
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        toast.remove();
+      }, 500);
+    }, 5000);
   };
 
   const handleCopyText = async (text, label) => {
@@ -152,10 +254,15 @@ function TopupPage() {
   };
 
   const handleCreateDeposit = async (amountToCreate) => {
+    if (!amountToCreate || amountToCreate.toString().trim() === '') {
+      showMessage('error', '⚠️ Vui lòng chọn hoặc nhập số tiền cần nạp trước khi tạo mã QR!');
+      return;
+    }
+
     const finalAmount = parseInt(amountToCreate, 10);
 
     if (isNaN(finalAmount) || finalAmount < 10000) {
-      showMessage('error', 'Vui lòng chọn hoặc nhập số tiền tối thiểu là 10,000đ VNĐ');
+      showMessage('error', '⚠️ Số tiền nạp tối thiểu là 10,000 VNĐ');
       return;
     }
 
@@ -240,7 +347,23 @@ function TopupPage() {
       setCreating(false);
     }
   };
-
+  const handleConfirmPayment = async () => {
+    if (!activeDeposit) return;
+    try {
+      setConfirming(true);
+      const res = await api.post('banking/confirm_payment', { code: activeDeposit.code });
+      if (res.data && res.data.success) {
+        showMessage('success', '🔔 Đã gửi yêu cầu xác nhận thanh toán tới Admin. Vui lòng chờ duyệt!');
+      } else {
+        showMessage('error', res.data.message || 'Gửi yêu cầu thất bại.');
+      }
+    } catch (err) {
+      console.error('Lỗi khi gửi yêu cầu xác nhận:', err);
+      showMessage('error', 'Lỗi hệ thống khi gửi yêu cầu xác nhận.');
+    } finally {
+      setConfirming(false);
+    }
+  };
   const getStatusBadge = (status) => {
     switch (status) {
       case 0: return <span className="badge badge-pending">Chờ thanh toán</span>;
@@ -306,7 +429,7 @@ function TopupPage() {
                   </p>
                 </div>
 
-                {activeDeposit && activeDeposit.payosUrl && (
+                {activeDeposit && activeDeposit.status === 0 && activeDeposit.payosUrl && (
                   <div style={{ marginTop: '15px', width: '100%', textAlign: 'center' }}>
                     <a
                       href={activeDeposit.payosUrl}
@@ -321,10 +444,20 @@ function TopupPage() {
                 )}
 
                 {activeDeposit ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px', color: '#888', fontSize: '13px' }}>
-                    <div className="spinner-border text-primary" role="status" style={{ width: '20px', height: '20px', border: '3px solid #ff3366', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                    <span>Đang chờ bạn thanh toán ngân hàng...</span>
-                  </div>
+                  activeDeposit.status === 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px', color: '#888', fontSize: '13px' }}>
+                      <div className="spinner-border text-primary" role="status" style={{ width: '20px', height: '20px', border: '3px solid #ff3366', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                      <span>Đang chờ bạn thanh toán ngân hàng...</span>
+                    </div>
+                  ) : activeDeposit.status === 1 || activeDeposit.status === 2 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px', color: '#52c41a', fontSize: '14px', fontWeight: 'bold' }}>
+                      <span>✅ Giao dịch đã được duyệt thành công!</span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px', color: '#f5222d', fontSize: '14px', fontWeight: 'bold' }}>
+                      <span>❌ Giao dịch đã bị từ chối.</span>
+                    </div>
+                  )
                 ) : (
                   <p style={{ color: '#666', fontSize: '12px', marginTop: '20px', textAlign: 'center', maxWidth: '280px' }}>
                     💡 Nhập số tiền và tạo mã QR ở bên cạnh để có nội dung chuyển khoản tự động chính xác nhất.
@@ -339,14 +472,16 @@ function TopupPage() {
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '10px', marginBottom: '15px' }}>
                       <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#000' }}>🛒 Đơn nạp đang thực hiện</span>
-                      <button
-                        onClick={handleCancelDeposit}
-                        className="btn btn-outline"
-                        style={{ fontSize: '11px', padding: '4px 10px', height: 'auto', width: 'auto', border: '1px solid #ff4d4f', color: '#ff4d4f' }}
-                        disabled={creating}
-                      >
-                        Hủy đơn này
-                      </button>
+                      {activeDeposit.status === 0 && (
+                        <button
+                          onClick={handleCancelDeposit}
+                          className="btn btn-outline"
+                          style={{ fontSize: '11px', padding: '4px 10px', height: 'auto', width: 'auto', border: '1px solid #ff4d4f', color: '#ff4d4f' }}
+                          disabled={creating}
+                        >
+                          Hủy đơn này
+                        </button>
+                      )}
                     </div>
 
                     <div className="topup-info-block">
@@ -400,6 +535,27 @@ function TopupPage() {
                         {getStatusBadge(activeDeposit.status)}
                       </div>
                     </div>
+
+                    {activeDeposit.status === 0 && (
+                      <button
+                        onClick={handleConfirmPayment}
+                        className="btn btn-primary"
+                        style={{
+                          width: '100%',
+                          marginTop: '20px',
+                          padding: '12px',
+                          background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
+                          border: 'none',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          color: '#fff',
+                          cursor: confirming ? 'not-allowed' : 'pointer'
+                        }}
+                        disabled={confirming}
+                      >
+                        {confirming ? 'Đang gửi...' : '✔ XÁC NHẬN ĐÃ THANH TOÁN'}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   /* Giao diện Chọn số tiền */

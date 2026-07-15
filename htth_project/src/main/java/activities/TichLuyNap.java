@@ -9,6 +9,7 @@ import core.Service;
 import core.Util;
 import io.Message;
 import template.DataTemplate;
+import template.ItemFashionP2;
 import template.ItemTemplate3;
 import template.ItemTemplate4;
 import template.ItemTemplate4_Info;
@@ -86,6 +87,7 @@ public class TichLuyNap {
         m1.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 10);
         m1.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
         m1.addReward("Thời trang Doflamingo", (byte) 105, (short) 127, (short) 127, 1);
+        m1.addReward("Lông vũ", (byte) 7, (short) 13, (short) 13, 200);
         MILESTONES.add(m1);
 
         // MỐC 2: 200k Extol
@@ -378,6 +380,10 @@ public class TichLuyNap {
         for (RewardItem reward : milestone.rewards) {
             if (isRubyReward(reward)) {
                 p.update_ngoc(reward.quantity);
+            } else if (reward.type == 105) {
+                ItemFashionP2 temp2 = new ItemFashionP2();
+                temp2.id = reward.id;
+                p.fashion.add(temp2);
             } else if (!p.item.add_item_bag47(reward.type, reward.id, reward.quantity)) {
                 Service.send_box_ThongBao_OK(p, "Không thể thêm "
                         + getRewardName(reward) + " vào hành trang!");

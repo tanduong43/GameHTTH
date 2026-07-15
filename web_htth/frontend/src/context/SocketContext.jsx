@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import confetti from 'canvas-confetti';
@@ -59,6 +59,11 @@ function showGlobalToast(message) {
 export function SocketProvider({ children }) {
   const { user, setUser } = useAuth();
   const [socket, setSocket] = useState(null);
+  const userRef = useRef(user);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   useEffect(() => {
     const socketUrl = import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5000`;
@@ -67,8 +72,9 @@ export function SocketProvider({ children }) {
 
     socketInstance.on('connect', () => {
       console.log('Socket connected to backend:', socketInstance.id);
-      if (user && user.username) {
-        socketInstance.emit('join', { username: user.username });
+      if (userRef.current && userRef.current.username) {
+        socketInstance.emit('join', { username: userRef.current.username });
+        console.log(`Joined socket room on connect: user_${userRef.current.username}`);
       }
     });
 
@@ -117,6 +123,14 @@ export function SocketProvider({ children }) {
       }
     });
 
+    // Listen to personal deposit rejection
+    socketInstance.on('deposit_rejected', (data) => {
+      console.log('Realtime deposit rejected received:', data);
+      if (data && data.message) {
+        showGlobalToast(`❌ Yêu cầu nạp tiền <strong>${data.code}</strong> của bạn đã bị từ chối.`);
+      }
+    });
+
     // Listen to global notifications
     socketInstance.on('global_notification', (data) => {
       console.log('Global notification received:', data);
@@ -132,7 +146,7 @@ export function SocketProvider({ children }) {
 
   // Re-emit join room whenever user logs in or reconnects
   useEffect(() => {
-    if (socket && socket.connected && user && user.username) {
+    if (socket && user && user.username) {
       socket.emit('join', { username: user.username });
       console.log(`Re-joined socket room: user_${user.username}`);
     }

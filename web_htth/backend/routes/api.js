@@ -261,7 +261,7 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
 });
 
 // POST /api/admin/reset_tichnap/
-router.post('/api/admin/reset_tichnap', jwtRequired, isAdmin, async (req, res) => {
+router.post('/admin/reset_tichnap', jwtRequired, isAdmin, async (req, res) => {
     try {
         await db.execute("UPDATE accounts SET tichnap = 0, claimed_milestones = ''");
         return res.json({ success: true, message: 'Đã reset tích lũy nạp của toàn bộ tài khoản về 0 thành công!' });
@@ -272,7 +272,7 @@ router.post('/api/admin/reset_tichnap', jwtRequired, isAdmin, async (req, res) =
 });
 
 // POST /api/admin/reset_tichtieu/
-router.post('/api/admin/reset_tichtieu', jwtRequired, isAdmin, async (req, res) => {
+router.post('/admin/reset_tichtieu', jwtRequired, isAdmin, async (req, res) => {
     try {
         await db.execute("UPDATE players SET tichtieu_ruby = 0, claimed_tichtieu_ruby = ''");
         return res.json({ success: true, message: 'Đã reset tích tiêu Ruby của toàn bộ nhân vật về 0 thành công!' });

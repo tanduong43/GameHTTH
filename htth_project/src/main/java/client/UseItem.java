@@ -3,11 +3,26 @@ package client;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import core.Manager;
 import core.Service;
 import core.Util;
 import io.Message;
-import template.*;
+import template.EffTemplate;
+import template.GiftBox;
+import template.ItemBoat;
+import template.ItemBoatP;
+import template.ItemFashion;
+import template.ItemFashionP;
+import template.ItemFashionP2;
+import template.ItemHair;
+import template.ItemTemplate3;
+import template.ItemTemplate4;
+import template.Item_wear;
+import template.Level;
+import template.Skill_Template;
+import template.Skill_info;
+
 /**
  *
  * @author Truongbk
@@ -95,7 +110,8 @@ public class UseItem {
         }
     }
 
-    private static void use_item_7(Player p, int id) {}
+    private static void use_item_7(Player p, int id) {
+    }
 
     private static boolean use_item_4(Player p, int id) throws IOException {
         boolean used = true;
@@ -429,7 +445,7 @@ public class UseItem {
                         }
                         if (25 > Util.random(120)) {
                             GiftBox gb4 = new GiftBox();
-                            short[] id_random = new short[] {44, 50, 56, 62, 68, 74};
+                            short[] id_random = new short[] { 44, 50, 56, 62, 68, 74 };
                             it_temp4 = ItemTemplate4
                                     .get_it_by_id(id_random[Util.random(id_random.length)]);
                             if (it_temp4 != null) {
@@ -511,7 +527,7 @@ public class UseItem {
                         }
                         if (25 > Util.random(120)) {
                             GiftBox gb4 = new GiftBox();
-                            short[] id_random = new short[] {44, 50, 56, 62, 68, 74};
+                            short[] id_random = new short[] { 44, 50, 56, 62, 68, 74 };
                             it_temp4 = ItemTemplate4
                                     .get_it_by_id(id_random[Util.random(id_random.length)]);
                             if (it_temp4 != null) {
@@ -629,7 +645,7 @@ public class UseItem {
                     case 427: {
                         Service.send_box_yesno(p, (id + 4000), "Thông báo",
                                 "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name,
-                                new String[] {"Đồng ý", "Hủy"}, new byte[] {-1, -1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
                     case 228: {
@@ -677,7 +693,8 @@ public class UseItem {
                             p.data_yesno[i + 1] = listIds.get(i);
                         }
 
-                        Service.send_box_yesno(p, 228, "Rương Trang Phục", "Chọn 1 trang phục mà bạn muốn nhận:", str, select);
+                        Service.send_box_yesno(p, 228, "Rương Trang Phục", "Chọn 1 trang phục mà bạn muốn nhận:", str,
+                                select);
                         return false;
                     }
                     case 80: {
@@ -697,14 +714,14 @@ public class UseItem {
                     }
                     case 86: {
                         Service.send_box_yesno(p, 35, "Thông báo",
-                                "Bạn có muốn sử dụng Trái Ác Quỷ?", new String[] {"Đồng ý", "Hủy"},
-                                new byte[] {-1, -1});
+                                "Bạn có muốn sử dụng Trái Ác Quỷ?", new String[] { "Đồng ý", "Hủy" },
+                                new byte[] { -1, -1 });
                         return false;
                     }
                     case 87: {
                         Service.send_box_yesno(p, 37, "Thông báo",
                                 "Bạn có muốn sử dụng Trái Ác Quỷ trung cấp?",
-                                new String[] {"Đồng ý", "Hủy"}, new byte[] {-1, -1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
                     case 112:
@@ -782,8 +799,7 @@ public class UseItem {
                         break;
                     }
                     case 455: {
-                        int random_color =
-                                (10 > Util.random(120)) ? 3 : ((50 > Util.random(120)) ? 2 : 1);
+                        int random_color = (10 > Util.random(120)) ? 3 : ((50 > Util.random(120)) ? 2 : 1);
                         for (int i = 0; i < p.skill_point.size(); i++) {
                             if (p.skill_point.get(i).temp.indexSkillInServer == 666) {
                                 random_color = (70 > Util.random(100)) ? 3 : 2;
@@ -894,13 +910,13 @@ public class UseItem {
                                 }
                             }
                         }
-                        
+
                         if (!canUpgrade) {
                             Service.send_box_ThongBao_OK(p, "Tất cả kỹ năng mặc định đã đạt cấp tối đa (30)!");
                             used = false;
                             break;
                         }
-                        
+
                         // Upgrade all default skills that are < 30 by 1 level
                         boolean upgradedAny = false;
                         for (int i = 0; i < p.skill_point.size(); i++) {
@@ -910,7 +926,7 @@ public class UseItem {
                                     if (Skill_Template.upgrade_skill(sk, p.clazz)) {
                                         sk.exp = 0; // reset exp to 0 for the new level
                                         upgradedAny = true;
-                                        
+
                                         // Send level up packet to client
                                         Message m = new Message(-28);
                                         m.writer().writeByte(1);
@@ -921,7 +937,7 @@ public class UseItem {
                                 }
                             }
                         }
-                        
+
                         if (upgradedAny) {
                             p.send_skill();
                             p.update_info_to_all();
@@ -930,6 +946,43 @@ public class UseItem {
                         } else {
                             Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra, không thể nâng cấp kỹ năng.");
                             used = false;
+                        }
+                        break;
+                    }
+                    case 327: {
+                        short[] id_random = new short[] { 79, 73, 67, 55, 61, 49 };
+                        short id_add = id_random[Util.random(id_random.length)];
+                        if (!p.item.add_item_bag47(4, id_add, 1)) {
+                            Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
+                            used = false;
+                        } else {
+                            p.item.update_assets_Inventory(false);
+                            Service.send_box_ThongBao_OK(p, "Bạn nhận được 1 " + ItemTemplate4.get_item_name(id_add));
+                            used = true;
+                        }
+                        break;
+                    }
+                    case 349: {
+                        long beriAdd = 1_000_000;
+                        p.update_vang(beriAdd);
+                        p.update_money();
+                        Service.send_box_ThongBao_OK(p, "Sử dụng thành công, bạn nhận được " + beriAdd + " Beri!");
+                        used = true;
+                        break;
+                    }
+                    case 413: {
+                        if (p.level >= 100) {
+                            Service.send_box_ThongBao_OK(p, "Cấp độ đã đạt tối đa");
+                            used = false;
+                        } else {
+                            long exp_needed = Level.ENTRYS[p.level - 1].exp - p.exp;
+                            if (exp_needed > 0) {
+                                p.update_exp(exp_needed, false);
+                            } else {
+                                p.update_exp(0, false);
+                            }
+                            Service.send_box_ThongBao_OK(p, "Sử dụng Tiến Cấp Đơn thành công, bạn được tăng 1 cấp!");
+                            used = true;
                         }
                         break;
                     }
@@ -1087,7 +1140,7 @@ public class UseItem {
                                         + ItemTemplate3.get_it_by_id(it.template.id).name
                                         + " sẽ chuyển sang trạng thái khóa không thể giao dịch. "
                                         + "Bạn có muốn trang bị?",
-                                new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                     }
                 } else if (it.template.id == 11001) {
                     List<String> name_skill = new ArrayList<>();
@@ -1106,7 +1159,7 @@ public class UseItem {
                         }
                         str[str.length - 1] = "Hủy";
                         select[str.length - 1] = (byte) -1;
-                        p.data_yesno = new int[] {id};
+                        p.data_yesno = new int[] { id };
                         Service.send_box_yesno(p, 38, "Thông báo",
                                 "Bạn muốn dùng cho skill nào hiện tại?", str, select);
                     } else {

@@ -6,6 +6,8 @@ const PayOS = require('@payos/node');
 const { sendAdminDepositNotification } = require('../utils/mailer');
 require('dotenv').config();
 
+const notifiedCodes = new Set();
+
 // Initialize PayOS SDK
 let payos = null;
 if (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY) {
@@ -116,7 +118,10 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
                 username: username,
                 amount: coinAmount,
                 newBalance: newBalance,
-                message: statusDesc
+                message: statusDesc,
+                code: deposit.code,
+                status: status,
+                real_amount: actualAmount
             });
             console.log(`[Banking Socket] Emitted success event to user_${username}`);
 
@@ -209,8 +214,23 @@ router.post('/banking/deposit', jwtRequired, async (req, res) => {
         // Flow 2: Sinh link VietQR động
         const vietqrUrl = `https://img.vietqr.io/image/${bankConfig.bankId}-${bankConfig.accountNo}-compact2.png?amount=${depositAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(bankConfig.accountName)}`;
 
-        // Send email notification to admin asynchronously
-        sendAdminDepositNotification(username, depositAmount, transferContent, code);
+        // Auto-send notification to admin if no user confirmation within 1 minute
+        setTimeout(async () => {
+            try {
+                // Check if still pending (status = 0) and not yet notified
+                const [checkRows] = await db.execute(
+                    'SELECT status FROM recharge_history WHERE code = ? LIMIT 1',
+                    [code]
+                );
+                if (checkRows.length > 0 && checkRows[0].status === 0 && !notifiedCodes.has(code)) {
+                    notifiedCodes.add(code);
+                    sendAdminDepositNotification(username, depositAmount, transferContent, code);
+                    console.log(`[Timer] Auto-sent admin notification for code ${code} after 1 minute.`);
+                }
+            } catch (timerErr) {
+                console.error(`[Timer Error] Error in auto-notification timer for code ${code}:`, timerErr.message);
+            }
+        }, 60000);
 
         return res.json({
             success: true,
@@ -302,6 +322,60 @@ router.get('/banking/active', jwtRequired, async (req, res) => {
         });
     } catch (err) {
         console.error('Get active deposit error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/banking/confirm_payment - Manually trigger email notification to admin when user confirms paid
+router.post('/banking/confirm_payment', jwtRequired, async (req, res) => {
+    const { code } = req.body;
+
+    if (!code) {
+        return res.json({ success: false, message: 'Thiếu mã đơn nạp!' });
+    }
+
+    try {
+        const [userRows] = await db.execute('SELECT user FROM accounts WHERE id = ?', [req.jwt_user_id]);
+        if (userRows.length === 0) {
+            return res.json({ success: false, message: 'Tài khoản không tồn tại!' });
+        }
+        const username = userRows[0].user;
+
+        const [rows] = await db.execute(
+            'SELECT amount, code, status, description FROM recharge_history WHERE code = ? AND username = ? LIMIT 1',
+            [code, username]
+        );
+
+        if (rows.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy đơn nạp tương ứng!' });
+        }
+
+        const deposit = rows[0];
+
+        if (deposit.status !== 0) {
+            return res.json({ success: false, message: 'Đơn nạp này đã được xử lý hoặc đã hủy!' });
+        }
+
+        if (notifiedCodes.has(code)) {
+            return res.json({ success: true, message: 'Đã gửi thông báo cho Admin trước đó.' });
+        }
+
+        notifiedCodes.add(code);
+
+        let transferContent = '';
+        if (deposit.description && deposit.description.includes('Nội dung: ')) {
+            transferContent = deposit.description.split('Nội dung: ')[1];
+        } else {
+            const cleanUsername = username.replace(/[^a-zA-Z0-9]/g, '');
+            transferContent = `WSAC ${code} ${cleanUsername}`.slice(0, 25).trim();
+        }
+
+        // Send email notification to admin asynchronously
+        sendAdminDepositNotification(username, deposit.amount, transferContent, code);
+
+        return res.json({ success: true, message: 'Đã gửi thông báo xác nhận thanh toán cho Admin.' });
+    } catch (err) {
+        console.error('Confirm payment error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
     }
 });
@@ -520,6 +594,18 @@ router.post('/admin/banking/reject', jwtRequired, isAdmin, async (req, res) => {
         );
 
         console.log(`[Admin Reject] Rejected deposit ID=${rows[0].id} for user ${rows[0].username}`);
+
+        // Emit Socket.IO event to user's room
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`user_${rows[0].username}`).emit('deposit_rejected', {
+                code: code,
+                status: 3,
+                message: 'Đơn nạp bị từ chối bởi Admin'
+            });
+            console.log(`[Admin Reject] Emitted reject event to user_${rows[0].username} for code ${code}`);
+        }
+
         return res.json({ success: true, message: `Đã từ chối đơn nạp của ${rows[0].username}.` });
     } catch (err) {
         console.error('Admin reject payment error:', err);

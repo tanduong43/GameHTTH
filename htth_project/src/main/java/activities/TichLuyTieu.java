@@ -7,6 +7,7 @@ import java.util.List;
 import client.Player;
 import core.Service;
 import core.Util;
+import template.ItemFashionP2;
 import template.ItemTemplate3;
 import template.ItemTemplate4;
 import template.ItemTemplate7;
@@ -289,6 +290,10 @@ public class TichLuyTieu {
             if (isRubyReward(reward)) {
                 // Cong ngoc the ruong, khong tinh vao tich tieu (update_ngoc duong)
                 p.update_ngoc(reward.quantity);
+            } else if (reward.type == 105) {
+                ItemFashionP2 temp2 = new ItemFashionP2();
+                temp2.id = reward.id;
+                p.fashion.add(temp2);
             } else if (!p.item.add_item_bag47(reward.type, reward.id, reward.quantity)) {
                 Service.send_box_ThongBao_OK(p, "Khong the them "
                         + getRewardName(reward) + " vao hanh trang!");
