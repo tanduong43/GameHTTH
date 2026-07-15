@@ -6,23 +6,25 @@ import client.Player;
 import core.Service;
 import core.Util;
 import io.Message;
-import template.*;
+import template.ItemTemplate4;
+import template.Item_wear;
+import template.Option;
+
 /**
  *
  * @author Truongbk
  */
 public class Rebuild_Item {
-    public static short[] ID_SELL =
-            new short[] {74, 68, 62, 56, 50, 44, 272, 273, 274, 275, 276, 277};
-    public static byte[] PERCENT_HOP_NGOC = new byte[] {120, 85, 70, 55, 40, 0};
-    public static int[] PRICE_THAO_NGOC = new int[] {2, 6, 18, 54, 162, 300};
+    public static short[] ID_SELL = new short[] { 74, 68, 62, 56, 50, 44, 272, 273, 274, 275, 276, 277 };
+    public static byte[] PERCENT_HOP_NGOC = new byte[] { 120, 85, 70, 55, 40, 0 };
+    public static int[] PRICE_THAO_NGOC = new int[] { 2, 6, 18, 54, 162, 300 };
     public static short[][] ITEM_NGOC_SIEU_CAP;
     static {
-        short[] id_ = new short[] {49, 55, 61, 67, 73, 79};
+        short[] id_ = new short[] { 49, 55, 61, 67, 73, 79 };
         short a = 0, b = 1;
         Rebuild_Item.ITEM_NGOC_SIEU_CAP = new short[30][];
         for (int i = 241; i < 271; i++) {
-            Rebuild_Item.ITEM_NGOC_SIEU_CAP[i - 241] = new short[] {(short) i, id_[a], id_[b]};
+            Rebuild_Item.ITEM_NGOC_SIEU_CAP[i - 241] = new short[] { (short) i, id_[a], id_[b] };
             if (b < (id_.length - 1)) {
                 b++;
                 if (b == a && b < (id_.length - 1)) {
@@ -114,10 +116,10 @@ public class Rebuild_Item {
             Item_wear it_select = p.item.bag3[idItem];
             if (it_select != null && it_select.numLoKham < 4 && it_select.numHoleDaDuc < 2
                     && it_select.template.typeEquip < 6) {
-                p.data_yesno = new int[] {idItem};
+                p.data_yesno = new int[] { idItem };
                 Service.send_box_yesno(p, 12, "Thông báo",
                         "Đục lỗ bạn phải mất " + (it_select.numHoleDaDuc == 1 ? 200 : 50) + " Ruby",
-                        new String[] {"Đồng ý", "Hủy"}, new byte[] {7, -1});
+                        new String[] { "Đồng ý", "Hủy" }, new byte[] { 7, -1 });
             } else {
                 Rebuild_Item.show_table(p, 2);
                 Service.send_box_ThongBao_OK(p,
@@ -156,8 +158,7 @@ public class Rebuild_Item {
                 }
                 int time_success = 0;
                 int time_lose = 0;
-                int percent =
-                        Rebuild_Item.PERCENT_HOP_NGOC[Rebuild_Item.get_percent_hop_ngoc(idItem)];
+                int percent = Rebuild_Item.PERCENT_HOP_NGOC[Rebuild_Item.get_percent_hop_ngoc(idItem)];
                 // System.out.println(percent);
                 while (num >= 3) {
                     if (percent > Util.random(120)) {
@@ -305,7 +306,7 @@ public class Rebuild_Item {
                 if (vang_req > 0) {
                     Service.send_box_yesno(p, 1, "Thông báo",
                             "Xác nhận tháo tất cả ngọc khảm với giá " + vang_req + " ruby?",
-                            new String[] {"Có", "Không"}, new byte[] {-1, -1});
+                            new String[] { "Có", "Không" }, new byte[] { -1, -1 });
                 }
             }
         } else if (cat == 4 && num == 0 && type == 13 && (action == 28 || action == 29)) { // bo
@@ -334,7 +335,7 @@ public class Rebuild_Item {
                 return;
             }
             if (p.data_yesno == null || p.data_yesno.length != 2) {
-                p.data_yesno = new int[] {-1, -1};
+                p.data_yesno = new int[] { -1, -1 };
             }
             if (action == 28) {
                 p.data_yesno[0] = idItem;
@@ -355,7 +356,7 @@ public class Rebuild_Item {
                                                                        // cap
             Service.send_box_yesno(p, 13, "Thông báo",
                     "Bạn sẽ mất 1 đá nguyên liệu nếu thất bại. Bạn có muốn tiếp " + "tục nâng cấp?",
-                    new String[] {"Có", "Không"}, new byte[] {2, 1});
+                    new String[] { "Có", "Không" }, new byte[] { 2, 1 });
         } else if (type == 10 && action == 1 && cat == 3 && num == 1) { // bo item vao de hoan my
             Item_wear it_select = p.item.bag3[idItem];
             if (it_select != null && it_select.template.typeEquip < 6) {
@@ -391,7 +392,7 @@ public class Rebuild_Item {
                                                                                         // hoan my
             Service.send_box_yesno(p, 30, "Thông báo",
                     "Để hoàn mỹ trang bị này bạn sẽ mất phí 5 ruby.",
-                    new String[] {"Đồng ý", "Hủy"}, new byte[] {7, 1});
+                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 7, 1 });
         } else if (type == 12 && action == 1 && cat == 3 && num == 1) { // bo item cong che tac
             Item_wear it_select = p.item.bag3[idItem];
             if (it_select != null
@@ -412,7 +413,7 @@ public class Rebuild_Item {
                 Service.send_box_yesno(p, 31, "Thông báo",
                         "Để tiến hành phục hồi điểm chế tác bạn sẽ tốn: "
                                 + "5 ruby hồi 1 điểm hoặc 100 ruby hồi 10 điểm",
-                        new String[] {"5", "100", "Không"}, new byte[] {7, 7, 1});
+                        new String[] { "5", "100", "Không" }, new byte[] { 7, 7, 1 });
             }
         } else if (type == 11 && action == 1 && cat == 3 && num == 1) { // bo item kich an
             Item_wear it_select = p.item.bag3[idItem];
@@ -435,7 +436,7 @@ public class Rebuild_Item {
                                                                                         // kich an
             Service.send_box_yesno(p, 32, "Thông báo",
                     "Để kích ẩn trang bị này bạn sẽ mất phí 5 ruby.",
-                    new String[] {"Đồng ý", "Hủy"}, new byte[] {7, 1});
+                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 7, 1 });
         } else if (type == 14 && action == 1 && cat == 4 && idItem >= 0 && num == 1) { // bo manh
                                                                                        // trang bi
                                                                                        // vao
@@ -468,7 +469,7 @@ public class Rebuild_Item {
             ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(p.item_to_kham_ngoc_id_ngoc);
             if (itemTemplate4 != null) {
                 if (itemTemplate4.type == 74) {
-                    p.data_yesno = new int[] {itemTemplate4.id};
+                    p.data_yesno = new int[] { itemTemplate4.id };
                     switch (itemTemplate4.id) {
                         case 304:
                         case 305:
@@ -476,7 +477,7 @@ public class Rebuild_Item {
                             Service.send_box_yesno(p, 40, "Thông báo",
                                     "Bạn có muốn ghép 18 " + itemTemplate4.name
                                             + " thành 1 trang bị trắng 9x?",
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             break;
                         }
                         case 307:
@@ -485,7 +486,7 @@ public class Rebuild_Item {
                             Service.send_box_yesno(p, 40, "Thông báo",
                                     "Bạn có muốn ghép 18 " + itemTemplate4.name
                                             + " thành 1 trang bị xanh 9x?",
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             break;
                         }
                         case 310:
@@ -494,7 +495,7 @@ public class Rebuild_Item {
                             Service.send_box_yesno(p, 40, "Thông báo",
                                     "Bạn có muốn ghép 18 " + itemTemplate4.name
                                             + " thành 1 trang bị tím 9x?",
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             break;
                         }
                         case 313:
@@ -503,7 +504,7 @@ public class Rebuild_Item {
                             Service.send_box_yesno(p, 40, "Thông báo",
                                     "Bạn có muốn ghép 18 " + itemTemplate4.name
                                             + " thành 1 trang bị cam 9x?",
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             break;
                         }
                         case 536:
@@ -512,7 +513,7 @@ public class Rebuild_Item {
                             Service.send_box_yesno(p, 40, "Thông báo",
                                     "Bạn có muốn ghép 18 " + itemTemplate4.name
                                             + " thành 1 trang bị trắng 10x?",
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             break;
                         }
                         case 539:
@@ -521,7 +522,7 @@ public class Rebuild_Item {
                             Service.send_box_yesno(p, 40, "Thông báo",
                                     "Bạn có muốn ghép 18 " + itemTemplate4.name
                                             + " thành 1 trang bị xanh 10x?",
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             break;
                         }
                         case 542:
@@ -530,7 +531,7 @@ public class Rebuild_Item {
                             Service.send_box_yesno(p, 40, "Thông báo",
                                     "Bạn có muốn ghép 18 " + itemTemplate4.name
                                             + " thành 1 trang bị tím 10x?",
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             break;
                         }
                         case 545:
@@ -539,7 +540,7 @@ public class Rebuild_Item {
                             Service.send_box_yesno(p, 40, "Thông báo",
                                     "Bạn có muốn ghép 18 " + itemTemplate4.name
                                             + " thành 1 trang bị cam 10x?",
-                                    new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                             break;
                         }
                         default: {
@@ -567,9 +568,9 @@ public class Rebuild_Item {
                     Service.send_box_ThongBao_OK(p, "Không đủ 1 búa siêu cấp");
                     return;
                 }
-                p.data_yesno = new int[] {idItem};
+                p.data_yesno = new int[] { idItem };
                 Service.send_box_yesno(p, 46, "Thông báo", "Đục lỗ bạn phải mất 1 búa sơ cấp",
-                        new String[] {"Đồng ý", "Hủy"}, new byte[] {2, -1});
+                        new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, -1 });
             } else {
                 Rebuild_Item.show_table(p, 2);
                 Service.send_box_ThongBao_OK(p, "Không thể dùng búa siêu cấp với vật phẩm này");
@@ -588,13 +589,29 @@ public class Rebuild_Item {
                     Service.send_box_ThongBao_OK(p, "Không đủ 1 búa sơ cấp");
                     return;
                 }
-                p.data_yesno = new int[] {idItem};
+                p.data_yesno = new int[] { idItem };
                 Service.send_box_yesno(p, 45, "Thông báo", "Đục lỗ bạn phải mất 1 búa sơ cấp",
-                        new String[] {"Đồng ý", "Hủy"}, new byte[] {2, -1});
+                        new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, -1 });
             } else {
                 Rebuild_Item.show_table(p, 2);
                 Service.send_box_ThongBao_OK(p,
                         "Búa sơ cấp chỉ có thể đục lỗ vật phẩm từ 4 lỗ lên 5 lỗ");
+            }
+        } else if (cat == 4 && num == 1 && type == 19 && action == 1) { // bo bua duc dial vao giao dien
+            if (idItem == 457) {
+                if (p.item.total_item_bag_by_id(4, idItem) < 1) {
+                    Service.send_box_ThongBao_OK(p, "Không đủ búa đục dial trong hành trang");
+                    return;
+                }
+                Message m = new Message(-67);
+                m.writer().writeByte(1);
+                m.writer().writeShort(idItem);
+                m.writer().writeByte(4);
+                m.writer().writeShort(1);
+                p.conn.addmsg(m);
+                m.cleanup();
+            } else {
+                Service.send_box_ThongBao_OK(p, "Chỉ có thể bỏ búa đục dial vào");
             }
         } else if (cat == 3 && num == 1 && type == 19 && action == 1) { // bo dial vao de duc lo
             Item_wear it_select = p.item.bag3[idItem];
@@ -616,10 +633,10 @@ public class Rebuild_Item {
                     return;
                 }
                 int ruby_req = 50 * (it_select.numLoKham + 1);
-                p.data_yesno = new int[] {idItem};
+                p.data_yesno = new int[] { idItem };
                 Service.send_box_yesno(p, 57, "Thông báo",
                         "Đục lỗ dial bạn phải mất 1 búa đục dial và " + ruby_req + " ruby",
-                        new String[] {"Đồng ý", "Hủy"}, new byte[] {2, -1});
+                        new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, -1 });
             }
         }
     }
@@ -659,595 +676,595 @@ public class Rebuild_Item {
             temp[temp.length - 1] = id;
             it_select.mdakham = temp;
         } else {
-            it_select.mdakham = new short[] {id};
+            it_select.mdakham = new short[] { id };
         }
         byte[] id_add = null;
         int[] par_add = null;
         switch (id) {
             case 44: {
-                id_add = new byte[] {4};
-                par_add = new int[] {20};
+                id_add = new byte[] { 4 };
+                par_add = new int[] { 20 };
                 break;
             }
             case 45: {
-                id_add = new byte[] {4};
-                par_add = new int[] {30};
+                id_add = new byte[] { 4 };
+                par_add = new int[] { 30 };
                 break;
             }
             case 46: {
-                id_add = new byte[] {4};
-                par_add = new int[] {40};
+                id_add = new byte[] { 4 };
+                par_add = new int[] { 40 };
                 break;
             }
             case 47: {
-                id_add = new byte[] {4};
-                par_add = new int[] {60};
+                id_add = new byte[] { 4 };
+                par_add = new int[] { 60 };
                 break;
             }
             case 48: {
-                id_add = new byte[] {4};
-                par_add = new int[] {90};
+                id_add = new byte[] { 4 };
+                par_add = new int[] { 90 };
                 break;
             }
             case 49: {
-                id_add = new byte[] {4};
-                par_add = new int[] {140};
+                id_add = new byte[] { 4 };
+                par_add = new int[] { 140 };
                 break;
             }
             case 50: {
-                id_add = new byte[] {1};
-                par_add = new int[] {50};
+                id_add = new byte[] { 1 };
+                par_add = new int[] { 50 };
                 break;
             }
             case 51: {
-                id_add = new byte[] {1};
-                par_add = new int[] {70};
+                id_add = new byte[] { 1 };
+                par_add = new int[] { 70 };
                 break;
             }
             case 52: {
-                id_add = new byte[] {1};
-                par_add = new int[] {90};
+                id_add = new byte[] { 1 };
+                par_add = new int[] { 90 };
                 break;
             }
             case 53: {
-                id_add = new byte[] {1};
-                par_add = new int[] {120};
+                id_add = new byte[] { 1 };
+                par_add = new int[] { 120 };
                 break;
             }
             case 54: {
-                id_add = new byte[] {1};
-                par_add = new int[] {160};
+                id_add = new byte[] { 1 };
+                par_add = new int[] { 160 };
                 break;
             }
             case 55: {
-                id_add = new byte[] {1};
-                par_add = new int[] {220};
+                id_add = new byte[] { 1 };
+                par_add = new int[] { 220 };
                 break;
             }
             case 56: {
-                id_add = new byte[] {10};
-                par_add = new int[] {10};
+                id_add = new byte[] { 10 };
+                par_add = new int[] { 10 };
                 break;
             }
             case 57: {
-                id_add = new byte[] {10};
-                par_add = new int[] {20};
+                id_add = new byte[] { 10 };
+                par_add = new int[] { 20 };
                 break;
             }
             case 58: {
-                id_add = new byte[] {10};
-                par_add = new int[] {30};
+                id_add = new byte[] { 10 };
+                par_add = new int[] { 30 };
                 break;
             }
             case 59: {
-                id_add = new byte[] {10};
-                par_add = new int[] {40};
+                id_add = new byte[] { 10 };
+                par_add = new int[] { 40 };
                 break;
             }
             case 60: {
-                id_add = new byte[] {10};
-                par_add = new int[] {50};
+                id_add = new byte[] { 10 };
+                par_add = new int[] { 50 };
                 break;
             }
             case 61: {
-                id_add = new byte[] {10};
-                par_add = new int[] {60};
+                id_add = new byte[] { 10 };
+                par_add = new int[] { 60 };
                 break;
             }
             case 62: {
-                id_add = new byte[] {13};
-                par_add = new int[] {10};
+                id_add = new byte[] { 13 };
+                par_add = new int[] { 10 };
                 break;
             }
             case 63: {
-                id_add = new byte[] {13};
-                par_add = new int[] {20};
+                id_add = new byte[] { 13 };
+                par_add = new int[] { 20 };
                 break;
             }
             case 64: {
-                id_add = new byte[] {13};
-                par_add = new int[] {30};
+                id_add = new byte[] { 13 };
+                par_add = new int[] { 30 };
                 break;
             }
             case 65: {
-                id_add = new byte[] {13};
-                par_add = new int[] {40};
+                id_add = new byte[] { 13 };
+                par_add = new int[] { 40 };
                 break;
             }
             case 66: {
-                id_add = new byte[] {13};
-                par_add = new int[] {60};
+                id_add = new byte[] { 13 };
+                par_add = new int[] { 60 };
                 break;
             }
             case 67: {
-                id_add = new byte[] {13};
-                par_add = new int[] {90};
+                id_add = new byte[] { 13 };
+                par_add = new int[] { 90 };
                 break;
             }
             case 68: {
-                id_add = new byte[] {26, 27};
-                par_add = new int[] {10, 10};
+                id_add = new byte[] { 26, 27 };
+                par_add = new int[] { 10, 10 };
                 break;
             }
             case 69: {
-                id_add = new byte[] {26, 27};
-                par_add = new int[] {20, 20};
+                id_add = new byte[] { 26, 27 };
+                par_add = new int[] { 20, 20 };
                 break;
             }
             case 70: {
-                id_add = new byte[] {26, 27};
-                par_add = new int[] {30, 30};
+                id_add = new byte[] { 26, 27 };
+                par_add = new int[] { 30, 30 };
                 break;
             }
             case 71: {
-                id_add = new byte[] {26, 27};
-                par_add = new int[] {40, 40};
+                id_add = new byte[] { 26, 27 };
+                par_add = new int[] { 40, 40 };
                 break;
             }
             case 72: {
-                id_add = new byte[] {26, 27};
-                par_add = new int[] {60, 60};
+                id_add = new byte[] { 26, 27 };
+                par_add = new int[] { 60, 60 };
                 break;
             }
             case 73: {
-                id_add = new byte[] {26, 27};
-                par_add = new int[] {90, 90};
+                id_add = new byte[] { 26, 27 };
+                par_add = new int[] { 90, 90 };
                 break;
             }
             case 74: {
-                id_add = new byte[] {14};
-                par_add = new int[] {10};
+                id_add = new byte[] { 14 };
+                par_add = new int[] { 10 };
                 break;
             }
             case 75: {
-                id_add = new byte[] {14};
-                par_add = new int[] {20};
+                id_add = new byte[] { 14 };
+                par_add = new int[] { 20 };
                 break;
             }
             case 76: {
-                id_add = new byte[] {14};
-                par_add = new int[] {30};
+                id_add = new byte[] { 14 };
+                par_add = new int[] { 30 };
                 break;
             }
             case 77: {
-                id_add = new byte[] {14};
-                par_add = new int[] {40};
+                id_add = new byte[] { 14 };
+                par_add = new int[] { 40 };
                 break;
             }
             case 78: {
-                id_add = new byte[] {14};
-                par_add = new int[] {60};
+                id_add = new byte[] { 14 };
+                par_add = new int[] { 60 };
                 break;
             }
             case 79: {
-                id_add = new byte[] {14};
-                par_add = new int[] {90};
+                id_add = new byte[] { 14 };
+                par_add = new int[] { 90 };
                 break;
             }
             case 241: {
-                id_add = new byte[] {4, 48};
-                par_add = new int[] {140, 20};
+                id_add = new byte[] { 4, 48 };
+                par_add = new int[] { 140, 20 };
                 break;
             }
             case 242: {
-                id_add = new byte[] {4, 49};
-                par_add = new int[] {140, 40};
+                id_add = new byte[] { 4, 49 };
+                par_add = new int[] { 140, 40 };
                 break;
             }
             case 243: {
-                id_add = new byte[] {4, 50};
-                par_add = new int[] {140, 40};
+                id_add = new byte[] { 4, 50 };
+                par_add = new int[] { 140, 40 };
                 break;
             }
             case 244: {
-                id_add = new byte[] {4, 51};
-                par_add = new int[] {140, 40};
+                id_add = new byte[] { 4, 51 };
+                par_add = new int[] { 140, 40 };
                 break;
             }
             case 245: {
-                id_add = new byte[] {4, 52};
-                par_add = new int[] {140, 40};
+                id_add = new byte[] { 4, 52 };
+                par_add = new int[] { 140, 40 };
                 break;
             }
             case 246: {
-                id_add = new byte[] {1, 47};
-                par_add = new int[] {220, 40};
+                id_add = new byte[] { 1, 47 };
+                par_add = new int[] { 220, 40 };
                 break;
             }
             case 247: {
-                id_add = new byte[] {1, 49};
-                par_add = new int[] {220, 40};
+                id_add = new byte[] { 1, 49 };
+                par_add = new int[] { 220, 40 };
                 break;
             }
             case 248: {
-                id_add = new byte[] {1, 50};
-                par_add = new int[] {220, 40};
+                id_add = new byte[] { 1, 50 };
+                par_add = new int[] { 220, 40 };
                 break;
             }
             case 249: {
-                id_add = new byte[] {1, 51};
-                par_add = new int[] {220, 40};
+                id_add = new byte[] { 1, 51 };
+                par_add = new int[] { 220, 40 };
                 break;
             }
             case 250: {
-                id_add = new byte[] {1, 52};
-                par_add = new int[] {220, 40};
+                id_add = new byte[] { 1, 52 };
+                par_add = new int[] { 220, 40 };
                 break;
             }
             case 251: {
-                id_add = new byte[] {10, 47};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 10, 47 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 252: {
-                id_add = new byte[] {10, 48};
-                par_add = new int[] {60, 20};
+                id_add = new byte[] { 10, 48 };
+                par_add = new int[] { 60, 20 };
                 break;
             }
             case 253: {
-                id_add = new byte[] {10, 50};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 10, 50 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 254: {
-                id_add = new byte[] {10, 51};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 10, 51 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 255: {
-                id_add = new byte[] {10, 52};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 10, 52 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 256: {
-                id_add = new byte[] {13, 47};
-                par_add = new int[] {90, 40};
+                id_add = new byte[] { 13, 47 };
+                par_add = new int[] { 90, 40 };
                 break;
             }
             case 257: {
-                id_add = new byte[] {13, 48};
-                par_add = new int[] {90, 20};
+                id_add = new byte[] { 13, 48 };
+                par_add = new int[] { 90, 20 };
                 break;
             }
             case 258: {
-                id_add = new byte[] {13, 49};
-                par_add = new int[] {90, 40};
+                id_add = new byte[] { 13, 49 };
+                par_add = new int[] { 90, 40 };
                 break;
             }
             case 259: {
-                id_add = new byte[] {13, 51};
-                par_add = new int[] {90, 40};
+                id_add = new byte[] { 13, 51 };
+                par_add = new int[] { 90, 40 };
                 break;
             }
             case 260: {
-                id_add = new byte[] {13, 52};
-                par_add = new int[] {90, 40};
+                id_add = new byte[] { 13, 52 };
+                par_add = new int[] { 90, 40 };
                 break;
             }
             case 261: {
-                id_add = new byte[] {26, 27, 47};
-                par_add = new int[] {90, 90, 40};
+                id_add = new byte[] { 26, 27, 47 };
+                par_add = new int[] { 90, 90, 40 };
                 break;
             }
             case 262: {
-                id_add = new byte[] {26, 27, 48};
-                par_add = new int[] {90, 90, 20};
+                id_add = new byte[] { 26, 27, 48 };
+                par_add = new int[] { 90, 90, 20 };
                 break;
             }
             case 263: {
-                id_add = new byte[] {26, 27, 49};
-                par_add = new int[] {90, 90, 40};
+                id_add = new byte[] { 26, 27, 49 };
+                par_add = new int[] { 90, 90, 40 };
                 break;
             }
             case 264: {
-                id_add = new byte[] {26, 27, 50};
-                par_add = new int[] {90, 90, 40};
+                id_add = new byte[] { 26, 27, 50 };
+                par_add = new int[] { 90, 90, 40 };
                 break;
             }
             case 265: {
-                id_add = new byte[] {26, 27, 52};
-                par_add = new int[] {90, 90, 40};
+                id_add = new byte[] { 26, 27, 52 };
+                par_add = new int[] { 90, 90, 40 };
                 break;
             }
             case 266: {
-                id_add = new byte[] {14, 47};
-                par_add = new int[] {90, 40};
+                id_add = new byte[] { 14, 47 };
+                par_add = new int[] { 90, 40 };
                 break;
             }
             case 267: {
-                id_add = new byte[] {14, 48};
-                par_add = new int[] {90, 20};
+                id_add = new byte[] { 14, 48 };
+                par_add = new int[] { 90, 20 };
                 break;
             }
             case 268: {
-                id_add = new byte[] {14, 49};
-                par_add = new int[] {90, 40};
+                id_add = new byte[] { 14, 49 };
+                par_add = new int[] { 90, 40 };
                 break;
             }
             case 269: {
-                id_add = new byte[] {14, 50};
-                par_add = new int[] {90, 40};
+                id_add = new byte[] { 14, 50 };
+                par_add = new int[] { 90, 40 };
                 break;
             }
             case 270: {
-                id_add = new byte[] {14, 51};
-                par_add = new int[] {90, 40};
+                id_add = new byte[] { 14, 51 };
+                par_add = new int[] { 90, 40 };
                 break;
             }
             case 362: {
-                id_add = new byte[] {12};
-                par_add = new int[] {10};
+                id_add = new byte[] { 12 };
+                par_add = new int[] { 10 };
                 break;
             }
             case 363: {
-                id_add = new byte[] {12};
-                par_add = new int[] {20};
+                id_add = new byte[] { 12 };
+                par_add = new int[] { 20 };
                 break;
             }
             case 364: {
-                id_add = new byte[] {12};
-                par_add = new int[] {30};
+                id_add = new byte[] { 12 };
+                par_add = new int[] { 30 };
                 break;
             }
             case 365: {
-                id_add = new byte[] {12};
-                par_add = new int[] {40};
+                id_add = new byte[] { 12 };
+                par_add = new int[] { 40 };
                 break;
             }
             case 366: {
-                id_add = new byte[] {12};
-                par_add = new int[] {50};
+                id_add = new byte[] { 12 };
+                par_add = new int[] { 50 };
                 break;
             }
             case 367: {
-                id_add = new byte[] {12};
-                par_add = new int[] {60};
+                id_add = new byte[] { 12 };
+                par_add = new int[] { 60 };
                 break;
             }
             case 368: {
-                id_add = new byte[] {12, 47};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 12, 47 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 369: {
-                id_add = new byte[] {12, 48};
-                par_add = new int[] {60, 20};
+                id_add = new byte[] { 12, 48 };
+                par_add = new int[] { 60, 20 };
                 break;
             }
             case 370: {
-                id_add = new byte[] {12, 49};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 12, 49 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 371: {
-                id_add = new byte[] {12, 50};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 12, 50 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 372: {
-                id_add = new byte[] {12, 51};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 12, 51 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 373: {
-                id_add = new byte[] {12, 52};
-                par_add = new int[] {60, 40};
+                id_add = new byte[] { 12, 52 };
+                par_add = new int[] { 60, 40 };
                 break;
             }
             case 324: {
-                id_add = new byte[] {1, 4, 10, 13, 14, 26, 27};
-                par_add = new int[] {70, 110, 30, 50, 50, 50, 50};
+                id_add = new byte[] { 1, 4, 10, 13, 14, 26, 27 };
+                par_add = new int[] { 70, 110, 30, 50, 50, 50, 50 };
                 break;
             }
             case 325: {
-                id_add = new byte[] {49, 50, 52, 51, 47, 48};
-                par_add = new int[] {40, 40, 40, 40, 40, 20};
+                id_add = new byte[] { 49, 50, 52, 51, 47, 48 };
+                par_add = new int[] { 40, 40, 40, 40, 40, 20 };
                 break;
             }
             case 326: {
-                id_add = new byte[] {1, 4, 10, 13, 14, 26, 27};
-                par_add = new int[] {140, 220, 60, 90, 90, 90, 90};
+                id_add = new byte[] { 1, 4, 10, 13, 14, 26, 27 };
+                par_add = new int[] { 140, 220, 60, 90, 90, 90, 90 };
                 break;
             }
             //
             case 647: {
-                id_add = new byte[] {4, 48};
-                par_add = new int[] {250, 30};
+                id_add = new byte[] { 4, 48 };
+                par_add = new int[] { 250, 30 };
                 break;
             }
             case 648: {
-                id_add = new byte[] {4, 49};
-                par_add = new int[] {250, 60};
+                id_add = new byte[] { 4, 49 };
+                par_add = new int[] { 250, 60 };
                 break;
             }
             case 649: {
-                id_add = new byte[] {4, 50};
-                par_add = new int[] {250, 60};
+                id_add = new byte[] { 4, 50 };
+                par_add = new int[] { 250, 60 };
                 break;
             }
             case 650: {
-                id_add = new byte[] {4, 51};
-                par_add = new int[] {250, 60};
+                id_add = new byte[] { 4, 51 };
+                par_add = new int[] { 250, 60 };
                 break;
             }
             case 651: {
-                id_add = new byte[] {4, 52};
-                par_add = new int[] {250, 60};
+                id_add = new byte[] { 4, 52 };
+                par_add = new int[] { 250, 60 };
                 break;
             }
             case 652: {
-                id_add = new byte[] {1, 47};
-                par_add = new int[] {320, 60};
+                id_add = new byte[] { 1, 47 };
+                par_add = new int[] { 320, 60 };
                 break;
             }
             case 653: {
-                id_add = new byte[] {1, 49};
-                par_add = new int[] {320, 60};
+                id_add = new byte[] { 1, 49 };
+                par_add = new int[] { 320, 60 };
                 break;
             }
             case 654: {
-                id_add = new byte[] {1, 50};
-                par_add = new int[] {320, 60};
+                id_add = new byte[] { 1, 50 };
+                par_add = new int[] { 320, 60 };
                 break;
             }
             case 655: {
-                id_add = new byte[] {1, 51};
-                par_add = new int[] {320, 60};
+                id_add = new byte[] { 1, 51 };
+                par_add = new int[] { 320, 60 };
                 break;
             }
             case 656: {
-                id_add = new byte[] {1, 52};
-                par_add = new int[] {320, 60};
+                id_add = new byte[] { 1, 52 };
+                par_add = new int[] { 320, 60 };
                 break;
             }
             case 657: {
-                id_add = new byte[] {10, 47};
-                par_add = new int[] {100, 60};
+                id_add = new byte[] { 10, 47 };
+                par_add = new int[] { 100, 60 };
                 break;
             }
             case 658: {
-                id_add = new byte[] {10, 48};
-                par_add = new int[] {100, 30};
+                id_add = new byte[] { 10, 48 };
+                par_add = new int[] { 100, 30 };
                 break;
             }
             case 659: {
-                id_add = new byte[] {10, 50};
-                par_add = new int[] {100, 60};
+                id_add = new byte[] { 10, 50 };
+                par_add = new int[] { 100, 60 };
                 break;
             }
             case 660: {
-                id_add = new byte[] {10, 51};
-                par_add = new int[] {100, 60};
+                id_add = new byte[] { 10, 51 };
+                par_add = new int[] { 100, 60 };
                 break;
             }
             case 661: {
-                id_add = new byte[] {10, 52};
-                par_add = new int[] {100, 60};
+                id_add = new byte[] { 10, 52 };
+                par_add = new int[] { 100, 60 };
                 break;
             }
             case 662: {
-                id_add = new byte[] {13, 47};
-                par_add = new int[] {150, 60};
+                id_add = new byte[] { 13, 47 };
+                par_add = new int[] { 150, 60 };
                 break;
             }
             case 663: {
-                id_add = new byte[] {13, 48};
-                par_add = new int[] {150, 30};
+                id_add = new byte[] { 13, 48 };
+                par_add = new int[] { 150, 30 };
                 break;
             }
             case 664: {
-                id_add = new byte[] {13, 49};
-                par_add = new int[] {150, 60};
+                id_add = new byte[] { 13, 49 };
+                par_add = new int[] { 150, 60 };
                 break;
             }
             case 665: {
-                id_add = new byte[] {13, 51};
-                par_add = new int[] {150, 60};
+                id_add = new byte[] { 13, 51 };
+                par_add = new int[] { 150, 60 };
                 break;
             }
             case 666: {
-                id_add = new byte[] {13, 52};
-                par_add = new int[] {150, 60};
+                id_add = new byte[] { 13, 52 };
+                par_add = new int[] { 150, 60 };
                 break;
             }
             case 667: {
-                id_add = new byte[] {26, 27, 47};
-                par_add = new int[] {150, 150, 60};
+                id_add = new byte[] { 26, 27, 47 };
+                par_add = new int[] { 150, 150, 60 };
                 break;
             }
             case 668: {
-                id_add = new byte[] {26, 27, 48};
-                par_add = new int[] {150, 150, 30};
+                id_add = new byte[] { 26, 27, 48 };
+                par_add = new int[] { 150, 150, 30 };
                 break;
             }
             case 669: {
-                id_add = new byte[] {26, 27, 49};
-                par_add = new int[] {150, 150, 60};
+                id_add = new byte[] { 26, 27, 49 };
+                par_add = new int[] { 150, 150, 60 };
                 break;
             }
             case 670: {
-                id_add = new byte[] {26, 27, 50};
-                par_add = new int[] {150, 150, 60};
+                id_add = new byte[] { 26, 27, 50 };
+                par_add = new int[] { 150, 150, 60 };
                 break;
             }
             case 671: {
-                id_add = new byte[] {26, 27, 52};
-                par_add = new int[] {150, 150, 60};
+                id_add = new byte[] { 26, 27, 52 };
+                par_add = new int[] { 150, 150, 60 };
                 break;
             }
             case 672: {
-                id_add = new byte[] {14, 47};
-                par_add = new int[] {150, 60};
+                id_add = new byte[] { 14, 47 };
+                par_add = new int[] { 150, 60 };
                 break;
             }
             case 673: {
-                id_add = new byte[] {14, 48};
-                par_add = new int[] {150, 30};
+                id_add = new byte[] { 14, 48 };
+                par_add = new int[] { 150, 30 };
                 break;
             }
             case 674: {
-                id_add = new byte[] {14, 49};
-                par_add = new int[] {150, 60};
+                id_add = new byte[] { 14, 49 };
+                par_add = new int[] { 150, 60 };
                 break;
             }
             case 675: {
-                id_add = new byte[] {14, 50};
-                par_add = new int[] {150, 60};
+                id_add = new byte[] { 14, 50 };
+                par_add = new int[] { 150, 60 };
                 break;
             }
             case 676: {
-                id_add = new byte[] {14, 51};
-                par_add = new int[] {150, 60};
+                id_add = new byte[] { 14, 51 };
+                par_add = new int[] { 150, 60 };
                 break;
             }
             case 677: {
-                id_add = new byte[] {12, 47};
-                par_add = new int[] {90, 60};
+                id_add = new byte[] { 12, 47 };
+                par_add = new int[] { 90, 60 };
                 break;
             }
             case 678: {
-                id_add = new byte[] {12, 48};
-                par_add = new int[] {90, 30};
+                id_add = new byte[] { 12, 48 };
+                par_add = new int[] { 90, 30 };
                 break;
             }
             case 679: {
-                id_add = new byte[] {12, 49};
-                par_add = new int[] {90, 60};
+                id_add = new byte[] { 12, 49 };
+                par_add = new int[] { 90, 60 };
                 break;
             }
             case 680: {
-                id_add = new byte[] {12, 50};
-                par_add = new int[] {90, 60};
+                id_add = new byte[] { 12, 50 };
+                par_add = new int[] { 90, 60 };
                 break;
             }
             case 681: {
-                id_add = new byte[] {12, 51};
-                par_add = new int[] {90, 60};
+                id_add = new byte[] { 12, 51 };
+                par_add = new int[] { 90, 60 };
                 break;
             }
             case 682: {
-                id_add = new byte[] {12, 52};
-                par_add = new int[] {90, 60};
+                id_add = new byte[] { 12, 52 };
+                par_add = new int[] { 90, 60 };
                 break;
             }
 
