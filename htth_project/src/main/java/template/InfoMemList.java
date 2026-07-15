@@ -1,10 +1,11 @@
 package template;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import client.Player;
 import map.Map;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 /**
  *
  * @author Truongbk
@@ -35,6 +36,6 @@ public class InfoMemList {
         dos.writeShort(temp.hat);
         dos.writeByte(p0 != null ? 1 : 0);
         dos.writeUTF(temp.info);
-        dos.writeShort(temp.rank);
+        dos.writeShort((short) client.Clan.get_icon_clan(temp.name)); // clan icon
     }
 }
