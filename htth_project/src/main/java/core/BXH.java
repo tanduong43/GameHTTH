@@ -131,7 +131,7 @@ public class BXH {
                     }
                     m.writer().writeUTF(String.format(info, clan.trungsinh, clan.level,
                             String.format("%.2f", percent)) + "%");
-                    m.writer().writeShort(-1); // clan icon
+                    m.writer().writeShort(clan.icon); // clan icon
                     m.writer().writeShort(i);
                 }
                 break;
