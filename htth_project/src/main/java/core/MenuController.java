@@ -1812,6 +1812,8 @@ public class MenuController {
             vgo.ynew = (short) (vgo.map_go[0].template.maxH / 2);
             p.goto_map(vgo);
           }
+        } else if (p.map.template.id == 9) { // Thợ săn hải tặc
+          core.BXH.send_wanted_list(p, (byte) 0);
         }
       }
     }

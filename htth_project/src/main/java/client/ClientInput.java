@@ -23,6 +23,39 @@ public class ClientInput {
             name[i] = m2.reader().readUTF();
         }
         switch (id) {
+            case -89: {
+                if (name.length == 2) {
+                    if (!Util.isnumber(name[1])) {
+                        Service.send_box_ThongBao_OK(p, "Số beri không hợp lệ");
+                        return;
+                    }
+                    long value = Long.parseLong(name[1]);
+                    if (value <= 0 || value > 2_000_000_000) {
+                        Service.send_box_ThongBao_OK(p, "Số beri không hợp lệ");
+                        return;
+                    }
+                    if (p.get_vang() < value) {
+                        Service.send_box_ThongBao_OK(p, "Không đủ " + Util.number_format(value) + " beri");
+                        return;
+                    }
+                    Player p0 = Map.get_player_by_name_allmap(name[0]);
+                    if (p0 == null) {
+                        Service.send_box_ThongBao_OK(p, "Người chơi không online hoặc không tồn tại");
+                        return;
+                    }
+                    if (p0.name.equals(p.name)) {
+                        Service.send_box_ThongBao_OK(p, "Không thể tự treo thưởng bản thân");
+                        return;
+                    }
+                    p.update_vang(-value);
+                    p.update_money();
+                    p0.update_wanted_point((int) value);
+                    Service.send_box_ThongBao_OK(p, "Đã treo thưởng " + Util.number_format(value) + " beri cho " + p0.name);
+                    Service.send_box_ThongBao_OK(p0, p.name + " đã treo thưởng " + Util.number_format(value) + " beri cho cái đầu của bạn");
+                    Manager.gI().chatKTG(0, "Thông báo: " + p.name + " đã treo thưởng " + Util.number_format(value) + " beri cho cái đầu của " + p0.name, 5);
+                }
+                break;
+            }
             case 11: {
                 if (name.length == 1) {
                     if (!Util.isnumber(name[0])) {

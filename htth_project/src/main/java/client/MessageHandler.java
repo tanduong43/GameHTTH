@@ -469,6 +469,22 @@ public class MessageHandler {
                 }
                 break;
             }
+            case -89: { // Thợ săn hải tặc (Truy nã)
+                if (conn.p != null) {
+                    byte type = m.reader().readByte();
+                    if (type == 4) { // Nhận thưởng / Báo thù
+                        String name = m.reader().readUTF();
+                        // TODO: Thêm logic báo thù/nhận thưởng nếu cần
+                    } else if (type == 5) { // Tìm kiếm
+                        String name = m.reader().readUTF();
+                        // TODO: Thêm logic tìm kiếm người chơi truy nã
+                    } else if (type == 1) { // Load thêm trang (hoặc load lần đầu)
+                        byte page = m.reader().readByte();
+                        core.BXH.send_wanted_list(conn.p, page);
+                    }
+                }
+                break;
+            }
 
             case -16: {
                 if (conn.p != null) {

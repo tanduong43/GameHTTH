@@ -183,6 +183,64 @@ public class BXH {
         m.cleanup();
     }
 
+    public static void send_wanted_list(Player p, byte page) throws IOException {
+        Message msg = new Message(-89);
+        int bound1 = 0;
+        int bound2 = BXH.WANTED.size() > 10 ? 10 : BXH.WANTED.size();
+        if (BXH.WANTED.size() > 10) {
+            if (((page + 1) * 10) > BXH.WANTED.size()) {
+                bound1 = 10 * page;
+                bound2 = BXH.WANTED.size();
+                while (bound1 >= bound2) {
+                    bound1 -= 10;
+                    page--;
+                }
+            } else {
+                bound1 = 10 * page;
+                bound2 = bound1 + 10;
+            }
+        } else {
+            page = 0;
+        }
+        msg.writer().writeByte(0); // type 0 trong ListWantedServer
+        msg.writer().writeShort(bound2 - bound1);
+        
+        for (int i = bound1; i < bound2; i++) {
+            InfoMemList temp = BXH.WANTED.get(i);
+            Player p0 = Map.get_player_by_name_allmap(temp.name);
+            short[] part = new short[] { -1, -1, -1 };
+            if (p0 != null) {
+                temp.head = p0.head;
+                temp.hair = p0.hair;
+                temp.hat = p0.get_hat();
+                if (p0.item.it_body[0] != null) {
+                    part[2] = p0.item.it_body[0].template.part;
+                }
+                if (p0.item.it_body[5] != null) {
+                    part[1] = p0.item.it_body[5].template.part;
+                }
+                if (p0.item.it_body[3] != null) {
+                    part[0] = p0.item.it_body[3].template.part;
+                }
+            }
+            msg.writer().writeShort(1); // num in ReadInfoMemWantedWarrant (bỏ qua/không dùng nhiều ở client)
+            msg.writer().writeUTF(temp.name);
+            msg.writer().writeInt((int) temp.thongthao); // wanted
+            msg.writer().writeUTF(temp.name); // charShow.name
+            msg.writer().writeShort(1); // Lv (có thể lấy từ temp nếu có)
+            
+            // updateCharFace
+            msg.writer().writeShort(temp.head);
+            msg.writer().writeShort(temp.hair);
+            msg.writer().writeShort(temp.hat);
+            
+            // infoMemList.typeOnline
+            msg.writer().writeByte(p0 != null ? 1 : 0); 
+        }
+        p.conn.addmsg(msg);
+        msg.cleanup();
+    }
+
     public static void process(Player p, Message m2) throws IOException {
         byte type = m2.reader().readByte();
         byte idlist = m2.reader().readByte();
