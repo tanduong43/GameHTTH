@@ -98,6 +98,7 @@ public class Player {
     public byte giaiPhongNangLuong;
     public Clan clan;
     public Dungeon dungeon;
+    public int id_menu_tichtieu;
     public activities.BossHunt bossHunt;
     public int win_dungeon_1 = 0;
     public int originalMapId = -1;

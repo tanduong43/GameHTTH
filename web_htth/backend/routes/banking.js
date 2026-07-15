@@ -55,8 +55,8 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
             ? `Nạp tiền tự động qua ${gatewayType} thành công (${actualAmount.toLocaleString()}đ → ${coinAmount} Coin)` 
             : `Nạp thành công sai mệnh giá (Yêu cầu ${deposit.amount}đ, thực nhận ${actualAmount}đ → ${coinAmount} Coin)`;
         
-        // 1. Get current balance, sumamount, and vip with lock
-        const [userRows] = await connection.execute('SELECT coin, sumamount, vip FROM accounts WHERE user = ? FOR UPDATE', [username]);
+        // 1. Get current balance, sumamount, vip, and tichnap with lock
+        const [userRows] = await connection.execute('SELECT coin, sumamount, vip, tichnap FROM accounts WHERE user = ? FOR UPDATE', [username]);
         if (userRows.length === 0) {
             throw new Error(`User not found: ${username}`);
         }
@@ -64,9 +64,11 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
         const currentBalance = parseInt(userRows[0].coin || 0, 10);
         const currentSumAmount = parseInt(userRows[0].sumamount || 0, 10);
         const currentVip = parseInt(userRows[0].vip || 0, 10);
+        const currentTichNap = parseInt(userRows[0].tichnap || 0, 10);
 
         const newBalance = currentBalance + coinAmount;
         const newSumAmount = currentSumAmount + actualAmount;
+        const newTichNap = currentTichNap + actualAmount;
 
         // Calculate VIP level based on newSumAmount
         let calculatedVip = 0;
@@ -88,8 +90,8 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
 
         const newVip = Math.max(currentVip, calculatedVip);
         
-        // 2. Update user's coin balance, sumamount, and vip
-        await connection.execute('UPDATE accounts SET coin = ?, sumamount = ?, vip = ? WHERE user = ?', [newBalance, newSumAmount, newVip, username]);
+        // 2. Update user's coin balance, sumamount, vip, and tichnap
+        await connection.execute('UPDATE accounts SET coin = ?, sumamount = ?, vip = ?, tichnap = ? WHERE user = ?', [newBalance, newSumAmount, newVip, newTichNap, username]);
         
         // 3. Update deposit history
         await connection.execute(

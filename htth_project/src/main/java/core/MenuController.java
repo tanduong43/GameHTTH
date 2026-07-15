@@ -706,7 +706,19 @@ public class MenuController {
           break;
         }
         case 983: { // Tich Tieu Menu Npc Text
-          activities.TichLuyTieu.claimReward(p, index);
+          activities.TichLuyTieu.showSubMenu(p, index);
+          break;
+        }
+        case 9085: {
+          if (index == 0) {
+            activities.TichLuyTieu.claimReward(p, p.id_menu_tichtieu);
+          } else if (index == 1) {
+            activities.TichLuyTieu.showReward(p, p.id_menu_tichtieu);
+          }
+          break;
+        }
+        case 9086: {
+          // Menu xem phần thưởng có icon (không có action nào khi bấm vào)
           break;
         }
         case 984: {
@@ -2708,7 +2720,7 @@ public class MenuController {
     }
   }
 
-  private static void send_dynamic_menu(Player p, int id_npc, String name_npc,
+  public static void send_dynamic_menu(Player p, int id_npc, String name_npc,
       List<String> list_menu, List<Integer> list_icon) throws IOException {
     if (!p.isdie) {
       Message m = new Message(-20);

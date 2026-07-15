@@ -3,6 +3,7 @@ package activities;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import client.Player;
 import core.Service;
 import core.Util;
@@ -57,63 +58,113 @@ public class TichLuyNap {
 
     /**
      * =====================================================================
-     *  CẤU HÌNH CÁC MỐC TÍCH LUỸ NẠP - CHỈNH SỬA TẠI ĐÂY
+     * CẤU HÌNH CÁC MỐC TÍCH LUỸ NẠP - CHỈNH SỬA TẠI ĐÂY
      * =====================================================================
      */
     private static void initMilestones() {
         MILESTONES.clear();
 
+        // MỐC 0: 50k Extol
+        Milestone m0 = new Milestone(50, "Tích luỹ nạp 50k Extol", 50000);
+        m0.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
+        m0.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
+        m0.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
+        m0.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 3);
+        m0.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
+        m0.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 10);
+        m0.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 1);
+        m0.addReward("Rương dial", (byte) 4, (short) 455, (short) 455, 5);
+        MILESTONES.add(m0);
+
         // MỐC 1: 100k Extol
         Milestone m1 = new Milestone(100, "Tích luỹ nạp 100k Extol", 100000);
-        m1.addReward("Chest",        (byte) 4, (short)  7, (short)  7,   5); // Rương châu báu x5
-        m1.addReward("Blue stone",   (byte) 4, (short) 70, (short) 70,  50); // Đá Saphia cấp 3 x50
-        m1.addReward("Purple stone", (byte) 4, (short) 76, (short) 76,  10); // Thạch anh tím cấp 3 x10
+        m1.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
+        m1.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
+        m1.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
+        m1.addReward("Đá hải thạch 1", (byte) 4, (short) 221, (short) 221, 100);
+        m1.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
+        m1.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 10);
+        m1.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
+        m1.addReward("Thời trang Doflamingo", (byte) 105, (short) 127, (short) 127, 1);
         MILESTONES.add(m1);
 
         // MỐC 2: 200k Extol
         Milestone m2 = new Milestone(200, "Tích luỹ nạp 200k Extol", 200000);
-        m2.addReward("Ruby",         (byte) 4, (short)  1, (short)  1,  60); // Ruby x60
-        m2.addReward("Chest",        (byte) 4, (short)  7, (short)  7,  10); // Rương châu báu x10
-        m2.addReward("Blue stone",   (byte) 4, (short) 70, (short) 70, 100); // Đá Saphia cấp 3 x100
+        m2.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
+        m2.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
+        m2.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
+        m2.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 3);
+        m2.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
+        m2.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 10);
+        m2.addReward("Rương cam cùng hệ lv100", (byte) 4, (short) 131, (short) 131, 50);
+        m2.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
+        m2.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 1);
+        m2.addReward("Đá khảm ngẫu nhiên", (byte) 4, (short) 327, (short) 327, 20);
+        m2.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 1);
+        m2.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
+        m2.addReward("Trang phục Đấng", (byte) 105, (short) 59, (short) 59, 1);
         MILESTONES.add(m2);
 
         // MỐC 3: 300k Extol
         Milestone m3 = new Milestone(300, "Tích luỹ nạp 300k Extol", 300000);
-        m3.addReward("Ruby",         (byte) 4, (short)  1, (short)  1, 100); // Ruby x100
-        m3.addReward("Chest",        (byte) 4, (short)  7, (short)  7,  15); // Rương châu báu x15
-        m3.addReward("Purple stone", (byte) 4, (short) 76, (short) 76,  30); // Thạch anh tím cấp 3 x30
+        m3.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 10);
+        m3.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
+        m3.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 30);
+        m3.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
+        m3.addReward("Trang phục Raid Suit Judge", (byte) 105, (short) 116, (short) 116, 1);
+        m3.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
+        m3.addReward("Topaz - Saphia thần thoại", (byte) 4, (short) 655, (short) 655, 5);
+        m3.addReward("Đá khảm siêu cấp", (byte) 4, (short) 324, (short) 324, 5);
+        m3.addReward("Trang phục Thần Tài", (byte) 105, (short) 95, (short) 95, 1);
         MILESTONES.add(m3);
 
         // MỐC 4: 500k Extol
         Milestone m4 = new Milestone(500, "Tích luỹ nạp 500k Extol", 500000);
-        m4.addReward("Ruby",         (byte) 4, (short)  1, (short)  1, 200); // Ruby x200
-        m4.addReward("Chest",        (byte) 4, (short)  7, (short)  7,  25); // Rương châu báu x25
-        m4.addReward("Blue stone",   (byte) 4, (short) 70, (short) 70, 200); // Đá Saphia cấp 3 x200
-        m4.addReward("Purple stone", (byte) 4, (short) 76, (short) 76,  50); // Thạch anh tím cấp 3 x50
+        m4.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 10);
+        m4.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
+        m4.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 30);
+        m4.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
+        m4.addReward("Trang phục Mihawk", (byte) 105, (short) 118, (short) 118, 1);
+        m4.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
+        m4.addReward("Ngọc - Saphia thần thoại", (byte) 4, (short) 665, (short) 665, 5);
+        m4.addReward("Đá khảm ngẫu nhiên", (byte) 4, (short) 327, (short) 327, 5);
+        m4.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 5);
         MILESTONES.add(m4);
 
         // MỐC 5: 1M Extol
         Milestone m5 = new Milestone(1000, "Tích luỹ nạp 1M Extol", 1000000);
-        m5.addReward("Ruby",         (byte) 4, (short)  1, (short)  1, 500); // Ruby x500
-        m5.addReward("Chest",        (byte) 4, (short)  7, (short)  7,  50); // Rương châu báu x50
-        m5.addReward("Blue stone",   (byte) 4, (short) 70, (short) 70, 500); // Đá Saphia cấp 3 x500
-        m5.addReward("Purple stone", (byte) 4, (short) 76, (short) 76, 100); // Thạch anh tím cấp 3 x100
+        m5.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 10);
+        m5.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
+        m5.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 30);
+        m5.addReward("Trang phục Râu đen", (byte) 105, (short) 74, (short) 74, 1);
+        m5.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
+        m5.addReward("Ngọc - Saphia thần thoại", (byte) 4, (short) 665, (short) 665, 5);
+        m5.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 5);
+        m5.addReward("Tiến cấp đơn", (byte) 4, (short) 413, (short) 413, 20);
+        m5.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 10);
+        m5.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 10);
+        m5.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 10);
+        m5.addReward("Rương trang phục", (byte) 4, (short) 228, (short) 228, 10);
         MILESTONES.add(m5);
     }
 
     public static short getIcon(byte type, int id) {
         if (type == 4) {
             ItemTemplate4 it = ItemTemplate4.get_it_by_id(id);
-            if (it != null) return it.icon;
+            if (it != null)
+                return it.icon;
         } else if (type == 3) {
             ItemTemplate3 it = ItemTemplate3.get_it_by_id(id);
-            if (it != null) return it.icon;
+            if (it != null)
+                return it.icon;
         } else if (type == 7) {
             ItemTemplate7 it = ItemTemplate7.get_it_by_id(id);
-            if (it != null) return it.icon;
+            if (it != null)
+                return it.icon;
         } else if (type == 8) {
             ItemTemplate8 it = ItemTemplate8.get_it_by_id(id);
-            if (it != null) return it.icon;
+            if (it != null)
+                return it.icon;
         }
         return 0;
     }
@@ -122,16 +173,20 @@ public class TichLuyNap {
         String itemName = reward.name;
         if (reward.type == 4) {
             ItemTemplate4 it = ItemTemplate4.get_it_by_id(reward.id);
-            if (it != null) itemName = it.name;
+            if (it != null)
+                itemName = it.name;
         } else if (reward.type == 3) {
             ItemTemplate3 it = ItemTemplate3.get_it_by_id(reward.id);
-            if (it != null) itemName = it.name;
+            if (it != null)
+                itemName = it.name;
         } else if (reward.type == 7) {
             ItemTemplate7 it = ItemTemplate7.get_it_by_id(reward.id);
-            if (it != null) itemName = it.name;
+            if (it != null)
+                itemName = it.name;
         } else if (reward.type == 8) {
             ItemTemplate8 it = ItemTemplate8.get_it_by_id(reward.id);
-            if (it != null) itemName = it.name;
+            if (it != null)
+                itemName = it.name;
         }
         if (itemName == null || itemName.isEmpty()) {
             itemName = reward.name;
@@ -181,8 +236,8 @@ public class TichLuyNap {
                 if (p.item.total_item_bag_by_id(reward.type, reward.id) == 0) {
                     requiredSpace++;
                 }
-                if ((p.item.total_item_bag_by_id(reward.type, reward.id) + reward.quantity)
-                        > DataTemplate.MAX_ITEM_IN_BAG) {
+                if ((p.item.total_item_bag_by_id(reward.type, reward.id)
+                        + reward.quantity) > DataTemplate.MAX_ITEM_IN_BAG) {
                     return Integer.MAX_VALUE;
                 }
             }
@@ -191,13 +246,15 @@ public class TichLuyNap {
     }
 
     public static void syncAccountTichNap(Player p) {
-        if (p.conn == null) return;
+        if (p.conn == null)
+            return;
         java.sql.Connection connection = null;
         java.sql.PreparedStatement ps = null;
         java.sql.ResultSet rs = null;
         try {
             connection = database.SQL.gI().getCon();
-            ps = connection.prepareStatement("SELECT `tichnap`, `claimed_milestones` FROM `accounts` WHERE `user` = ? LIMIT 1;");
+            ps = connection.prepareStatement(
+                    "SELECT `tichnap`, `claimed_milestones` FROM `accounts` WHERE `user` = ? LIMIT 1;");
             ps.setString(1, p.conn.user);
             rs = ps.executeQuery();
             if (rs.next()) {
@@ -206,7 +263,7 @@ public class TichLuyNap {
                 if (p.conn.claimed_milestones == null) {
                     p.conn.claimed_milestones = "";
                 }
-                
+
                 p.claimedMilestones.clear();
                 if (!p.conn.claimed_milestones.isEmpty()) {
                     for (String s : p.conn.claimed_milestones.split(",")) {
@@ -222,9 +279,12 @@ public class TichLuyNap {
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (ps != null) ps.close();
-                if (connection != null) connection.close();
+                if (rs != null)
+                    rs.close();
+                if (ps != null)
+                    ps.close();
+                if (connection != null)
+                    connection.close();
             } catch (java.sql.SQLException e) {
                 e.printStackTrace();
             }
@@ -237,32 +297,32 @@ public class TichLuyNap {
                 + " | tichLuy=" + p.getTichLuy()
                 + " | milestones=" + MILESTONES.size()
                 + " | isdie=" + p.isdie);
-        
+
         Message m = new Message(-90);
         m.writer().writeByte(0); // type = 0: Open UI
         m.writer().writeInt(p.getTichLuy()); // Tổng điểm tích luỹ
         m.writer().writeByte(MILESTONES.size()); // số mốc
-        
+
         for (int i = 0; i < MILESTONES.size(); i++) {
             Milestone milestone = MILESTONES.get(i);
-            
+
             byte status = 0;
             if (p.claimedMilestones.contains(milestone.id)) {
                 status = 2;
             } else if (p.getTichLuy() >= milestone.extolReq) {
                 status = 1;
             }
-            
-            m.writer().writeByte(i);                          // index/ID mốc dạng byte
-            m.writer().writeInt(milestone.extolReq);          // extolReq (số extol yêu cầu)
-            m.writer().writeByte(status);                     // status (trạng thái nhận)
-            m.writer().writeShort(milestone.rewards.size());  // số phần thưởng
-            
+
+            m.writer().writeByte(i); // index/ID mốc dạng byte
+            m.writer().writeInt(milestone.extolReq); // extolReq (số extol yêu cầu)
+            m.writer().writeByte(status); // status (trạng thái nhận)
+            m.writer().writeShort(milestone.rewards.size()); // số phần thưởng
+
             for (RewardItem reward : milestone.rewards) {
-                m.writer().writeUTF(getRewardName(reward));   // tên item
-                m.writer().writeByte(reward.type);            // loại item
-                m.writer().writeShort(reward.id);             // id item
-                m.writer().writeShort(reward.quantity);       // số lượng
+                m.writer().writeUTF(getRewardName(reward)); // tên item
+                m.writer().writeByte(reward.type); // loại item
+                m.writer().writeShort(reward.id); // id item
+                m.writer().writeShort(reward.quantity); // số lượng
                 m.writer().writeByte(isRubyReward(reward) ? 5 : 0);
             }
         }
@@ -326,7 +386,7 @@ public class TichLuyNap {
         }
 
         p.claimedMilestones.add(milestone.id);
-        
+
         // Cập nhật lại chuỗi claimed_milestones trong Session tài khoản
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < p.claimedMilestones.size(); i++) {
@@ -336,7 +396,7 @@ public class TichLuyNap {
             }
         }
         p.conn.claimed_milestones = sb.toString();
-        
+
         // Lưu lại cột claimed_milestones vào bảng accounts dưới DB
         java.sql.Connection connection = null;
         java.sql.PreparedStatement ps = null;
@@ -350,8 +410,10 @@ public class TichLuyNap {
             e.printStackTrace();
         } finally {
             try {
-                if (ps != null) ps.close();
-                if (connection != null) connection.close();
+                if (ps != null)
+                    ps.close();
+                if (connection != null)
+                    connection.close();
             } catch (java.sql.SQLException e) {
                 e.printStackTrace();
             }
@@ -363,7 +425,8 @@ public class TichLuyNap {
         Service.send_box_ThongBao_OK(p,
                 "Nhận quà mốc " + Util.number_format(milestone.extolReq) + " Extol thành công!");
 
-        // Gửi type=2 để client gọi setCmdDaNhanIndex(index) cập nhật trạng thái đã nhận trong UI
+        // Gửi type=2 để client gọi setCmdDaNhanIndex(index) cập nhật trạng thái đã nhận
+        // trong UI
         Message m = new Message(-90);
         m.writer().writeByte(2); // type 2: update claimed status in UI
         m.writer().writeByte(index); // index/ID mốc dạng byte
