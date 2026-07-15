@@ -473,11 +473,15 @@ public class MessageHandler {
                 if (conn.p != null) {
                     byte type = m.reader().readByte();
                     if (type == 4) { // Nhận thưởng / Báo thù
-                        String name = m.reader().readUTF();
-                        // TODO: Thêm logic báo thù/nhận thưởng nếu cần
+                        try {
+                            String name = m.reader().readUTF();
+                            core.Service.send_box_ThongBao_OK(conn.p, "Tính năng này không dùng trong Thợ săn hải tặc!");
+                        } catch (Exception e) {}
                     } else if (type == 5) { // Tìm kiếm
-                        String name = m.reader().readUTF();
-                        // TODO: Thêm logic tìm kiếm người chơi truy nã
+                        try {
+                            String name = m.reader().readUTF();
+                            core.Service.send_box_ThongBao_OK(conn.p, "Tính năng này không dùng trong Thợ săn hải tặc!");
+                        } catch (Exception e) {}
                     } else if (type == 1) { // Load thêm trang (hoặc load lần đầu)
                         byte page = m.reader().readByte();
                         core.BXH.send_wanted_list(conn.p, page);

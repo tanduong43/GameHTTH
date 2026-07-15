@@ -1267,6 +1267,19 @@ public class Map implements Runnable {
                     p0.update_money();
                     Service.CountDown_Ticket(p0);
                 }
+                // Thợ săn hải tặc (Bounty Hunter)
+                if (p0.thosan_bounty > 0) {
+                    long now = System.currentTimeMillis();
+                    if (now - p0.time_bounty_posted < 600_000L) { // Trong 10 phút đầu
+                        if (now - p0.last_bounty_announce_time > 60_000L) { // Mỗi 1 phút
+                            p0.last_bounty_announce_time = now;
+                            long minutes_left = 10 - ((now - p0.time_bounty_posted) / 60_000L);
+                            core.Manager.gI().chatKTG(0, "Tội phạm " + p0.name + " đang bị truy nã với giá "
+                                    + p0.thosan_bounty + " Beri! Sau " + minutes_left
+                                    + " phút nữa lệnh truy nã sẽ có hiệu lực!", 5);
+                        }
+                    }
+                }
                 // update combo
                 if (p0.is_combo != null && p0.time_combo < System.currentTimeMillis()) {
                     p0.is_combo = null;
@@ -2515,6 +2528,24 @@ public class Map implements Runnable {
                     } else {
                         die_player(p_target, p_target);
                     }
+                    // Thợ săn hải tặc (Bounty Hunter)
+                    if (p_target.thosan_bounty > 0 && !p.equals(p_target)) {
+                        if (System.currentTimeMillis() - p_target.time_bounty_posted >= 600_000L) {
+                            long thuong = (long) (p_target.thosan_bounty * 0.8);
+                            p.update_vang(thuong);
+                            p.update_money();
+                            core.Manager.gI().chatKTG(0,
+                                    "Thông báo: Thợ săn " + p.name + " đã tiêu diệt tội phạm bị truy nã "
+                                            + p_target.name + " và nhận được " + core.Util.number_format(thuong)
+                                            + " Beri tiền thưởng!",
+                                    5);
+                            p_target.thosan_bounty = 0;
+                            p_target.time_bounty_posted = 0;
+                            p_target.last_bounty_announce_time = 0;
+                            client.Player.flush(p_target, false); // Save to database immediately
+                            core.BXH.updateThoSanBounty(); // Refresh ranking
+                        }
+                    }
                     if (p.type_pk == 0 && p_target.type_pk != 0) {
                         int delta = p.level / 10 - p_target.level / 10;
                         int plus = (p.pointPk > 0) ? (p.pointPk / 5) : 0;
@@ -3446,7 +3477,8 @@ public class Map implements Runnable {
         if (p.conn.user.equals("admin")) {
             if (txt.equals("menu")) {
                 MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[] { "Bao tri",
-                        "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tao Giftcode", "Reset Tich Luy", "Reset Tich Tieu" },
+                        "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tao Giftcode",
+                        "Reset Tich Luy", "Reset Tich Tieu" },
                         null);
                 Service.send_box_ThongBao_OK(p,
                         "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu");

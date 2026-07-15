@@ -49,9 +49,13 @@ public class ClientInput {
                     }
                     p.update_vang(-value);
                     p.update_money();
-                    p0.update_wanted_point((int) value);
-                    Service.send_box_ThongBao_OK(p, "Đã treo thưởng " + Util.number_format(value) + " beri cho " + p0.name);
-                    Service.send_box_ThongBao_OK(p0, p.name + " đã treo thưởng " + Util.number_format(value) + " beri cho cái đầu của bạn");
+                    p0.thosan_bounty += (int) value;
+                    p0.time_bounty_posted = System.currentTimeMillis();
+                    p0.last_bounty_announce_time = System.currentTimeMillis();
+                    client.Player.flush(p0, false); // Save to database immediately
+                    core.BXH.updateThoSanBounty(); // Refresh ranking
+                    Service.send_box_ThongBao_OK(p, "Đã đăng truy nã " + Util.number_format(value) + " beri cho " + p0.name);
+                    Service.send_box_ThongBao_OK(p0, p.name + " đã treo thưởng " + Util.number_format(value) + " beri cho cái đầu của bạn. Lệnh có hiệu lực sau 10 phút.");
                     Manager.gI().chatKTG(0, "Thông báo: " + p.name + " đã treo thưởng " + Util.number_format(value) + " beri cho cái đầu của " + p0.name, 5);
                 }
                 break;

@@ -129,8 +129,8 @@ public class MenuController {
           switch (p.map.template.id) {
             case 9: {
               send_dynamic_menu(p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu",
-                  "Vượt liên ải", "Trận chiến lớn", "Thợ săn hải tặc" },
-                  new short[] { 136, 137, 138, 146, 111 });
+                  "Vượt liên ải", "Trận chiến lớn", "Thợ săn hải tặc", "Đăng truy nã" },
+                  new short[] { 136, 137, 138, 146, 111, 111 });
               break;
             }
             case 191:
@@ -1815,6 +1815,12 @@ public class MenuController {
         } else if (p.map.template.id == 9) { // Thợ săn hải tặc
           core.BXH.send_wanted_list(p, (byte) 0);
         }
+        break;
+      }
+      case 5: {
+        if (p.map.template.id == 9) { // Đăng truy nã
+          core.Service.input_text(p, -89, "Đăng truy nã", new String[] { "Tên nhân vật", "Số tiền (Beri)" });
+        }
       }
     }
   }
@@ -2401,18 +2407,20 @@ public class MenuController {
           java.sql.Connection connDb = null;
           java.sql.Statement st = null;
           try {
-              connDb = database.SQL.gI().getCon();
-              st = connDb.createStatement();
-              st.executeUpdate("UPDATE `players` SET `tichtieu_ruby` = 0, `claimed_tichtieu_ruby` = ''");
+            connDb = database.SQL.gI().getCon();
+            st = connDb.createStatement();
+            st.executeUpdate("UPDATE `players` SET `tichtieu_ruby` = 0, `claimed_tichtieu_ruby` = ''");
           } catch (java.sql.SQLException e) {
-              e.printStackTrace();
+            e.printStackTrace();
           } finally {
-              try {
-                  if (st != null) st.close();
-                  if (connDb != null) connDb.close();
-              } catch (java.sql.SQLException e) {
-                  e.printStackTrace();
-              }
+            try {
+              if (st != null)
+                st.close();
+              if (connDb != null)
+                connDb.close();
+            } catch (java.sql.SQLException e) {
+              e.printStackTrace();
+            }
           }
 
           // Reset nong nguoi choi dang online

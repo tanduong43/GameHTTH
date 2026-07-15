@@ -198,6 +198,12 @@ public class Player {
     public long time_change_map;
     public boolean isBot = false;
     public long time_start_find_wanted = 0;
+    
+    // Thợ săn hải tặc bounty
+    public int thosan_bounty = 0;
+    public long time_bounty_posted = 0;
+    public long last_bounty_announce_time = 0;
+    
     public int diemdanh;
     public int diemdanhvip;
     public long[] time_sk = new long[10000];
@@ -295,6 +301,15 @@ public class Player {
                         // ignore
                     }
                 }
+            }
+            // Đọc Thợ săn hải tặc bounty
+            try {
+                this.thosan_bounty = rs.getInt("thosan_bounty");
+                this.time_bounty_posted = rs.getLong("time_bounty_posted");
+            } catch (SQLException e) {
+                // Ignore if columns don't exist yet
+                this.thosan_bounty = 0;
+                this.time_bounty_posted = 0;
             }
             // Đọc tích tiêu ruby từ bảng players
             this.tichtieu_ruby = rs.getInt("tichtieu_ruby");
@@ -1125,10 +1140,12 @@ public class Player {
                 if (i < p.claimedTichtieuRuby.size() - 1) sbTichTieu.append(",");
             }
             java.sql.PreparedStatement psTieu = connection.prepareStatement(
-                "UPDATE `players` SET `tichtieu_ruby` = ?, `claimed_tichtieu_ruby` = ? WHERE `id` = ?");
+                "UPDATE `players` SET `tichtieu_ruby` = ?, `claimed_tichtieu_ruby` = ?, `thosan_bounty` = ?, `time_bounty_posted` = ? WHERE `id` = ?");
             psTieu.setInt(1, p.tichtieu_ruby);
             psTieu.setString(2, sbTichTieu.toString());
-            psTieu.setInt(3, p.id);
+            psTieu.setInt(3, p.thosan_bounty);
+            psTieu.setLong(4, p.time_bounty_posted);
+            psTieu.setInt(5, p.id);
             psTieu.executeUpdate();
             psTieu.close();
         } catch (SQLException e) {
