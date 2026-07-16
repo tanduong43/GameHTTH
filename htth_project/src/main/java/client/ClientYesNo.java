@@ -952,6 +952,10 @@ public class ClientYesNo {
                             p.tableTickOption.listP.add(p.party.list.get(i));
                         }
                         p.tableTickOption.list_check = new byte[p.tableTickOption.listP.size()];
+                        p.tableTickOption.list_check[0] = 1;
+                        for (int i = 1; i < p.tableTickOption.list_check.length; i++) {
+                            p.tableTickOption.list_check[i] = 0;
+                        }
                         activities.TableTickOption.show_table(p, "Hang Động");
                     } else {
                         // Đi solo

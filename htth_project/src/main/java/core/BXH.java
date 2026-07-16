@@ -662,6 +662,7 @@ public class BXH {
         if (list_add.size() > 0) {
             for (int i = 0; i < list_add.size(); i++) {
                 list_add.get(i).rank = (short) i;
+                list_add.get(i).id = i + 1;
             }
             BXH.HANGDONG.clear();
             BXH.HANGDONG.addAll(list_add);
