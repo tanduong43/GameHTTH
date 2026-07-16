@@ -711,6 +711,10 @@ public class Manager {
                     mem.hair = Short.parseShort(js_in.get(8).toString());
                     mem.hat = Short.parseShort(js_in.get(9).toString());
                     mem.clazz = Byte.parseByte(js_in.get(10).toString());
+                    if (js_in.size() > 11) {
+                        mem.checkGiftSend = Byte.parseByte(js_in.get(11).toString());
+                        mem.checkGiftReceive = Byte.parseByte(js_in.get(12).toString());
+                    }
                     //
                     boolean add = true;
                     int num_clazz = 0;

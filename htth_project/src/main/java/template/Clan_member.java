@@ -18,6 +18,8 @@ public class Clan_member {
     public short hair;
     public short hat;
     public byte clazz;
+    public byte checkGiftSend;
+    public byte checkGiftReceive;
 
     public static int get_id(List<Clan_member> members) {
         int result = 0;

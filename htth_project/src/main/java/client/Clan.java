@@ -163,6 +163,8 @@ public class Clan {
             for (int j = 0; j < Clan.ENTRY.get(i).members.size(); j++) {
                 Clan_member mem = Clan.ENTRY.get(i).members.get(j);
                 mem.numquest = 0;
+                mem.checkGiftSend = 0;
+                mem.checkGiftReceive = 0;
                 // mem.gopRuby = 0;
             }
         }
@@ -564,7 +566,65 @@ public class Clan {
                 }
                 break;
             }
-            // case 2:
+            case 2: { // tang qua
+                String nameTarget = m2.reader().readUTF();
+                Clan_member myMem = null;
+                Clan_member targetMem = null;
+                for (int i = 0; i < p.clan.members.size(); i++) {
+                    if (p.clan.members.get(i).name.equals(p.name)) {
+                        myMem = p.clan.members.get(i);
+                    }
+                    if (p.clan.members.get(i).name.equals(nameTarget)) {
+                        targetMem = p.clan.members.get(i);
+                    }
+                }
+                if (myMem == null || targetMem == null) {
+                    Service.send_box_ThongBao_OK(p, "Không tìm thấy người chơi này");
+                    return;
+                }
+                if (myMem.name.equals(targetMem.name)) {
+                    Service.send_box_ThongBao_OK(p, "Không thể tự tặng quà cho bản thân");
+                    return;
+                }
+                if (myMem.checkGiftSend > 0) {
+                    Service.send_box_ThongBao_OK(p, "Hôm nay bạn đã tặng quà rồi");
+                    return;
+                }
+                // Random 2 - 10 ruby
+                int rubyGift = core.Util.random(2, 11);
+                myMem.checkGiftSend = 1;
+                targetMem.checkGiftReceive = 1;
+                
+                Player pTarget = Map.get_player_by_name_allmap(targetMem.name);
+                if (pTarget != null) {
+                    pTarget.update_ngoc(rubyGift);
+                    Service.send_box_ThongBao_OK(pTarget, p.name + " đã tặng cho bạn " + rubyGift + " ruby");
+                    pTarget.update_money();
+                } else {
+                    try (java.sql.Connection conn = SQL.gI().getCon();
+                         java.sql.PreparedStatement ps = conn.prepareStatement("SELECT `point_inven` FROM `players` WHERE `name` = ?")) {
+                        ps.setString(1, targetMem.name);
+                        try (java.sql.ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                String pointInvenStr = rs.getString("point_inven");
+                                org.json.simple.JSONArray js = (org.json.simple.JSONArray) org.json.simple.JSONValue.parse(pointInvenStr);
+                                int currentNgoc = Integer.parseInt(js.get(1).toString());
+                                js.set(1, currentNgoc + rubyGift);
+                                
+                                try (java.sql.PreparedStatement psUpdate = conn.prepareStatement("UPDATE `players` SET `point_inven` = ? WHERE `name` = ?")) {
+                                    psUpdate.setString(1, js.toJSONString());
+                                    psUpdate.setString(2, targetMem.name);
+                                    psUpdate.executeUpdate();
+                                }
+                            }
+                        }
+                    } catch (java.sql.SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Service.send_box_ThongBao_OK(p, "Bạn đã tặng " + rubyGift + " ruby cho " + targetMem.name + " thành công!");
+                break;
+            }
             case 15: {
                 Service.input_text(p, 11, "Đóng góp băng", new String[] { "Nhập số ruby muốn góp" });
                 break;
@@ -1426,6 +1486,8 @@ public class Clan {
                 js_in.add(mem.hair);
                 js_in.add(mem.hat);
                 js_in.add(mem.clazz);
+                js_in.add(mem.checkGiftSend);
+                js_in.add(mem.checkGiftReceive);
                 js.add(js_in);
             }
             ps.setNString(5, js.toJSONString());
@@ -1517,6 +1579,8 @@ public class Clan {
                     js_in.add(mem.hair);
                     js_in.add(mem.hat);
                     js_in.add(mem.clazz);
+                    js_in.add(mem.checkGiftSend);
+                    js_in.add(mem.checkGiftReceive);
                     js.add(js_in);
                 }
                 ps.setNString(2, js.toJSONString());
