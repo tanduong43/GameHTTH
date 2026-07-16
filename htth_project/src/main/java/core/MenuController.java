@@ -248,7 +248,8 @@ public class MenuController {
         }
         case -100: {
           send_dynamic_menu(p, type, "Sự kiện",
-              new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu" },
+              new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
+                  "Hang động" },
               null);
           break;
         }
