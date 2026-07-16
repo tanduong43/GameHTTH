@@ -405,7 +405,7 @@ public class MenuController {
         }
         case 120: {
           send_dynamic_menu(p, type, "Bảng Xếp Hạng",
-              new String[] { "Cao thủ", "Thách đấu", "Băng hải tặc", "Truy nã" },
+              new String[] { "Cao thủ", "Thách đấu", "Băng hải tặc", "Truy nã", "Hang động" },
               null);
           break;
         }
@@ -1142,6 +1142,10 @@ public class MenuController {
             }
             case 3: {
               BXH.send(p, 9, 0); // Top Truy nã
+              break;
+            }
+            case 4: {
+              BXH.send(p, 10, 0); // Top Hang Động
               break;
             }
           }
@@ -1983,6 +1987,10 @@ public class MenuController {
             new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
         break;
       }
+      case 6: { // Xep hang hang dong
+        BXH.send(p, 10, 0);
+        break;
+      }
     }
   }
 
@@ -2446,6 +2454,40 @@ public class MenuController {
           }
 
           Service.send_box_ThongBao_OK(p, "Da reset tich tieu ruby cua toan bo nhan vat thanh cong!");
+          break;
+        }
+        case 10: {
+          // Reset hangdong_stage trong database
+          java.sql.Connection connDb = null;
+          java.sql.Statement st = null;
+          try {
+            connDb = database.SQL.gI().getCon();
+            st = connDb.createStatement();
+            st.executeUpdate("UPDATE `players` SET `hangdong_stage` = 0");
+          } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+          } finally {
+            try {
+              if (st != null)
+                st.close();
+              if (connDb != null)
+                connDb.close();
+            } catch (java.sql.SQLException e) {
+              e.printStackTrace();
+            }
+          }
+
+          // Reset nong nguoi choi dang online
+          synchronized (SessionManager.CLIENT_ENTRYS) {
+            for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
+              io.Session sess = SessionManager.CLIENT_ENTRYS.get(i);
+              if (sess != null && sess.p != null) {
+                sess.p.hangdong_stage = 0;
+              }
+            }
+          }
+
+          Service.send_box_ThongBao_OK(p, "Da reset hang dong cua toan bo nhan vat thanh cong!");
           break;
         }
       }

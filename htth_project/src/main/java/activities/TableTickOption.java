@@ -394,8 +394,15 @@ public class TableTickOption {
                                 }
                                 m.cleanup();
 
+                                int startStage = -1;
+                                for (Player mem : onlineMembers) {
+                                    if (startStage == -1 || mem.hangdong_stage < startStage) {
+                                        startStage = mem.hangdong_stage;
+                                    }
+                                }
+                                if (startStage == -1) startStage = 0;
                                 activities.HangDong hd = new activities.HangDong(onlineMembers, p);
-                                hd.createStage(0);
+                                hd.createStage(startStage);
 
                             } else {
                                 // Member clicked Ready (Tick)

@@ -210,6 +210,7 @@ public class Player {
     public int sucmanhvatly;
     public int[] doriki;
     public int[] lucthuc;
+    public int hangdong_stage = 0;
 
     public Player(Session conn, String name) {
         this.conn = conn;
@@ -231,6 +232,7 @@ public class Player {
                 return false;
             }
             id = rs.getInt("id");
+            hangdong_stage = rs.getInt("hangdong_stage");
             index_map = (short) id;
             clazz = rs.getByte("clazz");
             pvppoint = rs.getInt("pvppoint");
@@ -787,7 +789,7 @@ public class Player {
                 + "`rms` = ?, `skill` = ?, `friend` = ?, `enemy` = ?, `fashion` = ?, `eff` = ?, `box47` = ?, `box3` = ?, `quest` = ?, "
                 + "`exp` = ?, `pvppoint` = ?, `save_it3` = ?, `save_it47` = ?, "
                 + "`hanhtrinh` = ?, `wanted_point` = ?, `wanted_chest` = ?, `mypet` = ?, `diemdanh` = ?, `diemdanhvip` = ?, `lucthuc` = ?, "
-                + "`danhhieu` = ?, `list_danhhieu` = ? WHERE `id` = "
+                + "`danhhieu` = ?, `list_danhhieu` = ?, `hangdong_stage` = ? WHERE `id` = "
                 + p.id + ";";
         Connection connection = null;
         PreparedStatement ps = null;
@@ -1130,6 +1132,7 @@ public class Player {
                 }
             }
             ps.setNString(30, js_dh.toJSONString());
+            ps.setInt(31, p.hangdong_stage);
             //
             result = ps.executeUpdate();
 

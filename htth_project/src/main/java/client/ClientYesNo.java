@@ -961,7 +961,7 @@ public class ClientYesNo {
                         java.util.List<Player> mems = new java.util.ArrayList<>();
                         mems.add(p);
                         activities.HangDong hd = new activities.HangDong(mems, p);
-                        hd.createStage(0);
+                        hd.createStage(p.hangdong_stage);
                     }
                     break;
                 }

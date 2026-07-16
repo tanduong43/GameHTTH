@@ -717,6 +717,14 @@ public class MessageHandler {
                             activities.NamieTreasureDefense nd = (activities.NamieTreasureDefense) conn.p.dungeon;
                             int waveNum = nd.currentWaveIndex == -1 ? 1 : (nd.currentWaveIndex + 1);
                             Service.send_time_cool_down(conn.p, nd.dungeonEndTime, "Tầng " + waveNum, 2);
+                        } else if (conn.p.dungeon instanceof activities.HangDong) {
+                            activities.HangDong hd = (activities.HangDong) conn.p.dungeon;
+                            if (hd.isTransitioning) {
+                                Service.send_time_cool_down(conn.p, hd.transitionTime, "Chuyển tầng", 2);
+                            } else {
+                                Service.send_time_cool_down(conn.p, hd.stageEndTime, "Tầng " + (hd.currentStageIndex + 1),
+                                        2);
+                            }
                         } else {
                             conn.p.dungeon.time = System.currentTimeMillis() + 120_000L;
                             int floorNum = conn.p.map.template.id - 167 + 1;

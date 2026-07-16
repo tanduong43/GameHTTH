@@ -282,6 +282,17 @@ router.post('/admin/reset_tichtieu', jwtRequired, isAdmin, async (req, res) => {
     }
 });
 
+// POST /api/admin/reset_hangdong/
+router.post('/admin/reset_hangdong', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        await db.execute("UPDATE players SET hangdong_stage = 0");
+        return res.json({ success: true, message: 'Đã reset tiến trình Hang Động của toàn bộ nhân vật về 0 thành công!' });
+    } catch (err) {
+        console.error('Admin reset hangdong error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
 // GET /api/admin/accounts/
 router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
     try {

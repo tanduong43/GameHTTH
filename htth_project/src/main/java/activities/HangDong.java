@@ -21,6 +21,8 @@ public class HangDong extends Dungeon {
     public Map currentMap;
     public boolean active = false;
     public boolean finished = false;
+    public boolean isTransitioning = false;
+    public long transitionTime = 0;
 
     public HangDong(List<Player> members, Player leader) {
         this.partyMembers.addAll(members);
@@ -154,6 +156,7 @@ public class HangDong extends Dungeon {
                 try {
                     p.goto_map(vgo);
                     Service.send_box_ThongBao_OK(p, "Bạn đã vào Hang động tầng " + (stageIndex + 1));
+                    Service.send_time_cool_down(p, this.stageEndTime, "Tầng " + (stageIndex + 1), 2);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -165,6 +168,14 @@ public class HangDong extends Dungeon {
         if (!active || finished)
             return;
 
+        if (isTransitioning) {
+            if (System.currentTimeMillis() >= transitionTime) {
+                isTransitioning = false;
+                createStage(currentStageIndex + 1);
+            }
+            return;
+        }
+
         boolean allDead = true;
         for (Mob mob : this.mobs) {
             if (!mob.isdie) {
@@ -174,16 +185,32 @@ public class HangDong extends Dungeon {
         }
 
         if (allDead) {
+            isTransitioning = true;
+            transitionTime = System.currentTimeMillis() + 5000L;
+            if (currentStageIndex >= 49) {
+                try {
+                    String names = leader.name;
+                    if (partyMembers.size() > 1) {
+                        names += " và đồng đội";
+                    }
+                    core.Manager.gI().chatKTG(1, "Tin đồn: " + names + " đã xuất sắc vượt qua Hang Động tầng " + (currentStageIndex + 1) + "!", 0);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             for (Player p : partyMembers) {
                 if (p != null && p.conn != null && p.conn.connected && p.map.equals(currentMap)) {
+                    if ((currentStageIndex + 1) > p.hangdong_stage) {
+                        p.hangdong_stage = currentStageIndex + 1;
+                    }
                     try {
-                        Service.send_box_ThongBao_OK(p, "Chuyển tầng tiếp theo...");
+                        Service.send_box_ThongBao_OK(p, "Đã vượt qua tầng " + (currentStageIndex + 1) + ". Chuẩn bị sang tầng " + (currentStageIndex + 2) + " sau 5 giây...");
+                        Service.send_time_cool_down(p, this.transitionTime, "Chuyển tầng", 2);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             }
-            createStage(currentStageIndex + 1);
         }
     }
 

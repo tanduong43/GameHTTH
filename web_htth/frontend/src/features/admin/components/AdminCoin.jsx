@@ -118,6 +118,22 @@ function AdminCoin() {
     }
   };
 
+  const handleResetHangDong = async () => {
+    const confirmReset = window.confirm(
+      "⚠️ CẢNH BÁO CỰC KỲ QUAN TRỌNG ⚠️\n\n" +
+      "Hành động này sẽ đặt lại tiến trình Hang Động của TOÀN BỘ nhân vật về 0.\n" +
+      "Bạn có chắc chắn muốn thực hiện reset không? Thao tác này không thể hoàn tác!"
+    );
+    if (!confirmReset) return;
+
+    try {
+      const res = await api.post('admin/reset_hangdong');
+      showMessage(res.data.success ? 'success' : 'error', res.data.message);
+    } catch {
+      showMessage('error', 'Lỗi kết nối máy chủ khi reset hang động!');
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '30px', justifyContent: 'center', alignItems: 'flex-start', padding: '20px' }}>
       {/* Form cộng coin nhanh */}
@@ -220,6 +236,33 @@ function AdminCoin() {
           }}
           onMouseOver={(e) => e.target.style.backgroundColor = '#08979c'}
           onMouseOut={(e) => e.target.style.backgroundColor = '#13c2c2'}
+        >
+          Xác Nhận Reset Toàn Bộ
+        </button>
+      </div>
+
+      {/* Card Reset Hang Động */}
+      <div style={{ ...styles.formContainer, margin: '0', flex: '1 1 300px', maxWidth: '420px' }}>
+        <h3 style={{ ...styles.title, color: '#9254de', background: 'linear-gradient(135deg, #9254de 0%, #b37feb 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          🔄 RESET HANG ĐỘNG
+        </h3>
+        
+        <p style={{ color: '#aaa', fontSize: '13.5px', marginBottom: '22px', lineHeight: '1.6', textAlign: 'center' }}>
+          Đặt lại tiến trình tầng Hang Động của **TẤT CẢ** nhân vật về 0. 
+          <br />
+          <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>*Khuyến nghị nên làm khi bảo trì.*</span>
+        </p>
+
+        <button 
+          type="button" 
+          onClick={handleResetHangDong}
+          style={{
+            ...styles.btnSubmit,
+            backgroundColor: '#9254de',
+            boxShadow: '0 4px 12px rgba(146, 84, 222, 0.25)',
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#722ed1'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#9254de'}
         >
           Xác Nhận Reset Toàn Bộ
         </button>

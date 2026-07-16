@@ -152,6 +152,13 @@ public class Map implements Runnable {
         update_map_ThuThachVeThan();
         update_map_Wanted();
         update_map_bossHunt();
+        update_map_HangDong();
+    }
+
+    private void update_map_HangDong() {
+        if (this.map_dungeon != null && this.map_dungeon instanceof activities.HangDong) {
+            ((activities.HangDong) this.map_dungeon).checkTransition();
+        }
     }
 
     private void update_map_bossHunt() throws IOException {
@@ -3484,10 +3491,10 @@ public class Map implements Runnable {
             if (txt.equals("menu")) {
                 MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[] { "Bao tri",
                         "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tao Giftcode",
-                        "Reset Tich Luy", "Reset Tich Tieu" },
+                        "Reset Tich Luy", "Reset Tich Tieu", "Reset Hang Dong" },
                         null);
                 Service.send_box_ThongBao_OK(p,
-                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu");
+                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu\nadmin resethangdong");
                 return;
             } else if (txt.startsWith("admin ")) {
                 String cmd = txt.substring(6);
@@ -3511,6 +3518,8 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 8);
                 else if (cmd.equals("resettieu") || cmd.equals("reset_tichtieu"))
                     MenuController.Menu_Admin(p, (byte) 9);
+                else if (cmd.equals("resethangdong") || cmd.equals("reset_hangdong"))
+                    MenuController.Menu_Admin(p, (byte) 10);
                 else
                     Service.send_box_ThongBao_OK(p, "Lenh admin khong hop le!");
                 return;
@@ -4156,11 +4165,15 @@ public class Map implements Runnable {
             m.writer().write(this.template.data[0]);
             m.writer().writeInt(this.template.data[1].length);
             m.writer().write(this.template.data[1]);
-            m.writer().writeByte(this.template.vgos.size());
-            for (int i = 0; i < this.template.vgos.size(); i++) {
-                m.writer().writeUTF(this.template.vgos.get(i).map_go[0].template.name);
-                m.writer().writeShort(this.template.vgos.get(i).xold);
-                m.writer().writeShort(this.template.vgos.get(i).yold);
+            if (this.template.id == 999 || this.map_dungeon != null || Map.is_map_dungeon(this.template.id)) {
+                m.writer().writeByte(0);
+            } else {
+                m.writer().writeByte(this.template.vgos.size());
+                for (int i = 0; i < this.template.vgos.size(); i++) {
+                    m.writer().writeUTF(this.template.vgos.get(i).map_go[0].template.name);
+                    m.writer().writeShort(this.template.vgos.get(i).xold);
+                    m.writer().writeShort(this.template.vgos.get(i).yold);
+                }
             }
         }
         m.writer().writeByte(this.template.IDBack);
