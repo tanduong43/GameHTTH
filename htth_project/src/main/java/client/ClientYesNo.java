@@ -934,6 +934,37 @@ public class ClientYesNo {
                     p.map_tele = null;
                     break;
                 }
+                case 1001: {
+                    if (value == 1) { // Hủy (Cancel)
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
+                    if (p.get_key_boss() < 1) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không đủ 1 chìa khóa phó bản!");
+                        return;
+                    }
+                    if (p.party != null) {
+                        p.tableTickOption = new activities.TableTickOption();
+                        p.tableTickOption.idDialog = 3;
+                        p.tableTickOption.listP = new java.util.ArrayList<>();
+                        for (int i = 0; i < p.party.list.size(); i++) {
+                            p.tableTickOption.listP.add(p.party.list.get(i));
+                        }
+                        p.tableTickOption.list_check = new byte[p.tableTickOption.listP.size()];
+                        activities.TableTickOption.show_table(p, "Hang Động");
+                    } else {
+                        // Đi solo
+                        p.update_key_boss(-1);
+                        Service.CountDown_Ticket(p);
+                        p.update_money();
+                        java.util.List<Player> mems = new java.util.ArrayList<>();
+                        mems.add(p);
+                        activities.HangDong hd = new activities.HangDong(mems, p);
+                        hd.createStage(0);
+                    }
+                    break;
+                }
                 case 54: {
                     if (p.bossHunt != null) {
                         p.bossHunt.setReady(p, value == 0);

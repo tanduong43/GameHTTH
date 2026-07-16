@@ -249,7 +249,7 @@ public class MenuController {
         case -100: {
           send_dynamic_menu(p, type, "Sự kiện",
               new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
-                  "Hang động" },
+                  "Hang động", "Xếp hạng hang động" },
               null);
           break;
         }
@@ -1976,6 +1976,11 @@ public class MenuController {
           return;
         }
         activities.TichLuyTieu.sendUI(p);
+        break;
+      }
+      case 5: { // Hang dong
+        Service.send_box_yesno(p, 1001, "Thông báo", "Bạn có muốn vào Hang động không? (Yêu cầu 1 chìa khóa phó bản)",
+            new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
         break;
       }
     }

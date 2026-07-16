@@ -343,6 +343,104 @@ public class TableTickOption {
                         }
                         break;
                     }
+                    case 3: { // Hang Động
+                        if (type == 1) { // leader clicked Start OR member clicked Ready
+                            TableTickOption lobby = p.tableTickOption;
+                            if (lobby == null) return;
+                            if (lobby.listP.get(0).name.equals(p.name)) {
+                                // Leader clicked "Bắt đầu"
+                                for (int i = 0; i < lobby.list_check.length; i++) {
+                                    if (lobby.list_check[i] == 0) {
+                                        Service.send_box_ThongBao_OK(p, lobby.listP.get(i).name + " chưa sẵn sàng!");
+                                        return;
+                                    }
+                                }
+                                
+                                // Validate all members have keys
+                                for (int i = 0; i < lobby.listP.size(); i++) {
+                                    Player memInList = lobby.listP.get(i);
+                                    Player member = Map.get_player_by_name_allmap(memInList.name);
+                                    if (member == null || member.conn == null || !member.conn.connected) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + memInList.name + " hiện đang offline!");
+                                        return;
+                                    }
+                                    if (member.get_key_boss() < 1) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 1 chìa khóa!");
+                                        return;
+                                    }
+                                }
+
+                                java.util.List<Player> onlineMembers = new java.util.ArrayList<>();
+                                for (int i = 0; i < lobby.listP.size(); i++) {
+                                    Player memInList = lobby.listP.get(i);
+                                    Player member = Map.get_player_by_name_allmap(memInList.name);
+                                    if (member != null) {
+                                        member.update_key_boss(-1);
+                                        Service.CountDown_Ticket(member);
+                                        member.update_money();
+                                        onlineMembers.add(member);
+                                    }
+                                }
+
+                                Message m = new Message(-74);
+                                m.writer().writeByte(2); // finish/close type
+                                m.writer().writeShort(3); // id dialog
+                                for (int i = 0; i < lobby.listP.size(); i++) {
+                                    Player p0 = Map.get_player_by_name_allmap(lobby.listP.get(i).name);
+                                    if (p0 != null) {
+                                        p0.conn.addmsg(m);
+                                        p0.tableTickOption = null;
+                                    }
+                                }
+                                m.cleanup();
+
+                                activities.HangDong hd = new activities.HangDong(onlineMembers, p);
+                                hd.createStage(0);
+
+                            } else {
+                                // Member clicked Ready (Tick)
+                                Message m = new Message(-74);
+                                m.writer().writeByte(1);
+                                m.writer().writeShort(3); // id dialog
+                                m.writer().writeShort(p.index_map);
+                                for (int i = 0; i < lobby.listP.size(); i++) {
+                                    Player p0 = Map.get_player_by_name_allmap(lobby.listP.get(i).name);
+                                    if (p0 != null) {
+                                        p0.conn.addmsg(m);
+                                    }
+                                    if (p.name.equals(lobby.listP.get(i).name)) {
+                                        lobby.list_check[i] = 1;
+                                    }
+                                }
+                                m.cleanup();
+                            }
+                        } else if (type == 2) { // Cancel clicked
+                            Message m = new Message(-74);
+                            m.writer().writeByte(3);
+                            m.writer().writeShort(3); // id dialog
+                            m.writer().writeShort(p.index_map);
+                            
+                            TableTickOption lobby = p.tableTickOption;
+                            boolean isLeader = lobby.listP.get(0).name.equals(p.name);
+                            for (int i = 0; i < lobby.listP.size(); i++) {
+                                Player p0 = Map.get_player_by_name_allmap(lobby.listP.get(i).name);
+                                if (p0 != null) {
+                                    p0.conn.addmsg(m);
+                                    if (isLeader || p0.name.equals(p.name)) {
+                                        p0.tableTickOption = null;
+                                    }
+                                }
+                                if (p.name.equals(lobby.listP.get(i).name)) {
+                                    lobby.list_check[i] = -1;
+                                }
+                            }
+                            m.cleanup();
+                            if (isLeader) {
+                                p.tableTickOption = null;
+                            }
+                        }
+                        break;
+                    }
                 }
             }
         }

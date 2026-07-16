@@ -81,7 +81,7 @@ public class Map implements Runnable {
     }
 
     public static boolean is_map_dungeon(int id) {
-        return (id >= 167 && id <= 176) || (id >= 500 && id <= 512) || id == 513;
+        return (id >= 167 && id <= 176) || (id >= 500 && id <= 512) || id == 513 || id == 999;
     }
 
     public static void add_map_plus(Map map_boss) {
@@ -988,6 +988,10 @@ public class Map implements Runnable {
                 }
                 if (p0.dungeon instanceof activities.NamieTreasureDefense) {
                     ((activities.NamieTreasureDefense) p0.dungeon).update(this);
+                    return;
+                }
+                if (p0.dungeon instanceof activities.HangDong) {
+                    ((activities.HangDong) p0.dungeon).update(this);
                     return;
                 }
                 int num_mob = 0;
@@ -3035,9 +3039,11 @@ public class Map implements Runnable {
                     mob_target.time_refresh = System.currentTimeMillis() + Mob.TIME_RESPAWN * 500;
                     exp_up[1] += mob_target.level * 2;
                     // dungeon
-                    if (Map.is_map_dungeon(this.template.id) && p.dungeon != null) {
+                    if ((Map.is_map_dungeon(this.template.id) || this.template.id == 999) && p.dungeon != null) {
                         if (p.dungeon instanceof activities.NamieTreasureDefense) {
                             ((activities.NamieTreasureDefense) p.dungeon).onMobKilled(p, mob_target);
+                        } else if (p.dungeon instanceof activities.HangDong) {
+                            ((activities.HangDong) p.dungeon).checkTransition();
                         }
                     } else {
                         // leave item

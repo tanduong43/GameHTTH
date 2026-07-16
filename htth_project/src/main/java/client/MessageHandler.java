@@ -475,13 +475,17 @@ public class MessageHandler {
                     if (type == 4) { // Nhận thưởng / Báo thù
                         try {
                             String name = m.reader().readUTF();
-                            core.Service.send_box_ThongBao_OK(conn.p, "Tính năng này không dùng trong Thợ săn hải tặc!");
-                        } catch (Exception e) {}
+                            core.Service.send_box_ThongBao_OK(conn.p,
+                                    "Tính năng này không dùng trong Thợ săn hải tặc!");
+                        } catch (Exception e) {
+                        }
                     } else if (type == 5) { // Tìm kiếm
                         try {
                             String name = m.reader().readUTF();
-                            core.Service.send_box_ThongBao_OK(conn.p, "Tính năng này không dùng trong Thợ săn hải tặc!");
-                        } catch (Exception e) {}
+                            core.Service.send_box_ThongBao_OK(conn.p,
+                                    "Tính năng này không dùng trong Thợ săn hải tặc!");
+                        } catch (Exception e) {
+                        }
                     } else if (type == 1) { // Load thêm trang (hoặc load lần đầu)
                         byte page = m.reader().readByte();
                         core.BXH.send_wanted_list(conn.p, page);
@@ -912,6 +916,24 @@ public class MessageHandler {
                     && conn.p.dungeon == null) {
                 System.out.println("[TowerChallenge] Login safety: player " + conn.p.name
                         + " still in Tower map but no active dungeon, redirecting to map 1.");
+                map.Map[] villageMap = map.Map.get_map_by_id(1);
+                if (villageMap != null && villageMap.length > 0) {
+                    conn.p.map = villageMap[0];
+                    conn.p.x = 300;
+                    conn.p.y = 250;
+                }
+            }
+            // Reconnect HangDong check
+            activities.HangDong activeHangDong = activities.HangDong.findActive(conn.p.name);
+            if (activeHangDong != null) {
+                activeHangDong.updateMemberReference(conn.p.name, conn.p);
+                conn.p.dungeon = activeHangDong;
+            }
+            // Safety fallback: nếu vẫn đang trong map HangDong/Dungeon (id 167) nhưng no active
+            // dungeon
+            if (conn.p.map != null && conn.p.map.template.id == 167 && conn.p.dungeon == null) {
+                System.out.println("[HangDong] Login safety: player " + conn.p.name
+                        + " still in HangDong map but no active dungeon, redirecting to map 1.");
                 map.Map[] villageMap = map.Map.get_map_by_id(1);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
