@@ -426,6 +426,10 @@ public class BXH {
             BXH.WANTED.clear();
             BXH.WANTED.addAll(list_add);
             list_add.clear();
+            System.out.println("BXH Wanted loaded/updated:");
+            for (int i = 0; i < Math.min(10, BXH.WANTED.size()); i++) {
+                System.out.println("Top " + (i + 1) + ": " + BXH.WANTED.get(i).name);
+            }
         }
     }
 
@@ -546,6 +550,10 @@ public class BXH {
             BXH.PVP.clear();
             BXH.PVP.addAll(list_add);
             list_add.clear();
+            System.out.println("BXH PVP loaded/updated:");
+            for (int i = 0; i < Math.min(10, BXH.PVP.size()); i++) {
+                System.out.println("Top " + (i + 1) + ": " + BXH.PVP.get(i).name);
+            }
         }
     }
 
@@ -667,6 +675,10 @@ public class BXH {
             BXH.HANGDONG.clear();
             BXH.HANGDONG.addAll(list_add);
             list_add.clear();
+            System.out.println("BXH Hang Động loaded/updated:");
+            for (int i = 0; i < Math.min(10, BXH.HANGDONG.size()); i++) {
+                System.out.println("Top " + (i + 1) + ": " + BXH.HANGDONG.get(i).name);
+            }
         }
     }
 
@@ -798,6 +810,10 @@ public class BXH {
             BXH.CAOTHU.clear();
             BXH.CAOTHU.addAll(list_add);
             list_add.clear();
+            System.out.println("BXH Cao Thủ loaded/updated:");
+            for (int i = 0; i < Math.min(10, BXH.CAOTHU.size()); i++) {
+                System.out.println("Top " + (i + 1) + ": " + BXH.CAOTHU.get(i).name);
+            }
         }
     }
 
@@ -967,6 +983,10 @@ public class BXH {
             BXH.BOUNTY_HUNTERS.clear();
             BXH.BOUNTY_HUNTERS.addAll(list_add);
             list_add.clear();
+            System.out.println("BXH Bounty Hunters loaded/updated:");
+            for (int i = 0; i < Math.min(10, BXH.BOUNTY_HUNTERS.size()); i++) {
+                System.out.println("Top " + (i + 1) + ": " + BXH.BOUNTY_HUNTERS.get(i).name);
+            }
         }
     }
 

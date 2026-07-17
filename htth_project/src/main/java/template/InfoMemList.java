@@ -36,6 +36,6 @@ public class InfoMemList {
         dos.writeShort(temp.hat);
         dos.writeByte(p0 != null ? 1 : 0);
         dos.writeUTF(temp.info);
-        dos.writeShort((short) client.Clan.get_icon_clan(temp.name)); // clan icon
+        dos.writeShort(temp.rank);
     }
 }
