@@ -10,6 +10,9 @@ import core.Service;
 import map.Map;
 import map.Mob;
 import map.Vgo;
+import template.GiftBox;
+import template.ItemTemplate4;
+import template.ItemTemplate7;
 
 public class HangDong extends Dungeon {
     public static final List<HangDong> ACTIVE_HANG_DONG = new CopyOnWriteArrayList<>();
@@ -198,6 +201,7 @@ public class HangDong extends Dungeon {
                     e.printStackTrace();
                 }
             }
+            distributeCurrentStageRewards();
             for (Player p : partyMembers) {
                 if (p != null && p.conn != null && p.conn.connected && p.map.equals(currentMap)) {
                     if ((currentStageIndex + 1) > p.hangdong_stage) {
@@ -211,6 +215,79 @@ public class HangDong extends Dungeon {
                     }
                 }
             }
+        }
+    }
+
+    private void distributeCurrentStageRewards() {
+        for (Player member : this.partyMembers) {
+            Player pOnline = Map.get_player_by_name_allmap(member.name);
+            if (pOnline != null && pOnline.map.equals(this.currentMap)) {
+                giveStageRewards(pOnline, this.currentStageIndex);
+            }
+        }
+    }
+
+    private void giveStageRewards(Player p, int stageIndex) {
+        try {
+            List<GiftBox> list_gift = new ArrayList<>();
+            // bột vàng (ID 4, type 7)
+            // beri (ID 0, type 4)
+            // ruby (ID 1, type 4)
+            // bột cường hoá (ID 1, type 7)
+            // bột tím (ID 3, type 7)
+            int[][] pool = {
+                {4, 7}, // bột vàng
+                {0, 4}, // beri
+                {1, 4}, // ruby
+                {1, 7}, // bột cường hoá
+                {3, 7}  // bột tím
+            };
+            
+            List<Integer> selectedIndices = new ArrayList<>();
+            while (selectedIndices.size() < 3) {
+                int r = core.Util.random(pool.length);
+                if (!selectedIndices.contains(r)) {
+                    selectedIndices.add(r);
+                }
+            }
+            
+            int floor = stageIndex + 1;
+            int amountMin = (floor <= 50) ? 1 : 10;
+            int amountMax = (floor <= 50) ? 11 : 21;
+
+            for (int idx : selectedIndices) {
+                int[] item = pool[idx];
+                int amount = core.Util.random(amountMin, amountMax);
+                
+                GiftBox gb = new GiftBox();
+                gb.id = (short) item[0];
+                gb.type = (byte) item[1];
+                if (gb.type == 4) {
+                    ItemTemplate4 it4 = ItemTemplate4.get_it_by_id(gb.id);
+                    if (it4 != null) {
+                        gb.name = it4.name;
+                        gb.icon = it4.icon;
+                    }
+                } else if (gb.type == 7) {
+                    ItemTemplate7 it7 = ItemTemplate7.get_it_by_id(gb.id);
+                    if (it7 != null) {
+                        gb.name = it7.name;
+                        gb.icon = it7.icon;
+                    }
+                }
+                if (gb.name == null) {
+                    gb.name = "Phần thưởng";
+                }
+                gb.num = amount;
+                gb.color = 0;
+                list_gift.add(gb);
+            }
+            
+            if (!list_gift.isEmpty()) {
+                Service.send_gift(p, 1, "Hang Động Tầng " + floor, "Phần thưởng", list_gift, true);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
