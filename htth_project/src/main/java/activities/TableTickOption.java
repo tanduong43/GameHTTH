@@ -1,11 +1,13 @@
 package activities;
 
+import java.io.IOException;
+import java.util.List;
+
 import client.Player;
 import core.Service;
 import io.Message;
 import map.Map;
-import java.io.IOException;
-import java.util.List;
+
 /**
  *
  * @author Truongbk
@@ -70,7 +72,7 @@ public class TableTickOption {
                                 Service.send_box_yesno(p, 51, "Thông báo",
                                         ("Xác nhận tham gia phó bản khổng lồ với thành viên sau:\n"
                                                 + name_ok),
-                                        new String[] {"Đồng ý", "Huỷ"}, new byte[] {2, 1});
+                                        new String[] { "Đồng ý", "Huỷ" }, new byte[] { 2, 1 });
                             } else {
                                 Message m = new Message(-74);
                                 m.writer().writeByte(1);
@@ -111,7 +113,8 @@ public class TableTickOption {
                     case 1: { // lien tang
                         if (type == 1) { // leader clicked Start OR member clicked Ready
                             TableTickOption lobby = p.tableTickOption;
-                            if (lobby == null) return;
+                            if (lobby == null)
+                                return;
                             if (lobby.listP.get(0).name.equals(p.name)) {
                                 // Leader clicked "Bắt đầu"
                                 // Check if all members are ready (ticked)
@@ -123,29 +126,34 @@ public class TableTickOption {
                                         return;
                                     }
                                 }
-                                
+
                                 // Validate all members
                                 for (int i = 0; i < lobby.listP.size(); i++) {
                                     Player memInList = lobby.listP.get(i);
                                     Player member = Map.get_player_by_name_allmap(memInList.name);
                                     if (member == null || member.conn == null || !member.conn.connected) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + memInList.name + " hiện đang offline!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + memInList.name + " hiện đang offline!");
                                         return;
                                     }
                                     if (member.map == null || !member.map.equals(p.map)) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
                                     if (member.time_tower >= 5) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!");
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                                + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!");
                                         return;
                                     }
                                     if (member.get_key_boss() < 2) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 2 chìa khóa!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + member.name + " không đủ 2 chìa khóa!");
                                         return;
                                     }
                                     if (member.dungeon != null) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đang trong một phó bản khác!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + member.name + " đang trong một phó bản khác!");
                                         return;
                                     }
                                 }
@@ -206,7 +214,7 @@ public class TableTickOption {
                             m.writer().writeByte(3);
                             m.writer().writeShort(1); // id dialog
                             m.writer().writeShort(p.index_map);
-                            
+
                             TableTickOption lobby = p.tableTickOption;
                             boolean isLeader = lobby.listP.get(0).name.equals(p.name);
                             for (int i = 0; i < lobby.listP.size(); i++) {
@@ -227,7 +235,8 @@ public class TableTickOption {
                     case 2: { // Bao ve kho bau Namie
                         if (type == 1) { // leader clicked Start OR member clicked Ready
                             TableTickOption lobby = p.tableTickOption;
-                            if (lobby == null) return;
+                            if (lobby == null)
+                                return;
                             if (lobby.listP.get(0).name.equals(p.name)) {
                                 // Leader clicked "Bắt đầu"
                                 // Check if all members are ready (ticked)
@@ -239,29 +248,34 @@ public class TableTickOption {
                                         return;
                                     }
                                 }
-                                
+
                                 // Validate all members
                                 for (int i = 0; i < lobby.listP.size(); i++) {
                                     Player memInList = lobby.listP.get(i);
                                     Player member = Map.get_player_by_name_allmap(memInList.name);
                                     if (member == null || member.conn == null || !member.conn.connected) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + memInList.name + " hiện đang offline!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + memInList.name + " hiện đang offline!");
                                         return;
                                     }
                                     if (member.map == null || !member.map.equals(p.map)) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
                                     if (member.time_namie >= 5) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 5 lần)!");
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                                + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 5 lần)!");
                                         return;
                                     }
                                     if (member.get_key_boss() < 2) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 2 chìa khóa!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + member.name + " không đủ 2 chìa khóa!");
                                         return;
                                     }
                                     if (member.dungeon != null) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " đang trong một phó bản khác!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + member.name + " đang trong một phó bản khác!");
                                         return;
                                     }
                                 }
@@ -296,8 +310,8 @@ public class TableTickOption {
                                 }
                                 m.cleanup();
 
-                                activities.NamieTreasureDefense defense =
-                                        new activities.NamieTreasureDefense(onlineMembers, p);
+                                activities.NamieTreasureDefense defense = new activities.NamieTreasureDefense(
+                                        onlineMembers, p);
                                 defense.start();
 
                             } else {
@@ -323,7 +337,7 @@ public class TableTickOption {
                             m.writer().writeByte(3);
                             m.writer().writeShort(2); // id dialog
                             m.writer().writeShort(p.index_map);
-                            
+
                             TableTickOption lobby = p.tableTickOption;
                             boolean isLeader = lobby.listP.get(0).name.equals(p.name);
                             for (int i = 0; i < lobby.listP.size(); i++) {
@@ -346,7 +360,8 @@ public class TableTickOption {
                     case 3: { // Hang Động
                         if (type == 1) { // leader clicked Start OR member clicked Ready
                             TableTickOption lobby = p.tableTickOption;
-                            if (lobby == null) return;
+                            if (lobby == null)
+                                return;
                             if (lobby.listP.get(0).name.equals(p.name)) {
                                 // Leader clicked "Bắt đầu"
                                 for (int i = 0; i < lobby.list_check.length; i++) {
@@ -355,17 +370,19 @@ public class TableTickOption {
                                         return;
                                     }
                                 }
-                                
+
                                 // Validate all members have keys
                                 for (int i = 0; i < lobby.listP.size(); i++) {
                                     Player memInList = lobby.listP.get(i);
                                     Player member = Map.get_player_by_name_allmap(memInList.name);
                                     if (member == null || member.conn == null || !member.conn.connected) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + memInList.name + " hiện đang offline!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + memInList.name + " hiện đang offline!");
                                         return;
                                     }
                                     if (member.get_key_boss() < 1) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name + " không đủ 1 chìa khóa!");
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + member.name + " không đủ 1 chìa khóa!");
                                         return;
                                     }
                                 }
@@ -400,7 +417,8 @@ public class TableTickOption {
                                         startStage = mem.hangdong_stage;
                                     }
                                 }
-                                if (startStage == -1) startStage = 0;
+                                if (startStage == -1)
+                                    startStage = 0;
                                 activities.HangDong hd = new activities.HangDong(onlineMembers, p);
                                 hd.createStage(startStage);
 
@@ -426,7 +444,7 @@ public class TableTickOption {
                             m.writer().writeByte(3);
                             m.writer().writeShort(3); // id dialog
                             m.writer().writeShort(p.index_map);
-                            
+
                             TableTickOption lobby = p.tableTickOption;
                             boolean isLeader = lobby.listP.get(0).name.equals(p.name);
                             for (int i = 0; i < lobby.listP.size(); i++) {

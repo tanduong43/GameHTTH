@@ -26,6 +26,7 @@ public class HangDong extends Dungeon {
     public boolean finished = false;
     public boolean isTransitioning = false;
     public long transitionTime = 0;
+    public boolean rewardsGiven = false; // tránh trao thưởng trùng lặp
 
     public HangDong(List<Player> members, Player leader) {
         this.partyMembers.addAll(members);
@@ -189,6 +190,7 @@ public class HangDong extends Dungeon {
 
         if (allDead) {
             isTransitioning = true;
+            rewardsGiven = true;
             transitionTime = System.currentTimeMillis() + 5000L;
             if (currentStageIndex >= 49) {
                 try {
@@ -196,25 +198,28 @@ public class HangDong extends Dungeon {
                     if (partyMembers.size() > 1) {
                         names += " và đồng đội";
                     }
-                    core.Manager.gI().chatKTG(1, "Tin đồn: " + names + " đã xuất sắc vượt qua Hang Động tầng " + (currentStageIndex + 1) + "!", 0);
+                    core.Manager.gI().chatKTG(1, "Tin đồn: " + names + " đã xuất sắc vượt qua Hang Động tầng "
+                            + (currentStageIndex + 1) + "!", 0);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-            distributeCurrentStageRewards();
             for (Player p : partyMembers) {
                 if (p != null && p.conn != null && p.conn.connected && p.map.equals(currentMap)) {
                     if ((currentStageIndex + 1) > p.hangdong_stage) {
                         p.hangdong_stage = currentStageIndex + 1;
                     }
                     try {
-                        Service.send_box_ThongBao_OK(p, "Đã vượt qua tầng " + (currentStageIndex + 1) + ". Chuẩn bị sang tầng " + (currentStageIndex + 2) + " sau 5 giây...");
+                        Service.send_box_ThongBao_OK(p, "Đã vượt qua tầng " + (currentStageIndex + 1)
+                                + ". Chuẩn bị sang tầng " + (currentStageIndex + 2) + " sau 5 giây...");
                         Service.send_time_cool_down(p, this.transitionTime, "Chuyển tầng", 2);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             }
+            // Trao thưởng ngay khi hoàn thành tầng để người chơi xem trong thời gian chờ 5s
+            distributeCurrentStageRewards();
         }
     }
 
@@ -236,13 +241,13 @@ public class HangDong extends Dungeon {
             // bột cường hoá (ID 1, type 7)
             // bột tím (ID 3, type 7)
             int[][] pool = {
-                {4, 7}, // bột vàng
-                {0, 4}, // beri
-                {1, 4}, // ruby
-                {1, 7}, // bột cường hoá
-                {3, 7}  // bột tím
+                    { 4, 7 }, // bột vàng
+                    { 0, 4 }, // beri
+                    { 1, 4 }, // ruby
+                    { 1, 7 }, // bột cường hoá
+                    { 3, 7 } // bột tím
             };
-            
+
             List<Integer> selectedIndices = new ArrayList<>();
             while (selectedIndices.size() < 3) {
                 int r = core.Util.random(pool.length);
@@ -250,7 +255,7 @@ public class HangDong extends Dungeon {
                     selectedIndices.add(r);
                 }
             }
-            
+
             int floor = stageIndex + 1;
             int amountMin = (floor <= 50) ? 1 : 10;
             int amountMax = (floor <= 50) ? 11 : 21;
@@ -258,7 +263,7 @@ public class HangDong extends Dungeon {
             for (int idx : selectedIndices) {
                 int[] item = pool[idx];
                 int amount = core.Util.random(amountMin, amountMax);
-                
+
                 GiftBox gb = new GiftBox();
                 gb.id = (short) item[0];
                 gb.type = (byte) item[1];
@@ -282,7 +287,7 @@ public class HangDong extends Dungeon {
                 gb.color = 0;
                 list_gift.add(gb);
             }
-            
+
             if (!list_gift.isEmpty()) {
                 Service.send_gift(p, 1, "Hang Động Tầng " + floor, "Phần thưởng", list_gift, true);
             }

@@ -722,7 +722,8 @@ public class MessageHandler {
                             if (hd.isTransitioning) {
                                 Service.send_time_cool_down(conn.p, hd.transitionTime, "Chuyển tầng", 2);
                             } else {
-                                Service.send_time_cool_down(conn.p, hd.stageEndTime, "Tầng " + (hd.currentStageIndex + 1),
+                                Service.send_time_cool_down(conn.p, hd.stageEndTime,
+                                        "Tầng " + (hd.currentStageIndex + 1),
                                         2);
                             }
                         } else {
@@ -937,7 +938,8 @@ public class MessageHandler {
                 activeHangDong.updateMemberReference(conn.p.name, conn.p);
                 conn.p.dungeon = activeHangDong;
             }
-            // Safety fallback: nếu vẫn đang trong map HangDong/Dungeon (id 167) nhưng no active
+            // Safety fallback: nếu vẫn đang trong map HangDong/Dungeon (id 167) nhưng no
+            // active
             // dungeon
             if (conn.p.map != null && conn.p.map.template.id == 167 && conn.p.dungeon == null) {
                 System.out.println("[HangDong] Login safety: player " + conn.p.name
