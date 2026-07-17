@@ -27,6 +27,8 @@ public class HangDong extends Dungeon {
     public boolean isTransitioning = false;
     public long transitionTime = 0;
     public boolean rewardsGiven = false; // tránh trao thưởng trùng lặp
+    public boolean isFailing = false;
+    public long failTime = 0;
 
     public HangDong(List<Player> members, Player leader) {
         this.partyMembers.addAll(members);
@@ -62,7 +64,7 @@ public class HangDong extends Dungeon {
     }
 
     public void createStage(int stageIndex) {
-        if (stageIndex < 0 || stageIndex >= 100) {
+        if (stageIndex < 0 || stageIndex >= 1000) {
             completeDungeon();
             return;
         }
@@ -85,7 +87,7 @@ public class HangDong extends Dungeon {
 
         Map map_dungeon = new Map();
         map_dungeon.template = mapTemplate.template;
-        map_dungeon.zone_id = (byte) stageIndex;
+        map_dungeon.zone_id = (byte) (stageIndex % 100);
         map_dungeon.list_mob = new int[0];
         this.mobs = new ArrayList<>();
         if (this.maps == null) {
@@ -104,8 +106,16 @@ public class HangDong extends Dungeon {
         }
 
         int index = -1;
-        // Tạo 30 quái
-        for (int i = 0; i < 30; i++) {
+        int floor = stageIndex + 1;
+        int mobCount = 50;
+        if (floor >= 100 && floor <= 500) {
+            mobCount = 150;
+        } else if (floor > 500) {
+            mobCount = 200;
+        }
+
+        // Tạo quái theo số lượng tùy thuộc vào tầng
+        for (int i = 0; i < mobCount; i++) {
             // Lấy ngẫu nhiên template quái từ 1 đến 100
             int mobTemplateId = 1 + core.Util.random(1, 50); // random mobs
             Mob temp = null;
@@ -126,7 +136,36 @@ public class HangDong extends Dungeon {
             mob_add.y = (short) 100; // y có thể điều chỉnh theo map
 
             mob_add.level = maxLevel;
-            mob_add.hp_max = 5000 + (maxLevel * 1000);
+            int base_hp = 5000 + (maxLevel * 1000);
+            if (floor >= 100) {
+                // Tăng HP quái tuyến tính theo từng tầng (từ tầng 100 bắt đầu tăng, tầng 1000 tăng gấp 10 lần)
+                int hp_val = base_hp + base_hp * (floor - 100) / 100;
+
+                // Tính sát thương (dame) cơ bản dựa trên cấp độ người chơi
+                int default_dame = maxLevel * 3;
+                if (maxLevel > 90) {
+                    default_dame = (default_dame * 25) / 10;
+                }
+                // Tăng Dame quái tuyến tính theo từng tầng (từ tầng 100 bắt đầu tăng, tầng 1000 tăng gấp 10 lần)
+                int final_dame_val = default_dame + default_dame * (floor - 100) / 100;
+
+                // Tăng đột biến thêm máu và dame khi vượt mốc tầng 500
+                if (floor >= 500) {
+                    hp_val = (hp_val * 15) / 10; // Tăng thêm 50% HP
+                    final_dame_val = final_dame_val * 2; // Tăng gấp đôi Dame
+                }
+
+                mob_add.hp_max = hp_val;
+
+                // Tạo dao động ngẫu nhiên cho sát thương khoảng +-20%
+                int variation = final_dame_val * 20 / 100;
+                if (variation <= 0)
+                    variation = 10;
+                mob_add.final_dame = core.Util.random(final_dame_val - variation, final_dame_val + variation);
+            } else {
+                mob_add.hp_max = base_hp;
+                mob_add.final_dame = 0;
+            }
             mob_add.hp = mob_add.hp_max;
 
             mob_add.isdie = false;
@@ -210,8 +249,13 @@ public class HangDong extends Dungeon {
                         p.hangdong_stage = currentStageIndex + 1;
                     }
                     try {
-                        Service.send_box_ThongBao_OK(p, "Đã vượt qua tầng " + (currentStageIndex + 1)
-                                + ". Chuẩn bị sang tầng " + (currentStageIndex + 2) + " sau 5 giây...");
+                        if (currentStageIndex >= 999) {
+                            Service.send_box_ThongBao_OK(p,
+                                    "Đã vượt qua tầng " + (currentStageIndex + 1) + ". Hang động kết thúc!");
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Đã vượt qua tầng " + (currentStageIndex + 1)
+                                    + ". Chuẩn bị sang tầng " + (currentStageIndex + 2) + " sau 5 giây...");
+                        }
                         Service.send_time_cool_down(p, this.transitionTime, "Chuyển tầng", 2);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -257,8 +301,18 @@ public class HangDong extends Dungeon {
             }
 
             int floor = stageIndex + 1;
-            int amountMin = (floor <= 50) ? 1 : 10;
-            int amountMax = (floor <= 50) ? 11 : 21;
+            int amountMin;
+            int amountMax;
+            if (floor <= 50) {
+                amountMin = 1;
+                amountMax = 11;
+            } else if (floor < 100) {
+                amountMin = 10;
+                amountMax = 21;
+            } else {
+                amountMin = 20;
+                amountMax = 51;
+            }
 
             for (int idx : selectedIndices) {
                 int[] item = pool[idx];
@@ -297,6 +351,10 @@ public class HangDong extends Dungeon {
     }
 
     public void completeDungeon() {
+        completeDungeon(false);
+    }
+
+    public void completeDungeon(boolean isFail) {
         this.finished = true;
         this.active = false;
         ACTIVE_HANG_DONG.remove(this);
@@ -330,14 +388,41 @@ public class HangDong extends Dungeon {
             if (p != null && p.conn != null && p.conn.connected) {
                 p.dungeon = null;
                 try {
-                    Service.send_box_ThongBao_OK(p, "Hang động kết thúc. Trở về làng.");
-                    Map[] targetMaps = Map.get_map_by_id(1);
-                    if (targetMaps != null && targetMaps.length > 0) {
-                        Vgo vgo = new Vgo();
-                        vgo.map_go = targetMaps;
-                        vgo.xnew = 300;
-                        vgo.ynew = 250;
-                        p.goto_map(vgo);
+                    if (isFail) {
+                        Map[] targetMaps = Map.get_map_by_id(p.id_map_save);
+                        if (targetMaps != null && targetMaps.length > 0) {
+                            Vgo vgo = new Vgo();
+                            vgo.map_go = targetMaps;
+                            vgo.xnew = 300;
+                            vgo.ynew = 250;
+                            for (int i = 0; i < targetMaps[0].template.npcs.size(); i++) {
+                                map.Npc npc_temp = targetMaps[0].template.npcs.get(i);
+                                if (npc_temp.namegt.equals("Bản đồ")) {
+                                    vgo.xnew = npc_temp.x;
+                                    if (npc_temp.y < 250) {
+                                        vgo.ynew = (short) (npc_temp.y + 20);
+                                    } else {
+                                        vgo.ynew = (short) (npc_temp.y - 40);
+                                    }
+                                    break;
+                                }
+                            }
+                            p.isdie = false;
+                            int hp_after_ = p.body.get_hp_max(true) / 10;
+                            Service.use_potion(p, 0, hp_after_);
+                            p.time_can_mob_atk = System.currentTimeMillis() + 1200L;
+                            p.goto_map(vgo);
+                        }
+                    } else {
+                        Service.send_box_ThongBao_OK(p, "Hang động kết thúc. Trở về làng.");
+                        Map[] targetMaps = Map.get_map_by_id(1);
+                        if (targetMaps != null && targetMaps.length > 0) {
+                            Vgo vgo = new Vgo();
+                            vgo.map_go = targetMaps;
+                            vgo.xnew = 300;
+                            vgo.ynew = 250;
+                            p.goto_map(vgo);
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -379,6 +464,40 @@ public class HangDong extends Dungeon {
 
         if (!anyOnline) {
             completeDungeon();
+            return;
+        }
+
+        // 3. Fail delay check
+        if (this.isFailing) {
+            if (System.currentTimeMillis() >= this.failTime) {
+                this.isFailing = false;
+                completeDungeon(true);
+            }
+            return;
+        }
+
+        // 4. All Players Dead Check
+        boolean allDead = true;
+        int countOnline = 0;
+        for (Player member : this.partyMembers) {
+            Player pOnline = Map.get_player_by_name_allmap(member.name);
+            if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                    && pOnline.map.equals(this.currentMap)) {
+                countOnline++;
+                if (!pOnline.isdie) {
+                    allDead = false;
+                }
+            }
+        }
+
+        if (countOnline > 0 && allDead) {
+            this.isFailing = true;
+            this.failTime = System.currentTimeMillis() + 5000L;
+            for (Player p : partyMembers) {
+                if (p != null && p.conn != null && p.conn.connected) {
+                    Service.send_box_ThongBao_OK(p, "Đi hang động thất bại quay về làng đã đăng ký");
+                }
+            }
             return;
         }
     }

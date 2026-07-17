@@ -1547,7 +1547,7 @@ public class Map implements Runnable {
                 if (!mob.isdie && !p0.wait_change_map && !p0.isdie
                         && p0.time_can_mob_atk < System.currentTimeMillis()) {
                     int dame;
-                    if (mob.map.map_bossHunt != null && mob.final_dame > 0) {
+                    if (((mob.map.map_bossHunt != null) || (mob.map.map_dungeon != null && mob.map.map_dungeon instanceof activities.HangDong)) && mob.final_dame > 0) {
                         dame = mob.final_dame;
                     } else {
                         dame = Util.random(mob.level * 2, mob.level * 5);

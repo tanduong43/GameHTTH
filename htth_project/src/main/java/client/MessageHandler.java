@@ -916,10 +916,6 @@ public class MessageHandler {
 
             // Reconnect Tower Challenge check
             activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(conn.p.name);
-            if (activeChallenge != null) {
-                activeChallenge.updateMemberReference(conn.p.name, conn.p);
-                conn.p.dungeon = activeChallenge;
-            }
             // Safety fallback: nếu vẫn đang trong map Tower map nhưng no active dungeon
             if (conn.p.map != null && conn.p.map.template.id >= 500 && conn.p.map.template.id <= 512
                     && conn.p.dungeon == null) {
@@ -934,16 +930,23 @@ public class MessageHandler {
             }
             // Reconnect HangDong check
             activities.HangDong activeHangDong = activities.HangDong.findActive(conn.p.name);
-            if (activeHangDong != null) {
-                activeHangDong.updateMemberReference(conn.p.name, conn.p);
-                conn.p.dungeon = activeHangDong;
-            }
-            // Safety fallback: nếu vẫn đang trong map HangDong/Dungeon (id 167) nhưng no
-            // active
-            // dungeon
+            // Safety fallback: nếu vẫn đang trong map HangDong/Dungeon (id 167) nhưng no active dungeon
             if (conn.p.map != null && conn.p.map.template.id == 167 && conn.p.dungeon == null) {
                 System.out.println("[HangDong] Login safety: player " + conn.p.name
                         + " still in HangDong map but no active dungeon, redirecting to map 1.");
+                map.Map[] villageMap = map.Map.get_map_by_id(1);
+                if (villageMap != null && villageMap.length > 0) {
+                    conn.p.map = villageMap[0];
+                    conn.p.x = 300;
+                    conn.p.y = 250;
+                }
+            }
+            // Reconnect Namie check
+            activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense.findActiveDefense(conn.p.name);
+            // Safety fallback: nếu vẫn đang trong map Namie nhưng no active dungeon
+            if (conn.p.map != null && conn.p.map.template.id == 513 && conn.p.dungeon == null) {
+                System.out.println("[NamieDefense] Login safety: player " + conn.p.name
+                        + " still in Namie map but no active dungeon, redirecting to map 1.");
                 map.Map[] villageMap = map.Map.get_map_by_id(1);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
@@ -1058,6 +1061,36 @@ public class MessageHandler {
                         }
                     } catch (Exception e) {
                         System.err.println("[BossHunt] Error in delayed rejoin dialog thread: " + e.getMessage());
+                    }
+                }).start();
+            }
+
+            // === Rejoin dialog for HangDong, TowerChallenge, NamieTreasureDefense ===
+            if (activeHangDong != null || activeChallenge != null || activeDefense != null) {
+                final Player player = conn.p;
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(2000);
+                        if (player != null && player.conn != null && player.conn.connected) {
+                            if (activeHangDong != null) {
+                                System.out.println("[HangDong] Showing delayed rejoin dialog for player: " + player.name);
+                                Service.send_box_yesno(player, 8888, "Thông báo",
+                                        "Bạn có muốn vào lại phụ bản Hang Động không?",
+                                        new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
+                            } else if (activeChallenge != null) {
+                                System.out.println("[TowerChallenge] Showing delayed rejoin dialog for player: " + player.name);
+                                Service.send_box_yesno(player, 8889, "Thông báo",
+                                        "Bạn có muốn vào lại phụ bản Vượt ải liên tầng không?",
+                                        new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
+                            } else if (activeDefense != null) {
+                                System.out.println("[NamieDefense] Showing delayed rejoin dialog for player: " + player.name);
+                                Service.send_box_yesno(player, 8890, "Thông báo",
+                                        "Bạn có muốn vào lại phụ bản Bảo vệ kho báu Namie không?",
+                                        new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[Dungeon Rejoin] Error in delayed rejoin dialog thread: " + e.getMessage());
                     }
                 }).start();
             }

@@ -54,6 +54,75 @@ public class ClientYesNo {
         byte value = m2.reader().readByte();
         // System.out.println("id " + id);
         // System.out.println("value " + value);
+        if (id == 8888) {
+            if (value == 0) { // Đồng ý
+                activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);
+                if (activeHangDong != null) {
+                    activeHangDong.updateMemberReference(p.name, p);
+                    p.dungeon = activeHangDong;
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = new Map[] { activeHangDong.currentMap };
+                    vgo.xnew = 100;
+                    vgo.ynew = 100;
+                    p.goto_map(vgo);
+                    if (activeHangDong.isTransitioning) {
+                        Service.send_time_cool_down(p, activeHangDong.transitionTime, "Chuyển tầng", 2);
+                    } else {
+                        Service.send_time_cool_down(p, activeHangDong.stageEndTime, "Tầng " + (activeHangDong.currentStageIndex + 1), 2);
+                    }
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Phụ bản đã kết thúc!");
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
+        if (id == 8889) {
+            if (value == 0) { // Đồng ý
+                activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(p.name);
+                if (activeChallenge != null) {
+                    activeChallenge.updateMemberReference(p.name, p);
+                    p.dungeon = activeChallenge;
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = new Map[] { activeChallenge.currentMap };
+                    vgo.xnew = 350;
+                    vgo.ynew = 260;
+                    p.goto_map(vgo);
+                    if (activeChallenge.isTransitioning) {
+                        Service.send_time_cool_down(p, activeChallenge.transitionEndTime, "Chuyển tầng", 2);
+                    } else {
+                        Service.send_time_cool_down(p, activeChallenge.stageEndTime, "Tầng " + (activeChallenge.currentStageIndex + 1), 2);
+                    }
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Phụ bản đã kết thúc!");
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
+        if (id == 8890) {
+            if (value == 0) { // Đồng ý
+                activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense.findActiveDefense(p.name);
+                if (activeDefense != null) {
+                    activeDefense.updateMemberReference(p.name, p);
+                    p.dungeon = activeDefense;
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = new Map[] { activeDefense.currentMap };
+                    vgo.xnew = 350;
+                    vgo.ynew = 220;
+                    p.goto_map(vgo);
+                    Service.send_time_cool_down(p, activeDefense.dungeonEndTime, "Thời gian", 2);
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Phụ bản đã kết thúc!");
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
+
         if (id == 228 && p.data_yesno != null && p.data_yesno[0] == 228) {
             int numIds = p.data_yesno.length - 1;
             if (value >= 0 && value < numIds) {

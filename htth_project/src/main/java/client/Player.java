@@ -1469,6 +1469,10 @@ public class Player {
             }
         } else { // ve lang
             if (this.isdie) {
+                if (this.dungeon instanceof activities.HangDong) {
+                    Service.send_box_ThongBao_OK(this, "Không thể trở về làng trong Hang Động!");
+                    return;
+                }
                 this.isdie = false;
                 Vgo vgo = new Vgo();
                 vgo.map_go = Map.get_map_by_id(this.id_map_save);
