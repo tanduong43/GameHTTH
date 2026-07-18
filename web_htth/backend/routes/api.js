@@ -26,6 +26,11 @@ router.post('/register', async (req, res) => {
         return res.json({ success: false, message: 'Tài khoản và mật khẩu phải từ 3 ký tự trở lên!' });
     }
 
+    const usernameRegex = /^[a-z0-9]+$/;
+    if (!usernameRegex.test(username)) {
+        return res.json({ success: false, message: 'Tên tài khoản chỉ được phép sử dụng chữ thường (a-z) và chữ số (0-9)!' });
+    }
+
     try {
         const clientIp = getClientIp(req);
 
