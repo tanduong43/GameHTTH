@@ -2585,6 +2585,9 @@ public class Player {
             this.cd_ticket_next = System.currentTimeMillis() + (60_000L * 10); // 10p
         }
         this.ticket += i;
+        if (this.ticket < 0) {
+            this.ticket = 0;
+        }
         if (this.ticket >= this.get_ticket_max()) {
             // this.ticket = (short) this.get_ticket_max();
             this.cd_ticket_next = System.currentTimeMillis() + (60_000L * 10); // 10p
@@ -2600,12 +2603,15 @@ public class Player {
             this.cd_pvp_next = System.currentTimeMillis() + (60_000L * 60 * 2); // 2h
         }
         this.pvp_ticket += i;
+        if (this.pvp_ticket < 0) {
+            this.pvp_ticket = 0;
+        }
         if (this.pvp_ticket >= this.get_pvp_ticket_max()) {
             // this.pvp_ticket = (byte) this.get_pvp_ticket_max();
             this.cd_pvp_next = System.currentTimeMillis() + (60_000L * 60 * 2); // 2h
         }
         if (this.pvp_ticket >= 32000) {
-            this.pvp_ticket = (byte) 32000;
+            this.pvp_ticket = (short) 32000;
             this.cd_pvp_next = System.currentTimeMillis() + (60_000L * 60 * 2); // 2h
         }
     }
@@ -2615,12 +2621,15 @@ public class Player {
             this.cd_keyboss_next = System.currentTimeMillis() + (60_000L * 60 * 1); // 1h
         }
         this.key_boss += i;
+        if (this.key_boss < 0) {
+            this.key_boss = 0;
+        }
         if (this.key_boss >= this.get_key_boss_max()) {
             // this.key_boss = (byte) this.get_key_boss_max();
             this.cd_keyboss_next = System.currentTimeMillis() + (60_000L * 60 * 1); // 1h
         }
         if (this.key_boss >= 32000) {
-            this.key_boss = (byte) 32000;
+            this.key_boss = (short) 32000;
             this.cd_keyboss_next = System.currentTimeMillis() + (60_000L * 60 * 1); // 1h
         }
     }
