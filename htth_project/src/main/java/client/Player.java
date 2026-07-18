@@ -400,6 +400,9 @@ public class Player {
             is_show_hat = Byte.parseByte(js.get(6).toString()) == 1;
             pointPk = Integer.parseInt(js.get(7).toString());
             ticket = Short.parseShort(js.get(8).toString());
+            if (ticket < 0) {
+                ticket = 0;
+            }
             cd_ticket_next = Long.parseLong(js.get(9).toString());
             if (cd_ticket_next == 0 || ticket >= get_ticket_max()) {
                 cd_ticket_next = System.currentTimeMillis() + (60_000L * 10); // 10p
@@ -409,6 +412,9 @@ public class Player {
                 cd_ticket_next += (60_000L * 10); // 10p
             }
             pvp_ticket = Short.parseShort(js.get(10).toString());
+            if (pvp_ticket < 0) {
+                pvp_ticket = 0;
+            }
             cd_pvp_next = Long.parseLong(js.get(11).toString());
             if (cd_pvp_next == 0 || pvp_ticket >= get_pvp_ticket_max()) {
                 cd_pvp_next = System.currentTimeMillis() + (60_000L * 60 * 2); // 2h
@@ -418,6 +424,9 @@ public class Player {
                 cd_pvp_next += (60_000L * 60 * 2); // 2h
             }
             key_boss = Short.parseShort(js.get(12).toString());
+            if (key_boss < 0) {
+                key_boss = 0;
+            }
             cd_keyboss_next = Long.parseLong(js.get(13).toString());
             if (cd_keyboss_next == 0 || key_boss >= get_key_boss_max()) {
                 cd_keyboss_next = System.currentTimeMillis() + (60_000L * 60 * 1); // 1h
