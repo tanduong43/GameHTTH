@@ -63,6 +63,7 @@ public class NamieTreasureDefense extends Dungeon {
     /** Máu tối đa của rương kho báu. */
     public static final int TREASURE_HP_MAX = 100_000;
 
+
     /**
      * Sát thương rương phải chịu mỗi khi 1 quái "áp sát" thành công (không bị giết
      * kịp).
@@ -274,7 +275,8 @@ public class NamieTreasureDefense extends Dungeon {
             // Đợt 20: Chỉ xuất hiện 3 boss Along với 5M HP
             for (int i = 0; i < 3; i++) {
                 MobTemplate mt = MobTemplate.ENTRYS.get(36); // Along
-                if (mt == null) continue;
+                if (mt == null)
+                    continue;
 
                 Mob mob = new Mob();
                 mob.mob_template = mt;
@@ -302,7 +304,8 @@ public class NamieTreasureDefense extends Dungeon {
             // Các đợt từ 1 đến 19: Số lượng quái cố định là 30
             int[] templateIds = WAVE_MOB_TEMPLATE_IDS[Math.min(waveIndex, WAVE_MOB_TEMPLATE_IDS.length - 1)];
 
-            // Xác định xem đợt này có boss không (Đợt 5, 10, 15 tương ứng waveIndex 4, 9, 14)
+            // Xác định xem đợt này có boss không (Đợt 5, 10, 15 tương ứng waveIndex 4, 9,
+            // 14)
             int bossTemplateId = -1;
             int bossHp = 0;
             if (waveIndex == 4) {
@@ -331,7 +334,8 @@ public class NamieTreasureDefense extends Dungeon {
                 }
 
                 MobTemplate mt = MobTemplate.ENTRYS.get(templateId);
-                if (mt == null) continue;
+                if (mt == null)
+                    continue;
 
                 Mob mob = new Mob();
                 mob.mob_template = mt;
