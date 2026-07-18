@@ -776,7 +776,9 @@ router.post('/admin/upload', jwtRequired, isAdmin, async (req, res) => {
         const filePath = path.join(uploadDir, newFileName);
         fs.writeFileSync(filePath, fileBuffer);
 
-        const fileUrl = `http://localhost:8000/uploads/${newFileName}`;
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.get('host');
+        const fileUrl = `${protocol}://${host}/uploads/${newFileName}`;
         return res.json({ success: true, url: fileUrl });
     } catch (err) {
         console.error('File upload error:', err);
