@@ -4,17 +4,24 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
+
 import io.Message;
-import template.*;
+import template.DataTemplate;
+import template.ItemBag47;
+import template.ItemTemplate3;
+import template.Item_wear;
+import template.Option;
+
 /**
  *
  * @author Truongbk
  */
 public class Item {
     public final byte max_bag = 127;
-    public final byte max_box = 48;
+    public final byte max_box = 90;
     private final Player p;
     public Item_wear[] bag3;
     public Item_wear[] box3;
