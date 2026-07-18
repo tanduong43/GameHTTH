@@ -1,0 +1,1 @@
+DELETE FROM htth.transactions where id > 0;
