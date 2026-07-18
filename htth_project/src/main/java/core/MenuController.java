@@ -72,6 +72,18 @@ public class MenuController {
       if (!in_map) {
         return;
       }
+      // Check repeatable quest for this NPC
+      for (int i = 0; i < p.list_quest.size(); i++) {
+        QuestP q = p.list_quest.get(i);
+        if (q.template.id < 0 && q.template.statusQuest == 2 && q.template.idNpcSub == type) {
+          Message m2 = new Message(-23);
+          m2.writer().writeByte(5);
+          m2.writer().writeShort(q.template.index);
+          p.conn.addmsg(m2);
+          m2.cleanup();
+          return;
+        }
+      }
       switch (type) {
         case -140: {
           send_dynamic_menu(p, type, "WIPPER", new String[] { "Chế tạo DIAL", "Thử thách vệ thần" },

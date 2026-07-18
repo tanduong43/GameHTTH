@@ -192,7 +192,17 @@ public class Quest {
                 if (temp != null && temp.template.statusQuest == 0) {
                     // check side quest
                     if (temp.template.id < 0) {
-                        if (p.list_quest.get(0).template.id < 11) {
+                        boolean has_active_side_quest = false;
+                        for (int i = 0; i < p.list_quest.size(); i++) {
+                            QuestP q = p.list_quest.get(i);
+                            if (q.template.id < 0 && (q.template.statusQuest == 1 || q.template.statusQuest == 2)) {
+                                has_active_side_quest = true;
+                                break;
+                            }
+                        }
+                        if (has_active_side_quest) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã nhận nhiệm vụ lặp trước đó rồi, vui lòng hoàn thành trước!");
+                        } else if (p.list_quest.isEmpty() || p.list_quest.get(0).template.id < 11) {
                             Service.send_box_ThongBao_OK(p,
                                     "Bạn phải hoàn thành nhiệm vụ Bài tập đầu tiên mới có "
                                             + "thể nhận nhiệm vụ lặp");
