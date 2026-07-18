@@ -67,6 +67,10 @@ export default function AuthForm({ title = '⚓ ĐĂNG NHẬP' }) {
     if (!usernameRegex.test(username)) {
       return showMessage('error', 'Tên tài khoản chỉ được phép sử dụng chữ thường (a-z) và chữ số (0-9)!');
     }
+    const passwordRegex = /^[a-z0-9]+$/;
+    if (!passwordRegex.test(password)) {
+      return showMessage('error', 'Mật khẩu chỉ được phép sử dụng chữ thường (a-z) và chữ số (0-9)!');
+    }
     if (password !== confirmPassword) {
       return showMessage('error', 'Mật khẩu xác nhận không khớp!');
     }

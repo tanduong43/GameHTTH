@@ -31,6 +31,11 @@ router.post('/register', async (req, res) => {
         return res.json({ success: false, message: 'Tên tài khoản chỉ được phép sử dụng chữ thường (a-z) và chữ số (0-9)!' });
     }
 
+    const passwordRegex = /^[a-z0-9]+$/;
+    if (!passwordRegex.test(password)) {
+        return res.json({ success: false, message: 'Mật khẩu chỉ được phép sử dụng chữ thường (a-z) và chữ số (0-9)!' });
+    }
+
     try {
         const clientIp = getClientIp(req);
 
