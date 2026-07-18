@@ -373,39 +373,7 @@ public class Player {
                         + "). Redirecting to map 1 (Village).");
                 savedMapId = 1;
             }
-            boolean wasTowerMap = (savedMapId >= 500 && savedMapId <= 512);
-            boolean wasNamieDefenseMap = (savedMapId == activities.NamieTreasureDefense.MAP_ID);
-            Map[] map = null;
-            if (wasTowerMap) {
-                activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(this.name);
-                if (activeChallenge != null) {
-                    savedMapId = activeChallenge.currentMap.template.id;
-                    map = new Map[] { activeChallenge.currentMap };
-                } else {
-                    System.out.println("[TowerChallenge] Player " + this.name + " saved map was Tower map ("
-                            + savedMapId + ") but no active challenge. Redirecting to map 1 (Village).");
-                    savedMapId = 1;
-                    map = Map.get_map_by_id(1);
-                    x = 300;
-                    y = 250;
-                }
-            } else if (wasNamieDefenseMap) {
-                activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense
-                        .findActiveDefense(this.name);
-                if (activeDefense != null) {
-                    savedMapId = activeDefense.currentMap.template.id;
-                    map = new Map[] { activeDefense.currentMap };
-                } else {
-                    System.out.println("[NamieDefense] Player " + this.name + " saved map was Namie Defense map ("
-                            + savedMapId + ") but no active defense. Redirecting to map 1 (Village).");
-                    savedMapId = 1;
-                    map = Map.get_map_by_id(1);
-                    x = 300;
-                    y = 250;
-                }
-            } else {
-                map = Map.get_map_by_id(savedMapId);
-            }
+            Map[] map = Map.get_map_by_id(savedMapId);
             byte zone_id = Byte.parseByte(js.get(1).toString());
             int zone_goto = zone_id < map.length ? zone_id : 0;
             if (zone_goto != 0) {
@@ -1201,12 +1169,16 @@ public class Player {
         }
         if (Map.is_map_dungeon(map_go[0].template.id) && this.dungeon != null) {
             int id_map = map_go[0].template.id;
+            Map originalMap = map_go[0];
             map_go = new Map[1];
             for (int i = 0; i < this.dungeon.maps.size(); i++) {
                 if (id_map == this.dungeon.maps.get(i).template.id) {
                     map_go[0] = this.dungeon.maps.get(i);
                     break;
                 }
+            }
+            if (map_go[0] == null) {
+                map_go[0] = originalMap;
             }
             if (id_map >= 500 && id_map <= 512) {
                 vgo.xnew = 350;

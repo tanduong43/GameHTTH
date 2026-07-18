@@ -29,6 +29,7 @@ public class HangDong extends Dungeon {
     public boolean rewardsGiven = false; // tránh trao thưởng trùng lặp
     public boolean isFailing = false;
     public long failTime = 0;
+    public long stageStartTime;
 
     public HangDong(List<Player> members, Player leader) {
         this.partyMembers.addAll(members);
@@ -76,6 +77,7 @@ public class HangDong extends Dungeon {
         // Timeout cho 1 tầng là 10 phút
         this.stageEndTime = System.currentTimeMillis() + 600_000L;
         this.time = this.stageEndTime;
+        this.stageStartTime = System.currentTimeMillis();
 
         Map[] mapTemplates = Map.get_map_by_id(167);
         if (mapTemplates == null || mapTemplates.length == 0 || mapTemplates[0] == null) {
@@ -451,20 +453,22 @@ public class HangDong extends Dungeon {
             return;
         }
 
-        // 2. Active Players Check (fail if all offline/left map)
-        boolean anyOnline = false;
-        for (Player member : this.partyMembers) {
-            Player pOnline = Map.get_player_by_name_allmap(member.name);
-            if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
-                    && pOnline.map.equals(this.currentMap)) {
-                anyOnline = true;
-                break;
+        // 2. Active Players Check (fail if all offline/left map after 10 seconds grace period)
+        if (System.currentTimeMillis() - this.stageStartTime > 10000L) {
+            boolean anyOnline = false;
+            for (Player member : this.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                        && pOnline.map.equals(this.currentMap)) {
+                    anyOnline = true;
+                    break;
+                }
             }
-        }
 
-        if (!anyOnline) {
-            completeDungeon();
-            return;
+            if (!anyOnline) {
+                completeDungeon();
+                return;
+            }
         }
 
         // 3. Fail delay check

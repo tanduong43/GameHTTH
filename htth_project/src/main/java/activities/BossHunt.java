@@ -142,8 +142,8 @@ public class BossHunt {
                 cancelRoom("Thành viên " + member.name + " không đủ 2 chìa khóa phó bản để bắt đầu.");
                 return;
             }
-            if (member.time_bosshunt >= 5) {
-                cancelRoom("Thành viên " + member.name + " đã vượt giới hạn Săn Trùm hôm nay (tối đa 5 lần)!");
+            if (member.time_bosshunt >= 10) {
+                cancelRoom("Thành viên " + member.name + " đã vượt giới hạn Săn Trùm hôm nay (tối đa 10 lần)!");
                 return;
             }
         }
@@ -153,7 +153,8 @@ public class BossHunt {
             Service.CountDown_Ticket(member);
         }
 
-        System.out.println("[BossHunt] Starting hunt with " + members.size() + " members. 2 keys deducted from all members.");
+        System.out.println(
+                "[BossHunt] Starting hunt with " + members.size() + " members. 2 keys deducted from all members.");
         this.waitingForReady = false;
         this.active = true;
         this.currentFloor = 0;
@@ -230,13 +231,13 @@ public class BossHunt {
         boss.base_dame = baseDame;
         boss.final_dame = baseDame * floorNum;
 
-        System.out.println("[BossHunt DEBUG] Spawning boss: " + boss.mob_template.name 
-            + " | ID: " + boss.mob_template.mob_id
-            + " | Floor: " + floorNum
-            + " | Base HP: " + baseHp
-            + " | Final HP: " + boss.hp_max
-            + " | Base Damage: " + boss.base_dame
-            + " | Final Damage: " + boss.final_dame);
+        System.out.println("[BossHunt DEBUG] Spawning boss: " + boss.mob_template.name
+                + " | ID: " + boss.mob_template.mob_id
+                + " | Floor: " + floorNum
+                + " | Base HP: " + baseHp
+                + " | Final HP: " + boss.hp_max
+                + " | Base Damage: " + boss.base_dame
+                + " | Final Damage: " + boss.final_dame);
 
         boss.isdie = false;
         boss.id_target = -1;
@@ -355,9 +356,11 @@ public class BossHunt {
             if (!gifts.isEmpty()) {
                 String notice;
                 if (isLastFloor) {
-                    notice = "Chúc mừng bạn đã chiến thắng Tầng " + (floor + 1) + "!\nHoàn thành Săn Trùm! Sau 5 giây sẽ trở về làng.";
+                    notice = "Chúc mừng bạn đã chiến thắng Tầng " + (floor + 1)
+                            + "!\nHoàn thành Săn Trùm! Sau 5 giây sẽ trở về làng.";
                 } else {
-                    notice = "Chúc mừng bạn đã chiến thắng Tầng " + (floor + 1) + "!\nChuẩn bị chuyển sang Tầng " + (floor + 2) + "...";
+                    notice = "Chúc mừng bạn đã chiến thắng Tầng " + (floor + 1) + "!\nChuẩn bị chuyển sang Tầng "
+                            + (floor + 2) + "...";
                 }
                 Service.send_gift(member, 1, "Phần thưởng BossHunt", notice, gifts, true);
             }

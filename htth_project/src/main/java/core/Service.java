@@ -530,7 +530,7 @@ public class Service {
             temp = MapBossInfo.get_mob(p, id);
             // System.out.println("send info map boss");
         }
-        if (temp == null && Map.is_map_dungeon(p.map.template.id)) {
+        if (temp == null && Map.is_map_dungeon(p.map.template.id) && p.dungeon != null) {
             temp = p.dungeon.get_mob(p, id);
         }
         if (temp == null) {

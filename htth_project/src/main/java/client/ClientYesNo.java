@@ -73,6 +73,15 @@ public class ClientYesNo {
                 } else {
                     Service.send_box_ThongBao_OK(p, "Phụ bản đã kết thúc!");
                 }
+            } else { // Hủy
+                activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);
+                if (activeHangDong != null) {
+                    activeHangDong.partyMembers.removeIf(member -> member.name.equals(p.name));
+                    p.dungeon = null;
+                    if (activeHangDong.partyMembers.isEmpty()) {
+                        activeHangDong.completeDungeon();
+                    }
+                }
             }
             p.data_yesno = null;
             p.map_tele = null;
@@ -97,6 +106,15 @@ public class ClientYesNo {
                 } else {
                     Service.send_box_ThongBao_OK(p, "Phụ bản đã kết thúc!");
                 }
+            } else { // Hủy
+                activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(p.name);
+                if (activeChallenge != null) {
+                    activeChallenge.partyMembers.removeIf(member -> member.name.equals(p.name));
+                    p.dungeon = null;
+                    if (activeChallenge.partyMembers.isEmpty()) {
+                        activeChallenge.cleanup();
+                    }
+                }
             }
             p.data_yesno = null;
             p.map_tele = null;
@@ -116,6 +134,15 @@ public class ClientYesNo {
                     Service.send_time_cool_down(p, activeDefense.dungeonEndTime, "Thời gian", 2);
                 } else {
                     Service.send_box_ThongBao_OK(p, "Phụ bản đã kết thúc!");
+                }
+            } else { // Hủy
+                activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense.findActiveDefense(p.name);
+                if (activeDefense != null) {
+                    activeDefense.partyMembers.removeIf(member -> member.name.equals(p.name));
+                    p.dungeon = null;
+                    if (activeDefense.partyMembers.isEmpty()) {
+                        activeDefense.cleanup();
+                    }
                 }
             }
             p.data_yesno = null;

@@ -163,13 +163,23 @@ public class Party {
         }
     }
 
+    public synchronized void leave_party(Player p) throws IOException {
+        if (list.size() > 0 && list.get(0).equals(p)) {
+            delete();
+        } else {
+            remove_mem(p);
+        }
+    }
+
     public synchronized void remove_mem(Player p) throws IOException {
         for (int i = 0; i < list.size(); i++) {
             Player p0 = list.get(i);
             if (p0.equals(p)) {
                 Message m = new Message(-25);
                 m.writer().writeByte(3);
-                p0.conn.addmsg(m);
+                if (p0.conn != null) {
+                    p0.conn.addmsg(m);
+                }
                 m.cleanup();
                 p0.party = null;
                 list.remove(p);
@@ -182,6 +192,13 @@ public class Party {
                 }
                 if (p0.dungeon instanceof activities.HangDong) {
                     ((activities.HangDong) p0.dungeon).handlePlayerLeftParty(p0);
+                }
+                if (p0.bossHunt != null) {
+                    p0.bossHunt.removeMemberByName(p0.name);
+                    if (p0.bossHunt.members.isEmpty()) {
+                        p0.bossHunt.returnAllToVillage(null);
+                    }
+                    p0.bossHunt = null;
                 }
                 break;
             }
@@ -207,6 +224,13 @@ public class Party {
             }
             if (p0.dungeon instanceof activities.HangDong) {
                 ((activities.HangDong) p0.dungeon).handlePlayerLeftParty(p0);
+            }
+            if (p0.bossHunt != null) {
+                p0.bossHunt.removeMemberByName(p0.name);
+                if (p0.bossHunt.members.isEmpty()) {
+                    p0.bossHunt.returnAllToVillage(null);
+                }
+                p0.bossHunt = null;
             }
         }
         m.cleanup();

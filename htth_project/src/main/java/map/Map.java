@@ -81,7 +81,10 @@ public class Map implements Runnable {
     }
 
     public static boolean is_map_dungeon(int id) {
-        return (id >= 167 && id <= 176) || (id >= 500 && id <= 512) || id == 513 || id == 999;
+        // HangDong: 167-176 | TowerChallenge: 500-512 | NamieTreasureDefense: 513
+        // BossHunt: 201-207 | ClanResource: 999
+        return (id >= 167 && id <= 176) || (id >= 201 && id <= 207)
+                || (id >= 500 && id <= 512) || id == 513 || id == 999;
     }
 
     public static void add_map_plus(Map map_boss) {
@@ -985,22 +988,30 @@ public class Map implements Runnable {
 
     private void update_map_dungeon() throws IOException {
         if (Map.is_map_dungeon(this.template.id)) { // map dungeon
+            if (this.map_dungeon != null) {
+                if (this.map_dungeon instanceof activities.TowerChallenge) {
+                    ((activities.TowerChallenge) this.map_dungeon).update(this);
+                    return;
+                }
+                if (this.map_dungeon instanceof activities.NamieTreasureDefense) {
+                    ((activities.NamieTreasureDefense) this.map_dungeon).update(this);
+                    return;
+                }
+                if (this.map_dungeon instanceof activities.HangDong) {
+                    ((activities.HangDong) this.map_dungeon).update(this);
+                    return;
+                }
+            }
+            // BossHunt maps (201-207) dùng map_bossHunt, không dùng p.dungeon
+            // Chúng được xử lý bởi update_map_bossHunt() riêng — thoát sớm để tránh NPE
+            if (this.map_bossHunt != null) {
+                return;
+            }
             Player p_select = null;
             boolean ok_out_map = false;
             if (players.size() > 0) {
                 Player p0 = players.get(0);
-                if (p0.dungeon instanceof activities.TowerChallenge) {
-                    ((activities.TowerChallenge) p0.dungeon).update(this);
-                    return;
-                }
-                if (p0.dungeon instanceof activities.NamieTreasureDefense) {
-                    ((activities.NamieTreasureDefense) p0.dungeon).update(this);
-                    return;
-                }
-                if (p0.dungeon instanceof activities.HangDong) {
-                    ((activities.HangDong) p0.dungeon).update(this);
-                    return;
-                }
+                if (p0.dungeon == null) return; // guard an toàn
                 int num_mob = 0;
                 for (int i = 0; i < p0.dungeon.mobs.size(); i++) {
                     Mob mob = p0.dungeon.mobs.get(i);
@@ -1484,10 +1495,12 @@ public class Map implements Runnable {
                 }
             }
         }
-        if (Map.is_map_dungeon(this.template.id)) {
+        // Dungeon mob AI: chỉ chạy với dungeon thực sự (có p.dungeon), không chạy với BossHunt
+        // map (201-207) vì BossHunt có khối xử lý riêng bên dưới
+        if (Map.is_map_dungeon(this.template.id) && this.map_bossHunt == null) {
             List<Mob> list_remove = new ArrayList<>();
             List<Mob> get_list_Mob = new ArrayList<>();
-            if (players.size() > 0) {
+            if (players.size() > 0 && players.get(0).dungeon != null) {
                 for (int i = 0; i < players.get(0).dungeon.mobs.size(); i++) {
                     if (players.get(0).dungeon.mobs.get(i).map.equals(this)) {
                         get_list_Mob.add(players.get(0).dungeon.mobs.get(i));
@@ -1859,6 +1872,16 @@ public class Map implements Runnable {
                     }
                 }
             }
+            // BossHunt mob targeting khi player di chuyển gần boss
+            if (this.map_bossHunt != null && this.map_bossHunt.active && p.bossHunt != null) {
+                for (Mob mob : this.map_bossHunt.mobs) {
+                    if (mob != null && !mob.isdie && mob.map.equals(this)
+                            && Math.abs(mob.x - p.x) < 70 && Math.abs(mob.y - p.y) < 70
+                            && mob.id_target == -1) {
+                        mob.id_target = p.index_map;
+                    }
+                }
+            }
             // boss
             for (int i = 0; i < Boss.ENTRYS.size(); i++) {
                 Boss temp = Boss.ENTRYS.get(i);
@@ -1884,6 +1907,25 @@ public class Map implements Runnable {
                         }
                     }
                     if (num_mob > 0) {
+                        return;
+                    }
+                }
+                // BossHunt: broadcast vị trí boss cho mọi người khi player mới vào map
+                if (this.map_bossHunt != null && this.map_bossHunt.active && p.bossHunt != null) {
+                    int num_boss = 0;
+                    for (Mob mob_boss : this.map_bossHunt.mobs) {
+                        if (mob_boss != null && !mob_boss.isdie && mob_boss.map.equals(this)) {
+                            num_boss++;
+                            Message mmove = new Message(1);
+                            mmove.writer().writeByte(1);
+                            mmove.writer().writeShort(mob_boss.index);
+                            mmove.writer().writeShort(mob_boss.x);
+                            mmove.writer().writeShort(mob_boss.y);
+                            send_msg_all_p(mmove, p, true);
+                            mmove.cleanup();
+                        }
+                    }
+                    if (num_boss > 0) {
                         return;
                     }
                 }
@@ -3625,6 +3667,8 @@ public class Map implements Runnable {
                 }
             }
         }
+        // boss
+        boolean haveBoss = false;
         if (this.map_bossHunt != null && this.map_bossHunt.active) {
             for (int i = 0; i < this.map_bossHunt.mobs.size(); i++) {
                 Mob mob = this.map_bossHunt.mobs.get(i);
@@ -3636,11 +3680,10 @@ public class Map implements Runnable {
                     m_local.writer().writeShort(mob.y);
                     p.conn.addmsg(m_local);
                     m_local.cleanup();
+                    haveBoss = true; // đánh dấu đã gửi boss để không gửi list_mob trống phía dưới
                 }
             }
         }
-        // boss
-        boolean haveBoss = false;
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
             if (!Boss.ENTRYS.get(i).mob.isdie && Boss.ENTRYS.get(i).mob.map.equals(p.map)) {
                 Message m_local = new Message(1);

@@ -131,6 +131,7 @@ public class NamieTreasureDefense extends Dungeon {
     public int currentWaveIndex = -1; // 0..TOTAL_WAVES-1
     public int treasureHp = TREASURE_HP_MAX;
     public long dungeonEndTime;
+    public long dungeonStartTime;
 
     public boolean isTransitioning = false;
     public long transitionEndTime = 0;
@@ -224,6 +225,7 @@ public class NamieTreasureDefense extends Dungeon {
         this.treasureHp = TREASURE_HP_MAX;
         this.dungeonEndTime = System.currentTimeMillis() + TOTAL_TIME_LIMIT_MS;
         this.time = this.dungeonEndTime;
+        this.dungeonStartTime = System.currentTimeMillis();
 
         Vgo vgo = new Vgo();
         vgo.map_go = new Map[] { mapDungeon };
@@ -412,19 +414,21 @@ public class NamieTreasureDefense extends Dungeon {
             return;
         }
 
-        // 2. Không còn ai online trong map -> huỷ
-        boolean anyOnline = false;
-        for (Player member : this.partyMembers) {
-            Player pOnline = Map.get_player_by_name_allmap(member.name);
-            if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
-                    && pOnline.map.equals(this.currentMap)) {
-                anyOnline = true;
-                break;
+        // 2. Không còn ai online trong map -> huỷ (sau 10 giây grace period)
+        if (System.currentTimeMillis() - this.dungeonStartTime > 10000L) {
+            boolean anyOnline = false;
+            for (Player member : this.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                        && pOnline.map.equals(this.currentMap)) {
+                    anyOnline = true;
+                    break;
+                }
             }
-        }
-        if (!anyOnline) {
-            failDefense("Tất cả người chơi đã rời khỏi phó bản.");
-            return;
+            if (!anyOnline) {
+                failDefense("Tất cả người chơi đã rời khỏi phó bản.");
+                return;
+            }
         }
 
         // 3. Xử lý các mob "áp sát" rương (chưa bị giết kịp thời)
@@ -771,8 +775,8 @@ public class NamieTreasureDefense extends Dungeon {
     public synchronized void handlePlayerLeftParty(Player p) {
         this.partyMembers.remove(p);
         teleportBack(p);
-        if (p.name.equals(this.leader.name) || this.partyMembers.isEmpty()) {
-            failDefense("Trưởng nhóm đã rời nhóm hoặc nhóm giải tán.");
+        if (this.partyMembers.isEmpty()) {
+            failDefense("Tất cả thành viên đã rời nhóm, phó bản kết thúc.");
         }
     }
 

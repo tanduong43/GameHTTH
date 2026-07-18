@@ -141,9 +141,9 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
-                                    if (member.time_tower >= 5) {
+                                    if (member.time_tower >= 10) {
                                         Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                                + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!");
+                                                + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 10 lần)!");
                                         return;
                                     }
                                     if (member.get_key_boss() < 2) {
@@ -263,9 +263,9 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
-                                    if (member.time_namie >= 5) {
+                                    if (member.time_namie >= 10) {
                                         Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                                + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 5 lần)!");
+                                                + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 10 lần)!");
                                         return;
                                     }
                                     if (member.get_key_boss() < 2) {

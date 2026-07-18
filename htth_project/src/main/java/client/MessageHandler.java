@@ -893,14 +893,7 @@ public class MessageHandler {
             }
             conn.p = p0;
 
-            // === Reconnect Boss Hunt check — PHẢI chạy TRƯỚC khi gửi bất kỳ data map nào
-            // ===
-            activities.BossHunt activeHunt = activities.BossHunt.findActiveHunt(conn.p.name);
-            if (activeHunt != null) {
-                // Cập nhật lại tham chiếu Player mới cho hunt (fix bug #3)
-                activeHunt.updateMemberReference(conn.p.name, conn.p);
-                conn.p.bossHunt = activeHunt;
-            }
+
             // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về map 1
             if (conn.p.map != null && conn.p.map.map_bossHunt != null) {
                 System.out.println("[BossHunt] Login safety: player " + conn.p.name
@@ -920,8 +913,12 @@ public class MessageHandler {
             if (conn.p.map != null && conn.p.map.template.id >= 500 && conn.p.map.template.id <= 512
                     && conn.p.dungeon == null) {
                 System.out.println("[TowerChallenge] Login safety: player " + conn.p.name
-                        + " still in Tower map but no active dungeon, redirecting to map 1.");
-                map.Map[] villageMap = map.Map.get_map_by_id(1);
+                        + " still in Tower map but no active dungeon, redirecting to id_map_save.");
+                int targetMapId = conn.p.id_map_save;
+                if (targetMapId <= 0) {
+                    targetMapId = 1;
+                }
+                map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
                     conn.p.x = 300;
@@ -946,8 +943,12 @@ public class MessageHandler {
             // Safety fallback: nếu vẫn đang trong map Namie nhưng no active dungeon
             if (conn.p.map != null && conn.p.map.template.id == 513 && conn.p.dungeon == null) {
                 System.out.println("[NamieDefense] Login safety: player " + conn.p.name
-                        + " still in Namie map but no active dungeon, redirecting to map 1.");
-                map.Map[] villageMap = map.Map.get_map_by_id(1);
+                        + " still in Namie map but no active dungeon, redirecting to id_map_save.");
+                int targetMapId = conn.p.id_map_save;
+                if (targetMapId <= 0) {
+                    targetMapId = 1;
+                }
+                map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
                     conn.p.x = 300;
@@ -1045,25 +1046,6 @@ public class MessageHandler {
                     "Chào mừng bạn đến với Thế Giới Hải Tặc - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
             conn.p.list_msg_cache.add(m2);
 
-            // === Rejoin dialog — đợi người dùng vào game hoàn toàn và sau 2 giây mới gửi
-            // thông báo ===
-            if (activeHunt != null && (activeHunt.active || activeHunt.waitingForReady)) {
-                final Player player = conn.p;
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(2000);
-                        if (player != null && player.conn != null && player.conn.connected) {
-                            System.out.println("[BossHunt] Player " + player.name
-                                    + " logged in. Active/Waiting hunt found. Showing rejoin dialog after 2s delay.");
-                            Service.send_box_yesno(player, 999, "Săn Trùm",
-                                    "Bạn đang có trận Săn Boss chưa hoàn thành. Bạn có muốn quay lại không?",
-                                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
-                        }
-                    } catch (Exception e) {
-                        System.err.println("[BossHunt] Error in delayed rejoin dialog thread: " + e.getMessage());
-                    }
-                }).start();
-            }
 
             // === Rejoin dialog for HangDong, TowerChallenge, NamieTreasureDefense ===
             if (activeHangDong != null || activeChallenge != null || activeDefense != null) {
