@@ -778,6 +778,16 @@ public class Manager {
                 tempPet.type = rs.getByte("type");
                 tempPet.icon = rs.getShort("icon");
                 tempPet.frame = rs.getShort("frame");
+                String opStr = rs.getString("op");
+                if (opStr != null && !opStr.isEmpty()) {
+                    JSONArray js = (JSONArray) JSONValue.parse(opStr);
+                    for (int i = 0; i < js.size(); i++) {
+                        JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                        int optId = Integer.parseInt(js2.get(0).toString());
+                        int optVal = Integer.parseInt(js2.get(1).toString());
+                        tempPet.op.add(new template.Option(optId, optVal));
+                    }
+                }
                 Pet.ENTRY.add(tempPet);
             }
             rs.close();

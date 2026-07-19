@@ -382,6 +382,14 @@ public class Body {
                 }
             }
         }
+        MyPet activePet = p.get_pet();
+        if (activePet != null && activePet.template != null && activePet.template.op != null) {
+            for (int i = 0; i < activePet.template.op.size(); i++) {
+                if (activePet.template.op.get(i).id == id) {
+                    par += activePet.template.op.get(i).getParam();
+                }
+            }
+        }
         return par;
     }
         

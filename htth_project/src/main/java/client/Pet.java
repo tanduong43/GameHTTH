@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import core.Service;
+import template.Option;
 /**
  *
  * @author Truongbk
@@ -14,6 +15,7 @@ public class Pet {
     public short id, icon, frame;
     public String name;
     public byte type;
+    public List<Option> op = new ArrayList<>();
 
     public static void process(Player p, Message m2) throws IOException {
         byte act = m2.reader().readByte();
