@@ -52,7 +52,8 @@ function AdminAccount() {
       const q = searchQuery.toLowerCase().trim();
       const matchUser = acc.user && acc.user.toLowerCase().includes(q);
       const matchId = String(acc.id) === q;
-      if (!matchUser && !matchId) return false;
+      const matchChar = acc.charName && acc.charName.toLowerCase().includes(q);
+      if (!matchUser && !matchId && !matchChar) return false;
     }
     if (statusFilter === 'active' && acc.status !== 1) return false;
     if (statusFilter === 'inactive' && acc.status === 1) return false;
@@ -213,7 +214,7 @@ function AdminAccount() {
           <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#aaa', fontWeight: '600' }}>Tìm kiếm:</label>
           <input
             type="text"
-            placeholder="Tìm theo tên tài khoản hoặc ID..."
+            placeholder="Tìm theo tài khoản, ID hoặc tên nhân vật..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -304,6 +305,7 @@ function AdminAccount() {
               <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.3)' }}>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>ID</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Tài khoản</th>
+                <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Nhân vật</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Coin</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Thành viên</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Trạng thái</th>
@@ -315,6 +317,7 @@ function AdminAccount() {
                 <tr key={acc.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <td style={{ padding: '14px 10px', color: '#888' }}>{acc.id}</td>
                   <td style={{ padding: '14px 10px', fontWeight: 'bold', color: '#00e5ff' }}>{acc.user}</td>
+                  <td style={{ padding: '14px 10px', color: '#ff8a00', fontWeight: '600' }}>{acc.charName || "Chưa tạo"}</td>
                   <td style={{ padding: '14px 10px', color: '#faad14', fontWeight: '500' }}>💰 {acc.coin.toLocaleString()}</td>
                   <td style={{ padding: '14px 10px' }}>
                     <span style={{ 
@@ -392,7 +395,7 @@ function AdminAccount() {
               ))}
               {filteredAccounts.length === 0 && (
                 <tr>
-                  <td colSpan="6" style={{ padding: '30px', textAlign: 'center', color: '#888' }}>
+                  <td colSpan="7" style={{ padding: '30px', textAlign: 'center', color: '#888' }}>
                     Không tìm thấy tài khoản phù hợp
                   </td>
                 </tr>

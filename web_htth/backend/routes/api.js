@@ -306,8 +306,28 @@ router.post('/admin/reset_hangdong', jwtRequired, isAdmin, async (req, res) => {
 // GET /api/admin/accounts/
 router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
     try {
-        const [rows] = await db.execute('SELECT id, user, coin, status, `lock`, onl FROM accounts ORDER BY id DESC');
-        return res.json({ success: true, accounts: rows });
+        const [rows] = await db.execute('SELECT id, user, coin, status, `lock`, onl, `char` FROM accounts ORDER BY id DESC');
+        const accounts = rows.map(acc => {
+            let charName = "Chưa tạo nhân vật";
+            try {
+                if (acc.char) {
+                    const chars = JSON.parse(acc.char);
+                    if (Array.isArray(chars) && chars.length > 0) {
+                        charName = chars[0];
+                    }
+                }
+            } catch (e) {}
+            return {
+                id: acc.id,
+                user: acc.user,
+                coin: acc.coin,
+                status: acc.status,
+                lock: acc.lock,
+                onl: acc.onl,
+                charName: charName
+            };
+        });
+        return res.json({ success: true, accounts });
     } catch (err) {
         console.error('Admin get accounts error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
