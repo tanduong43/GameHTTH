@@ -532,6 +532,26 @@ public class ClientInput {
                                         }
                                         break;
                                     }
+                                    case 8: {
+                                        Pet petTemplate = Pet.getTemplate(temp.id[i]);
+                                        if (petTemplate != null) {
+                                            boolean duplicate = false;
+                                            for (MyPet myPet : p.my_pet) {
+                                                if (myPet.template.id == petTemplate.id) {
+                                                    duplicate = true;
+                                                    break;
+                                                }
+                                            }
+                                            if (!duplicate) {
+                                                MyPet newPet = new MyPet();
+                                                newPet.id = (short) p.my_pet.size();
+                                                newPet.template = petTemplate;
+                                                newPet.isUse = false;
+                                                p.my_pet.add(newPet);
+                                            }
+                                        }
+                                        break;
+                                    }
                                 }
                             }
                             p.item.update_Inventory(-1, false);
@@ -554,6 +574,13 @@ public class ClientInput {
                                     case 7: {
                                         notice += ItemTemplate7.get_it_by_id(temp.id[i]).name + " x"
                                                 + temp.quant[i] + "\n";
+                                        break;
+                                    }
+                                    case 8: {
+                                        Pet petTemplate = Pet.getTemplate(temp.id[i]);
+                                        if (petTemplate != null) {
+                                            notice += "Pet: " + petTemplate.name + " x" + temp.quant[i] + "\n";
+                                        }
                                         break;
                                     }
                                 }
