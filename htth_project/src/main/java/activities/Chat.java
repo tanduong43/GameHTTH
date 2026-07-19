@@ -1,9 +1,11 @@
 package activities;
 
 import java.io.IOException;
+
 import client.Player;
 import core.Service;
 import io.Message;
+
 /**
  *
  * @author Truongbk
@@ -24,6 +26,19 @@ public class Chat {
 						}
 					} else {
 						Service.send_box_ThongBao_OK(p, "Nhóm không tồn tại");
+					}
+					break;
+				}
+				default: {
+					if (tab_name.equals("Thế giới") || tab_name.equals("Bang") || tab_name.equals("Băng")
+							|| tab_name.equals("Hệ thống") || tab_name.equals("Đồng minh") || tab_name.equals(p.name)) {
+						break;
+					}
+					Player p0 = map.Map.get_player_by_name_allmap(tab_name);
+					if (p0 != null && p0.conn != null) {
+						send_chat(p0, p.name, text, false);
+					} else {
+						send_chat(p, tab_name, "Đối phương đang offline", false);
 					}
 					break;
 				}
