@@ -886,6 +886,7 @@ public class Map implements Runnable {
             } else if (this.map_pvp.status_pvp == 99) {
                 running = false;
                 this.map_pvp = null;
+                Map.remove_map_plus(this);
             }
         }
     }
