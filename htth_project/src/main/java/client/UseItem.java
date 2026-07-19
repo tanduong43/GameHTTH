@@ -547,21 +547,15 @@ public class UseItem {
                         break;
                     }
                     case 29: {
-                        if (p.check_already_have_devil_fruit()) {
-                            Service.send_box_ThongBao_OK(p,
-                                    "Bạn đã có 1 trái ác quỷ trong hành trang!");
-                            return false;
-                        } else {
-                            short id_add = 86;
-                            if (20 > Util.random(120)) {
-                                id_add = 87;
-                            }
-                            if (!p.item.add_item_bag47(4, id_add, 1)) {
-                                Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
-                                return false;
-                            }
-                            open_taq_random(p, id_add, "Rương ác quỷ", "Nhận ngẫu nhiên");
+                        short id_add = 86;
+                        if (20 > Util.random(120)) {
+                            id_add = 87;
                         }
+                        if (!p.item.add_item_bag47(4, id_add, 1)) {
+                            Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
+                            return false;
+                        }
+                        open_taq_random(p, id_add, "Rương ác quỷ", "Nhận ngẫu nhiên");
                         break;
                     }
                     case 31: {
@@ -583,47 +577,41 @@ public class UseItem {
                         break;
                     }
                     case 158: {
-                        if (p.check_already_have_devil_fruit()) {
-                            Service.send_box_ThongBao_OK(p,
-                                    "Bạn đã có 1 trái ác quỷ trong hành trang!");
-                            return false;
-                        } else {
-                            short id_add;
-                            int rdom = Util.random(1000);
-                            if (rdom < 50) { // 316
-                                id_add = 316;
-                            } else if (rdom < 130) { // 32
-                                id_add = 32;
-                            } else if (rdom < 210) { // 93
-                                id_add = 93;
-                            } else if (rdom < 330) { // 317
-                                id_add = 317;
-                            } else if (rdom < 450) { // 92
-                                id_add = 92;
-                            } else if (rdom < 580) { // 219
-                                id_add = 219;
-                            } else if (rdom < 710) { // 220
-                                id_add = 220;
-                            } else { // 33
-                                id_add = 33;
-                            }
-                            if (2 > Util.random(150)) {
-                                id_add = (short) ((50 > Util.random(120)) ? 240
-                                        : (50 > Util.random(120)) ? 161 : 160);
-                            }
-                            if (!p.item.add_item_bag47(4, id_add, 1)) {
-                                Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
-                                return false;
-                            }
-                            if (id_add == 240 || id_add == 161 || id_add == 160) {
-                                Manager.gI().chatKTG(0,
-                                        (p.name + " mở Rương đại ác quỷ nhận được "
-                                                + ItemTemplate4.get_item_name(id_add)
-                                                + ", thật là may mắn"),
-                                        5);
-                            }
-                            open_taq_random(p, id_add, "Rương đại ác quỷ", "Nhận ngẫu nhiên");
+                        short id_add;
+                        int rdom = Util.random(1000);
+                        if (rdom < 50) { // 316
+                            id_add = 316;
+                        } else if (rdom < 130) { // 32
+                            id_add = 32;
+                        } else if (rdom < 210) { // 93
+                            id_add = 93;
+                        } else if (rdom < 330) { // 317
+                            id_add = 317;
+                        } else if (rdom < 450) { // 92
+                            id_add = 92;
+                        } else if (rdom < 580) { // 219
+                            id_add = 219;
+                        } else if (rdom < 710) { // 220
+                            id_add = 220;
+                        } else { // 33
+                            id_add = 33;
                         }
+                        if (2 > Util.random(150)) {
+                            id_add = (short) ((50 > Util.random(120)) ? 240
+                                    : (50 > Util.random(120)) ? 161 : 160);
+                        }
+                        if (!p.item.add_item_bag47(4, id_add, 1)) {
+                            Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
+                            return false;
+                        }
+                        if (id_add == 240 || id_add == 161 || id_add == 160) {
+                            Manager.gI().chatKTG(0,
+                                    (p.name + " mở Rương đại ác quỷ nhận được "
+                                            + ItemTemplate4.get_item_name(id_add)
+                                            + ", thật là may mắn"),
+                                    5);
+                        }
+                        open_taq_random(p, id_add, "Rương đại ác quỷ", "Nhận ngẫu nhiên");
                         break;
                     }
                     case 32:
