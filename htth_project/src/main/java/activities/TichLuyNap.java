@@ -155,24 +155,13 @@ public class TichLuyNap {
             ItemTemplate4 it = ItemTemplate4.get_it_by_id(id);
             if (it != null)
                 return it.icon;
-        } else if (type == 3) {
-            ItemTemplate3 it = ItemTemplate3.get_it_by_id(id);
-            if (it != null)
-                return it.icon;
-        } else if (type == 7) {
-            ItemTemplate7 it = ItemTemplate7.get_it_by_id(id);
-            if (it != null)
-                return (short) (6500 + it.icon);
-        } else if (type == 8) {
-            ItemTemplate8 it = ItemTemplate8.get_it_by_id(id);
-            if (it != null)
-                return it.icon;
         } else if (type == 105) {
             template.ItemFashion it = template.ItemFashion.get_item(id);
             if (it != null)
                 return it.idIcon;
         }
-        return (short) id;
+        return (short) id; // For standard items (3, 7, 8), the client does a local template lookup using
+                           // the ID
     }
 
     private static String getRewardName(RewardItem reward) {
