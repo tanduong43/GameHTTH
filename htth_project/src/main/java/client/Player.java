@@ -271,7 +271,7 @@ public class Player {
             kimcuong = Integer.parseInt(js.get(1).toString());
             vnd = Integer.parseInt(js.get(2).toString());
             bua = Integer.parseInt(js.get(3).toString());
-            tichLuy = 0;
+            tichLuy = Integer.parseInt(js.get(4).toString());
             pvp_win = Integer.parseInt(js.get(5).toString());
             pvp_lose = Integer.parseInt(js.get(6).toString());
             time_ship = Byte.parseByte(js.get(7).toString());
@@ -840,7 +840,7 @@ public class Player {
             js.add(p.kimcuong);
             js.add(p.vnd);
             js.add(p.bua);
-            js.add(0);
+            js.add(p.tichLuy);
             js.add(p.pvp_win);
             js.add(p.pvp_lose);
             js.add(p.time_ship);
@@ -1538,7 +1538,8 @@ public class Player {
             }
 
             if (coin_exchange < 0) {
-                System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange) + " Coin.");
+                this.update_tichluy(-coin_exchange);
+                System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange) + " Coin. Tích luỹ: " + this.tichLuy);
             }
         } catch (SQLException e) {
             Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");
@@ -2712,10 +2713,14 @@ public class Player {
     }
 
     public int getTichLuy() {
-        if (this.conn != null) {
-            return this.conn.tichnap;
+        return this.tichLuy;
+    }
+
+    public synchronized void update_tichluy(int amount) {
+        this.tichLuy += amount;
+        if (this.tichLuy < 0) {
+            this.tichLuy = 0;
         }
-        return 0;
     }
 
     public void update_pvpPoint(int i) {

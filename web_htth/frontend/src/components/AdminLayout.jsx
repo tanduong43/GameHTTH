@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthForm from './AuthForm';
@@ -9,6 +9,13 @@ export default function AdminLayout() {
   const location = useLocation();
   const [message, setMessage] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  // Automatically close mobile sidebar when path changes
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
 
   const showMessage = (type, text) => {
     setMessage({ type, text });
@@ -57,22 +64,66 @@ export default function AdminLayout() {
 
   // Sidebar Layout cho admin
   return (
-    <div className="admin-layout">
+    <div className={`admin-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {/* Mobile Header Bar */}
+      <div className="admin-mobile-header">
+        <button 
+          className="admin-hamburger-btn" 
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          aria-label="Toggle Sidebar"
+        >
+          ☰
+        </button>
+        <h2 style={{ color: '#ff3366', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>🛡️ ADMIN</h2>
+      </div>
+
+      {/* Mobile Backdrop Overlay */}
+      {isMobileOpen && (
+        <div className="admin-sidebar-overlay" onClick={() => setIsMobileOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <div className="admin-sidebar">
-        <h2 style={{ color: '#ff3366', textAlign: 'center', marginBottom: '30px' }}>🛡️ ADMIN PANEL</h2>
+      <div className={`admin-sidebar ${isSidebarCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
+        <div className="admin-sidebar-header">
+          <h2 className="admin-logo-text" style={{ color: '#ff3366', textAlign: 'center', margin: 0 }}>
+            {isSidebarCollapsed ? '🛡️' : '🛡️ ADMIN PANEL'}
+          </h2>
+          <button 
+            className="admin-sidebar-toggle-btn" 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            title={isSidebarCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+          >
+            {isSidebarCollapsed ? '▶' : '◀'}
+          </button>
+        </div>
         
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
-          <SidebarLink to="/admin" currentPath={location.pathname} onRefresh={handleRefresh} exact>📊 Dashboard</SidebarLink>
-          <SidebarLink to="/admin/accounts" currentPath={location.pathname} onRefresh={handleRefresh}>👤 Quản lý Tài khoản</SidebarLink>
-          <SidebarLink to="/admin/coins" currentPath={location.pathname} onRefresh={handleRefresh}>💰 Quản lý Nạp tiền</SidebarLink>
-          <SidebarLink to="/admin/giftcodes" currentPath={location.pathname} onRefresh={handleRefresh}>🎁 Quản lý Giftcode</SidebarLink>
-          <SidebarLink to="/admin/news" currentPath={location.pathname} onRefresh={handleRefresh}>📰 Quản lý Tin Tức</SidebarLink>
-          <SidebarLink to="/admin/banking" currentPath={location.pathname} onRefresh={handleRefresh}>🏦 Quản lý Banking</SidebarLink>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1, padding: '10px 0' }}>
+          <SidebarLink to="/admin" currentPath={location.pathname} onRefresh={handleRefresh} exact icon="📊">Dashboard</SidebarLink>
+          <SidebarLink to="/admin/accounts" currentPath={location.pathname} onRefresh={handleRefresh} icon="👤">Quản lý Tài khoản</SidebarLink>
+          <SidebarLink to="/admin/coins" currentPath={location.pathname} onRefresh={handleRefresh} icon="💰">Quản lý Nạp tiền</SidebarLink>
+          <SidebarLink to="/admin/giftcodes" currentPath={location.pathname} onRefresh={handleRefresh} icon="🎁">Quản lý Giftcode</SidebarLink>
+          <SidebarLink to="/admin/news" currentPath={location.pathname} onRefresh={handleRefresh} icon="📰">Quản lý Tin Tức</SidebarLink>
+          <SidebarLink to="/admin/banking" currentPath={location.pathname} onRefresh={handleRefresh} icon="🏦">Quản lý Banking</SidebarLink>
         </nav>
 
-        <div style={{ padding: '20px', marginTop: 'auto' }}>
-          <Link to="/" className="btn btn-outline" style={{ display: 'block', textAlign: 'center', borderColor: '#444', color: '#aaa' }}>🏠 Thoát về Web</Link>
+        <div className="admin-sidebar-footer" style={{ padding: '15px', marginTop: 'auto' }}>
+          <Link 
+            to="/" 
+            className="btn btn-outline" 
+            style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              borderColor: '#444', 
+              color: '#aaa',
+              gap: '10px',
+              padding: isSidebarCollapsed ? '10px 0' : '10px 15px'
+            }}
+            title="Thoát về Web"
+          >
+            <span className="admin-sidebar-icon">🏠</span>
+            {!isSidebarCollapsed && <span className="admin-sidebar-text">Thoát về Web</span>}
+          </Link>
         </div>
       </div>
 
@@ -89,7 +140,7 @@ export default function AdminLayout() {
   );
 }
 
-function SidebarLink({ to, currentPath, onRefresh, children, exact = false }) {
+function SidebarLink({ to, currentPath, onRefresh, icon, children, exact = false }) {
   const isActive = exact ? currentPath === to : currentPath.startsWith(to);
 
   const handleClick = (e) => {
@@ -104,8 +155,10 @@ function SidebarLink({ to, currentPath, onRefresh, children, exact = false }) {
       to={to} 
       onClick={handleClick}
       className={`admin-sidebar-link ${isActive ? 'active' : ''}`}
+      title={children}
     >
-      {children}
+      <span className="admin-sidebar-icon" style={{ fontSize: '18px' }}>{icon}</span>
+      <span className="admin-sidebar-text">{children}</span>
     </Link>
   );
 }

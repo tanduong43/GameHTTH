@@ -189,7 +189,7 @@ public class Item {
         m.writer().writeByte(p.get_key_boss_max()); // max key boss
         m.writer().writeInt(p.get_vnd()); // vnd
         m.writer().writeInt(p.get_bua()); // bua
-        m.writer().writeInt(p.getTichLuy() / 1000); // diem nap
+        m.writer().writeInt(p.getTichLuy()); // diem nap
         m.writer().writeInt(p.conn.coin); // coin
         if (b) {
             p.list_msg_cache.add(m);

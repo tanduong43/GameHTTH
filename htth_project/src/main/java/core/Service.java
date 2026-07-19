@@ -1257,7 +1257,7 @@ public class Service {
                     case 4: {
                         ItemTemplate4 template4 = ItemTemplate4.get_it_by_id(temp_shop.id);
                         if (template4 != null) {
-                            int diemtichluy = temp_shop.point * 1_000;
+                            int diemtichluy = temp_shop.point;
                             if (p.getTichLuy() < diemtichluy) {
                                 Service.send_box_ThongBao_OK(p,
                                         "Không đủ " + temp_shop.point + " điểm tích lũy");
@@ -1276,7 +1276,7 @@ public class Service {
                     case 7: {
                         ItemTemplate7 template7 = ItemTemplate7.get_it_by_id(temp_shop.id);
                         if (template7 != null) {
-                            int diemtichluy = temp_shop.point * 1_000;
+                            int diemtichluy = temp_shop.point;
                             if (p.getTichLuy() < diemtichluy) {
                                 Service.send_box_ThongBao_OK(p,
                                         "Không đủ " + temp_shop.point + " điểm tích lũy");
@@ -1291,7 +1291,7 @@ public class Service {
                     case 105: {
                         ItemFashion itf = ItemFashion.get_item(id);
                         if (itf != null) {
-                            int diemtichluy = temp_shop.point * 1_000;
+                            int diemtichluy = temp_shop.point;
                             if (p.getTichLuy() < diemtichluy) {
                                 Service.send_box_ThongBao_OK(p,
                                         "Không đủ " + temp_shop.point + " điểm tích lũy");

@@ -175,7 +175,7 @@ function AdminNews() {
 
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', color: '#ccc', marginBottom: '5px', fontSize: '14px', fontWeight: 'bold' }}>Ảnh đại diện (Thumbnail):</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
                 <input
                   type="file"
                   accept="image/*"

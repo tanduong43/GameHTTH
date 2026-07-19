@@ -296,13 +296,13 @@ public class TichLuyNap {
     public static void sendUI(Player p) throws IOException {
         syncAccountTichNap(p);
         System.out.println("[TichLuyNap] sendUI called for player: " + p.name
-                + " | tichLuy=" + p.getTichLuy()
+                + " | tichnap=" + p.conn.tichnap
                 + " | milestones=" + MILESTONES.size()
                 + " | isdie=" + p.isdie);
 
         Message m = new Message(-90);
         m.writer().writeByte(0); // type = 0: Open UI
-        m.writer().writeInt(p.getTichLuy()); // Tổng điểm tích luỹ
+        m.writer().writeInt(p.conn.tichnap); // Tổng điểm tích luỹ
         m.writer().writeByte(MILESTONES.size()); // số mốc
 
         for (int i = 0; i < MILESTONES.size(); i++) {
@@ -311,7 +311,7 @@ public class TichLuyNap {
             byte status = 0;
             if (p.claimedMilestones.contains(milestone.id)) {
                 status = 2;
-            } else if (p.getTichLuy() >= milestone.extolReq) {
+            } else if (p.conn.tichnap >= milestone.extolReq) {
                 status = 1;
             }
 
@@ -356,7 +356,7 @@ public class TichLuyNap {
             return;
         }
 
-        if (p.getTichLuy() < milestone.extolReq) {
+        if (p.conn.tichnap < milestone.extolReq) {
             Service.send_box_ThongBao_OK(p, "Bạn chưa đạt mốc tích lũy này!");
             return;
         }

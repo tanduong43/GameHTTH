@@ -73,9 +73,13 @@ const styles = {
     display: 'flex',
     gap: '14px',
     marginBottom: '18px',
+    flexWrap: 'wrap',
   },
   flexItem: {
-    flex: 1,
+    flex: '1 1 120px',
+  },
+  itemFlexItem: {
+    flex: '1 1 70px',
   },
   label: {
     display: 'block',
@@ -110,6 +114,7 @@ const styles = {
     gap: '8px',
     marginBottom: '10px',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   btnAddItem: {
     width: '100%',
@@ -478,7 +483,7 @@ function AdminGiftcode() {
               <label style={styles.label}>Danh sách Vật phẩm (Items):</label>
               {items.map((it, idx) => (
                 <div key={idx} style={styles.itemRow}>
-                  <div style={styles.flexItem}>
+                  <div style={styles.itemFlexItem}>
                     <input
                       type="number"
                       placeholder="Loại (Type)"
@@ -488,7 +493,7 @@ function AdminGiftcode() {
                       title="Loại vật phẩm (thường là 3)"
                     />
                   </div>
-                  <div style={styles.flexItem}>
+                  <div style={styles.itemFlexItem}>
                     <input
                       type="number"
                       placeholder="ID Vật phẩm"
@@ -498,7 +503,7 @@ function AdminGiftcode() {
                       required
                     />
                   </div>
-                  <div style={styles.flexItem}>
+                  <div style={styles.itemFlexItem}>
                     <input
                       type="number"
                       placeholder="Số lượng"
