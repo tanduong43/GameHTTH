@@ -1,11 +1,13 @@
 package client;
 
-import io.Message;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import core.Service;
+import io.Message;
 import template.Option;
+
 /**
  *
  * @author Truongbk
@@ -63,19 +65,62 @@ public class Pet {
         }
     }
 
+    public static String getPetDescription(MyPet pet) {
+        if (pet.template.op == null || pet.template.op.isEmpty()) {
+            return pet.template.name;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int j = 0; j < pet.template.op.size(); j++) {
+            Option op = pet.template.op.get(j);
+            String opName = "";
+            for (template.ItemOptionTemplate entry : template.ItemOptionTemplate.ENTRYS) {
+                if (entry.id == op.id) {
+                    opName = entry.name;
+                    break;
+                }
+            }
+            if (opName.isEmpty()) {
+                opName = "Chỉ số " + op.id;
+            }
+            if (opName.endsWith("+") || opName.endsWith("-")) {
+                sb.append(opName).append(op.getParam());
+            } else {
+                sb.append(opName).append(": +").append(op.getParam());
+            }
+            if (j < pet.template.op.size() - 1) {
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String getPetNameWithStats(MyPet pet) {
+        return pet.template.name;
+    }
+
     private static void show_inven(Player p) throws IOException {
         Message m = new Message(-80);
         m.writer().writeByte(3);
         m.writer().writeShort(p.my_pet.size());
         for (int i = 0; i < p.my_pet.size(); i++) {
-            p.my_pet.get(i).id = (short) i;
-            m.writer().writeShort(p.my_pet.get(i).id);
-            m.writer().writeUTF(p.my_pet.get(i).template.name);
-            m.writer().writeUTF(p.my_pet.get(i).template.name);
-            m.writer().writeShort(p.my_pet.get(i).template.icon);
+            MyPet myPet = p.my_pet.get(i);
+            myPet.id = (short) i;
+            m.writer().writeShort(myPet.id);
+            m.writer().writeUTF(getPetNameWithStats(myPet));
+            m.writer().writeUTF(getPetDescription(myPet));
+            m.writer().writeShort(myPet.template.icon);
             m.writer().writeByte(110);
-            m.writer().writeByte(p.my_pet.get(i).isUse ? 1 : 0);
-            m.writer().writeByte(0);
+            m.writer().writeByte(myPet.isUse ? 1 : 0);
+            List<Option> ops = myPet.template.op;
+            if (ops == null) {
+                m.writer().writeByte(0);
+            } else {
+                m.writer().writeByte(ops.size());
+                for (Option op : ops) {
+                    m.writer().writeByte(op.id);
+                    m.writer().writeShort(op.getParam());
+                }
+            }
         }
         p.conn.addmsg(m);
         m.cleanup();
