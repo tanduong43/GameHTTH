@@ -863,6 +863,8 @@ public class MenuController {
             }
             p.conn.addmsg(m);
             m.cleanup();
+          } else if (index == 1) {
+            Service.send_box_ThongBao_OK(p, "Điểm tích lũy hiện tại của bạn là: " + p.getTichLuy() + " điểm.");
           }
           break;
         }
@@ -1705,7 +1707,7 @@ public class MenuController {
           break;
         }
         case 4: {
-          send_dynamic_menu(p, 987, "Điểm tích lũy", new String[] { "Vào cửa hàng" }, null);
+          send_dynamic_menu(p, 987, "Điểm tích lũy", new String[] { "Vào cửa hàng", "Xem điểm tích luỹ" }, null);
           break;
         }
         case 5:
