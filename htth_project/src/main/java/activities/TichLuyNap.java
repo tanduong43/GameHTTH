@@ -162,13 +162,17 @@ public class TichLuyNap {
         } else if (type == 7) {
             ItemTemplate7 it = ItemTemplate7.get_it_by_id(id);
             if (it != null)
-                return it.icon;
+                return (short) (6500 + it.icon);
         } else if (type == 8) {
             ItemTemplate8 it = ItemTemplate8.get_it_by_id(id);
             if (it != null)
                 return it.icon;
+        } else if (type == 105) {
+            template.ItemFashion it = template.ItemFashion.get_item(id);
+            if (it != null)
+                return it.idIcon;
         }
-        return 0;
+        return (short) id;
     }
 
     private static String getRewardName(RewardItem reward) {
@@ -187,6 +191,10 @@ public class TichLuyNap {
                 itemName = it.name;
         } else if (reward.type == 8) {
             ItemTemplate8 it = ItemTemplate8.get_it_by_id(reward.id);
+            if (it != null)
+                itemName = it.name;
+        } else if (reward.type == 105) {
+            template.ItemFashion it = template.ItemFashion.get_item(reward.id);
             if (it != null)
                 itemName = it.name;
         }
@@ -323,7 +331,7 @@ public class TichLuyNap {
             for (RewardItem reward : milestone.rewards) {
                 m.writer().writeUTF(getRewardName(reward)); // tên item
                 m.writer().writeByte(reward.type); // loại item
-                m.writer().writeShort(reward.id); // id item
+                m.writer().writeShort(getIcon(reward.type, reward.id)); // lấy icon chuẩn từ template thay vì config sai
                 m.writer().writeShort(reward.quantity); // số lượng
                 m.writer().writeByte(isRubyReward(reward) ? 5 : 0);
             }
