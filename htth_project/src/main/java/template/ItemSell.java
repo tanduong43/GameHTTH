@@ -1,9 +1,11 @@
 package template;
 
-import client.Player;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import client.Player;
+
 /**
  *
  * @author Truongbk
@@ -12,9 +14,9 @@ public class ItemSell {
     public int id;
     public int price;
     public static HashMap<Integer, List<List<ItemSell>>> ENTRYS = new HashMap<>();
-    public static short[] ITEM_POTION_SELL = new short[] {2, 3, 85, 5, 4, 15, 16, 29, 43, 40, 89,
-            80, 31, 6, 232, 361, 548, 173, 174};
-    public static byte[] ITEM_MATERIAL_SELL = new byte[] {1, 2, 3, 4, 5, 6, 9};
+    public static short[] ITEM_POTION_SELL = new short[] { 2, 3, 85, 5, 4, 15, 16, 29, 43, 40, 89,
+            80, 31, 6, 232, 361, 548, 173, 174, 271 };
+    public static byte[] ITEM_MATERIAL_SELL = new byte[] { 1, 2, 3, 4, 5, 6, 9 };
     static {
         for (int i = 0; i < ItemTemplate3.ENTRYS.size(); i++) {
             ItemTemplate3 it_temp = ItemTemplate3.ENTRYS.get(i);
@@ -59,7 +61,7 @@ public class ItemSell {
     }
 
     public static boolean check_item_sell_potion(short id) {
-        
+
         for (int i = 0; i < ItemSell.ITEM_POTION_SELL.length; i++) {
             if (ItemSell.ITEM_POTION_SELL[i] == id) {
                 return true;
@@ -80,7 +82,7 @@ public class ItemSell {
         }
         result[5] = (short) (7 + (p.level / 10));
         result[6] = (short) (18 + (p.level / 10));
-        
+
         return result;
     }
 

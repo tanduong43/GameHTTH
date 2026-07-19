@@ -576,6 +576,11 @@ public class UseItem {
                                 + p.get_key_boss() + " / " + p.get_key_boss_max());
                         break;
                     }
+                    case 271: {
+                        Service.input_text(p, 271, "Đổi tên nhân vật", new String[] { "Nhập tên mới" });
+                        used = false;
+                        break;
+                    }
                     case 158: {
                         short id_add;
                         int rdom = Util.random(1000);

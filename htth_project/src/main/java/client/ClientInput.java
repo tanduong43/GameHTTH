@@ -23,6 +23,105 @@ public class ClientInput {
             name[i] = m2.reader().readUTF();
         }
         switch (id) {
+            case 271: {
+                if (name.length == 1) {
+                    String newName = name[0].replace(" ", "");
+                    newName = newName.toLowerCase();
+                    Pattern pat = Pattern.compile("^[a-zA-Z0-9]{6,10}$");
+                    if (!pat.matcher(newName).matches()) {
+                        Service.send_box_ThongBao_OK(p, "Tên không hợp lệ, nhập lại đi (6-10 ký tự, không ký tự đặc biệt)!");
+                        return;
+                    }
+                    if (p.item.total_item_bag_by_id(4, 271) <= 0) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không có Thẻ đổi tên trong hành trang!");
+                        return;
+                    }
+                    Connection conn = null;
+                    PreparedStatement psCheck = null;
+                    ResultSet rs = null;
+                    PreparedStatement psUpdate = null;
+                    try {
+                        conn = SQL.gI().getCon();
+                        psCheck = conn.prepareStatement("SELECT 1 FROM `players` WHERE BINARY `name` = ? LIMIT 1;");
+                        psCheck.setString(1, newName);
+                        rs = psCheck.executeQuery();
+                        if (rs.next()) {
+                            Service.send_box_ThongBao_OK(p, "Tên nhân vật đã tồn tại, vui lòng chọn tên khác!");
+                            return;
+                        }
+                        rs.close();
+                        psCheck.close();
+
+                        // Perform update in players table
+                        psUpdate = conn.prepareStatement("UPDATE `players` SET `name` = ? WHERE `id` = ? LIMIT 1;");
+                        psUpdate.setString(1, newName);
+                        psUpdate.setInt(2, p.id);
+                        psUpdate.executeUpdate();
+                        psUpdate.close();
+
+                        String oldName = p.name;
+
+                        // Update session list_char
+                        for (int i = 0; i < p.conn.list_char.size(); i++) {
+                            if (p.conn.list_char.get(i).equals(oldName)) {
+                                p.conn.list_char.set(i, newName);
+                            }
+                        }
+                        p.conn.flush();
+
+                        // Update Clan if any
+                        if (p.clan != null) {
+                            for (int i = 0; i < p.clan.members.size(); i++) {
+                                if (p.clan.members.get(i).name.equals(oldName)) {
+                                    p.clan.members.get(i).name = newName;
+                                }
+                            }
+                            for (int i = 0; i < Clan.ENTRY.size(); i++) {
+                                Clan c = Clan.ENTRY.get(i);
+                                for (int j = 0; j < c.members.size(); j++) {
+                                    if (c.members.get(j).name.equals(oldName)) {
+                                        c.members.get(j).name = newName;
+                                    }
+                                }
+                            }
+                            Clan.update();
+                        }
+
+                        // Remove item
+                        p.item.remove_item47(4, 271, 1);
+                        
+                        // Save player data first
+                        client.Player.flush(p, true);
+                        
+                        // Notify success
+                        Service.send_box_ThongBao_OK(p, "Đổi tên thành công! Hệ thống sẽ tự động đăng xuất sau 3 giây để tải lại dữ liệu mới.");
+
+                        // Disconnect session after 3 seconds to force relog and reload cleanly
+                        io.Session ss = p.conn;
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(3000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            ss.disconnect();
+                        }).start();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra khi đổi tên, vui lòng thử lại sau!");
+                    } finally {
+                        try {
+                            if (rs != null) rs.close();
+                            if (psCheck != null) psCheck.close();
+                            if (psUpdate != null) psUpdate.close();
+                            if (conn != null) conn.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                break;
+            }
             case -89: {
                 if (name.length == 2) {
                     if (!Util.isnumber(name[1])) {
