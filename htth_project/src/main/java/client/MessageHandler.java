@@ -887,9 +887,14 @@ public class MessageHandler {
                 return;
             }
             p0.setin4();
-            if (Map.get_player_by_name_allmap(p0.name) != null) {
-                conn.disconnect();
-                return;
+            Player oldPlayer = Map.get_player_by_name_allmap(p0.name);
+            if (oldPlayer != null) {
+                if (oldPlayer.conn != null) {
+                    oldPlayer.conn.disconnect();
+                }
+                if (oldPlayer.map != null) {
+                    oldPlayer.map.leave_map(oldPlayer, 0);
+                }
             }
             conn.p = p0;
 

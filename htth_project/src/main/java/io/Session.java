@@ -707,17 +707,18 @@ public class Session implements Runnable {
         if (!this.check_onl()) {
             this.update_onl(1);
         } else {
-            this.disconnect();
+            java.util.ArrayList<Session> oldSessions = new java.util.ArrayList<>();
             for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
                 Session ss = SessionManager.CLIENT_ENTRYS.get(i);
-                if (ss.user != null && ss.user.equals(this.user)) {
-                    ss.disconnect();
+                if (ss != this && ss.user != null && ss.user.equals(this.user)) {
+                    oldSessions.add(ss);
                 }
             }
-            login_notice("Tài khoản đang đăng nhập máy khác!");
-            return;
+            for (Session ss : oldSessions) {
+                ss.disconnect();
+            }
+            this.update_onl(1);
         }
-        boolean isDisconnect = false;
         for (int i = 0; i < list_char.size(); i++) {
             Player p0 = Map.get_player_by_name_allmap(list_char.get(i));
             if (p0 != null) {
@@ -727,12 +728,7 @@ public class Session implements Runnable {
                         p0.map.leave_map(p0, 0);
                     }
                 }
-                isDisconnect = true;
             }
-        }
-        if (isDisconnect) {
-            this.disconnect();
-            return;
         }
         Service.send_msg_data(this, 72, "data/msg/login/x2msg_72_638026480839986666", false);
         Service.send_msg_data(this, 72, "data/msg/login/x2msg_72_638026480840482549", false);
