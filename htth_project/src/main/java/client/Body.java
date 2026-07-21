@@ -100,6 +100,8 @@ public class Body {
                             }
                             if (ItemOptionTemplate.ENTRYS.get(id).percent == 1) {
                                 op_value += percent;
+                            } else {
+                                op_value += (op_value * percent) / 1000;
                             }
                             par += op_value;
                         }

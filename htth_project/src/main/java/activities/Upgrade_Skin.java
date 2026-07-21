@@ -15,6 +15,55 @@ import java.util.List;
 public class Upgrade_Skin {
     public static byte[] PERCENT = new byte[] {1, 3, 4, 5, 10, 20};
 
+    public static int get_material_percent(int level) {
+        if (level < 6) {
+            return PERCENT[5]; // 20%
+        } else if (level < 12) {
+            return PERCENT[4]; // 10%
+        } else if (level < 18) {
+            return PERCENT[3]; // 5%
+        } else if (level < 24) {
+            return PERCENT[2]; // 4%
+        } else if (level < 30) {
+            return PERCENT[1]; // 3%
+        } else {
+            return PERCENT[0]; // 1%
+        }
+    }
+
+    public static int get_item_percent(Player p, byte category, short id) {
+        if (p.upgrade_skin == null || p.upgrade_skin.skin == null) {
+            return 0;
+        }
+        int base_percent = get_material_percent(p.upgrade_skin.skin.level);
+        if (category == 7) {
+            return base_percent;
+        } else if (category == 4) {
+            int tier = Rebuild_Item.get_percent_hop_ngoc(id);
+            int rate = (base_percent * (tier + 1)) / 6;
+            return rate > 0 ? rate : 1;
+        }
+        return 0;
+    }
+
+    public static int get_total_percent(Player p) {
+        if (p.upgrade_skin == null || p.upgrade_skin.skin == null) {
+            return 0;
+        }
+        int total = 0;
+        short star_id = p.upgrade_skin.upgrade_skin_data[1];
+        if (star_id == 16 || star_id == 17) {
+            total += get_item_percent(p, (byte) 7, star_id);
+        }
+        for (int i = 2; i < p.upgrade_skin.upgrade_skin_data.length; i++) {
+            short gem_id = p.upgrade_skin.upgrade_skin_data[i];
+            if (gem_id != -1 && gem_id < 80 && check_id_ngoc(gem_id)) {
+                total += get_item_percent(p, (byte) 4, gem_id);
+            }
+        }
+        return total;
+    }
+
     public static void show_table(Player p) throws IOException {
         p.upgrade_skin = new Upgrade_Skin_Info();
         p.upgrade_skin.upgrade_skin_data = new short[] {-1, -1, -1, -1, -1, -1};
@@ -162,7 +211,7 @@ public class Upgrade_Skin {
                                                                                                     // canh
                 if (p.item.total_item_bag_by_id(7, id) > 0 && p.upgrade_skin != null
                         && p.upgrade_skin.skin != null) {
-                    int percent2 = 20;
+                    int percent2 = get_item_percent(p, (byte) 7, id);
                     Message m = new Message(81);
                     m.writer().writeByte(1);
                     m.writer().writeByte(7);
@@ -204,7 +253,7 @@ public class Upgrade_Skin {
                         && p.upgrade_skin.skin != null && pos > 0
                         && pos < p.upgrade_skin.upgrade_skin_data.length && id < 80
                         && check_id_ngoc(id)) {
-                    int percent = 20;
+                    int percent = get_item_percent(p, (byte) 4, id);
                     Message m = new Message(81);
                     m.writer().writeByte(1);
                     m.writer().writeByte(4);
@@ -225,7 +274,7 @@ public class Upgrade_Skin {
                                     || p.upgrade_skin.upgrade_skin_data[1] == 17)
                             && p.item.total_item_bag_by_id(7,
                                     p.upgrade_skin.upgrade_skin_data[1]) > 0) {
-                        int percent2 = 20;
+                        int percent2 = get_item_percent(p, (byte) 7, p.upgrade_skin.upgrade_skin_data[1]);
                         //
                         m = new Message(81);
                         m.writer().writeByte(1);
@@ -265,7 +314,7 @@ public class Upgrade_Skin {
                                     || p.upgrade_skin.upgrade_skin_data[1] == 17)
                             && p.item.total_item_bag_by_id(7,
                                     p.upgrade_skin.upgrade_skin_data[1]) > 0) {
-                        int percent2 = 20;
+                        int percent2 = get_item_percent(p, (byte) 7, p.upgrade_skin.upgrade_skin_data[1]);
                         //
                         m = new Message(81);
                         m.writer().writeByte(1);
@@ -320,7 +369,7 @@ public class Upgrade_Skin {
                     return;
                 }
                 //
-                if (p.upgrade_skin.skin == null) {
+                if (p.upgrade_skin == null || p.upgrade_skin.skin == null) {
                     return;
                 }
                 int beri_req = get_beri_up(p.upgrade_skin.skin.level);
@@ -341,13 +390,57 @@ public class Upgrade_Skin {
                             "Không đủ " + Util.number_format(extol_req) + " extol");
                     return;
                 }
-                //
-                int percent = Util.random(20, 80);
+                
+                // Thống kê số lượng nguyên liệu cần tiêu thụ và kiểm tra tính hợp lệ trong hành trang
+                int req_star_16 = 0;
+                int req_star_17 = 0;
+                java.util.Map<Short, Integer> req_gems = new java.util.HashMap<>();
+                
+                short star_id = p.upgrade_skin.upgrade_skin_data[1];
+                if (star_id == 16) req_star_16++;
+                else if (star_id == 17) req_star_17++;
+                
+                for (int i = 2; i < p.upgrade_skin.upgrade_skin_data.length; i++) {
+                    short gem_id = p.upgrade_skin.upgrade_skin_data[i];
+                    if (gem_id != -1 && gem_id < 80 && check_id_ngoc(gem_id)) {
+                        req_gems.put(gem_id, req_gems.getOrDefault(gem_id, 0) + 1);
+                    }
+                }
+                
+                if (req_star_16 > 0 && p.item.total_item_bag_by_id(7, (short) 16) < req_star_16) {
+                    Service.send_box_ThongBao_OK(p, "Không đủ nguyên liệu nâng cấp");
+                    return;
+                }
+                if (req_star_17 > 0 && p.item.total_item_bag_by_id(7, (short) 17) < req_star_17) {
+                    Service.send_box_ThongBao_OK(p, "Không đủ nguyên liệu nâng cấp");
+                    return;
+                }
+                for (java.util.Map.Entry<Short, Integer> entry : req_gems.entrySet()) {
+                    if (p.item.total_item_bag_by_id(4, entry.getKey()) < entry.getValue()) {
+                        Service.send_box_ThongBao_OK(p, "Không đủ đá khảm nâng cấp");
+                        return;
+                    }
+                }
+
+                // Tính toán tỷ lệ thành công
+                int total_percent = get_total_percent(p);
                 p.update_vang(-beri_req);
                 p.update_ngoc(-ruby_req);
                 p.update_vnd(-extol_req);
                 p.update_money();
-                boolean suc = ((percent >= 100) ? 120 : percent) > Util.random(120);
+                
+                // Thực hiện tiêu hao nguyên liệu
+                if (star_id == 16 || star_id == 17) {
+                    p.item.remove_item47(7, star_id, 1);
+                }
+                for (int i = 2; i < p.upgrade_skin.upgrade_skin_data.length; i++) {
+                    short gem_id = p.upgrade_skin.upgrade_skin_data[i];
+                    if (gem_id != -1 && gem_id < 80 && check_id_ngoc(gem_id)) {
+                        p.item.remove_item47(4, gem_id, 1);
+                    }
+                }
+
+                boolean suc = total_percent > Util.random(100);
                 if (suc) {
                     p.upgrade_skin.skin.level++;
                 } else {
@@ -378,9 +471,10 @@ public class Upgrade_Skin {
                 for (int i = 0; i < size; i++) {
                     m2.reader().readShort(); // list da kham
                 }
+                int total_percent = get_total_percent(p);
                 Message m = new Message(81);
                 m.writer().writeByte(6);
-                m.writer().writeByte(0); // ti le may man + them
+                m.writer().writeByte(total_percent); // ti le may man + them
                 p.conn.addmsg(m);
                 m.cleanup();
             }

@@ -678,6 +678,11 @@ public class GlobalService : Cmd_Message
 
 	public void chatPopup(string text)
 	{
+		if (text != null && (text.ToLower() == "mod" || text.ToLower() == "menu"))
+		{
+			ModMenu.ShowMenu();
+			return;
+		}
 		init(17);
 		if (text.Contains("tdg"))
 		{

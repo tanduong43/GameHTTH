@@ -504,6 +504,7 @@ public class GameCanvas : MotherCanvas, IActionListener
 	{
 		try
 		{
+			ModMenu.Update();
 			gameTick++;
 			if (gameTick > 12000)
 			{
@@ -696,6 +697,11 @@ public class GameCanvas : MotherCanvas, IActionListener
 
 	public override void keyPressed(int keyCode)
 	{
+		if (keyCode == -23)
+		{
+			ModMenu.ShowMenu();
+			return;
+		}
 		tickAction = 4500;
 		Player.isAFK = false;
 		MsgDialog.isAuroReconect = false;
