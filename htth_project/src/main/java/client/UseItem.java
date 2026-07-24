@@ -246,8 +246,58 @@ public class UseItem {
                         gifts.add(gb);
                         Service.send_gift(p, 1, "Pháo Hoa", "Bạn vừa đốt 1 Pháo Hoa!\nTổng đã đốt: " + Util.number_format(p.num_phao_hoa), gifts, true);
 
+                        // Tặng quà cho các người chơi khác trong map
+                        for (int i = 0; i < p.map.players.size(); i++) {
+                            Player p0 = p.map.players.get(i);
+                            if (p0 != null && p0 != p) {
+                                int rewardType0 = Util.random(8);
+                                int catReward0 = 4;
+                                short idReward0 = 86;
+                                int quantReward0 = 1;
+                                switch (rewardType0) {
+                                    case 0: { catReward0 = 7; idReward0 = 4; quantReward0 = Util.random(1, 4); break; }
+                                    case 1: { catReward0 = 7; idReward0 = 5; quantReward0 = 1; break; }
+                                    case 2: { catReward0 = 7; idReward0 = 6; quantReward0 = 1; break; }
+                                    case 3: { catReward0 = 7; idReward0 = 9; quantReward0 = Util.random(1, 3); break; }
+                                    case 4: { catReward0 = 4; idReward0 = 86; quantReward0 = 1; break; }
+                                    case 5: { catReward0 = 4; idReward0 = 87; quantReward0 = 1; break; }
+                                    case 6: { catReward0 = 4; idReward0 = 221; quantReward0 = Util.random(1, 3); break; }
+                                    case 7: { 
+                                        short[] gemLvl3 = new short[] { 44, 50, 56, 62, 68, 74 };
+                                        catReward0 = 4; idReward0 = gemLvl3[Util.random(gemLvl3.length)]; quantReward0 = 1; 
+                                        break; 
+                                    }
+                                }
+                                if (p0.item.add_item_bag47(catReward0, idReward0, quantReward0)) {
+                                    p0.item.update_Inventory(-1, false);
+                                    List<GiftBox> gifts0 = new ArrayList<>();
+                                    GiftBox gb0 = new GiftBox();
+                                    gb0.id = idReward0;
+                                    gb0.type = (byte) catReward0;
+                                    gb0.num = quantReward0;
+                                    if (catReward0 == 4) {
+                                        ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(idReward0);
+                                        if (itemTemplate4 != null) {
+                                            gb0.name = itemTemplate4.name;
+                                            gb0.icon = itemTemplate4.icon;
+                                        }
+                                    } else if (catReward0 == 7) {
+                                        ItemTemplate7 itemTemplate7 = ItemTemplate7.get_it_by_id(idReward0);
+                                        if (itemTemplate7 != null) {
+                                            gb0.name = itemTemplate7.name;
+                                            gb0.icon = itemTemplate7.icon;
+                                        }
+                                    }
+                                    gifts0.add(gb0);
+                                    Service.send_gift(p0, 1, "Quà Pháo Hoa", p.name + " vừa đốt Pháo Hoa!\nBạn may mắn nhận được lộc rơi xuống!", gifts0, true);
+                                } else {
+                                    Service.send_box_ThongBao_OK(p0, "Hành trang không đủ chỗ trống để nhận lộc Pháo Hoa từ " + p.name + "!");
+                                }
+                            }
+                        }
+
                         try {
-                            p.map.send_chat_popup(0, p.index_map, "Vừa đốt pháo hoa nhận được " + quantReward + " " + rewardName, true);
+                            p.map.send_chat_popup(0, p.index_map, "Vừa đốt pháo hoa rực rỡ!", true);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
