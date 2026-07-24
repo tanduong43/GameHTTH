@@ -1021,9 +1021,9 @@ public class Map implements Runnable {
                     }
                 }
                 if (num_mob == 0 && p0.dungeon.time > System.currentTimeMillis()) {
-                    if (this.template.id == 176) {
-                        p0.dungeon.time = System.currentTimeMillis() + 5_000L;
-                        Service.send_time_cool_down(p0, p0.dungeon.time, "Thời gian", 2);
+                    if (this.template.id == 175) {
+                        p0.dungeon.time = System.currentTimeMillis() + 10_000L;
+                        Service.send_time_cool_down(p0, p0.dungeon.time, "Về Làng", 2);
                     }
                     if (!this.map_dungeon.checkG.contains(this.template.id)) {
                         this.map_dungeon.checkG.add(this.template.id);
@@ -1141,6 +1141,15 @@ public class Map implements Runnable {
                         }
                         Service.send_gift(p0, 1, "Ải đơn cấp độ " + (mode_dungeon + 3),
                                 "Phần thưởng", list_gift, true);
+                    }
+                }
+                boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
+                if (isSingleDungeon && num_mob > 0 && p0.dungeon.time < System.currentTimeMillis()) {
+                    if (!this.map_dungeon.checkG.contains(-1)) {
+                        this.map_dungeon.checkG.add(-1);
+                        p0.dungeon.time = System.currentTimeMillis() + 10_000L;
+                        Service.send_time_cool_down(p0, p0.dungeon.time, "Thất Bại", 2);
+                        Service.send_box_ThongBao_OK(p0, "Bạn đã thất bại! Tự động rời phó bản sau 10 giây.");
                     }
                 }
                 if (p0.dungeon.time < System.currentTimeMillis()) {

@@ -23,7 +23,7 @@ public class Dungeon {
         maps = new ArrayList<>();
         mobs = new ArrayList<>();
         int index = -2;
-        for (int j = 167; j < 177; j++) {
+        for (int j = 167; j < 176; j++) {
             // create map
             Map mapTemplate = Map.get_map_by_id(j)[0];
             Map map_dungeon = new Map();

@@ -263,7 +263,7 @@ public class BossHunt {
                 vgo.xnew = (short) (boss.x + (Util.random(2) == 0 ? 100 : -100));
                 vgo.ynew = boss.y;
                 member.goto_map(vgo);
-                Service.send_time_cool_down(member, this.floorTime, "Săn Trùm Tầng " + (floor + 1), 2);
+                Service.send_time_cool_down(member, this.floorTime, "Tầng " + (floor + 1), 2);
                 System.out.println("[BossHunt] Teleported " + member.name + " to floor " + (floor + 1));
             } else {
                 System.out.println("[BossHunt] Member " + member.name + " is offline, skipping teleport.");

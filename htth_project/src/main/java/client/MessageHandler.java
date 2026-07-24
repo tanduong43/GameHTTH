@@ -711,7 +711,7 @@ public class MessageHandler {
                     if (Map.is_map_dungeon(conn.p.map.template.id)) {
                         if (conn.p.map.map_bossHunt != null) {
                             activities.BossHunt bh = conn.p.map.map_bossHunt;
-                            Service.send_time_cool_down(conn.p, bh.floorTime, "Săn Trùm Tầng " + (bh.currentFloor + 1), 2);
+                            Service.send_time_cool_down(conn.p, bh.floorTime, "Tầng " + (bh.currentFloor + 1), 2);
                         } else if (conn.p.dungeon != null) {
                             if (conn.p.dungeon instanceof activities.TowerChallenge) {
                                 activities.TowerChallenge tc = (activities.TowerChallenge) conn.p.dungeon;
@@ -731,9 +731,8 @@ public class MessageHandler {
                                             2);
                                 }
                             } else {
+                                // Vượt ải đơn - Do not display time per stage, but reset timer to 2 minutes internally
                                 conn.p.dungeon.time = System.currentTimeMillis() + 120_000L;
-                                int floorNum = conn.p.map.template.id - 167 + 1;
-                                Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Tầng " + floorNum, 2);
                             }
                         }
                     } else if (conn.p.map.template.id == 9999 && conn.p.map.clan_resource != null) {
