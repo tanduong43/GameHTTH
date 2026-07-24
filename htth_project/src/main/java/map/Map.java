@@ -3095,6 +3095,16 @@ public class Map implements Runnable {
                         } else if (p.dungeon instanceof activities.HangDong) {
                             ((activities.HangDong) p.dungeon).checkTransition();
                         }
+                        if (p.dungeon.getClass() == Dungeon.class) {
+                            if (Math.abs(p.level - mob_target.level) <= 10) {
+                                if (15 > Util.random(120)) {
+                                    LeaveItemMap.leave_item4(this, mob_target, p);
+                                } else if (15 > Util.random(120)) {
+                                    LeaveItemMap.leave_item7(this, mob_target, p);
+                                }
+                            }
+                            LeaveItemMap.leave_item_quest(this, mob_target, p);
+                        }
                     } else {
                         // leave item
                         if (Math.abs(p.level - mob_target.level) <= 10) {
@@ -3406,19 +3416,23 @@ public class Map implements Runnable {
                 // if (p.level < 10){
                 // exp_up_add = exp_up_add * 5;
                 // }
-                if (Math.abs(p.level - mob_target.level) >= 10) {
+                boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
+                if (Math.abs(p.level - mob_target.level) >= 10 && !isSingleDungeon) {
                     exp_up_add = 0;
-
                 }
-                if (mob_target.mob_template.mob_id == 4 || mob_target.mob_template.mob_id == 10
+                if (!isSingleDungeon && (mob_target.mob_template.mob_id == 4 || mob_target.mob_template.mob_id == 10
                         || mob_target.mob_template.mob_id == 16 || mob_target.mob_template.mob_id == 23
                         || mob_target.mob_template.mob_id == 29 || mob_target.mob_template.mob_id == 36
                         || mob_target.mob_template.mob_id == 43 || mob_target.mob_template.mob_id == 68
                         || mob_target.mob_template.mob_id == 78 || mob_target.mob_template.mob_id == 92
-                        || mob_target.mob_template.mob_id == 112 || mob_target.mob_template.mob_id == 163) {
-
+                        || mob_target.mob_template.mob_id == 112 || mob_target.mob_template.mob_id == 163)) {
                     exp_up_add = 0;
-
+                }
+                if (exp_up_add < 0) {
+                    exp_up_add = 0;
+                }
+                if (isSingleDungeon && exp_up_add <= 0) {
+                    exp_up_add = mob_target.level * 10;
                 }
                 exp_up[0] += exp_up_add;
 
@@ -4209,7 +4223,8 @@ public class Map implements Runnable {
             m.writer().write(this.template.data[0]);
             m.writer().writeInt(this.template.data[1].length);
             m.writer().write(this.template.data[1]);
-            if (this.template.id == 999 || this.map_dungeon != null || Map.is_map_dungeon(this.template.id)) {
+            boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
+            if (this.template.id == 999 || (!isSingleDungeon && (this.map_dungeon != null || Map.is_map_dungeon(this.template.id)))) {
                 m.writer().writeByte(0);
             } else {
                 m.writer().writeByte(this.template.vgos.size());

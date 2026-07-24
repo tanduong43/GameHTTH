@@ -708,28 +708,33 @@ public class MessageHandler {
                         }
                         m_local.cleanup();
                     }
-                    if (Map.is_map_dungeon(conn.p.map.template.id) && conn.p.dungeon != null) {
-                        if (conn.p.dungeon instanceof activities.TowerChallenge) {
-                            activities.TowerChallenge tc = (activities.TowerChallenge) conn.p.dungeon;
-                            Service.send_time_cool_down(conn.p, tc.stageEndTime, "Tầng " + (tc.currentStageIndex + 1),
-                                    2);
-                        } else if (conn.p.dungeon instanceof activities.NamieTreasureDefense) {
-                            activities.NamieTreasureDefense nd = (activities.NamieTreasureDefense) conn.p.dungeon;
-                            int waveNum = nd.currentWaveIndex == -1 ? 1 : (nd.currentWaveIndex + 1);
-                            Service.send_time_cool_down(conn.p, nd.dungeonEndTime, "Tầng " + waveNum, 2);
-                        } else if (conn.p.dungeon instanceof activities.HangDong) {
-                            activities.HangDong hd = (activities.HangDong) conn.p.dungeon;
-                            if (hd.isTransitioning) {
-                                Service.send_time_cool_down(conn.p, hd.transitionTime, "Chuyển tầng", 2);
-                            } else {
-                                Service.send_time_cool_down(conn.p, hd.stageEndTime,
-                                        "Tầng " + (hd.currentStageIndex + 1),
+                    if (Map.is_map_dungeon(conn.p.map.template.id)) {
+                        if (conn.p.map.map_bossHunt != null) {
+                            activities.BossHunt bh = conn.p.map.map_bossHunt;
+                            Service.send_time_cool_down(conn.p, bh.floorTime, "Săn Trùm Tầng " + (bh.currentFloor + 1), 2);
+                        } else if (conn.p.dungeon != null) {
+                            if (conn.p.dungeon instanceof activities.TowerChallenge) {
+                                activities.TowerChallenge tc = (activities.TowerChallenge) conn.p.dungeon;
+                                Service.send_time_cool_down(conn.p, tc.stageEndTime, "Tầng " + (tc.currentStageIndex + 1),
                                         2);
+                            } else if (conn.p.dungeon instanceof activities.NamieTreasureDefense) {
+                                activities.NamieTreasureDefense nd = (activities.NamieTreasureDefense) conn.p.dungeon;
+                                int waveNum = nd.currentWaveIndex == -1 ? 1 : (nd.currentWaveIndex + 1);
+                                Service.send_time_cool_down(conn.p, nd.dungeonEndTime, "Tầng " + waveNum, 2);
+                            } else if (conn.p.dungeon instanceof activities.HangDong) {
+                                activities.HangDong hd = (activities.HangDong) conn.p.dungeon;
+                                if (hd.isTransitioning) {
+                                    Service.send_time_cool_down(conn.p, hd.transitionTime, "Chuyển tầng", 2);
+                                } else {
+                                    Service.send_time_cool_down(conn.p, hd.stageEndTime,
+                                            "Tầng " + (hd.currentStageIndex + 1),
+                                            2);
+                                }
+                            } else {
+                                conn.p.dungeon.time = System.currentTimeMillis() + 120_000L;
+                                int floorNum = conn.p.map.template.id - 167 + 1;
+                                Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Tầng " + floorNum, 2);
                             }
-                        } else {
-                            conn.p.dungeon.time = System.currentTimeMillis() + 120_000L;
-                            int floorNum = conn.p.map.template.id - 167 + 1;
-                            Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Tầng " + floorNum, 2);
                         }
                     } else if (conn.p.map.template.id == 9999 && conn.p.map.clan_resource != null) {
                         Service.send_time_cool_down(conn.p, conn.p.map.clan_resource.time,
