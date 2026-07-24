@@ -261,7 +261,7 @@ public class MenuController {
         case -100: {
           send_dynamic_menu(p, type, "Sự kiện",
               new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
-                  "Hang động", "Xếp hạng hang động" },
+                  "Hang động", "Xếp hạng hang động", "Top pháo hoa" },
               null);
           break;
         }
@@ -406,18 +406,19 @@ public class MenuController {
             send_dynamic_menu(
                 p, type, get_name_npc(type), new String[] { "Kích Hoạt Tài Khoản", "Thách đấu",
                     "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip,
-                    "Vị trí Boss" },
+                    "Vị trí Boss", "Top Siêu Trùm" },
                 null);
           } else {
             send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Thách đấu", "Cao thủ",
-                "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip, "Vị trí Boss" },
+                "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip, "Vị trí Boss",
+                "Top Siêu Trùm" },
                 null);
           }
           break;
         }
         case 120: {
           send_dynamic_menu(p, type, "Bảng Xếp Hạng",
-              new String[] { "Cao thủ", "Thách đấu", "Băng hải tặc", "Truy nã", "Hang động" },
+              new String[] { "Cao thủ", "Thách đấu", "Băng hải tặc", "Truy nã", "Hang động", "Top Siêu Trùm" },
               null);
           break;
         }
@@ -1162,6 +1163,27 @@ public class MenuController {
               BXH.send(p, 10, 0); // Top Hang Động
               break;
             }
+            case 5: { // Top Siêu Trùm
+              String[] bossNames = new String[6];
+              for (int i = 0; i < 6; i++) {
+                int mobId = 135 + i;
+                template.MobTemplate mobT = template.MobTemplate.ENTRYS.get(mobId);
+                if (mobT != null) {
+                  bossNames[i] = mobT.name;
+                } else {
+                  bossNames[i] = "Boss " + mobId;
+                }
+              }
+              send_dynamic_menu(p, 970, "Top Siêu Trùm", bossNames, null);
+              break;
+            }
+          }
+          break;
+        }
+        case 970: {
+          int mobId = 135 + index;
+          if (mobId >= 135 && mobId <= 140) {
+            BXH.sendTopBoss(p, mobId, 0);
           }
           break;
         }
@@ -2005,6 +2027,14 @@ public class MenuController {
         BXH.send(p, 10, 0);
         break;
       }
+      case 7: { // Top Phao hoa
+        BXH.sendTopPhaoHoa(p, 0);
+        break;
+      }
+      default: {
+        Service.send_box_ThongBao_OK(p, "Chức năng đang được bảo trì");
+        break;
+      }
     }
   }
 
@@ -2225,6 +2255,20 @@ public class MenuController {
           }
           Service.Help_From_Server(p, idNPC, sb.toString());
         }
+        break;
+      }
+      case 9: {
+        String[] bossNames = new String[6];
+        for (int i = 0; i < 6; i++) {
+          int mobId = 135 + i;
+          template.MobTemplate mobT = template.MobTemplate.ENTRYS.get(mobId);
+          if (mobT != null) {
+            bossNames[i] = mobT.name;
+          } else {
+            bossNames[i] = "Boss " + mobId;
+          }
+        }
+        send_dynamic_menu(p, 970, "Top Siêu Trùm", bossNames, null);
         break;
       }
     }

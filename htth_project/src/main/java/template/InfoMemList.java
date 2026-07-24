@@ -24,8 +24,9 @@ public class InfoMemList {
     public static void WriteInfoMemList(DataOutputStream dos, InfoMemList temp) throws IOException {
         Player p0 = Map.get_player_by_name_allmap(temp.name);
         if (p0 != null) {
-            temp.head = p0.head;
-            temp.hair = p0.hair;
+            temp.level = (short) p0.level;
+            temp.head = (short) p0.get_head();
+            temp.hair = (short) p0.get_hair();
             temp.hat = p0.get_hat();
         }
         dos.writeInt(temp.id);

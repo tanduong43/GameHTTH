@@ -53,6 +53,7 @@ public class Boss {
     }
 
     public static void create_boss() {
+        core.BXH.resetAllTopBoss();
         for (int i0 = 135; i0 < 141; i0++) {
             List<Boss> list_init = new ArrayList<>();
             for (int i = 0; i < Boss.ENTRYS.size(); i++) {
@@ -501,13 +502,19 @@ public class Boss {
         };
         for (int i12 = 0; i12 < list.length; i12++) {
             List<Top_Dame> list_select = null;
+            Boss boss_select = null;
             for (int i = 0; i < Boss.ENTRYS.size(); i++) {
-                if (list[i12][0] == Boss.ENTRYS.get(i).mob.mob_template.mob_id
-                        && Boss.ENTRYS.get(i).TopDame.size() > 0) {
-                    list_select = Boss.ENTRYS.get(i).TopDame;
+                Boss tempB = Boss.ENTRYS.get(i);
+                if (list[i12][0] == tempB.mob.mob_template.mob_id
+                        && tempB.TopDame.size() > 0) {
+                    list_select = tempB.TopDame;
+                    boss_select = tempB;
                     break;
                 }
-                Boss.ENTRYS.get(i).mob.map.can_PK = true;
+                tempB.mob.map.can_PK = true;
+            }
+            if (boss_select != null) {
+                core.BXH.updateTopBoss(boss_select);
             }
             if (list_select != null) {
                 List<Top_Dame> result = Util.sort(list_select);

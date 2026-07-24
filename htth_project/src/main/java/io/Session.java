@@ -975,9 +975,9 @@ public class Session implements Runnable {
             st = connection.createStatement();
             String query = "INSERT INTO `players` (`name`, `body`, `level`, `clazz`, `point_inven`, `site`, `bag3`, `it_body`, `potential`,"
                     + " `bag47`, `rms`, `skill`, `friend`, `enemy`, `fashion`, `eff`, `box3`, `box47`, `quest`, `date`,"
-                    + " `pvppoint`, `save_it3`, `save_it47`, `hanhtrinh`, `wanted_point`, `wanted_chest`, `mypet`, `lucthuc`) "
+                    + " `pvppoint`, `save_it3`, `save_it47`, `hanhtrinh`, `wanted_point`, `wanted_chest`, `mypet`, `lucthuc`, `num_phao_hoa`) "
                     + "VALUES ('%s', '%s', '%s', %s, '%s', '%s', '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s',"
-                    + "'%s','%s','%s','%s', %s, '%s', '%s', '%s', %s, '%s', '%s','%s')";
+                    + "'%s','%s','%s','%s', %s, '%s', '%s', '%s', %s, '%s', '%s','%s', 0)";
             String body_wear = "";
             String skill_by_clazz = "";
             String fashion_ = "";

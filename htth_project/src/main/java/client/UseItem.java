@@ -18,6 +18,7 @@ import template.ItemFashionP2;
 import template.ItemHair;
 import template.ItemTemplate3;
 import template.ItemTemplate4;
+import template.ItemTemplate7;
 import template.Item_wear;
 import template.Level;
 import template.Skill_Template;
@@ -143,6 +144,119 @@ public class UseItem {
                     }
                 }
             } else {
+                if (it_temp.name != null && (it_temp.name.toLowerCase().contains("pháo hoa") || it_temp.name.toLowerCase().contains("phao hoa") || id == 359 || id == 361)) {
+                    Service.send_eff(p, 23, 0); // Hiệu ứng Pháo hoa rực rỡ
+                    p.num_phao_hoa++;
+
+                    boolean isMilestone = (p.num_phao_hoa == 1 || p.num_phao_hoa == 10 || p.num_phao_hoa == 100 
+                                            || p.num_phao_hoa == 1000 || p.num_phao_hoa == 10000 || p.num_phao_hoa == 100000);
+
+                    if (isMilestone) {
+                        Manager.gI().chatKTG(0, "Chúc mừng " + p.name + " vừa bắn đạt mốc " + Util.number_format(p.num_phao_hoa) + " Pháo hoa rực rỡ!", 5);
+                    }
+
+                    // Tặng quà pháo hoa ngẫu nhiên từ danh sách quy định
+                    int rewardType = Util.random(8);
+                    int catReward = 4;
+                    short idReward = 86;
+                    int quantReward = 1;
+                    String rewardName = "";
+
+                    switch (rewardType) {
+                        case 0: { // Bột vàng (cat 7, id 4)
+                            catReward = 7;
+                            idReward = 4;
+                            quantReward = Util.random(1, 4);
+                            rewardName = ItemTemplate7.get_item_name(idReward);
+                            break;
+                        }
+                        case 1: { // Ngôi sao may mắn (cat 7, id 5)
+                            catReward = 7;
+                            idReward = 5;
+                            quantReward = 1;
+                            rewardName = ItemTemplate7.get_item_name(idReward);
+                            break;
+                        }
+                        case 2: { // Mai rùa (cat 7, id 6)
+                            catReward = 7;
+                            idReward = 6;
+                            quantReward = 1;
+                            rewardName = ItemTemplate7.get_item_name(idReward);
+                            break;
+                        }
+                        case 3: { // Đá ác quỷ (cat 7, id 9)
+                            catReward = 7;
+                            idReward = 9;
+                            quantReward = Util.random(1, 3);
+                            rewardName = ItemTemplate7.get_item_name(idReward);
+                            break;
+                        }
+                        case 4: { // Rương ác quỷ (cat 4, id 86)
+                            catReward = 4;
+                            idReward = 86;
+                            quantReward = 1;
+                            rewardName = ItemTemplate4.get_item_name(idReward);
+                            break;
+                        }
+                        case 5: { // Rương đại ác quỷ (cat 4, id 87)
+                            catReward = 4;
+                            idReward = 87;
+                            quantReward = 1;
+                            rewardName = ItemTemplate4.get_item_name(idReward);
+                            break;
+                        }
+                        case 6: { // Đá hải thạch 1 (cat 4, id 221)
+                            catReward = 4;
+                            idReward = 221;
+                            quantReward = Util.random(1, 3);
+                            rewardName = ItemTemplate4.get_item_name(idReward);
+                            break;
+                        }
+                        case 7: { // Đá cấp 3 các loại (cat 4)
+                            short[] gemLvl3 = new short[] { 44, 50, 56, 62, 68, 74 };
+                            catReward = 4;
+                            idReward = gemLvl3[Util.random(gemLvl3.length)];
+                            quantReward = 1;
+                            rewardName = ItemTemplate4.get_item_name(idReward);
+                            break;
+                        }
+                    }
+
+                    if (p.item.add_item_bag47(catReward, idReward, quantReward)) {
+                        p.item.update_Inventory(-1, false);
+                        
+                        List<GiftBox> gifts = new ArrayList<>();
+                        GiftBox gb = new GiftBox();
+                        gb.id = idReward;
+                        gb.type = (byte) catReward;
+                        gb.num = quantReward;
+                        if (catReward == 4) {
+                            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(idReward);
+                            if (itemTemplate4 != null) {
+                                gb.name = itemTemplate4.name;
+                                gb.icon = itemTemplate4.icon;
+                            }
+                        } else if (catReward == 7) {
+                            ItemTemplate7 itemTemplate7 = ItemTemplate7.get_it_by_id(idReward);
+                            if (itemTemplate7 != null) {
+                                gb.name = itemTemplate7.name;
+                                gb.icon = itemTemplate7.icon;
+                            }
+                        }
+                        gifts.add(gb);
+                        Service.send_gift(p, 1, "Pháo Hoa", "Bạn vừa đốt 1 Pháo Hoa!\nTổng đã đốt: " + Util.number_format(p.num_phao_hoa), gifts, true);
+
+                        try {
+                            p.map.send_chat_popup(0, p.index_map, "Vừa đốt pháo hoa nhận được " + quantReward + " " + rewardName, true);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
+                        return false;
+                    }
+                    return true;
+                }
                 switch (id) {
                     case 7:
                     case 8:

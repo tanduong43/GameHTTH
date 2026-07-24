@@ -101,6 +101,7 @@ public class Player {
     public int id_menu_tichtieu;
     public activities.BossHunt bossHunt;
     public int win_dungeon_1 = 0;
+    public int num_phao_hoa = 0;
     public int originalMapId = -1;
     public short originalX = -1;
     public short originalY = -1;
@@ -363,6 +364,11 @@ public class Player {
                 }
             }
             js.clear();
+            try {
+                this.num_phao_hoa = rs.getInt("num_phao_hoa");
+            } catch (Exception e) {
+                this.num_phao_hoa = 0;
+            }
             idDanhHieu = rs.getShort("danhhieu");
             listDanhHieu = new ArrayList<>();
             String dbListDH = rs.getString("list_danhhieu");
@@ -451,6 +457,11 @@ public class Player {
                 is_show_weapon = Byte.parseByte(js.get(14).toString()) == 1;
             } else {
                 is_show_weapon = true;
+            }
+            if (js.size() > 15) {
+                num_phao_hoa = Integer.parseInt(js.get(15).toString());
+            } else {
+                num_phao_hoa = 0;
             }
             //
             js.clear();
@@ -778,7 +789,7 @@ public class Player {
                 + "`rms` = ?, `skill` = ?, `friend` = ?, `enemy` = ?, `fashion` = ?, `eff` = ?, `box47` = ?, `box3` = ?, `quest` = ?, "
                 + "`exp` = ?, `pvppoint` = ?, `save_it3` = ?, `save_it47` = ?, "
                 + "`hanhtrinh` = ?, `wanted_point` = ?, `wanted_chest` = ?, `mypet` = ?, `diemdanh` = ?, `diemdanhvip` = ?, `lucthuc` = ?, "
-                + "`danhhieu` = ?, `list_danhhieu` = ?, `hangdong_stage` = ? WHERE `id` = "
+                + "`danhhieu` = ?, `list_danhhieu` = ?, `hangdong_stage` = ?, `num_phao_hoa` = ? WHERE `id` = "
                 + p.id + ";";
         Connection connection = null;
         PreparedStatement ps = null;
@@ -843,6 +854,7 @@ public class Player {
             js.add(p.key_boss);
             js.add(p.cd_keyboss_next);
             js.add(p.is_show_weapon ? 1 : 0);
+            js.add(p.num_phao_hoa);
             //
             ps.setNString(3, js.toJSONString());
             js.clear();
@@ -1124,6 +1136,7 @@ public class Player {
             }
             ps.setNString(30, js_dh.toJSONString());
             ps.setInt(31, p.hangdong_stage);
+            ps.setInt(32, p.num_phao_hoa);
             //
             result = ps.executeUpdate();
 

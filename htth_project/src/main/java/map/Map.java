@@ -3215,6 +3215,7 @@ public class Map implements Runnable {
                         Boss boss = mob_target.boss_info;
                         boss.status = Boss.STATUS_DEAD;
                         boss.timeDeath = System.currentTimeMillis();
+                        core.BXH.updateTopBoss(boss);
                         if (boss.thegioi == 3) {
                             boss.timeNextRespawn = boss.timeDeath + 900000; // 15 minutes
                         } else {
@@ -3662,10 +3663,10 @@ public class Map implements Runnable {
                 return;
             }
         }
-        this.send_chat_popup(0, p.index_map, s);
+        this.send_chat_popup(0, p.index_map, s, false);
     }
 
-    private void send_chat_popup(int type, int id_p, String s) throws IOException {
+    public void send_chat_popup(int type, int id_p, String s, boolean all) throws IOException {
         Message m = new Message(17);
         switch (type) {
             case 0: {
@@ -3673,7 +3674,7 @@ public class Map implements Runnable {
                 m.writer().writeByte(0);
                 m.writer().writeUTF(s);
                 Player p0 = this.get_player_by_id_inmap(id_p);
-                this.send_msg_all_p(m, p0, false);
+                this.send_msg_all_p(m, p0, all);
                 break;
             }
         }

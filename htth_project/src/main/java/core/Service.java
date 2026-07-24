@@ -297,8 +297,10 @@ public class Service {
                     ItemSell it_sell_temp = list_sell.get(i);
                     ItemTemplate3 it_temp = ItemTemplate3.get_it_by_id(it_sell_temp.id);
                     ItemTemplate3.readUpdateItem(m.writer(), it_temp);
-                    m.writer().writeByte(0);
-                    m.writer().writeInt(it_sell_temp.price);
+                    byte typeMoney = (byte) ((it_temp != null && it_temp.ruby > 0) ? 1 : it_sell_temp.typeMoney);
+                    int price = (it_temp != null && it_temp.ruby > 0) ? it_temp.ruby : it_sell_temp.price;
+                    m.writer().writeByte(typeMoney);
+                    m.writer().writeInt(price);
                 }
                 break;
             }
@@ -314,11 +316,12 @@ public class Service {
                 break;
             }
             case 20: {
-                send_item_template_4(p, 173);
-                send_item_template_4(p, 174);
+                short[] id_sell = ItemSell.get_it_sell_potion(p);
+                for (int i = 0; i < id_sell.length; i++) {
+                    send_item_template_4(p, id_sell[i]);
+                }
                 m.writer().writeUTF("Quán ăn");
                 m.writer().writeByte(4);
-                short[] id_sell = ItemSell.get_it_sell_potion(p);
                 m.writer().writeShort(id_sell.length);
                 for (int i = 0; i < id_sell.length; i++) {
                     m.writer().writeShort(id_sell[i]);
@@ -750,12 +753,24 @@ public class Service {
                 ItemSell temp_sell = list_sell.get(i);
                 if (temp_sell != null && temp_sell.id == id) {
                     if (p.item.able_bag() > 0) {
-                        if (p.get_vang() < temp_sell.price) {
-                            Service.send_box_ThongBao_OK(p,
-                                    "Bạn không đủ " + temp_sell.price + " beri!");
-                            return;
+                        ItemTemplate3 it_temp = ItemTemplate3.get_it_by_id(temp_sell.id);
+                        boolean isRuby = (it_temp != null && it_temp.ruby > 0) || temp_sell.typeMoney == 1;
+                        int price = (it_temp != null && it_temp.ruby > 0) ? it_temp.ruby : temp_sell.price;
+                        if (isRuby) {
+                            if (p.get_ngoc() < price) {
+                                Service.send_box_ThongBao_OK(p,
+                                        "Bạn không đủ " + price + " ruby!");
+                                return;
+                            }
+                            p.update_ngoc(-price);
+                        } else {
+                            if (p.get_vang() < price) {
+                                Service.send_box_ThongBao_OK(p,
+                                        "Bạn không đủ " + price + " beri!");
+                                return;
+                            }
+                            p.update_vang(-price);
                         }
-                        p.update_vang(-temp_sell.price);
                         p.update_money();
                         Item_wear it_add = new Item_wear();
                         it_add.setup_template_by_id(temp_sell.id);

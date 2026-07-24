@@ -13,15 +13,18 @@ import client.Player;
 public class ItemSell {
     public int id;
     public int price;
+    public byte typeMoney; // 0: Beri, 1: Ruby
     public static HashMap<Integer, List<List<ItemSell>>> ENTRYS = new HashMap<>();
     public static short[] ITEM_POTION_SELL = new short[] { 2, 3, 85, 5, 4, 15, 16, 29, 43, 40, 89,
-            80, 31, 6, 232, 361, 548, 173, 174, 271 };
+            80, 31, 6, 232, 361, 548, 173, 174, 271, 359 };
     public static byte[] ITEM_MATERIAL_SELL = new byte[] { 1, 2, 3, 4, 5, 6, 9 };
     static {
         for (int i = 0; i < ItemTemplate3.ENTRYS.size(); i++) {
             ItemTemplate3 it_temp = ItemTemplate3.ENTRYS.get(i);
-            if (it_temp.beri > 0) {
-                ItemSell temp = new ItemSell(it_temp.id, it_temp.beri);
+            if (it_temp.beri > 0 || it_temp.ruby > 0) {
+                byte typeMoney = (byte) (it_temp.ruby > 0 ? 1 : 0);
+                int price = (it_temp.ruby > 0) ? it_temp.ruby : it_temp.beri;
+                ItemSell temp = new ItemSell(it_temp.id, price, typeMoney);
                 List<List<ItemSell>> list_temp = ItemSell.ENTRYS.get(it_temp.level / 10);
                 if (list_temp == null) {
                     list_temp = new ArrayList<>();
@@ -39,6 +42,13 @@ public class ItemSell {
     public ItemSell(int id, int price) {
         this.id = id;
         this.price = price;
+        this.typeMoney = 0;
+    }
+
+    public ItemSell(int id, int price, byte typeMoney) {
+        this.id = id;
+        this.price = price;
+        this.typeMoney = typeMoney;
     }
 
     public static List<ItemSell> get_it_sell(int level, int clazz) {

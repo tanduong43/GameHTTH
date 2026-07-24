@@ -28,7 +28,7 @@ public class SessionManager {
             ss.connected = false;
             try {
                 if (ss.p != null) {
-                    if (ss.p.party != null && ss.p.dungeon == null) {
+                    if (ss.p.party != null) {
                         try {
                             ss.p.party.leave_party(ss.p);
                         } catch (Exception e) {

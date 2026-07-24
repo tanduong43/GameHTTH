@@ -36,6 +36,8 @@ public class BXH {
     public static List<InfoMemList> WANTED = new ArrayList<>();
     public static final List<InfoMemList> BOUNTY_HUNTERS = new ArrayList<>();
     public static List<InfoMemList> HANGDONG = new ArrayList<>();
+    public static List<InfoMemList> PHAO_HOA = new ArrayList<>();
+    public static final java.util.Map<Integer, List<InfoMemList>> TOP_SIEU_TRUM_MAP = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static void send(Player p, int type, int page) throws IOException {
         if (page < 0) {
@@ -209,6 +211,35 @@ public class BXH {
                 }
                 break;
             }
+            case 12: {
+                updateTopPhaoHoa();
+                int bound1 = 0;
+                int bound2 = BXH.PHAO_HOA.size();
+                if (BXH.PHAO_HOA.size() > 10) {
+                    if (((page + 1) * 10) > BXH.PHAO_HOA.size()) {
+                        bound1 = 10 * page;
+                        bound2 = BXH.PHAO_HOA.size();
+                        while (bound1 >= bound2) {
+                            bound1 -= 10;
+                            page--;
+                        }
+                    } else {
+                        bound1 = 10 * page;
+                        bound2 = bound1 + 10;
+                    }
+                } else {
+                    page = 0;
+                }
+                m.writer().writeByte(4);
+                m.writer().writeUTF("Top Pháo Hoa");
+                m.writer().writeByte(page);
+                m.writer().writeByte(bound2 - bound1);
+                for (int i = bound1; i < bound2; i++) {
+                    InfoMemList temp = BXH.PHAO_HOA.get(i);
+                    InfoMemList.WriteInfoMemList(m.writer(), temp);
+                }
+                break;
+            }
         }
         p.conn.addmsg(m);
         m.cleanup();
@@ -270,6 +301,230 @@ public class BXH {
         }
         p.conn.addmsg(msg);
         msg.cleanup();
+    }
+
+    public static void resetAllTopBoss() {
+        TOP_SIEU_TRUM_MAP.clear();
+    }
+
+    public static void updateTopBoss(map.Boss boss) {
+        if (boss == null || boss.mob == null || boss.mob.mob_template == null) {
+            return;
+        }
+        if (boss.TopDame == null || boss.TopDame.isEmpty()) {
+            return;
+        }
+        int mobId = boss.mob.mob_template.mob_id;
+        List<template.Top_Dame> sortedList = Util.sort(boss.TopDame);
+        List<InfoMemList> listAdd = new ArrayList<>();
+        for (int i = 0; i < sortedList.size(); i++) {
+            template.Top_Dame td = sortedList.get(i);
+            InfoMemList temp = new InfoMemList();
+            temp.name = td.name;
+            Player p0 = Map.get_player_by_name_allmap(td.name);
+            if (p0 != null) {
+                temp.id = p0.id;
+                temp.level = (short) p0.level;
+                temp.head = p0.head;
+                temp.hair = p0.hair;
+                temp.hat = p0.get_hat();
+            } else {
+                temp.id = i + 1;
+                temp.level = 1;
+                temp.head = -1;
+                temp.hair = -1;
+                temp.hat = -1;
+            }
+            temp.info = "Dame: " + Util.number_format(td.dame);
+            temp.rank = (short) i;
+            listAdd.add(temp);
+        }
+        TOP_SIEU_TRUM_MAP.put(mobId, listAdd);
+    }
+
+    public static void sendTopBoss(Player p, int mobId, int page) throws IOException {
+        if (page < 0) {
+            page = 0;
+        }
+        if (map.Boss.ENTRYS != null) {
+            for (int i = 0; i < map.Boss.ENTRYS.size(); i++) {
+                map.Boss b = map.Boss.ENTRYS.get(i);
+                if (b != null && b.mob != null && b.mob.mob_template != null && b.mob.mob_template.mob_id == mobId) {
+                    if (b.TopDame != null && !b.TopDame.isEmpty()) {
+                        updateTopBoss(b);
+                    }
+                    break;
+                }
+            }
+        }
+        List<InfoMemList> listBossTop = TOP_SIEU_TRUM_MAP.get(mobId);
+        if (listBossTop == null) {
+            listBossTop = new ArrayList<>();
+        }
+        int bound1 = 0;
+        int bound2 = listBossTop.size();
+        if (listBossTop.size() > 10) {
+            if (((page + 1) * 10) > listBossTop.size()) {
+                bound1 = 10 * page;
+                bound2 = listBossTop.size();
+                while (bound1 >= bound2) {
+                    bound1 -= 10;
+                    page--;
+                }
+            } else {
+                bound1 = 10 * page;
+                bound2 = bound1 + 10;
+            }
+        } else {
+            page = 0;
+        }
+        Message m = new Message(-30);
+        m.writer().writeByte(11);
+        template.MobTemplate mobT = template.MobTemplate.ENTRYS.get(mobId);
+        String bossName = (mobT != null) ? mobT.name : ("Boss " + mobId);
+        m.writer().writeUTF("Top " + bossName);
+        m.writer().writeByte(page);
+        m.writer().writeByte(bound2 - bound1);
+        for (int i = bound1; i < bound2; i++) {
+            InfoMemList temp = listBossTop.get(i);
+            InfoMemList.WriteInfoMemList(m.writer(), temp);
+        }
+        p.conn.addmsg(m);
+        m.cleanup();
+    }
+
+    public static void updateTopPhaoHoa() {
+        List<InfoMemList> list_add = new ArrayList<>();
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = SQL.gI().getCon();
+            ps = connection.prepareStatement(
+                    "SELECT `id`, `name`, `level`, `clazz`, `num_phao_hoa`, `body`, `it_body`, `fashion`, `site` FROM `players` WHERE `num_phao_hoa` > 0 ORDER BY `num_phao_hoa` DESC LIMIT 10;");
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                InfoMemList temp = new InfoMemList();
+                temp.id = rs.getInt("id");
+                temp.name = rs.getString("name");
+                try {
+                    JSONArray jsLevel = (JSONArray) JSONValue.parse(rs.getString("level"));
+                    if (jsLevel != null && jsLevel.size() > 0) {
+                        temp.level = Short.parseShort(jsLevel.get(0).toString());
+                    } else {
+                        temp.level = 1;
+                    }
+                } catch (Exception e) {
+                    temp.level = 1;
+                }
+                temp.thongthao = rs.getInt("num_phao_hoa");
+                List<ItemFashionP2> fashion = new ArrayList<>();
+                List<ItemFashionP> itfashionP = new ArrayList<>();
+                JSONArray js0 = (JSONArray) JSONValue.parse(rs.getString("fashion"));
+                JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js0.get(0).toString());
+                for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                    JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                    ItemFashionP tempf = new ItemFashionP();
+                    tempf.category = Byte.parseByte(js_temp.get(0).toString());
+                    tempf.id = Short.parseShort(js_temp.get(1).toString());
+                    tempf.icon = Short.parseShort(js_temp.get(2).toString());
+                    tempf.is_use = Byte.parseByte(js_temp.get(3).toString()) == 1;
+                    itfashionP.add(tempf);
+                }
+                js_temp_2.clear();
+                js_temp_2 = (JSONArray) JSONValue.parse(js0.get(1).toString());
+                for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                    JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                    ItemFashionP2 tempf = new ItemFashionP2();
+                    tempf.id = Short.parseShort(js_temp.get(0).toString());
+                    tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
+                    fashion.add(tempf);
+                }
+                js0.clear();
+                short hair_ = -1;
+                short head_ = -1;
+                short[] fashion_ = null;
+                for (int i0 = 0; i0 < fashion.size(); i0++) {
+                    if (fashion.get(i0).is_use) {
+                        ItemFashion tempF = ItemFashion.get_item(fashion.get(i0).id);
+                        if (tempF != null) {
+                            fashion_ = tempF.mWearing;
+                            break;
+                        }
+                    }
+                }
+                if (fashion_ != null && fashion_[6] != -1) {
+                    hair_ = -2;
+                    head_ = fashion_[6];
+                } else {
+                    for (int i0 = 0; i0 < itfashionP.size(); i0++) {
+                        if (itfashionP.get(i0).category == 103 && itfashionP.get(i0).is_use) {
+                            hair_ = itfashionP.get(i0).icon;
+                        }
+                    }
+                    for (int i0 = 0; i0 < itfashionP.size(); i0++) {
+                        if (itfashionP.get(i0).category == 108 && itfashionP.get(i0).is_use) {
+                            head_ = itfashionP.get(i0).icon;
+                        }
+                    }
+                }
+                JSONArray js = (JSONArray) JSONValue.parse(rs.getString("body"));
+                temp.head = (head_ != -1) ? head_ : Short.parseShort(js.get(0).toString());
+                temp.hair = (hair_ != -1) ? hair_ : Short.parseShort(js.get(1).toString());
+                js.clear();
+                //
+                Item_wear[] it = new Item_wear[8];
+                js = (JSONArray) JSONValue.parse(rs.getString("it_body"));
+                for (int i1 = 0; i1 < js.size(); i1++) {
+                    JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
+                    Item_wear temp2 = new Item_wear();
+                    Item.readUpdateItem(js2.toString(), temp2);
+                    it[temp2.index] = temp2;
+                }
+                js.clear();
+                js = (JSONArray) JSONValue.parse(rs.getString("site"));
+                boolean is_show_hat = Byte.parseByte(js.get(6).toString()) == 1;
+                js.clear();
+                if (!is_show_hat || it[1] == null) {
+                    temp.hat = -1;
+                } else if (fashion_ != null && fashion_[1] != -1) {
+                    temp.hat = fashion_[1];
+                } else {
+                    temp.hat = ItemTemplate3.get_it_by_id(it[1].template.id).part;
+                }
+                temp.info = String.format("Đã bắn: %s", Util.number_format(temp.thongthao));
+                list_add.add(temp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            list_add.clear();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (list_add.size() > 0) {
+            for (int i = 0; i < list_add.size(); i++) {
+                list_add.get(i).rank = (short) i;
+            }
+            BXH.PHAO_HOA.clear();
+            BXH.PHAO_HOA.addAll(list_add);
+            list_add.clear();
+        }
+    }
+
+    public static void sendTopPhaoHoa(Player p, int page) throws IOException {
+        send(p, 12, page);
     }
 
     public static void process(Player p, Message m2) throws IOException {
