@@ -48,3 +48,5 @@ __MACOSX/
 # Cache folders
 .cache/
 **/.cache/
+  
+UnityProject
