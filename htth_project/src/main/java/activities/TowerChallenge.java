@@ -564,8 +564,10 @@ public class TowerChallenge extends Dungeon {
         this.partyMembers.remove(p);
         teleportBack(p);
 
-        if (p.name.equals(this.leader.name) || this.partyMembers.isEmpty()) {
-            failDungeon("Trưởng nhóm đã rời nhóm hoặc nhóm giải tán.");
+        if (this.partyMembers.isEmpty()) {
+            failDungeon("Nhóm giải tán.");
+        } else if (p.name.equals(this.leader.name)) {
+            this.leader = partyMembers.get(0);
         }
     }
 

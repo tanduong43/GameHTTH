@@ -32,29 +32,37 @@ public class Dungeon {
             map_dungeon.list_mob = new int[0];
             for (int i = 0; i < mapTemplate.list_mob.length; i++) {
                 Mob temp = Mob.ENTRYS.get(mapTemplate.list_mob[i]);
-                Mob mob_add = new Mob();
-                mob_add.mob_template = temp.mob_template;
-                mob_add.x = temp.x;
-                mob_add.y = temp.y;
-                mob_add.hp_max = temp.mob_template.hp_max;
-                mob_add.hp = 9978;
-                if (this.mode < 7) {
-                    mob_add.hp = mob_add.hp + this.mode * 5000;
-                } else {
-                    mob_add.hp = mob_add.hp + this.mode * 50000;
+                boolean isBoss = temp.mob_template.mob_id >= 100 || temp.mob_template.hp_max >= 500000 || temp.mob_template.name.toLowerCase().contains("boss") || temp.mob_template.name.toLowerCase().contains("trùm");
+                int spawnCount = isBoss ? 1 : 4;
+                if (mapTemplate.list_mob.length <= 2) spawnCount = 1; // boss room
+                for (int m = 0; m < spawnCount; m++) {
+                    Mob mob_add = new Mob();
+                    mob_add.mob_template = temp.mob_template;
+                    mob_add.x = (short) (temp.x + (m * 30));
+                    mob_add.y = temp.y;
+                    mob_add.hp_max = temp.mob_template.hp_max;
+                    mob_add.hp = 9978;
+                    if (this.mode < 7) {
+                        mob_add.hp = mob_add.hp + this.mode * 5000;
+                    } else {
+                        mob_add.hp = mob_add.hp + this.mode * 50000;
+                    }
+                    if (isBoss) {
+                        mob_add.hp *= 5; // Boss should be stronger
+                    }
+                    mob_add.hp_max = mob_add.hp;
+                    mob_add.level = 35 + this.mode * 10;
+                    if (mob_add.level > 100) {
+                        mob_add.level = 100;
+                    }
+                    //
+                    mob_add.isdie = false;
+                    mob_add.id_target = -1;
+                    mob_add.index = index--;
+                    mob_add.map = map_dungeon;
+                    mob_add.boss_info = null;
+                    mobs.add(mob_add);
                 }
-                mob_add.hp_max = mob_add.hp;
-                mob_add.level = 35 + this.mode * 10;
-                if (mob_add.level > 100) {
-                    mob_add.level = 100;
-                }
-                //
-                mob_add.isdie = false;
-                mob_add.id_target = -1;
-                mob_add.index = index--;
-                mob_add.map = map_dungeon;
-                mob_add.boss_info = null;
-                mobs.add(mob_add);
             }
             map_dungeon.start_map();
             map_dungeon.map_dungeon = this;

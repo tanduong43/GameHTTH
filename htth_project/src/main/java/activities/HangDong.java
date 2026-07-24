@@ -527,8 +527,8 @@ public class HangDong extends Dungeon {
         if (partyMembers.isEmpty()) {
             completeDungeon();
         } else if (p.name.equals(this.leader.name)) {
-            // If the leader leaves, complete/fail the dungeon
-            completeDungeon();
+            // If the leader leaves, assign new leader
+            this.leader = partyMembers.get(0);
         }
     }
 

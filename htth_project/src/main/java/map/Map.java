@@ -1947,7 +1947,7 @@ public class Map implements Runnable {
                 for (int i = 0; i < p.dungeon.mobs.size(); i++) {
                     Mob mob = p.dungeon.mobs.get(i);
                     if (mob != null && !mob.isdie && mob.map.equals(this)
-                            && Math.abs(mob.x - p.x) < 70 && Math.abs(mob.y - p.y) < 70
+                            && Math.abs(mob.x - p.x) < 300 && Math.abs(mob.y - p.y) < 300
                             && mob.id_target == -1) {
                         mob.id_target = p.index_map;
                     }

@@ -170,11 +170,7 @@ public class Party {
     }
 
     public synchronized void leave_party(Player p) throws IOException {
-        if (list.size() > 0 && list.get(0).equals(p)) {
-            delete();
-        } else {
-            remove_mem(p);
-        }
+        remove_mem(p);
     }
 
     public synchronized void remove_mem(Player p) throws IOException {
@@ -189,7 +185,7 @@ public class Party {
                 m.cleanup();
                 p0.party = null;
                 list.remove(p);
-                if (list.size() < 2) {
+                if (list.size() < 1) {
                     this.delete();
                 } else {
                     this.send_info();
