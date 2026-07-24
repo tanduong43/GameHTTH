@@ -255,7 +255,15 @@ public class TowerChallenge extends Dungeon {
         // 1. Timeout Check
         if (System.currentTimeMillis() > this.stageEndTime) {
             System.out.println("[TowerChallenge] Floor timeout reached. Ending dungeon.");
-            failDungeon("Hết thời gian vượt ải!");
+            if (this.checkG != null && this.checkG.contains(-2)) {
+                failDungeon("Tất cả thành viên trong tổ đội đã tử trận!");
+            } else {
+                failDungeon("Hết thời gian vượt ải!");
+            }
+            return;
+        }
+
+        if (this.checkG != null && this.checkG.contains(-2)) {
             return;
         }
 

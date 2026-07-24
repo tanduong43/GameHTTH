@@ -148,7 +148,13 @@ public class Party {
             }
             case 2: { // leave
                 if (p.party != null) {
-                    Player p0 = p.map.get_player_by_id_inmap(id);
+                    Player p0 = null;
+                    for (Player member : p.party.list) {
+                        if (member.index_map == id) {
+                            p0 = member;
+                            break;
+                        }
+                    }
                     if (p0 != null) {
                         p.party.remove_mem(p0);
                         if (p0.index_map == p.index_map) {
@@ -183,7 +189,11 @@ public class Party {
                 m.cleanup();
                 p0.party = null;
                 list.remove(p);
-                this.send_info();
+                if (list.size() < 2) {
+                    this.delete();
+                } else {
+                    this.send_info();
+                }
                 if (p0.dungeon instanceof activities.TowerChallenge) {
                     ((activities.TowerChallenge) p0.dungeon).handlePlayerLeftParty(p0);
                 }

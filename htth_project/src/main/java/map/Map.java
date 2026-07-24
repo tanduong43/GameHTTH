@@ -1107,6 +1107,11 @@ public class Map implements Runnable {
                 }
             }
             if (ok_out_map && p_select != null && p_select.conn != null) {
+                if (p_select.isdie) {
+                    p_select.isdie = false;
+                    p_select.hp = p_select.body.get_hp_max(true);
+                    p_select.mp = p_select.body.get_mp_max(true);
+                }
                 Vgo vgo = new Vgo();
                 vgo.map_go = Map.get_map_by_id(25);
                 vgo.xnew = 390;
@@ -1618,18 +1623,23 @@ public class Map implements Runnable {
     public void die_player(Player p0, Player p) throws IOException {
         boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
         if (isSingleDungeon) {
-            p0.isdie = false;
-            p0.hp = p0.body.get_hp_max(true);
-            p0.mp = p0.body.get_mp_max(true);
-            p0.dungeon = null;
+            if (this.map_dungeon != null && !this.map_dungeon.checkG.contains(-1)) {
+                this.map_dungeon.checkG.add(-1);
+                p0.dungeon.time = System.currentTimeMillis() + 10_000L;
+                Service.send_time_cool_down(p0, p0.dungeon.time, "Thất Bại", 2);
+                Service.send_box_ThongBao_OK(p0, "Bạn đã thất bại! Tự động rời phó bản sau 10 giây.");
+            }
+            p0.isdie = true;
+            p0.update_die();
             
-            Vgo vgo = new Vgo();
-            vgo.map_go = Map.get_map_by_id(25);
-            vgo.xnew = 390;
-            vgo.ynew = 240;
-            p0.goto_map(vgo);
-            
-            Service.send_box_ThongBao_OK(p0, "Bạn đã thất bại! Tự động rời phó bản.");
+            Message m = new Message(7);
+            m.writer().writeShort(p.index_map);
+            m.writer().writeByte(0);
+            m.writer().writeShort(p0.index_map);
+            m.writer().writeByte(0);
+            m.writer().writeShort(p.pointPk); // point pk
+            send_msg_all_p(m, p0, true);
+            m.cleanup();
             return;
         }
         boolean isTowerChallenge = this.map_dungeon != null && this.map_dungeon instanceof activities.TowerChallenge;
@@ -1653,7 +1663,78 @@ public class Map implements Runnable {
                 }
             }
             if (allDead) {
-                tc.failDungeon("Tất cả thành viên trong tổ đội đã tử trận!");
+                if (tc.checkG != null && !tc.checkG.contains(-2)) {
+                    tc.checkG.add(-2);
+                    tc.stageEndTime = System.currentTimeMillis() + 10_000L;
+                    for (Player member : tc.partyMembers) {
+                        Player pOnline = Map.get_player_by_name_allmap(member.name);
+                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                                && pOnline.dungeon == tc && pOnline.map.equals(this)) {
+                            Service.send_time_cool_down(pOnline, tc.stageEndTime, "Thất Bại", 2);
+                            Service.send_box_ThongBao_OK(pOnline, "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
+                        }
+                    }
+                }
+                
+                p0.isdie = true;
+                p0.update_die();
+                
+                Message m = new Message(7);
+                m.writer().writeShort(p.index_map);
+                m.writer().writeByte(0);
+                m.writer().writeShort(p0.index_map);
+                m.writer().writeByte(0);
+                m.writer().writeShort(p.pointPk); // point pk
+                send_msg_all_p(m, p0, true);
+                m.cleanup();
+                return;
+            }
+        }
+        boolean isNamieDefense = this.map_dungeon != null && this.map_dungeon instanceof activities.NamieTreasureDefense;
+        if (isNamieDefense) {
+            activities.NamieTreasureDefense nd = (activities.NamieTreasureDefense) this.map_dungeon;
+            p0.isdie = true;
+            p0.hp = 0;
+            
+            boolean allDead = true;
+            for (Player member : nd.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                        && pOnline.dungeon == nd && pOnline.map.equals(this)) {
+                    if (pOnline.name.equals(p0.name)) {
+                        continue;
+                    }
+                    if (!pOnline.isdie && pOnline.hp > 0) {
+                        allDead = false;
+                        break;
+                    }
+                }
+            }
+            if (allDead) {
+                if (nd.checkG != null && !nd.checkG.contains(-2)) {
+                    nd.checkG.add(-2);
+                    nd.dungeonEndTime = System.currentTimeMillis() + 10_000L;
+                    for (Player member : nd.partyMembers) {
+                        Player pOnline = Map.get_player_by_name_allmap(member.name);
+                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                                && pOnline.dungeon == nd && pOnline.map.equals(this)) {
+                            Service.send_time_cool_down(pOnline, nd.dungeonEndTime, "Thất Bại", 2);
+                            Service.send_box_ThongBao_OK(pOnline, "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
+                        }
+                    }
+                }
+                
+                p0.isdie = true;
+                p0.update_die();
+                
+                Message m = new Message(7);
+                m.writer().writeShort(p.index_map);
+                m.writer().writeByte(0);
+                m.writer().writeShort(p0.index_map);
+                m.writer().writeByte(0);
+                m.writer().writeShort(p.pointPk); // point pk
+                send_msg_all_p(m, p0, true);
+                m.cleanup();
                 return;
             }
         }

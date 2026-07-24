@@ -1450,6 +1450,15 @@ public class Player {
             }
         } else { // ve lang
             if (this.isdie) {
+                if (this.dungeon != null) {
+                    boolean isSingle = this.dungeon.getClass() == Dungeon.class;
+                    boolean isTower = this.dungeon instanceof activities.TowerChallenge;
+                    boolean isNamie = this.dungeon instanceof activities.NamieTreasureDefense;
+                    if (isSingle || isTower || isNamie) {
+                        Service.send_box_ThongBao_OK(this, "Vui lòng đợi phó bản tự động rời sau 10 giây!");
+                        return;
+                    }
+                }
                 if (this.dungeon instanceof activities.HangDong) {
                     Service.send_box_ThongBao_OK(this, "Không thể trở về làng trong Hang Động!");
                     return;

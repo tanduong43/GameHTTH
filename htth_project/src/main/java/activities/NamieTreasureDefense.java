@@ -414,7 +414,15 @@ public class NamieTreasureDefense extends Dungeon {
 
         // 1. Giới hạn thời gian toàn phó bản
         if (System.currentTimeMillis() > this.dungeonEndTime) {
-            failDefense("Đã hết thời gian bảo vệ kho báu!");
+            if (this.checkG != null && this.checkG.contains(-2)) {
+                failDefense("Tất cả thành viên trong tổ đội đã tử trận!");
+            } else {
+                failDefense("Đã hết thời gian bảo vệ kho báu!");
+            }
+            return;
+        }
+
+        if (this.checkG != null && this.checkG.contains(-2)) {
             return;
         }
 
@@ -744,6 +752,11 @@ public class NamieTreasureDefense extends Dungeon {
 
     private void teleportBack(Player p) {
         try {
+            if (p.isdie) {
+                p.isdie = false;
+                p.hp = p.body.get_hp_max(true) / 10;
+                Service.use_potion(p, 0, p.hp);
+            }
             p.dungeon = null;
 
             int targetMapId = p.originalMapId;
