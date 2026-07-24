@@ -512,6 +512,11 @@ public class TowerChallenge extends Dungeon {
 
     private void teleportBack(Player p) {
         try {
+            if (p.isdie) {
+                p.isdie = false;
+                p.hp = p.body.get_hp_max(true) / 10;
+                Service.use_potion(p, 0, p.hp);
+            }
             p.dungeon = null; // Clear dungeon reference before teleport to avoid loops
 
             int targetMapId = p.originalMapId;

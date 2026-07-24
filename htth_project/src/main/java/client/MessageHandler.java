@@ -715,7 +715,8 @@ public class MessageHandler {
                         } else if (conn.p.dungeon != null) {
                             if (conn.p.dungeon instanceof activities.TowerChallenge) {
                                 activities.TowerChallenge tc = (activities.TowerChallenge) conn.p.dungeon;
-                                Service.send_time_cool_down(conn.p, tc.stageEndTime, "Tầng " + (tc.currentStageIndex + 1),
+                                Service.send_time_cool_down(conn.p, tc.stageEndTime,
+                                        "Tầng " + (tc.currentStageIndex + 1),
                                         2);
                             } else if (conn.p.dungeon instanceof activities.NamieTreasureDefense) {
                                 activities.NamieTreasureDefense nd = (activities.NamieTreasureDefense) conn.p.dungeon;
@@ -731,8 +732,9 @@ public class MessageHandler {
                                             2);
                                 }
                             } else {
-                                // Vượt ải đơn - Do not display time per stage, but reset timer to 2 minutes internally
                                 conn.p.dungeon.time = System.currentTimeMillis() + 120_000L;
+                                int floorNum = conn.p.map.template.id - 167 + 1;
+                                Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Thời gian ", 2);
                             }
                         }
                     } else if (conn.p.map.template.id == 9999 && conn.p.map.clan_resource != null) {
@@ -902,7 +904,6 @@ public class MessageHandler {
             }
             conn.p = p0;
 
-
             // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về map 1
             if (conn.p.map != null && conn.p.map.map_bossHunt != null) {
                 System.out.println("[BossHunt] Login safety: player " + conn.p.name
@@ -936,7 +937,8 @@ public class MessageHandler {
             }
             // Reconnect HangDong check
             activities.HangDong activeHangDong = activities.HangDong.findActive(conn.p.name);
-            // Safety fallback: nếu vẫn đang trong map HangDong/Dungeon (id 167) nhưng no active dungeon
+            // Safety fallback: nếu vẫn đang trong map HangDong/Dungeon (id 167) nhưng no
+            // active dungeon
             if (conn.p.map != null && conn.p.map.template.id == 167 && conn.p.dungeon == null) {
                 System.out.println("[HangDong] Login safety: player " + conn.p.name
                         + " still in HangDong map but no active dungeon, redirecting to map 1.");
@@ -948,7 +950,8 @@ public class MessageHandler {
                 }
             }
             // Reconnect Namie check
-            activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense.findActiveDefense(conn.p.name);
+            activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense
+                    .findActiveDefense(conn.p.name);
             // Safety fallback: nếu vẫn đang trong map Namie nhưng no active dungeon
             if (conn.p.map != null && conn.p.map.template.id == 513 && conn.p.dungeon == null) {
                 System.out.println("[NamieDefense] Login safety: player " + conn.p.name
@@ -1055,7 +1058,6 @@ public class MessageHandler {
                     "Chào mừng bạn đến với Thế Giới Hải Tặc - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
             conn.p.list_msg_cache.add(m2);
 
-
             // === Rejoin dialog for HangDong, TowerChallenge, NamieTreasureDefense ===
             if (activeHangDong != null || activeChallenge != null || activeDefense != null) {
                 final Player player = conn.p;
@@ -1064,17 +1066,20 @@ public class MessageHandler {
                         Thread.sleep(2000);
                         if (player != null && player.conn != null && player.conn.connected) {
                             if (activeHangDong != null) {
-                                System.out.println("[HangDong] Showing delayed rejoin dialog for player: " + player.name);
+                                System.out
+                                        .println("[HangDong] Showing delayed rejoin dialog for player: " + player.name);
                                 Service.send_box_yesno(player, 8888, "Thông báo",
                                         "Bạn có muốn vào lại phụ bản Hang Động không?",
                                         new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                             } else if (activeChallenge != null) {
-                                System.out.println("[TowerChallenge] Showing delayed rejoin dialog for player: " + player.name);
+                                System.out.println(
+                                        "[TowerChallenge] Showing delayed rejoin dialog for player: " + player.name);
                                 Service.send_box_yesno(player, 8889, "Thông báo",
                                         "Bạn có muốn vào lại phụ bản Vượt ải liên tầng không?",
                                         new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                             } else if (activeDefense != null) {
-                                System.out.println("[NamieDefense] Showing delayed rejoin dialog for player: " + player.name);
+                                System.out.println(
+                                        "[NamieDefense] Showing delayed rejoin dialog for player: " + player.name);
                                 Service.send_box_yesno(player, 8890, "Thông báo",
                                         "Bạn có muốn vào lại phụ bản Bảo vệ kho báu Namie không?",
                                         new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });

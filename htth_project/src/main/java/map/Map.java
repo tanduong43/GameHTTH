@@ -1022,96 +1022,34 @@ public class Map implements Runnable {
                 }
                 if (num_mob == 0 && p0.dungeon.time > System.currentTimeMillis()) {
                     if (this.template.id == 175) {
-                        p0.dungeon.time = System.currentTimeMillis() + 10_000L;
-                        Service.send_time_cool_down(p0, p0.dungeon.time, "Về Làng", 2);
+                        if (this.map_dungeon != null && !this.map_dungeon.checkG.contains(175)) {
+                            System.out.println("[Dungeon Debug] Map 175 cleared! Setting 10s countdown to return to village for " + p0.name);
+                            p0.dungeon.time = System.currentTimeMillis() + 10_000L;
+                            Service.send_time_cool_down(p0, p0.dungeon.time, "Về Làng", 2);
+                        }
                     }
                     if (!this.map_dungeon.checkG.contains(this.template.id)) {
                         this.map_dungeon.checkG.add(this.template.id);
                         //
                         byte mode_dungeon = p0.dungeon.mode;
                         List<GiftBox> list_gift = new ArrayList<>();
-                        int beri_receiv = Util.random(4_000, 8_000) * (mode_dungeon + 1);
+                        int beri_receiv = Util.random(4_000, 8_000);
                         ItemTemplate4 it_temp4;
-                        if (mode_dungeon == 11 && 25 > Util.random(150)) {
-                            GiftBox gb_beri = new GiftBox();
-                            it_temp4 = ItemTemplate4.get_it_by_id(0);
-                            if (it_temp4 != null) {
-                                gb_beri.id = it_temp4.id;
-                                gb_beri.type = 4;
-                                gb_beri.name = it_temp4.name;
-                                gb_beri.icon = it_temp4.icon;
-                                gb_beri.num = beri_receiv * 2;
-                                gb_beri.color = 0;
-                                list_gift.add(gb_beri);
-                            }
-                            //
-                            GiftBox gb_beri2 = new GiftBox();
-                            it_temp4 = ItemTemplate4.get_it_by_id(366);
-                            if (it_temp4 != null) {
-                                gb_beri2.id = it_temp4.id;
-                                gb_beri2.type = 4;
-                                gb_beri2.name = it_temp4.name;
-                                gb_beri2.icon = it_temp4.icon;
-                                gb_beri2.num = 1;
-                                gb_beri2.color = 0;
-                                list_gift.add(gb_beri2);
-                            }
-                        } else {
-                            GiftBox gb_beri = new GiftBox();
-                            it_temp4 = ItemTemplate4.get_it_by_id(0);
-                            if (it_temp4 != null) {
-                                gb_beri.id = it_temp4.id;
-                                gb_beri.type = 4;
-                                gb_beri.name = it_temp4.name;
-                                gb_beri.icon = it_temp4.icon;
-                                gb_beri.num = beri_receiv;
-                                gb_beri.color = 0;
-                                list_gift.add(gb_beri);
-                            }
+                        
+                        // Add Beri
+                        GiftBox gb_beri = new GiftBox();
+                        it_temp4 = ItemTemplate4.get_it_by_id(0);
+                        if (it_temp4 != null) {
+                            gb_beri.id = it_temp4.id;
+                            gb_beri.type = 4;
+                            gb_beri.name = it_temp4.name;
+                            gb_beri.icon = it_temp4.icon;
+                            gb_beri.num = beri_receiv;
+                            gb_beri.color = 0;
+                            list_gift.add(gb_beri);
                         }
-                        //
-                        GiftBox gb_botvang = new GiftBox();
-                        ItemTemplate7 it_temp7 = ItemTemplate7.get_it_by_id(4);
-                        if (it_temp7 != null) {
-                            gb_botvang.id = it_temp7.id;
-                            gb_botvang.type = 7;
-                            gb_botvang.name = it_temp7.name;
-                            gb_botvang.icon = it_temp7.icon;
-                            gb_botvang.num = Util.random(1, (mode_dungeon + 2));
-                            gb_botvang.color = 0;
-                            list_gift.add(gb_botvang);
-                        }
-                        //
-                        if (15 > Util.random(300 - mode_dungeon * 10)) { // da ho phach
-                            GiftBox gb_ = new GiftBox();
-                            it_temp4 = ItemTemplate4.get_it_by_id(
-                                    (45 > Util.random(120)) ? ((15 > Util.random(120)) ? 364 : 363)
-                                            : 362);
-                            if (it_temp4 != null) {
-                                gb_.id = it_temp4.id;
-                                gb_.type = 4;
-                                gb_.name = it_temp4.name;
-                                gb_.icon = it_temp4.icon;
-                                gb_.num = Util.random(1, 3);
-                                gb_.color = 0;
-                                list_gift.add(gb_);
-                            }
-                        }
-                        if (80 > Util.random(150 - mode_dungeon * 10)) { // ruong huyen bi
-                            GiftBox gb_ = new GiftBox();
-                            it_temp4 = ItemTemplate4.get_it_by_id(18 + (p0.level / 10));
-                            if (it_temp4 != null) {
-                                gb_.id = it_temp4.id;
-                                gb_.type = 4;
-                                gb_.name = it_temp4.name;
-                                gb_.icon = it_temp4.icon;
-                                int num = Util.random(1, (mode_dungeon + 2));
-                                gb_.num = (num < 2) ? num : (num / 2);
-                                gb_.color = 0;
-                                list_gift.add(gb_);
-                            }
-                        }
-                        // Thêm phần quà Đá Hải Thạch ngẫu nhiên (từ cấp 1 đến 6, cấp 5 và 6 tỉ lệ 2%)
+
+                        // Add Sea Stone (Đá Hải Thạch)
                         int stoneRoll = Util.random(100);
                         int stoneId = 221; // Mặc định cấp 1
                         if (stoneRoll < 1) { // 1% cho cấp 6 (Đá Hải Thạch cấp 6 - ID 226)
@@ -1139,13 +1077,23 @@ public class Map implements Runnable {
                             gb_haithach.color = 0;
                             list_gift.add(gb_haithach);
                         }
+
+                        // Add EXP level and EXP skill directly to player
+                        long exp_lv_gain = 50000L * (mode_dungeon + 1);
+                        long exp_skill_gain = 5000L * (mode_dungeon + 1);
+                        p0.update_exp(exp_lv_gain, true);
+                        for (int sk_id = 0; sk_id < 4; sk_id++) {
+                            p0.update_skill_exp(sk_id, exp_skill_gain);
+                        }
+
                         Service.send_gift(p0, 1, "Ải đơn cấp độ " + (mode_dungeon + 3),
                                 "Phần thưởng", list_gift, true);
                     }
                 }
                 boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
                 if (isSingleDungeon && num_mob > 0 && p0.dungeon.time < System.currentTimeMillis()) {
-                    if (!this.map_dungeon.checkG.contains(-1)) {
+                    if (this.map_dungeon != null && !this.map_dungeon.checkG.contains(-1)) {
+                        System.out.println("[Dungeon Debug] Player " + p0.name + " failed single dungeon on map " + this.template.id + ". Setting 10s countdown to return to village.");
                         this.map_dungeon.checkG.add(-1);
                         p0.dungeon.time = System.currentTimeMillis() + 10_000L;
                         Service.send_time_cool_down(p0, p0.dungeon.time, "Thất Bại", 2);
@@ -1153,6 +1101,7 @@ public class Map implements Runnable {
                     }
                 }
                 if (p0.dungeon.time < System.currentTimeMillis()) {
+                    System.out.println("[Dungeon Debug] Dungeon time expired. Teleporting player " + p0.name + " back to Syrup Village.");
                     ok_out_map = true;
                     p_select = p0;
                 }
@@ -1667,6 +1616,47 @@ public class Map implements Runnable {
     }
 
     public void die_player(Player p0, Player p) throws IOException {
+        boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
+        if (isSingleDungeon) {
+            p0.isdie = false;
+            p0.hp = p0.body.get_hp_max(true);
+            p0.mp = p0.body.get_mp_max(true);
+            p0.dungeon = null;
+            
+            Vgo vgo = new Vgo();
+            vgo.map_go = Map.get_map_by_id(25);
+            vgo.xnew = 390;
+            vgo.ynew = 240;
+            p0.goto_map(vgo);
+            
+            Service.send_box_ThongBao_OK(p0, "Bạn đã thất bại! Tự động rời phó bản.");
+            return;
+        }
+        boolean isTowerChallenge = this.map_dungeon != null && this.map_dungeon instanceof activities.TowerChallenge;
+        if (isTowerChallenge) {
+            activities.TowerChallenge tc = (activities.TowerChallenge) this.map_dungeon;
+            p0.isdie = true;
+            p0.hp = 0;
+            
+            boolean allDead = true;
+            for (Player member : tc.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                        && pOnline.dungeon == tc && pOnline.map.equals(this)) {
+                    if (pOnline.name.equals(p0.name)) {
+                        continue;
+                    }
+                    if (!pOnline.isdie && pOnline.hp > 0) {
+                        allDead = false;
+                        break;
+                    }
+                }
+            }
+            if (allDead) {
+                tc.failDungeon("Tất cả thành viên trong tổ đội đã tử trận!");
+                return;
+            }
+        }
         p0.isdie = true;
         p0.update_die();
         //
