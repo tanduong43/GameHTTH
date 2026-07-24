@@ -938,6 +938,12 @@ public class ClientYesNo {
                                 p.map_tele = null;
                                 return;
                             }
+                            if (p.time_single_dungeon >= 5) {
+                                Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn Vượt ải đơn hôm nay (tối đa 5 lần)!");
+                                p.data_yesno = null;
+                                p.map_tele = null;
+                                return;
+                            }
                             if (p.get_key_boss() < 1) {
                                 Service.send_box_ThongBao_OK(p, "Không đủ 1 chìa khóa phó bản");
                                 p.data_yesno = null;
@@ -945,6 +951,7 @@ public class ClientYesNo {
                                 return;
                             }
                             p.update_key_boss(-1);
+                            p.time_single_dungeon++;
                             p.update_money();
                             Service.CountDown_Ticket(p);
 
@@ -1040,6 +1047,10 @@ public class ClientYesNo {
                         Service.send_box_ThongBao_OK(p, "Bạn không đủ 1 chìa khóa phó bản!");
                         return;
                     }
+                    if (p.time_hangdong >= 5) {
+                        Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn đi Hang Động hôm nay (tối đa 5 lần)!");
+                        return;
+                    }
                     if (p.party != null) {
                         p.tableTickOption = new activities.TableTickOption();
                         p.tableTickOption.idDialog = 3;
@@ -1056,6 +1067,7 @@ public class ClientYesNo {
                     } else {
                         // Đi solo
                         p.update_key_boss(-1);
+                        p.time_hangdong++;
                         Service.CountDown_Ticket(p);
                         p.update_money();
                         java.util.List<Player> mems = new java.util.ArrayList<>();

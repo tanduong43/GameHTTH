@@ -385,6 +385,11 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không đủ 1 chìa khóa!");
                                         return;
                                     }
+                                    if (member.time_hangdong >= 5) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                                + " đã vượt giới hạn Hang Động hôm nay (tối đa 5 lần)!");
+                                        return;
+                                    }
                                 }
 
                                 java.util.List<Player> onlineMembers = new java.util.ArrayList<>();
@@ -393,6 +398,7 @@ public class TableTickOption {
                                     Player member = Map.get_player_by_name_allmap(memInList.name);
                                     if (member != null) {
                                         member.update_key_boss(-1);
+                                        member.time_hangdong++;
                                         Service.CountDown_Ticket(member);
                                         member.update_money();
                                         onlineMembers.add(member);

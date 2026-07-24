@@ -114,6 +114,8 @@ public class Player {
     public byte time_namie;
     public byte time_bosshunt;
     public byte time_tower;
+    public byte time_single_dungeon;
+    public byte time_hangdong;
     public byte time_can_hs;
     public List<FriendTemp> enemy_list;
     public TableTickOption tableTickOption;
@@ -293,6 +295,16 @@ public class Player {
                 time_tower = Byte.parseByte(js.get(14).toString());
             } else {
                 time_tower = 0;
+            }
+            if (js.size() > 16) {
+                time_single_dungeon = Byte.parseByte(js.get(16).toString());
+            } else {
+                time_single_dungeon = 0;
+            }
+            if (js.size() > 17) {
+                time_hangdong = Byte.parseByte(js.get(17).toString());
+            } else {
+                time_hangdong = 0;
             }
             this.claimedMilestones = new ArrayList<>();
             if (this.conn != null && this.conn.claimed_milestones != null && !this.conn.claimed_milestones.isEmpty()) {
@@ -852,6 +864,8 @@ public class Player {
             js.add(p.time_bosshunt);
             js.add(p.time_tower);
             js.add("");
+            js.add(p.time_single_dungeon);
+            js.add(p.time_hangdong);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -2109,6 +2123,8 @@ public class Player {
             time_namie = 0;
             time_bosshunt = 0;
             time_tower = 0;
+            time_single_dungeon = 0;
+            time_hangdong = 0;
         }
     }
 
