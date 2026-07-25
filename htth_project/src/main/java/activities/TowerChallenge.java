@@ -561,7 +561,7 @@ public class TowerChallenge extends Dungeon {
     }
 
     public synchronized void handlePlayerLeftParty(Player p) {
-        this.partyMembers.remove(p);
+        this.partyMembers.removeIf(m -> m.name.equals(p.name));
         teleportBack(p);
 
         if (this.partyMembers.isEmpty()) {

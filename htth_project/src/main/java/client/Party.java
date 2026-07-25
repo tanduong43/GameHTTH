@@ -116,11 +116,6 @@ public class Party {
                         m.writer().writeUTF(p.name);
                         p0.conn.addmsg(m);
                         m.cleanup();
-                        //
-                        if (p.party == null) {
-                            p.party = new Party(p);
-                            p.party.send_info();
-                        }
                     }
                 } else {
                     Service.send_box_ThongBao_OK(p, "Đối phương offline");
@@ -130,11 +125,14 @@ public class Party {
             case 4: { // accept
                 Player p0 = p.map.get_player_by_id_inmap(id);
                 if (p0 != null) {
-                    if (p0.party != null) {
-                        p0.party.add_new_mem(p);
-                    } else {
-                        Service.send_box_ThongBao_OK(p, "Đối phương đã hủy nhóm");
+                    if (p.party != null) {
+                        Service.send_box_ThongBao_OK(p, "Bạn đang ở trong nhóm khác!");
+                        break;
                     }
+                    if (p0.party == null) {
+                        p0.party = new Party(p0);
+                    }
+                    p0.party.add_new_mem(p);
                 } else {
                     Service.send_box_ThongBao_OK(p, "Đối phương offline");
                 }
@@ -173,6 +171,55 @@ public class Party {
         remove_mem(p);
     }
 
+    public synchronized void disconnect(Player p) throws IOException {
+        remove_mem(p);
+    }
+
+    public synchronized void temp_remove(Player p) {
+        if (list.remove(p)) {
+            try {
+                // Notificaions without actually disbanding or notifying dungeons
+                Message m = new Message(-25);
+                m.writer().writeByte(3); // Type 3 is usually delete/remove
+                for (Player mem : list) {
+                    if (mem.conn != null) {
+                        mem.conn.addmsg(m);
+                        Service.send_box_ThongBao_OK(mem, p.name + " đã mất kết nối!");
+                    }
+                }
+                m.cleanup();
+                
+                if (list.size() < 1) {
+                    // Party becomes empty -> disband
+                    this.delete();
+                } else {
+                    this.send_info();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public synchronized void temp_rejoin(Player p) {
+        if (this.list.size() < 4) {
+            list.add(p);
+            p.party = this;
+            add_buff_party(p.clazz);
+            try {
+                this.send_info();
+                Service.send_box_ThongBao_OK(p, "Bạn đã quay lại nhóm!");
+                for (Player mem : list) {
+                    if (mem != p && mem.conn != null) {
+                        Service.send_box_ThongBao_OK(mem, p.name + " đã quay lại nhóm!");
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public synchronized void remove_mem(Player p) throws IOException {
         for (int i = 0; i < list.size(); i++) {
             Player p0 = list.get(i);
@@ -185,7 +232,14 @@ public class Party {
                 m.cleanup();
                 p0.party = null;
                 list.remove(p);
-                if (list.size() < 1) {
+                boolean inDungeon = false;
+                if (list.size() == 1) {
+                    Player remaining = list.get(0);
+                    if (remaining.dungeon != null || remaining.bossHunt != null) {
+                        inDungeon = true;
+                    }
+                }
+                if (list.size() < 1 || (list.size() < 2 && !inDungeon)) {
                     this.delete();
                 } else {
                     this.send_info();
@@ -200,18 +254,14 @@ public class Party {
                     ((activities.HangDong) p0.dungeon).handlePlayerLeftParty(p0);
                 }
                 if (p0.bossHunt != null) {
-                    p0.bossHunt.removeMemberByName(p0.name);
-                    if (p0.bossHunt.members.isEmpty()) {
-                        p0.bossHunt.returnAllToVillage(null);
-                    }
-                    p0.bossHunt = null;
+                    p0.bossHunt.handlePlayerLeftParty(p0);
                 }
                 break;
             }
         }
     }
 
-    private synchronized void delete() throws IOException {
+    public synchronized void delete() throws IOException {
         Message m = new Message(-25);
         m.writer().writeByte(3);
         List<Player> temp = new ArrayList<>(list);
@@ -220,7 +270,7 @@ public class Party {
             p0.party = null;
             if (p0.conn != null) {
                 p0.conn.addmsg(m);
-                Service.send_box_ThongBao_OK(p0, "Nhóm đã giải tán");
+                Service.send_box_ThongBao_OK(p0, "Nhóm bị huỷ vì không đủ thành viên");
             }
             if (p0.dungeon instanceof activities.TowerChallenge) {
                 ((activities.TowerChallenge) p0.dungeon).handlePlayerLeftParty(p0);
@@ -232,15 +282,11 @@ public class Party {
                 ((activities.HangDong) p0.dungeon).handlePlayerLeftParty(p0);
             }
             if (p0.bossHunt != null) {
-                p0.bossHunt.removeMemberByName(p0.name);
-                if (p0.bossHunt.members.isEmpty()) {
-                    p0.bossHunt.returnAllToVillage(null);
-                }
-                p0.bossHunt = null;
+                p0.bossHunt.handlePlayerLeftParty(p0);
             }
         }
+        list.clear();
         m.cleanup();
-        this.list.clear();
     }
 
     private synchronized void add_new_mem(Player p) throws IOException {

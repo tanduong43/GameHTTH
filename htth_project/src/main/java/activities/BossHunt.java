@@ -329,6 +329,17 @@ public class BossHunt {
         }
     }
 
+    public void handlePlayerLeftParty(Player p) {
+        removeMemberByName(p.name);
+        if (members.isEmpty()) {
+            try {
+                returnAllToVillage(null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public synchronized void removeMemberByName(String name) {
         this.members.removeIf(m -> m.name.equals(name));
         this.readyState.remove(name);

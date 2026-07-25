@@ -88,7 +88,7 @@ public class Upgrade_Skin {
             ItemBag47 it47 = p.item.bag47.get(i);
             if (it47.category == 4) {
                 ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(it47.id);
-                if (itemTemplate4.type == 12 && itemTemplate4.id < 80
+                if (itemTemplate4 != null && itemTemplate4.type == 12 && itemTemplate4.id < 80
                         && check_id_ngoc(itemTemplate4.id)) {
                     list_da_kham.add(it47);
                 }

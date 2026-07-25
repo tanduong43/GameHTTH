@@ -998,6 +998,13 @@ public class MessageHandler {
             Quest.update_map_have_side_quest(conn.p, true);
             Service.Weapon_fashion(conn.p, conn.p, true);
             UpgradeItem.send_heart_info(conn.p, true);
+            
+            // Re-send party info to ensure the client UI displays it after login
+            if (conn.p.party != null) {
+                try {
+                    conn.p.party.send_info();
+                } catch (Exception e) {}
+            }
             Service.charWearing(conn.p, conn.p, true);
             conn.p.map.send_boat(conn.p, true);
             conn.p.map.update_boat(conn.p, conn.p, true);

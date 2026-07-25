@@ -64,7 +64,7 @@ public class ItemFashionP {
                 break;
             }
             case 105: {
-                int ver_ = Integer.parseInt(p.conn.version.replace(".", ""));
+                int ver_ = p.conn.getVersionInt();
                 Message m = new Message(-19);
                 m.writer().writeByte(105);
                 m.writer().writeUTF("Thời trang");

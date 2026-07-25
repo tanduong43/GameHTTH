@@ -62,6 +62,16 @@ public class Session implements Runnable {
     public int vip;
     public int tichnap;
     public String claimed_milestones;
+    
+    public int getVersionInt() {
+        try {
+            if (version == null) return 0;
+            String v = version.replace(".", "").replaceAll("[^0-9]", "");
+            return Integer.parseInt(v);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
     private boolean getImgAPK = false;
 
     public Session(Socket socket) {

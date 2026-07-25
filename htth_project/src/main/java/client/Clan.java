@@ -1363,7 +1363,7 @@ public class Clan {
 
     public static void update_list_member(Player p, boolean b) throws IOException {
         if (p.clan != null) {
-            int ver_ = Integer.parseInt(p.conn.version.replace(".", ""));
+            int ver_ = p.conn.getVersionInt();
             Message m = new Message(-52);
             m.writer().writeByte(3);
             m.writer().writeByte(p.clan.members.size());

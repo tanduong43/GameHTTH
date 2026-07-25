@@ -702,6 +702,58 @@ public class Player {
                 e.printStackTrace();
             }
         }
+        // ===== RECONNECT: Kiểm tra ReconnectSession (30 giây) =====
+        client.ReconnectSession session = client.ReconnectSession.getAndRemove(this.name);
+        if (session != null) {
+            if (session.party != null && session.party.list.size() < 4) {
+                session.party.temp_rejoin(this);
+            }
+            if (session.bossHunt != null && (session.bossHunt.active || session.bossHunt.waitingForReady)) {
+                this.bossHunt = session.bossHunt;
+                try {
+                    core.Service.send_box_yesno(this, 999, "Săn Trùm",
+                            "Bạn có muốn quay lại trận Săn Trùm đang dang dở không?",
+                            new String[] { "Có", "Không" }, new byte[] { 2, 1 });
+                } catch (Exception e) {}
+            } else if (session.dungeon != null) {
+                if (session.dungeon instanceof activities.HangDong) {
+                    activities.HangDong hd = (activities.HangDong) session.dungeon;
+                    if (hd.active && !hd.finished) {
+                        this.dungeon = hd;
+                        try {
+                            core.Service.send_box_yesno(this, 998, "Hang Động",
+                                    "Bạn có muốn quay lại Hang Động đang dang dở không?",
+                                    new String[] { "Có", "Không" }, new byte[] { 2, 1 });
+                        } catch (Exception e) {}
+                    }
+                } else if (session.dungeon instanceof activities.TowerChallenge) {
+                    activities.TowerChallenge tc = (activities.TowerChallenge) session.dungeon;
+                    if (tc.active && !tc.finished) {
+                        this.dungeon = tc;
+                        try {
+                            core.Service.send_box_yesno(this, 997, "Vượt Liên Tầng",
+                                    "Bạn có muốn quay lại Vượt Liên Tầng đang dang dở không?",
+                                    new String[] { "Có", "Không" }, new byte[] { 2, 1 });
+                        } catch (Exception e) {}
+                    }
+                } else if (session.dungeon instanceof activities.NamieTreasureDefense) {
+                    activities.NamieTreasureDefense ntd = (activities.NamieTreasureDefense) session.dungeon;
+                    if (ntd.active && !ntd.finished) {
+                        this.dungeon = ntd;
+                        try {
+                            core.Service.send_box_yesno(this, 996, "Bảo Vệ Kho Báu",
+                                    "Bạn có muốn quay lại Bảo Vệ Kho Báu đang dang dở không?",
+                                    new String[] { "Có", "Không" }, new byte[] { 2, 1 });
+                        } catch (Exception e) {}
+                    }
+                }
+            } else if (session.oldMap != null) {
+                // Đang không ở trong hang động, cho player về lại map cũ (bỏ qua check isMapLang vì ta đang reconnect)
+                // Tuy nhiên `setup` mặc định đẩy về village nếu ko có tọa độ save, 
+                // ta sẽ đặt lại tọa độ map cũ ở đây.
+                this.map = session.oldMap;
+            }
+        }
         return true;
     }
 
@@ -751,7 +803,6 @@ public class Player {
         is_accept_trade = false;
         use_item_3 = -1;
         time_buff_hp_mp = System.currentTimeMillis() + 5000L;
-        party = null;
         wait_change_map = true;
         id_meet_in_map = new HashSet<>();
         percent_da_sieu_cap = 35;

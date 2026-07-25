@@ -1813,7 +1813,9 @@ public class Map implements Runnable {
             m.writer().writeByte(type);
             for (int i = 0; i < players.size(); i++) {
                 Player p0 = players.get(i);
-                p0.conn.addmsg(m);
+                if (p0.conn != null) {
+                    p0.conn.addmsg(m);
+                }
                 p0.id_meet_in_map.remove("" + p.index_map);
             }
             m.cleanup();
@@ -1824,7 +1826,9 @@ public class Map implements Runnable {
                 m.writer().writeByte(type);
                 for (int i = 0; i < players.size(); i++) {
                     Player p0 = players.get(i);
-                    p0.conn.addmsg(m);
+                    if (p0.conn != null) {
+                        p0.conn.addmsg(m);
+                    }
                 }
                 m.cleanup();
             }

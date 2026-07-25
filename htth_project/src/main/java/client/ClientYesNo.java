@@ -80,6 +80,8 @@ public class ClientYesNo {
                     p.dungeon = null;
                     if (activeHangDong.partyMembers.isEmpty()) {
                         activeHangDong.completeDungeon();
+                    } else if (p.name.equals(activeHangDong.leader.name)) {
+                        activeHangDong.leader = activeHangDong.partyMembers.get(0);
                     }
                 }
             }
@@ -113,6 +115,8 @@ public class ClientYesNo {
                     p.dungeon = null;
                     if (activeChallenge.partyMembers.isEmpty()) {
                         activeChallenge.cleanup();
+                    } else if (p.name.equals(activeChallenge.leader.name)) {
+                        activeChallenge.leader = activeChallenge.partyMembers.get(0);
                     }
                 }
             }
@@ -215,23 +219,23 @@ public class ClientYesNo {
             }
             return;
         }
+
+        // ===== RECONNECT: Săn Trùm (id=999) =====
         if (id == 999) {
-            BossHunt hunt = BossHunt.findActiveHunt(p.name);
-            if (value == 0) { // Đồng ý - vào lại trận
-                System.out.println("[BossHunt] Player " + p.name + " accepted to rejoin the Boss Hunt.");
+            activities.BossHunt hunt = p.bossHunt;
+            if (value == 0) { // Có - vào lại
                 if (hunt != null && hunt.active && !hunt.maps.isEmpty()) {
                     hunt.updateMemberReference(p.name, p);
-                    p.bossHunt = hunt;
-                    map.Map targetMap = hunt.maps.get(hunt.currentFloor);
+                    map.Map targetMap = null;
+                    if (hunt.currentFloor >= 0 && hunt.currentFloor < hunt.maps.size()) {
+                        targetMap = hunt.maps.get(hunt.currentFloor);
+                    }
                     if (targetMap != null) {
-                        System.out.println("[BossHunt] Rejoining player " + p.name + " to floor "
-                                + (hunt.currentFloor + 1) + " (map " + targetMap.template.id + ").");
                         Vgo vgo = new Vgo();
                         vgo.map_go = new map.Map[] { targetMap };
                         vgo.xnew = 300;
                         vgo.ynew = 250;
                         p.goto_map(vgo);
-                        // Thông báo cho các thành viên còn lại
                         for (Player member : hunt.members) {
                             if (member.conn != null && !member.name.equals(p.name)) {
                                 Service.send_box_ThongBao_OK(member,
@@ -241,30 +245,24 @@ public class ClientYesNo {
                         Service.send_box_ThongBao_OK(p,
                                 "Bạn đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
                     } else {
-                        System.out.println("[BossHunt] Rejoin failed for player " + p.name + ": map for floor "
-                                + (hunt.currentFloor + 1) + " not found.");
                         p.bossHunt = null;
                         Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
                     }
                 } else if (hunt != null && hunt.waitingForReady) {
-                    System.out.println("[BossHunt] Rejoining player " + p.name + " to waiting lobby.");
                     hunt.updateMemberReference(p.name, p);
-                    p.bossHunt = hunt;
                     Service.send_box_ThongBao_OK(p, "Bạn đã quay lại phòng chờ Săn Trùm!");
                 } else {
-                    System.out.println(
-                            "[BossHunt] Rejoin failed for player " + p.name + ": room no longer exists or finished.");
                     p.bossHunt = null;
                     Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
                 }
-            } else { // Hủy - rời khỏi hunt, ở lại map 1
-                System.out.println("[BossHunt] Player " + p.name
-                        + " declined to rejoin the Boss Hunt. Clearing active references.");
+            } else { // Không
                 if (hunt != null) {
-                    hunt.removeMemberByName(p.name);
+                    hunt.handlePlayerLeftParty(p);
                 }
                 p.bossHunt = null;
-                // Đảm bảo player ở map 1
+                if (p.party != null) {
+                    p.party.leave_party(p);
+                }
                 if (p.map == null || p.map.map_bossHunt != null) {
                     Vgo vgo = new Vgo();
                     vgo.map_go = map.Map.get_map_by_id(1);
@@ -272,6 +270,99 @@ public class ClientYesNo {
                     vgo.ynew = 250;
                     p.goto_map(vgo);
                 }
+            }
+            p.data_yesno = null;
+            return;
+        }
+
+        // ===== RECONNECT: Hang Động (id=998) =====
+        if (id == 998) {
+            activities.HangDong hd = activities.HangDong.findActive(p.name);
+            if (value == 0) { // C\u00f3 - v\u00e0o l\u1ea1i
+                if (hd != null && hd.active && !hd.finished && hd.currentMap != null) {
+                    hd.updateMemberReference(p.name, p);
+                    p.dungeon = hd;
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = new map.Map[] { hd.currentMap };
+                    vgo.xnew = 300;
+                    vgo.ynew = 250;
+                    p.goto_map(vgo);
+                    Service.send_box_ThongBao_OK(p, "B\u1ea1n \u0111\u00e3 quay l\u1ea1i Hang \u0110\u1ed9ng T\u1ea7ng " + (hd.currentStageIndex + 1) + "!");
+                    for (Player mem : hd.partyMembers) {
+                        if (mem.conn != null && mem.conn.connected && !mem.name.equals(p.name)) {
+                            Service.send_box_ThongBao_OK(mem, p.name + " \u0111\u00e3 quay l\u1ea1i Hang \u0110\u1ed9ng!");
+                        }
+                    }
+                } else {
+                    p.dungeon = null;
+                    Service.send_box_ThongBao_OK(p, "Hang \u0110\u1ed9ng \u0111\u00e3 k\u1ebft th\u00fac.");
+                }
+            } else { // Kh\u00f4ng - x\u00f3a kh\u1ecfi dungeon v\u00e0 party
+                if (hd != null) hd.handlePlayerLeftParty(p);
+                else p.dungeon = null;
+                if (p.party != null) p.party.leave_party(p);
+            }
+            p.data_yesno = null;
+            return;
+        }
+
+        // ===== RECONNECT: V\u01b0\u1ee3t Li\u00ean T\u1ea7ng (id=997) =====
+        if (id == 997) {
+            activities.TowerChallenge tc = activities.TowerChallenge.findActiveChallenge(p.name);
+            if (value == 0) { // C\u00f3 - v\u00e0o l\u1ea1i
+                if (tc != null && tc.active && !tc.finished && tc.currentMap != null) {
+                    tc.updateMemberReference(p.name, p);
+                    p.dungeon = tc;
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = new map.Map[] { tc.currentMap };
+                    vgo.xnew = 300;
+                    vgo.ynew = 250;
+                    p.goto_map(vgo);
+                    Service.send_box_ThongBao_OK(p, "B\u1ea1n \u0111\u00e3 quay l\u1ea1i V\u01b0\u1ee3t Li\u00ean T\u1ea7ng " + (tc.currentStageIndex + 1) + "!");
+                    for (Player mem : tc.partyMembers) {
+                        if (mem.conn != null && mem.conn.connected && !mem.name.equals(p.name)) {
+                            Service.send_box_ThongBao_OK(mem, p.name + " \u0111\u00e3 quay l\u1ea1i V\u01b0\u1ee3t Li\u00ean T\u1ea7ng!");
+                        }
+                    }
+                } else {
+                    p.dungeon = null;
+                    Service.send_box_ThongBao_OK(p, "V\u01b0\u1ee3t Li\u00ean T\u1ea7ng \u0111\u00e3 k\u1ebft th\u00fac.");
+                }
+            } else { // Kh\u00f4ng
+                if (tc != null) tc.handlePlayerLeftParty(p);
+                else p.dungeon = null;
+                if (p.party != null) p.party.leave_party(p);
+            }
+            p.data_yesno = null;
+            return;
+        }
+
+        // ===== RECONNECT: B\u1ea3o V\u1ec7 Kho B\u00e1u Nami (id=996) =====
+        if (id == 996) {
+            activities.NamieTreasureDefense ntd = activities.NamieTreasureDefense.findActiveDefense(p.name);
+            if (value == 0) { // C\u00f3 - v\u00e0o l\u1ea1i
+                if (ntd != null && ntd.active && !ntd.finished && ntd.currentMap != null) {
+                    ntd.updateMemberReference(p.name, p);
+                    p.dungeon = ntd;
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = new map.Map[] { ntd.currentMap };
+                    vgo.xnew = 300;
+                    vgo.ynew = 250;
+                    p.goto_map(vgo);
+                    Service.send_box_ThongBao_OK(p, "B\u1ea1n \u0111\u00e3 quay l\u1ea1i B\u1ea3o V\u1ec7 Kho B\u00e1u!");
+                    for (Player mem : ntd.partyMembers) {
+                        if (mem.conn != null && mem.conn.connected && !mem.name.equals(p.name)) {
+                            Service.send_box_ThongBao_OK(mem, p.name + " \u0111\u00e3 quay l\u1ea1i B\u1ea3o V\u1ec7 Kho B\u00e1u!");
+                        }
+                    }
+                } else {
+                    p.dungeon = null;
+                    Service.send_box_ThongBao_OK(p, "B\u1ea3o V\u1ec7 Kho B\u00e1u \u0111\u00e3 k\u1ebft th\u00fac.");
+                }
+            } else { // Kh\u00f4ng
+                if (ntd != null) ntd.handlePlayerLeftParty(p);
+                else p.dungeon = null;
+                if (p.party != null) p.party.leave_party(p);
             }
             p.data_yesno = null;
             return;

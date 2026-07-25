@@ -2615,7 +2615,7 @@ public class MenuController {
           break;
         }
         case 4: {
-          int ver_ = Integer.parseInt(p.conn.version.replace(".", ""));
+          int ver_ = p.conn.getVersionInt();
           if (ver_ >= 115) {
             Upgrade_Skin.show_table(p);
           } else {

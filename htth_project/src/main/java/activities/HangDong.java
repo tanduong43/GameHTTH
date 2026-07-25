@@ -507,7 +507,7 @@ public class HangDong extends Dungeon {
     }
 
     public synchronized void handlePlayerLeftParty(Player p) {
-        this.partyMembers.remove(p);
+        this.partyMembers.removeIf(m -> m.name.equals(p.name));
         p.dungeon = null;
 
         // Teleport the player back to map 1
