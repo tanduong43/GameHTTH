@@ -71,16 +71,20 @@ public class Upgrade_Skin {
         Message m = new Message(81);
         m.writer().writeByte(0);
         m.writer().writeByte(105);
-        m.writer().writeByte(p.fashion.size()); // size skin
+        List<ItemFashionP2> validFashions = new ArrayList<>();
         for (int i = 0; i < p.fashion.size(); i++) {
-            ItemFashion temp = ItemFashion.get_item(p.fashion.get(i).id);
-            if (temp != null) {
-                m.writer().writeShort(temp.ID);
-                m.writer().writeUTF("HTTH");
-                m.writer().writeUTF("Mãi đỉnh");
-                m.writer().writeShort(temp.idIcon);
-                m.writer().writeByte(p.fashion.get(i).level);
+            if (ItemFashion.get_item(p.fashion.get(i).id) != null) {
+                validFashions.add(p.fashion.get(i));
             }
+        }
+        m.writer().writeByte(validFashions.size()); // size skin
+        for (int i = 0; i < validFashions.size(); i++) {
+            ItemFashion temp = ItemFashion.get_item(validFashions.get(i).id);
+            m.writer().writeShort(temp.ID);
+            m.writer().writeUTF("HTTH");
+            m.writer().writeUTF("Mãi đỉnh");
+            m.writer().writeShort(temp.idIcon);
+            m.writer().writeByte(validFashions.get(i).level);
         }
         //
         List<ItemBag47> list_da_kham = new ArrayList<>();
@@ -138,16 +142,20 @@ public class Upgrade_Skin {
                     Message m3 = new Message(81);
                     m3.writer().writeByte(5);
                     m3.writer().writeByte(105);
-                    m3.writer().writeByte(p.fashion.size()); // size skin
+                    List<ItemFashionP2> validFashions = new ArrayList<>();
                     for (int i = 0; i < p.fashion.size(); i++) {
-                        ItemFashion temp = ItemFashion.get_item(p.fashion.get(i).id);
-                        if (temp != null) {
-                            m3.writer().writeShort(temp.ID);
-                            m3.writer().writeUTF("");
-                            m3.writer().writeUTF("");
-                            m3.writer().writeShort(temp.idIcon);
-                            m3.writer().writeByte(p.fashion.get(i).level);
+                        if (ItemFashion.get_item(p.fashion.get(i).id) != null) {
+                            validFashions.add(p.fashion.get(i));
                         }
+                    }
+                    m3.writer().writeByte(validFashions.size()); // size skin
+                    for (int i = 0; i < validFashions.size(); i++) {
+                        ItemFashion temp = ItemFashion.get_item(validFashions.get(i).id);
+                        m3.writer().writeShort(temp.ID);
+                        m3.writer().writeUTF("");
+                        m3.writer().writeUTF("");
+                        m3.writer().writeShort(temp.idIcon);
+                        m3.writer().writeByte(validFashions.get(i).level);
                     }
                     //
                     List<ItemBag47> list_da_kham = new ArrayList<>();
@@ -155,7 +163,7 @@ public class Upgrade_Skin {
                         ItemBag47 it47 = p.item.bag47.get(i);
                         if (it47.category == 4) {
                             ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(it47.id);
-                            if (itemTemplate4.type == 12 && itemTemplate4.id < 80
+                            if (itemTemplate4 != null && itemTemplate4.type == 12 && itemTemplate4.id < 80
                                     && check_id_ngoc(itemTemplate4.id)) {
                                 list_da_kham.add(it47);
                             }
@@ -194,7 +202,7 @@ public class Upgrade_Skin {
                     m.writer().writeByte(1);
                     m.writer().writeByte(105);
                     m.writer().writeShort(id);
-                    m.writer().writeByte(0);
+                    m.writer().writeByte(get_material_percent(myFashion.level));
                     m.writer().writeByte(0);
                     m.writer().writeByte(1);
                     //
@@ -423,7 +431,8 @@ public class Upgrade_Skin {
                 }
 
                 // Tính toán tỷ lệ thành công
-                int total_percent = get_total_percent(p);
+                int base_percent = get_material_percent(p.upgrade_skin.skin.level);
+                int total_percent = base_percent + get_total_percent(p);
                 p.update_vang(-beri_req);
                 p.update_ngoc(-ruby_req);
                 p.update_vnd(-extol_req);
@@ -471,10 +480,9 @@ public class Upgrade_Skin {
                 for (int i = 0; i < size; i++) {
                     m2.reader().readShort(); // list da kham
                 }
-                int total_percent = get_total_percent(p);
                 Message m = new Message(81);
                 m.writer().writeByte(6);
-                m.writer().writeByte(total_percent); // ti le may man + them
+                m.writer().writeByte(0); // ti le may man + them
                 p.conn.addmsg(m);
                 m.cleanup();
             }
