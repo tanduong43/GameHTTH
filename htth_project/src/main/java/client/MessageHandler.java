@@ -904,11 +904,22 @@ public class MessageHandler {
             }
             conn.p = p0;
 
-            // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về map 1
+            // Reconnect BossHunt check
+            activities.BossHunt activeBossHunt = activities.BossHunt.findActiveHunt(conn.p.name);
+
+            // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về làng đã đăng ký phó bản
             if (conn.p.map != null && conn.p.map.map_bossHunt != null) {
+                int targetMapId = 1;
+                if (activeBossHunt != null) {
+                    targetMapId = activeBossHunt.registeredMapId;
+                } else if (conn.p.originalMapId > 0) {
+                    targetMapId = conn.p.originalMapId;
+                } else if (conn.p.id_map_save > 0) {
+                    targetMapId = conn.p.id_map_save;
+                }
                 System.out.println("[BossHunt] Login safety: player " + conn.p.name
-                        + " still in BossHunt map, redirecting to map 1.");
-                map.Map[] villageMap = map.Map.get_map_by_id(1);
+                        + " still in BossHunt map, redirecting to map " + targetMapId);
+                map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
                     conn.p.x = 300;
@@ -922,12 +933,15 @@ public class MessageHandler {
             // Safety fallback: nếu vẫn đang trong map Tower map nhưng no active dungeon
             if (conn.p.map != null && conn.p.map.template.id >= 500 && conn.p.map.template.id <= 512
                     && conn.p.dungeon == null) {
-                System.out.println("[TowerChallenge] Login safety: player " + conn.p.name
-                        + " still in Tower map but no active dungeon, redirecting to id_map_save.");
-                int targetMapId = conn.p.id_map_save;
+                int targetMapId = conn.p.originalMapId;
+                if (targetMapId <= 0) {
+                    targetMapId = conn.p.id_map_save;
+                }
                 if (targetMapId <= 0) {
                     targetMapId = 1;
                 }
+                System.out.println("[TowerChallenge] Login safety: player " + conn.p.name
+                        + " still in Tower map but no active dungeon, redirecting to map " + targetMapId);
                 map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
@@ -937,12 +951,19 @@ public class MessageHandler {
             }
             // Reconnect HangDong check
             activities.HangDong activeHangDong = activities.HangDong.findActive(conn.p.name);
-            // Safety fallback: nếu vẫn đang trong map HangDong/Dungeon (id 167) nhưng no
-            // active dungeon
-            if (conn.p.map != null && conn.p.map.template.id == 167 && conn.p.dungeon == null) {
-                System.out.println("[HangDong] Login safety: player " + conn.p.name
-                        + " still in HangDong map but no active dungeon, redirecting to map 1.");
-                map.Map[] villageMap = map.Map.get_map_by_id(1);
+            // Safety fallback: nếu vẫn đang trong các map HangDong/Dungeon (id 167-176) nhưng no active dungeon
+            if (conn.p.map != null && conn.p.map.template.id >= 167 && conn.p.map.template.id <= 176 && conn.p.dungeon == null) {
+                int targetMapId = conn.p.originalMapId;
+                if (targetMapId <= 0) {
+                    targetMapId = conn.p.id_map_save;
+                }
+                if (targetMapId <= 0) {
+                    targetMapId = 25; // Default fallback to Syrup Village for Single Dungeon
+                }
+                System.out.println("[HangDong/Dungeon] Login safety: player " + conn.p.name
+                        + " still in HangDong/Dungeon map (" + conn.p.map.template.id 
+                        + ") but no active dungeon, redirecting to map " + targetMapId);
+                map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
                     conn.p.x = 300;
@@ -954,12 +975,15 @@ public class MessageHandler {
                     .findActiveDefense(conn.p.name);
             // Safety fallback: nếu vẫn đang trong map Namie nhưng no active dungeon
             if (conn.p.map != null && conn.p.map.template.id == 513 && conn.p.dungeon == null) {
-                System.out.println("[NamieDefense] Login safety: player " + conn.p.name
-                        + " still in Namie map but no active dungeon, redirecting to id_map_save.");
-                int targetMapId = conn.p.id_map_save;
+                int targetMapId = conn.p.originalMapId;
+                if (targetMapId <= 0) {
+                    targetMapId = conn.p.id_map_save;
+                }
                 if (targetMapId <= 0) {
                     targetMapId = 1;
                 }
+                System.out.println("[NamieDefense] Login safety: player " + conn.p.name
+                        + " still in Namie map but no active dungeon, redirecting to map " + targetMapId);
                 map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
@@ -998,12 +1022,13 @@ public class MessageHandler {
             Quest.update_map_have_side_quest(conn.p, true);
             Service.Weapon_fashion(conn.p, conn.p, true);
             UpgradeItem.send_heart_info(conn.p, true);
-            
+
             // Re-send party info to ensure the client UI displays it after login
             if (conn.p.party != null) {
                 try {
                     conn.p.party.send_info();
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
             }
             Service.charWearing(conn.p, conn.p, true);
             conn.p.map.send_boat(conn.p, true);
@@ -1013,60 +1038,17 @@ public class MessageHandler {
             Clan.send_info(conn.p, true);
             conn.p.item.update_assets_Inventory(true);
 
-            // Message m3 = new Message(18);
-            // m3.writer().writeUTF("Đua Top OPEN");
-            // m3.writer().writeUTF("\nThời gian: 12:00 ngày 30/12/2023 - 12:00 ngày
-            // 30/1/2024\n"
-            // + "Phần thưởng:\n"
-            // + "- Top 1: 1 trái ác quỷ bóng tối, 15 khiên, 1 đá Hổ phách - Ruby siêu cấp,
-            // 1 thời trang UTA (vĩnh viễn)\n"
-            // + "- Top 2-3: 1 trái ác quỷ bóng tối, 10 khiên, 1 đá Hổ phách cấp 6\n"
-            // + "- Top 4-10: 1 trái ác quỷ sét, 5 khiên, 1 đá hổ phách cấp 5.\n"
-            // + "TOP 10 nhân vật nạp nhiều nhất:\n"
-            // + "- TOP 1: Trái ác quỷ Bóng Tối, Thời trang Mihawk Gold, 1 Đá khảm vô cực S,
-            // 100 Đá hải thạch cấp 6, 500.000.000 Beri\n"
-            // + "- TOP 2: 1 Trang bị Max +12, Thời trang Mihawk Gold, 1 Đá khảm vô cực S,
-            // 80 Đá hải thạch cấp 6, 400.000.000 Beri\n"
-            // + "- TOP 3: 1 Trang bị Max +12, Thời trang Mihawk, 1 Đá khảm vô cực S, 50 Đá
-            // hải thạch cấp 6, 300.000.000 Beri\n"
-            // + "- TOP 4-10: 1 Trang bị Max +10, Thời trang Mihawk, 1 Đá khảm vô cực, 30 Đá
-            // hải thạch cấp 6, 100.000.000 Beri\n"
-            // + "");
-            // conn.p.list_msg_cache.add(m3);
-            // Message m4 = new Message(18);
-            // m4.writer().writeUTF("GiftCode");
-            // m4.writer().writeUTF(
-            // " \n- 1: TanThu"
-            // + "\n- 2: ThanhVien"
-            // + "\n- 3:tambiet2023"
-            // + "\n- 4:htht2024"
-            // + "\n- 5:baotri");
-            // conn.p.list_msg_cache.add(m4);
-
             // // Boss Status Announcement
-            // StringBuilder sbBoss = new StringBuilder();
-            // for (int i = 0; i < Boss.ENTRYS.size(); i++) {
-            // Boss temp = Boss.ENTRYS.get(i);
-            // if (temp.mob != null && !temp.mob.isdie) {
-            // sbBoss.append("- ").append(temp.mob.mob_template.name)
-            // .append(" xuất hiện tại: ").append(temp.mob.map.template.name)
-            // .append(" (Khu ").append(temp.mob.map.zone_id + 1).append(")\n");
-            // }
-            // }
-            // if (sbBoss.length() > 0) {
-            // Message mBoss = new Message(18);
-            // mBoss.writer().writeUTF("Thông báo boss");
-            // mBoss.writer().writeUTF(sbBoss.toString());
-            // conn.p.list_msg_cache.add(mBoss);
-            // }
             Message m2 = new Message(18);
             m2.writer().writeUTF("Tin đến");
             m2.writer().writeUTF(
                     "Chào mừng bạn đến với Thế Giới Hải Tặc - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
             conn.p.list_msg_cache.add(m2);
 
-            // === Rejoin dialog for HangDong, TowerChallenge, NamieTreasureDefense ===
-            if (activeHangDong != null || activeChallenge != null || activeDefense != null) {
+            // === Rejoin dialog for HangDong, TowerChallenge, NamieTreasureDefense,
+            // BossHunt ===
+            if (activeHangDong != null || activeChallenge != null || activeDefense != null
+                    || activeBossHunt != null) {
                 final Player player = conn.p;
                 new Thread(() -> {
                     try {
@@ -1074,13 +1056,15 @@ public class MessageHandler {
                         if (player != null && player.conn != null && player.conn.connected) {
                             if (activeHangDong != null) {
                                 System.out
-                                        .println("[HangDong] Showing delayed rejoin dialog for player: " + player.name);
+                                        .println("[HangDong] Showing delayed rejoin dialog for player: "
+                                                + player.name);
                                 Service.send_box_yesno(player, 8888, "Thông báo",
                                         "Bạn có muốn vào lại phụ bản Hang Động không?",
                                         new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                             } else if (activeChallenge != null) {
                                 System.out.println(
-                                        "[TowerChallenge] Showing delayed rejoin dialog for player: " + player.name);
+                                        "[TowerChallenge] Showing delayed rejoin dialog for player: "
+                                                + player.name);
                                 Service.send_box_yesno(player, 8889, "Thông báo",
                                         "Bạn có muốn vào lại phụ bản Vượt ải liên tầng không?",
                                         new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
@@ -1090,13 +1074,21 @@ public class MessageHandler {
                                 Service.send_box_yesno(player, 8890, "Thông báo",
                                         "Bạn có muốn vào lại phụ bản Bảo vệ kho báu Namie không?",
                                         new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
+                            } else if (activeBossHunt != null) {
+                                System.out.println(
+                                        "[BossHunt] Showing delayed rejoin dialog for player: " + player.name);
+                                Service.send_box_yesno(player, 8891, "Thông báo",
+                                        "Bạn có muốn vào lại trận Săn Trùm không?",
+                                        new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                             }
                         }
                     } catch (Exception e) {
-                        System.err.println("[Dungeon Rejoin] Error in delayed rejoin dialog thread: " + e.getMessage());
+                        System.err.println(
+                                "[Dungeon Rejoin] Error in delayed rejoin dialog thread: " + e.getMessage());
                     }
                 }).start();
             }
         }
     }
+
 }

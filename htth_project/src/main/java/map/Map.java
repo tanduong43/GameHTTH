@@ -174,6 +174,15 @@ public class Map implements Runnable {
             this.map_bossHunt = null;
             return;
         }
+        // Kiểm tra thất bại (tất cả tử trận)
+        if (hunt.isFailed) {
+            if (System.currentTimeMillis() >= hunt.failTime) {
+                System.out.println("[BossHunt] All players died. Ending dungeon.");
+                this.map_bossHunt = null;
+                hunt.returnAllToVillage("Thành viên trong tổ đội đã tử trận!", hunt.registeredMapId);
+            }
+            return;
+        }
         // Chỉ map có boss của tầng hiện tại mới xử lý
         if (hunt.maps.isEmpty() || !hunt.maps.get(hunt.currentFloor).equals(this)) {
             return;
@@ -208,7 +217,7 @@ public class Map implements Runnable {
                 hunt.transitionTime = System.currentTimeMillis() + 5_000L;
                 System.out.println("[BossHunt] FINAL FLOOR COMPLETE! Returning to registered village in 5s.");
                 for (client.Player member : hunt.members) {
-                    if (member.conn != null) {
+                    if (member != null && member.conn != null && member.conn.connected) {
                         hunt.giveRewardsForFloor(member, hunt.currentFloor, true);
                         core.Service.send_time_cool_down(member,
                                 hunt.transitionTime, "Quay về làng", 2);
@@ -219,7 +228,7 @@ public class Map implements Runnable {
                 hunt.transitionTime = System.currentTimeMillis() + 3_000L;
                 System.out.println("[BossHunt] Transitioning to floor " + (nextFloor + 1) + " in 3s.");
                 for (client.Player member : hunt.members) {
-                    if (member.conn != null) {
+                    if (member != null && member.conn != null && member.conn.connected) {
                         hunt.giveRewardsForFloor(member, hunt.currentFloor, false);
                     }
                 }
@@ -1642,6 +1651,54 @@ public class Map implements Runnable {
             m.cleanup();
             return;
         }
+        boolean isBossHunt = this.map_bossHunt != null;
+        if (isBossHunt) {
+            activities.BossHunt hunt = this.map_bossHunt;
+            p0.isdie = true;
+            p0.hp = 0;
+            
+            boolean allDead = true;
+            for (Player member : hunt.members) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                        && pOnline.bossHunt == hunt && pOnline.map.equals(this)) {
+                    if (pOnline.name.equals(p0.name)) {
+                        continue;
+                    }
+                    if (!pOnline.isdie && pOnline.hp > 0) {
+                        allDead = false;
+                        break;
+                    }
+                }
+            }
+            if (allDead) {
+                if (!hunt.isFailed) {
+                    hunt.isFailed = true;
+                    hunt.failTime = System.currentTimeMillis() + 10_000L;
+                    for (Player member : hunt.members) {
+                        Player pOnline = Map.get_player_by_name_allmap(member.name);
+                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                                && pOnline.bossHunt == hunt && pOnline.map.equals(this)) {
+                            Service.send_time_cool_down(pOnline, hunt.failTime, "Thất Bại", 2);
+                            Service.send_box_ThongBao_OK(pOnline, "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
+                        }
+                    }
+                }
+                
+                p0.isdie = true;
+                p0.update_die();
+                
+                Message m = new Message(7);
+                m.writer().writeShort(p.index_map);
+                m.writer().writeByte(0);
+                m.writer().writeShort(p0.index_map);
+                m.writer().writeByte(0);
+                m.writer().writeShort(p.pointPk); // point pk
+                send_msg_all_p(m, p0, true);
+                m.cleanup();
+                return;
+            }
+        }
         boolean isTowerChallenge = this.map_dungeon != null && this.map_dungeon instanceof activities.TowerChallenge;
         if (isTowerChallenge) {
             activities.TowerChallenge tc = (activities.TowerChallenge) this.map_dungeon;
@@ -1796,15 +1853,28 @@ public class Map implements Runnable {
                 this.stop_map();
             }
         }
-        // BossHunt: when player disconnects/leaves, keep them in hunt but mark conn
-        // gone
-        // They will be prompted to rejoin on next login via findActiveHunt
+        // BossHunt: khi player ngắt kết nối, tạm chuyển vào offlineMembers.
+        // Họ sẽ KHÔNG bị lôi vào tầng mới cho đến khi xác nhận vào lại.
         if (this.map_bossHunt != null && p.bossHunt != null) {
             System.out.println("[BossHunt] Player " + p.name
                     + " left BossHunt map (floor " + (p.bossHunt.currentFloor + 1) + ")."
-                    + " Keeping in hunt for reconnect.");
-            // Player's map location will be saved as BossHunt map,
-            // Player.setup() will redirect them to map 1 on next login.
+                    + " Moving to offlineMembers.");
+            this.map_bossHunt.markOffline(p.name);
+        }
+        // Reset mob target if mob was targeting the player who left/disconnected
+        if (this.map_bossHunt != null && this.map_bossHunt.mobs != null) {
+            for (Mob mob : this.map_bossHunt.mobs) {
+                if (mob.id_target == p.index_map) {
+                    mob.id_target = -1;
+                }
+            }
+        }
+        if (this.map_dungeon != null && this.map_dungeon.mobs != null) {
+            for (Mob mob : this.map_dungeon.mobs) {
+                if (mob.id_target == p.index_map) {
+                    mob.id_target = -1;
+                }
+            }
         }
         try {
             Message m = new Message(3);

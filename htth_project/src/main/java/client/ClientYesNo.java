@@ -77,7 +77,12 @@ public class ClientYesNo {
                 activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);
                 if (activeHangDong != null) {
                     activeHangDong.partyMembers.removeIf(member -> member.name.equals(p.name));
-                    p.dungeon = null;
+                }
+                p.dungeon = null;
+                if (p.party != null) {
+                    p.party.leave_party(p);
+                }
+                if (activeHangDong != null) {
                     if (activeHangDong.partyMembers.isEmpty()) {
                         activeHangDong.completeDungeon();
                     } else if (p.name.equals(activeHangDong.leader.name)) {
@@ -112,7 +117,12 @@ public class ClientYesNo {
                 activities.TowerChallenge activeChallenge = activities.TowerChallenge.findActiveChallenge(p.name);
                 if (activeChallenge != null) {
                     activeChallenge.partyMembers.removeIf(member -> member.name.equals(p.name));
-                    p.dungeon = null;
+                }
+                p.dungeon = null;
+                if (p.party != null) {
+                    p.party.leave_party(p);
+                }
+                if (activeChallenge != null) {
                     if (activeChallenge.partyMembers.isEmpty()) {
                         activeChallenge.cleanup();
                     } else if (p.name.equals(activeChallenge.leader.name)) {
@@ -143,10 +153,55 @@ public class ClientYesNo {
                 activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense.findActiveDefense(p.name);
                 if (activeDefense != null) {
                     activeDefense.partyMembers.removeIf(member -> member.name.equals(p.name));
-                    p.dungeon = null;
-                    if (activeDefense.partyMembers.isEmpty()) {
-                        activeDefense.cleanup();
+                }
+                p.dungeon = null;
+                if (p.party != null) {
+                    p.party.leave_party(p);
+                }
+                if (activeDefense != null && activeDefense.partyMembers.isEmpty()) {
+                    activeDefense.cleanup();
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
+        if (id == 8891) {
+            if (value == 0) { // Đồng ý
+                activities.BossHunt activeBossHunt = activities.BossHunt.findActiveHunt(p.name);
+                if (activeBossHunt != null && (activeBossHunt.active || activeBossHunt.waitingForReady)) {
+                    activeBossHunt.markOnline(p); // Chuyển từ offlineMembers → members
+                    p.bossHunt = activeBossHunt;
+                    map.Map targetMap = null;
+                    if (activeBossHunt.currentFloor >= 0 && activeBossHunt.currentFloor < activeBossHunt.maps.size()) {
+                        targetMap = activeBossHunt.maps.get(activeBossHunt.currentFloor);
                     }
+                    if (targetMap != null) {
+                        Vgo vgo = new Vgo();
+                        vgo.map_go = new Map[] { targetMap };
+                        vgo.xnew = 300;
+                        vgo.ynew = 250;
+                        p.goto_map(vgo);
+                        Service.send_box_ThongBao_OK(p, "Bạn đã quay lại trận Săn Trùm Tầng " + (activeBossHunt.currentFloor + 1) + "!");
+                    } else {
+                        Service.send_box_ThongBao_OK(p, "Trận Săn Trùm đã kết thúc!");
+                    }
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Trận Săn Trùm đã kết thúc!");
+                }
+            } else { // Hủy
+                activities.BossHunt activeBossHunt = activities.BossHunt.findActiveHunt(p.name);
+                if (activeBossHunt != null) {
+                    activeBossHunt.removeMemberByName(p.name);
+                }
+                p.bossHunt = null;
+                if (p.party != null) {
+                    p.party.leave_party(p);
+                }
+                if (activeBossHunt != null && activeBossHunt.members.isEmpty() && activeBossHunt.offlineMembers.isEmpty()) {
+                    try {
+                        activeBossHunt.returnAllToVillage(null);
+                    } catch (Exception e) {}
                 }
             }
             p.data_yesno = null;
@@ -220,153 +275,7 @@ public class ClientYesNo {
             return;
         }
 
-        // ===== RECONNECT: Săn Trùm (id=999) =====
-        if (id == 999) {
-            activities.BossHunt hunt = p.bossHunt;
-            if (value == 0) { // Có - vào lại
-                if (hunt != null && hunt.active && !hunt.maps.isEmpty()) {
-                    hunt.updateMemberReference(p.name, p);
-                    map.Map targetMap = null;
-                    if (hunt.currentFloor >= 0 && hunt.currentFloor < hunt.maps.size()) {
-                        targetMap = hunt.maps.get(hunt.currentFloor);
-                    }
-                    if (targetMap != null) {
-                        Vgo vgo = new Vgo();
-                        vgo.map_go = new map.Map[] { targetMap };
-                        vgo.xnew = 300;
-                        vgo.ynew = 250;
-                        p.goto_map(vgo);
-                        for (Player member : hunt.members) {
-                            if (member.conn != null && !member.name.equals(p.name)) {
-                                Service.send_box_ThongBao_OK(member,
-                                        p.name + " đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
-                            }
-                        }
-                        Service.send_box_ThongBao_OK(p,
-                                "Bạn đã quay lại trận Săn Trùm Tầng " + (hunt.currentFloor + 1) + "!");
-                    } else {
-                        p.bossHunt = null;
-                        Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
-                    }
-                } else if (hunt != null && hunt.waitingForReady) {
-                    hunt.updateMemberReference(p.name, p);
-                    Service.send_box_ThongBao_OK(p, "Bạn đã quay lại phòng chờ Săn Trùm!");
-                } else {
-                    p.bossHunt = null;
-                    Service.send_box_ThongBao_OK(p, "Trận Săn Trùm này đã kết thúc hoặc không còn tồn tại.");
-                }
-            } else { // Không
-                if (hunt != null) {
-                    hunt.handlePlayerLeftParty(p);
-                }
-                p.bossHunt = null;
-                if (p.party != null) {
-                    p.party.leave_party(p);
-                }
-                if (p.map == null || p.map.map_bossHunt != null) {
-                    Vgo vgo = new Vgo();
-                    vgo.map_go = map.Map.get_map_by_id(1);
-                    vgo.xnew = 300;
-                    vgo.ynew = 250;
-                    p.goto_map(vgo);
-                }
-            }
-            p.data_yesno = null;
-            return;
-        }
 
-        // ===== RECONNECT: Hang Động (id=998) =====
-        if (id == 998) {
-            activities.HangDong hd = activities.HangDong.findActive(p.name);
-            if (value == 0) { // C\u00f3 - v\u00e0o l\u1ea1i
-                if (hd != null && hd.active && !hd.finished && hd.currentMap != null) {
-                    hd.updateMemberReference(p.name, p);
-                    p.dungeon = hd;
-                    Vgo vgo = new Vgo();
-                    vgo.map_go = new map.Map[] { hd.currentMap };
-                    vgo.xnew = 300;
-                    vgo.ynew = 250;
-                    p.goto_map(vgo);
-                    Service.send_box_ThongBao_OK(p, "B\u1ea1n \u0111\u00e3 quay l\u1ea1i Hang \u0110\u1ed9ng T\u1ea7ng " + (hd.currentStageIndex + 1) + "!");
-                    for (Player mem : hd.partyMembers) {
-                        if (mem.conn != null && mem.conn.connected && !mem.name.equals(p.name)) {
-                            Service.send_box_ThongBao_OK(mem, p.name + " \u0111\u00e3 quay l\u1ea1i Hang \u0110\u1ed9ng!");
-                        }
-                    }
-                } else {
-                    p.dungeon = null;
-                    Service.send_box_ThongBao_OK(p, "Hang \u0110\u1ed9ng \u0111\u00e3 k\u1ebft th\u00fac.");
-                }
-            } else { // Kh\u00f4ng - x\u00f3a kh\u1ecfi dungeon v\u00e0 party
-                if (hd != null) hd.handlePlayerLeftParty(p);
-                else p.dungeon = null;
-                if (p.party != null) p.party.leave_party(p);
-            }
-            p.data_yesno = null;
-            return;
-        }
-
-        // ===== RECONNECT: V\u01b0\u1ee3t Li\u00ean T\u1ea7ng (id=997) =====
-        if (id == 997) {
-            activities.TowerChallenge tc = activities.TowerChallenge.findActiveChallenge(p.name);
-            if (value == 0) { // C\u00f3 - v\u00e0o l\u1ea1i
-                if (tc != null && tc.active && !tc.finished && tc.currentMap != null) {
-                    tc.updateMemberReference(p.name, p);
-                    p.dungeon = tc;
-                    Vgo vgo = new Vgo();
-                    vgo.map_go = new map.Map[] { tc.currentMap };
-                    vgo.xnew = 300;
-                    vgo.ynew = 250;
-                    p.goto_map(vgo);
-                    Service.send_box_ThongBao_OK(p, "B\u1ea1n \u0111\u00e3 quay l\u1ea1i V\u01b0\u1ee3t Li\u00ean T\u1ea7ng " + (tc.currentStageIndex + 1) + "!");
-                    for (Player mem : tc.partyMembers) {
-                        if (mem.conn != null && mem.conn.connected && !mem.name.equals(p.name)) {
-                            Service.send_box_ThongBao_OK(mem, p.name + " \u0111\u00e3 quay l\u1ea1i V\u01b0\u1ee3t Li\u00ean T\u1ea7ng!");
-                        }
-                    }
-                } else {
-                    p.dungeon = null;
-                    Service.send_box_ThongBao_OK(p, "V\u01b0\u1ee3t Li\u00ean T\u1ea7ng \u0111\u00e3 k\u1ebft th\u00fac.");
-                }
-            } else { // Kh\u00f4ng
-                if (tc != null) tc.handlePlayerLeftParty(p);
-                else p.dungeon = null;
-                if (p.party != null) p.party.leave_party(p);
-            }
-            p.data_yesno = null;
-            return;
-        }
-
-        // ===== RECONNECT: B\u1ea3o V\u1ec7 Kho B\u00e1u Nami (id=996) =====
-        if (id == 996) {
-            activities.NamieTreasureDefense ntd = activities.NamieTreasureDefense.findActiveDefense(p.name);
-            if (value == 0) { // C\u00f3 - v\u00e0o l\u1ea1i
-                if (ntd != null && ntd.active && !ntd.finished && ntd.currentMap != null) {
-                    ntd.updateMemberReference(p.name, p);
-                    p.dungeon = ntd;
-                    Vgo vgo = new Vgo();
-                    vgo.map_go = new map.Map[] { ntd.currentMap };
-                    vgo.xnew = 300;
-                    vgo.ynew = 250;
-                    p.goto_map(vgo);
-                    Service.send_box_ThongBao_OK(p, "B\u1ea1n \u0111\u00e3 quay l\u1ea1i B\u1ea3o V\u1ec7 Kho B\u00e1u!");
-                    for (Player mem : ntd.partyMembers) {
-                        if (mem.conn != null && mem.conn.connected && !mem.name.equals(p.name)) {
-                            Service.send_box_ThongBao_OK(mem, p.name + " \u0111\u00e3 quay l\u1ea1i B\u1ea3o V\u1ec7 Kho B\u00e1u!");
-                        }
-                    }
-                } else {
-                    p.dungeon = null;
-                    Service.send_box_ThongBao_OK(p, "B\u1ea3o V\u1ec7 Kho B\u00e1u \u0111\u00e3 k\u1ebft th\u00fac.");
-                }
-            } else { // Kh\u00f4ng
-                if (ntd != null) ntd.handlePlayerLeftParty(p);
-                else p.dungeon = null;
-                if (p.party != null) p.party.leave_party(p);
-            }
-            p.data_yesno = null;
-            return;
-        }
 
         if (id == 991) {
             // Member response: value == 0 is Accept (Đồng ý), value != 0 is Decline (Từ
@@ -471,12 +380,12 @@ public class ClientYesNo {
                                 ok = false;
                                 break;
                             }
-                            if (member.time_tower >= 5) {
-                                ok = false;
-                                failReason = "Thành viên " + member.name
-                                        + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!";
-                                break;
-                            }
+                            // if (member.time_tower >= 5) {
+                            //     ok = false;
+                            //     failReason = "Thành viên " + member.name
+                            //             + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!";
+                            //     break;
+                            // }
                         }
                         if (!ok) {
                             Service.send_box_ThongBao_OK(p, failReason);
@@ -972,16 +881,16 @@ public class ClientYesNo {
                                     p.map_tele = null;
                                     return;
                                 }
-                                if (member.time_tower >= 5) {
-                                    System.out
-                                            .println("[TowerChallenge] Registration failed: Party member " + member.name
-                                                    + " has reached the daily limit: " + member.time_tower + "/5.");
-                                    Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                            + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!");
-                                    p.data_yesno = null;
-                                    p.map_tele = null;
-                                    return;
-                                }
+                                // if (member.time_tower >= 5) {
+                                //     System.out
+                                //             .println("[TowerChallenge] Registration failed: Party member " + member.name
+                                //                     + " has reached the daily limit: " + member.time_tower + "/5.");
+                                //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                //             + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!");
+                                //     p.data_yesno = null;
+                                //     p.map_tele = null;
+                                //     return;
+                                // }
                                 if (member.dungeon != null) {
                                     System.out.println("[TowerChallenge] Registration failed: Party member "
                                             + member.name + " is already inside another dungeon.");
@@ -1029,12 +938,12 @@ public class ClientYesNo {
                                 p.map_tele = null;
                                 return;
                             }
-                            if (p.time_single_dungeon >= 5) {
-                                Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn Vượt ải đơn hôm nay (tối đa 5 lần)!");
-                                p.data_yesno = null;
-                                p.map_tele = null;
-                                return;
-                            }
+                            // if (p.time_single_dungeon >= 5) {
+                            //     Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn Vượt ải đơn hôm nay (tối đa 5 lần)!");
+                            //     p.data_yesno = null;
+                            //     p.map_tele = null;
+                            //     return;
+                            // }
                             if (p.get_key_boss() < 1) {
                                 Service.send_box_ThongBao_OK(p, "Không đủ 1 chìa khóa phó bản");
                                 p.data_yesno = null;
@@ -1049,6 +958,7 @@ public class ClientYesNo {
                             p.dungeon = new Dungeon();
                             p.dungeon.mode = mode;
                             p.dungeon.create();
+                            p.originalMapId = p.map.template.id; // Lưu Làng Syrup (Map 25) làm bản đồ gốc
                             Vgo vgo = new Vgo();
                             vgo.map_go = new Map[1];
                             vgo.map_go[0] = p.dungeon.maps.get(0);
@@ -1138,10 +1048,10 @@ public class ClientYesNo {
                         Service.send_box_ThongBao_OK(p, "Bạn không đủ 1 chìa khóa phó bản!");
                         return;
                     }
-                    if (p.time_hangdong >= 5) {
-                        Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn đi Hang Động hôm nay (tối đa 5 lần)!");
-                        return;
-                    }
+                    // if (p.time_hangdong >= 5) {
+                    //     Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn đi Hang Động hôm nay (tối đa 5 lần)!");
+                    //     return;
+                    // }
                     if (p.party != null) {
                         p.tableTickOption = new activities.TableTickOption();
                         p.tableTickOption.idDialog = 3;

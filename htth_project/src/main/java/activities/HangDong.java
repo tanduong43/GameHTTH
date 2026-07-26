@@ -34,6 +34,11 @@ public class HangDong extends Dungeon {
     public HangDong(List<Player> members, Player leader) {
         this.partyMembers.addAll(members);
         this.leader = leader;
+        for (Player p : members) {
+            if (p != null) {
+                p.dungeon = this;
+            }
+        }
         ACTIVE_HANG_DONG.add(this);
         this.maps = new ArrayList<>();
         this.mobs = new ArrayList<>();
@@ -195,13 +200,21 @@ public class HangDong extends Dungeon {
         vgo.xnew = 100;
         vgo.ynew = 100;
 
-        for (Player p : partyMembers) {
-            if (p != null && p.conn != null && p.conn.connected) {
-                p.dungeon = this;
+        for (Player member : partyMembers) {
+            Player pOnline = Map.get_player_by_name_allmap(member.name);
+            if (pOnline != null && pOnline.conn != null && pOnline.conn.connected) {
+                // Chỉ teleport player đã thực sự confirm vào dungeon (dungeon == this)
+                // Tránh trường hợp player chưa nhấn đồng ý đã bị kéo đi khi đổi tầng
+                if (pOnline.dungeon != this) {
+                    System.out.println("[HangDong] SKIP teleport player " + pOnline.name
+                            + " to stageIndex=" + stageIndex + ": player chưa confirm vào dungeon (dungeon != this).");
+                    continue;
+                }
+                pOnline.dungeon = this;
                 try {
-                    p.goto_map(vgo);
-                    Service.send_box_ThongBao_OK(p, "Bạn đã vào Hang động tầng " + (stageIndex + 1));
-                    Service.send_time_cool_down(p, this.stageEndTime, "Tầng " + (stageIndex + 1), 2);
+                    pOnline.goto_map(vgo);
+                    Service.send_box_ThongBao_OK(pOnline, "Bạn đã vào Hang động tầng " + (stageIndex + 1));
+                    Service.send_time_cool_down(pOnline, this.stageEndTime, "Tầng " + (stageIndex + 1), 2);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

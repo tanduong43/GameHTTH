@@ -27,6 +27,10 @@ public class BossHunt {
                         return hunt;
                     }
                 }
+                // Also search offline members pending rejoin
+                if (hunt.offlineMembers.contains(playerName)) {
+                    return hunt;
+                }
             }
         }
         return null;
@@ -44,6 +48,8 @@ public class BossHunt {
     public List<map.Map> maps = new ArrayList<>();
     public List<Mob> mobs = new ArrayList<>();
     public List<Player> members = new ArrayList<>();
+    // offlineMembers: players who disconnected mid-hunt, pending rejoin confirmation
+    public List<String> offlineMembers = new java.util.concurrent.CopyOnWriteArrayList<>();
     public Player leader;
     public int currentFloor = 0;
     public long floorTime = 0;
@@ -51,6 +57,9 @@ public class BossHunt {
     public long transitionTime = 0;
     public boolean isTransitioning = false;
     public int registeredMapId = 1;
+
+    public boolean isFailed = false;
+    public long failTime = 0;
 
     // Ready check state
     public Map<String, Boolean> readyState = new HashMap<>();
@@ -142,10 +151,10 @@ public class BossHunt {
                 cancelRoom("Thành viên " + member.name + " không đủ 2 chìa khóa phó bản để bắt đầu.");
                 return;
             }
-            if (member.time_bosshunt >= 10) {
-                cancelRoom("Thành viên " + member.name + " đã vượt giới hạn Săn Trùm hôm nay (tối đa 10 lần)!");
-                return;
-            }
+            // if (member.time_bosshunt >= 10) {
+            //     cancelRoom("Thành viên " + member.name + " đã vượt giới hạn Săn Trùm hôm nay (tối đa 10 lần)!");
+            //     return;
+            // }
         }
         for (Player member : members) {
             member.update_key_boss(-2);
@@ -157,6 +166,8 @@ public class BossHunt {
                 "[BossHunt] Starting hunt with " + members.size() + " members. 2 keys deducted from all members.");
         this.waitingForReady = false;
         this.active = true;
+        this.isFailed = false;
+        this.failTime = 0;
         this.currentFloor = 0;
         this.maps.clear();
         this.mobs.clear();
@@ -257,7 +268,7 @@ public class BossHunt {
         this.maps.add(map_instance);
 
         for (Player member : members) {
-            if (member.conn != null) {
+            if (member != null && member.conn != null && member.conn.connected) {
                 Vgo vgo = new Vgo();
                 vgo.map_go = new map.Map[] { map_instance };
                 vgo.xnew = (short) (boss.x + (Util.random(2) == 0 ? 100 : -100));
@@ -266,7 +277,7 @@ public class BossHunt {
                 Service.send_time_cool_down(member, this.floorTime, "Tầng " + (floor + 1), 2);
                 System.out.println("[BossHunt] Teleported " + member.name + " to floor " + (floor + 1));
             } else {
-                System.out.println("[BossHunt] Member " + member.name + " is offline, skipping teleport.");
+                System.out.println("[BossHunt] Member " + (member != null ? member.name : "null") + " is offline, skipping teleport.");
             }
         }
     }
@@ -283,7 +294,7 @@ public class BossHunt {
         List<Player> tempMembers = new ArrayList<>(members);
         for (Player member : tempMembers) {
             member.bossHunt = null;
-            if (member.conn != null) {
+            if (member != null && member.conn != null && member.conn.connected) {
                 if (message != null && !message.isEmpty()) {
                     Service.send_box_ThongBao_OK(member, message);
                 }
@@ -301,7 +312,7 @@ public class BossHunt {
                 member.goto_map(vgo);
                 System.out.println("[BossHunt] Teleported " + member.name + " to map " + targetMapId);
             } else {
-                System.out.println("[BossHunt] Member " + member.name + " offline, skipping teleport.");
+                System.out.println("[BossHunt] Member " + (member != null ? member.name : "null") + " offline, skipping teleport.");
             }
         }
         for (map.Map map : maps) {
@@ -342,7 +353,31 @@ public class BossHunt {
 
     public synchronized void removeMemberByName(String name) {
         this.members.removeIf(m -> m.name.equals(name));
+        this.offlineMembers.remove(name);
         this.readyState.remove(name);
+    }
+
+    /**
+     * Move player from active members to offlineMembers when they disconnect.
+     * They will NOT be teleported to new floors until they confirm rejoin.
+     */
+    public synchronized void markOffline(String playerName) {
+        boolean wasInMembers = this.members.removeIf(m -> m.name.equals(playerName));
+        if (wasInMembers && !this.offlineMembers.contains(playerName)) {
+            this.offlineMembers.add(playerName);
+            System.out.println("[BossHunt] Player " + playerName + " marked offline (pending rejoin).");
+        }
+    }
+
+    /**
+     * Move player back to active members when they confirm rejoin.
+     */
+    public synchronized void markOnline(Player p) {
+        this.offlineMembers.remove(p.name);
+        // Remove stale reference if present, then add fresh
+        this.members.removeIf(m -> m.name.equals(p.name));
+        this.members.add(p);
+        System.out.println("[BossHunt] Player " + p.name + " marked online (rejoined).");
     }
 
     public synchronized void giveRewardsForFloor(Player member, int floor, boolean isLastFloor) {

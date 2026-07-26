@@ -445,6 +445,9 @@ public class Player {
             if (key_boss < 0) {
                 key_boss = 0;
             }
+            if (key_boss > 127) {
+                key_boss = 127;
+            }
             cd_keyboss_next = Long.parseLong(js.get(13).toString());
             if (cd_keyboss_next == 0 || key_boss >= get_key_boss_max()) {
                 cd_keyboss_next = System.currentTimeMillis() + (60_000L * 60 * 1); // 1h
@@ -708,46 +711,10 @@ public class Player {
             if (session.party != null && session.party.list.size() < 4) {
                 session.party.temp_rejoin(this);
             }
-            if (session.bossHunt != null && (session.bossHunt.active || session.bossHunt.waitingForReady)) {
-                this.bossHunt = session.bossHunt;
-                try {
-                    core.Service.send_box_yesno(this, 999, "Săn Trùm",
-                            "Bạn có muốn quay lại trận Săn Trùm đang dang dở không?",
-                            new String[] { "Có", "Không" }, new byte[] { 2, 1 });
-                } catch (Exception e) {}
-            } else if (session.dungeon != null) {
-                if (session.dungeon instanceof activities.HangDong) {
-                    activities.HangDong hd = (activities.HangDong) session.dungeon;
-                    if (hd.active && !hd.finished) {
-                        this.dungeon = hd;
-                        try {
-                            core.Service.send_box_yesno(this, 998, "Hang Động",
-                                    "Bạn có muốn quay lại Hang Động đang dang dở không?",
-                                    new String[] { "Có", "Không" }, new byte[] { 2, 1 });
-                        } catch (Exception e) {}
-                    }
-                } else if (session.dungeon instanceof activities.TowerChallenge) {
-                    activities.TowerChallenge tc = (activities.TowerChallenge) session.dungeon;
-                    if (tc.active && !tc.finished) {
-                        this.dungeon = tc;
-                        try {
-                            core.Service.send_box_yesno(this, 997, "Vượt Liên Tầng",
-                                    "Bạn có muốn quay lại Vượt Liên Tầng đang dang dở không?",
-                                    new String[] { "Có", "Không" }, new byte[] { 2, 1 });
-                        } catch (Exception e) {}
-                    }
-                } else if (session.dungeon instanceof activities.NamieTreasureDefense) {
-                    activities.NamieTreasureDefense ntd = (activities.NamieTreasureDefense) session.dungeon;
-                    if (ntd.active && !ntd.finished) {
-                        this.dungeon = ntd;
-                        try {
-                            core.Service.send_box_yesno(this, 996, "Bảo Vệ Kho Báu",
-                                    "Bạn có muốn quay lại Bảo Vệ Kho Báu đang dang dở không?",
-                                    new String[] { "Có", "Không" }, new byte[] { 2, 1 });
-                        } catch (Exception e) {}
-                    }
-                }
-            } else if (session.oldMap != null) {
+            this.originalMapId = session.originalMapId;
+            this.originalX = session.originalX;
+            this.originalY = session.originalY;
+            if (session.oldMap != null) {
                 // Đang không ở trong hang động, cho player về lại map cũ (bỏ qua check isMapLang vì ta đang reconnect)
                 // Tuy nhiên `setup` mặc định đẩy về village nếu ko có tọa độ save, 
                 // ta sẽ đặt lại tọa độ map cũ ở đây.
@@ -2724,12 +2691,10 @@ public class Player {
             this.key_boss = 0;
         }
         if (this.key_boss >= this.get_key_boss_max()) {
-            // this.key_boss = (byte) this.get_key_boss_max();
             this.cd_keyboss_next = System.currentTimeMillis() + (60_000L * 60 * 1); // 1h
         }
-        if (this.key_boss >= 32000) {
-            this.key_boss = (short) 32000;
-            this.cd_keyboss_next = System.currentTimeMillis() + (60_000L * 60 * 1); // 1h
+        if (this.key_boss >= 127) {
+            this.key_boss = 127;
         }
     }
 

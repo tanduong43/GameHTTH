@@ -90,7 +90,7 @@ public class Red_Line {
             }
         }
         //
-        folder = new File("data/red_line/x2");
+        folder = new File("data/red_line/x4");
         if (folder.isDirectory()) {
             File[] files = folder.listFiles();
             Arrays.sort(files, new Comparator<File>() {

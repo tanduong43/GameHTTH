@@ -26,6 +26,9 @@ public class ReconnectSession {
     public BossHunt bossHunt;
     private ScheduledFuture<?> expireTask;
     public Map oldMap; // Bản đồ cũ trước khi mất kết nối
+    public int originalMapId = -1;
+    public short originalX = -1;
+    public short originalY = -1;
 
     public static void create(Player p) {
         if (p == null || p.name == null) {
@@ -41,6 +44,9 @@ public class ReconnectSession {
         session.dungeon = p.dungeon;
         session.bossHunt = p.bossHunt;
         session.oldMap = p.map;
+        session.originalMapId = p.originalMapId;
+        session.originalX = p.originalX;
+        session.originalY = p.originalY;
 
         // Xóa tạm khỏi party mà không thông báo cho dungeon
         if (p.party != null) {

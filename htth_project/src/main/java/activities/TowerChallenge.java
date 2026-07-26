@@ -53,6 +53,11 @@ public class TowerChallenge extends Dungeon {
         this.partyMembers.addAll(members);
         this.leader = leader;
         this.mode = 7;
+        for (Player p : members) {
+            if (p != null) {
+                p.dungeon = this;
+            }
+        }
         ACTIVE_CHALLENGES.add(this);
         System.out.println("[TowerChallenge] Instantiated challenge for leader: " + leader.name
                 + " with party size: " + members.size()
@@ -153,7 +158,11 @@ public class TowerChallenge extends Dungeon {
                     mobAdd.x = temp.x;
                     mobAdd.y = temp.y;
                     // Mob stats scaling by stage
-                    mobAdd.hp_max = temp.mob_template.hp_max + stageIndex * 5000;
+                    long scaledHp = (long) temp.mob_template.hp_max + (long) stageIndex * 5000L;
+                    if (scaledHp > 2_000_000_000L || scaledHp <= 0) {
+                        scaledHp = 2_000_000_000L;
+                    }
+                    mobAdd.hp_max = (int) scaledHp;
                     mobAdd.hp = mobAdd.hp_max;
                     mobAdd.level = (short) (temp.mob_template.level + stageIndex * 2);
                     if (mobAdd.level > 100) {
@@ -173,8 +182,18 @@ public class TowerChallenge extends Dungeon {
         // gắn boss_info
         if (!this.mobs.isEmpty()) {
             Mob bossM = this.mobs.get(this.mobs.size() - 1);
-            int multiplier = (stageIndex >= 10) ? 8 : 3;
-            bossM.hp_max = bossM.hp_max * multiplier;
+            // FIXED: tầng 1-9 nhân x2, tầng 10-13 nhân x1.5
+            double hpMultiplier = (stageIndex >= 10) ? 1.5 : 2.0;
+            long newHpMax = (long) (bossM.hp_max * hpMultiplier);
+            // Cap HP boss tối đa 20,000,000 để đảm bảo có thể kill được
+            long HP_CAP = 20_000_000L;
+            if (newHpMax > HP_CAP) {
+                newHpMax = HP_CAP;
+            }
+            if (newHpMax <= 0) {
+                newHpMax = HP_CAP;
+            }
+            bossM.hp_max = (int) newHpMax;
             bossM.hp = bossM.hp_max;
             Boss bossInfo = new Boss();
             bossInfo.mob = bossM;
@@ -215,7 +234,7 @@ public class TowerChallenge extends Dungeon {
                 // rồi login lại, bị tự động teleport vào dungeon khi player B chuyển tầng.
                 // Ngoại lệ: stageIndex == 0 (tầng đầu tiên) luôn teleport tất cả member
                 // vì lúc này tất cả đã đồng ý trước khi leader bấm "Bắt đầu".
-                if (stageIndex > 0 && pOnline.dungeon != this) {
+                if (pOnline.dungeon != this) {
                     System.out.println("[TowerChallenge] SKIP teleport player " + pOnline.name
                             + " to stageIndex=" + stageIndex + ": player chưa confirm vào dungeon (dungeon != this).");
                     continue;
@@ -225,10 +244,15 @@ public class TowerChallenge extends Dungeon {
                 try {
                     pOnline.goto_map(vgo);
                     Service.send_time_cool_down(pOnline, this.stageEndTime, "Vượt Liên Ải Tầng " + (stageIndex + 1), 2);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     System.out.println("[TowerChallenge] ERROR: Teleport failed for player " + pOnline.name + ": "
                             + e.getMessage());
                     e.printStackTrace();
+                    try {
+                        Service.send_box_ThongBao_OK(pOnline,
+                                "Lỗi chuyển tầng " + (stageIndex + 1) + ": " + e.toString());
+                    } catch (Exception ignored) {
+                    }
                 }
             } else {
                 System.out.println("[TowerChallenge] WARNING: Player " + member.name
@@ -255,12 +279,34 @@ public class TowerChallenge extends Dungeon {
         // 1. Timeout Check
         if (System.currentTimeMillis() > this.stageEndTime) {
             System.out.println("[TowerChallenge] Floor timeout reached. Ending dungeon.");
-            if (this.checkG != null && this.checkG.contains(-2)) {
-                failDungeon("Tất cả thành viên trong tổ đội đã tử trận!");
+            if (this.checkG != null && (this.checkG.contains(-2) || this.checkG.contains(-3))) {
+                if (this.checkG.contains(-2)) {
+                    failDungeon("Tất cả thành viên trong tổ đội đã tử trận!");
+                } else {
+                    failDungeon("Hết thời gian vượt ải!");
+                }
+                return;
             } else {
-                failDungeon("Hết thời gian vượt ải!");
+                // Hết thời gian: Cho 5 giây chờ để hiển thị thông báo và đếm ngược trước khi về
+                // làng
+                if (this.checkG != null) {
+                    this.checkG.add(-3);
+                }
+                this.stageEndTime = System.currentTimeMillis() + 5_000L;
+                for (Player member : this.partyMembers) {
+                    Player pOnline = Map.get_player_by_name_allmap(member.name);
+                    if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                            && pOnline.dungeon == this && pOnline.map.equals(this.currentMap)) {
+                        try {
+                            Service.send_time_cool_down(pOnline, this.stageEndTime, "Thất Bại", 2);
+                            Service.send_box_ThongBao_OK(pOnline,
+                                    "Hết thời gian vượt ải! Tự động rời phó bản sau 5 giây.");
+                        } catch (Exception e) {
+                        }
+                    }
+                }
+                return;
             }
-            return;
         }
 
         if (this.checkG != null && this.checkG.contains(-2)) {

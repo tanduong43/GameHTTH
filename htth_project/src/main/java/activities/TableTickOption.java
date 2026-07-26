@@ -141,11 +141,11 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
-                                    if (member.time_tower >= 10) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                                + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 10 lần)!");
-                                        return;
-                                    }
+                                    // if (member.time_tower >= 10) {
+                                    //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                    //             + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 10 lần)!");
+                                    //     return;
+                                    // }
                                     if (member.get_key_boss() < 2) {
                                         Service.send_box_ThongBao_OK(p,
                                                 "Thành viên " + member.name + " không đủ 2 chìa khóa!");
@@ -263,11 +263,11 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
-                                    if (member.time_namie >= 10) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                                + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 10 lần)!");
-                                        return;
-                                    }
+                                    // if (member.time_namie >= 10) {
+                                    //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                    //             + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 10 lần)!");
+                                    //     return;
+                                    // }
                                     if (member.get_key_boss() < 2) {
                                         Service.send_box_ThongBao_OK(p,
                                                 "Thành viên " + member.name + " không đủ 2 chìa khóa!");
@@ -385,11 +385,11 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không đủ 1 chìa khóa!");
                                         return;
                                     }
-                                    if (member.time_hangdong >= 5) {
-                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                                + " đã vượt giới hạn Hang Động hôm nay (tối đa 5 lần)!");
-                                        return;
-                                    }
+                                    // if (member.time_hangdong >= 5) {
+                                    //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                    //             + " đã vượt giới hạn Hang Động hôm nay (tối đa 5 lần)!");
+                                    //     return;
+                                    // }
                                 }
 
                                 java.util.List<Player> onlineMembers = new java.util.ArrayList<>();
