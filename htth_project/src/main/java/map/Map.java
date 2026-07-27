@@ -741,6 +741,10 @@ public class Map implements Runnable {
                             Pvp.pvp_notice(players.get(0), 3);
                             Pvp.pvp_notice(players.get(1), 4);
                             players.get(0).pvp_win++;
+                            if (players.get(0).daily_achievements[0] == 0) {
+                                players.get(0).daily_achievements[0] = 1;
+                                core.Service.send_box_ThongBao_OK(players.get(0), "Hoàn thành Thành tích hằng ngày: PVP");
+                            }
                             players.get(1).pvp_lose++;
                             //
                             int chenhLech = players.get(1).get_pvpPoint() - players.get(0).get_pvpPoint();
@@ -757,6 +761,10 @@ public class Map implements Runnable {
                             Pvp.pvp_notice(players.get(1), 3);
                             Pvp.pvp_notice(players.get(0), 4);
                             players.get(1).pvp_win++;
+                            if (players.get(1).daily_achievements[0] == 0) {
+                                players.get(1).daily_achievements[0] = 1;
+                                core.Service.send_box_ThongBao_OK(players.get(1), "Hoàn thành Thành tích hằng ngày: PVP");
+                            }
                             players.get(0).pvp_lose++;
                             //
                             int chenhLech = players.get(0).get_pvpPoint() - players.get(1).get_pvpPoint();
@@ -862,6 +870,10 @@ public class Map implements Runnable {
                         if (p1 != null && p2 != null && !p1.equals(p2)) {
                             if (this.map_pvp.num_win_p1 > this.map_pvp.num_win_p2) {
                                 p1.pvp_win++;
+                                if (p1.daily_achievements[0] == 0) {
+                                    p1.daily_achievements[0] = 1;
+                                    core.Service.send_box_ThongBao_OK(p1, "Hoàn thành Thành tích hằng ngày: PVP");
+                                }
                                 p1.update_pvpPoint(15);
                                 p2.pvp_lose++;
                                 p2.update_pvpPoint(-15);
@@ -869,6 +881,10 @@ public class Map implements Runnable {
                                 p1.pvp_lose++;
                                 p1.update_pvpPoint(-15);
                                 p2.pvp_win++;
+                                if (p2.daily_achievements[0] == 0) {
+                                    p2.daily_achievements[0] = 1;
+                                    core.Service.send_box_ThongBao_OK(p2, "Hoàn thành Thành tích hằng ngày: PVP");
+                                }
                                 p2.update_pvpPoint(15);
                             }
                         }
@@ -2769,6 +2785,12 @@ public class Map implements Runnable {
                         die_player(p_target, p);
                     } else {
                         die_player(p_target, p_target);
+                    }
+                    if (!p.equals(p_target) && p.daily_achievements[5] == 0) {
+                        p.daily_achievements[5] = 1;
+                        try {
+                            core.Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Đồ sát 1 người");
+                        } catch(Exception e){}
                     }
                     // Thợ săn hải tặc (Bounty Hunter)
                     if (p_target.thosan_bounty > 0 && !p.equals(p_target)) {

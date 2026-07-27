@@ -743,6 +743,10 @@ public class NamieTreasureDefense extends Dungeon {
                 try {
                     Service.send_gift(pOnline, 1, "Bảo vệ kho báu Namie",
                             "Thưởng đợt " + waveNum, list_gift, true);
+                    if (pOnline.daily_achievements[2] == 0) {
+                        pOnline.daily_achievements[2] = 1;
+                        Service.send_box_ThongBao_OK(pOnline, "Hoàn thành Thành tích hằng ngày: Bảo vệ Namie");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

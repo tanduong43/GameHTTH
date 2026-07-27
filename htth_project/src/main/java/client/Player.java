@@ -120,6 +120,8 @@ public class Player {
     public byte time_tower;
     public byte time_single_dungeon;
     public byte time_hangdong;
+    public int[] daily_achievements = new int[6];
+    public boolean[] daily_achievements_claimed = new boolean[6];
     public byte time_can_hs;
     public List<FriendTemp> enemy_list;
     public TableTickOption tableTickOption;
@@ -309,6 +311,22 @@ public class Player {
                 time_hangdong = Byte.parseByte(js.get(17).toString());
             } else {
                 time_hangdong = 0;
+            }
+            if (js.size() > 18 && js.get(18) != null) {
+                try {
+                    org.json.simple.JSONArray jsDa = (org.json.simple.JSONArray) js.get(18);
+                    for (int i = 0; i < jsDa.size() && i < daily_achievements.length; i++) {
+                        daily_achievements[i] = Integer.parseInt(jsDa.get(i).toString());
+                    }
+                } catch (Exception e) {}
+            }
+            if (js.size() > 19 && js.get(19) != null) {
+                try {
+                    org.json.simple.JSONArray jsDaClaimed = (org.json.simple.JSONArray) js.get(19);
+                    for (int i = 0; i < jsDaClaimed.size() && i < daily_achievements_claimed.length; i++) {
+                        daily_achievements_claimed[i] = Integer.parseInt(jsDaClaimed.get(i).toString()) == 1;
+                    }
+                } catch (Exception e) {}
             }
             this.claimedMilestones = new ArrayList<>();
             if (this.conn != null && this.conn.claimed_milestones != null && !this.conn.claimed_milestones.isEmpty()) {
@@ -899,6 +917,16 @@ public class Player {
             js.add("");
             js.add(p.time_single_dungeon);
             js.add(p.time_hangdong);
+            org.json.simple.JSONArray jsDa = new org.json.simple.JSONArray();
+            for (int i = 0; i < p.daily_achievements.length; i++) {
+                jsDa.add(p.daily_achievements[i]);
+            }
+            js.add(jsDa);
+            org.json.simple.JSONArray jsDaClaimed = new org.json.simple.JSONArray();
+            for (int i = 0; i < p.daily_achievements_claimed.length; i++) {
+                jsDaClaimed.add(p.daily_achievements_claimed[i] ? 1 : 0);
+            }
+            js.add(jsDaClaimed);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -2159,6 +2187,8 @@ public class Player {
             time_tower = 0;
             time_single_dungeon = 0;
             time_hangdong = 0;
+            daily_achievements = new int[6];
+            daily_achievements_claimed = new boolean[6];
         }
     }
 

@@ -1033,6 +1033,22 @@ public class MenuController {
           }
           break;
         }
+        case 1005: {
+          if (index >= 0 && index < 6) {
+              if (p.daily_achievements[index] == 1 && !p.daily_achievements_claimed[index]) {
+                  p.daily_achievements_claimed[index] = true;
+                  p.update_ngoc(10);
+                  p.update_money();
+                  Service.send_box_ThongBao_OK(p, "Nhận thưởng thành công 10 Ruby!");
+              } else if (p.daily_achievements_claimed[index]) {
+                  Service.send_box_ThongBao_OK(p, "Bạn đã nhận thưởng rồi!");
+              } else {
+                  Service.send_box_ThongBao_OK(p, "Nhiệm vụ chưa hoàn thành!");
+              }
+          }
+          break;
+        }
+
         case -72: { // npc nami
           Menu_Nami(p, index);
           break;
@@ -1740,6 +1756,13 @@ public class MenuController {
           break;
         }
         case 1: {
+          String[] menus = new String[6];
+          String[] names = {"Tham gia PVP", "Đi Liên Tầng", "Bảo vệ Namie", "Phó bản Hang Động", "Lập nhóm 5 người", "Đồ sát 1 người"};
+          for (int i = 0; i < 6; i++) {
+              String status = p.daily_achievements_claimed[i] ? "Đã nhận" : (p.daily_achievements[i] == 1 ? "Hoàn thành" : "Chưa làm");
+              menus[i] = names[i] + " [" + status + "]";
+          }
+          send_dynamic_menu(p, 1005, "Thành tích hằng ngày\nPhần thưởng: 10 Ruby/nhiệm vụ", menus, null);
           break;
         }
         case 2: {

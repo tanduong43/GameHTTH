@@ -359,6 +359,10 @@ public class HangDong extends Dungeon {
 
             if (!list_gift.isEmpty()) {
                 Service.send_gift(p, 1, "Hang Động Tầng " + floor, "Phần thưởng", list_gift, true);
+                if (p.daily_achievements[3] == 0) {
+                    p.daily_achievements[3] = 1;
+                    Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Đi hang động");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

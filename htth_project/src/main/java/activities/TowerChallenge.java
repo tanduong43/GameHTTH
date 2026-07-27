@@ -450,6 +450,10 @@ public class TowerChallenge extends Dungeon {
         try {
             System.out.println("[TowerChallenge] Distributing stage rewards to player: " + p.name + " for stageIndex="
                     + stageIndex);
+            if (p.daily_achievements[1] == 0) {
+                p.daily_achievements[1] = 1;
+                core.Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Đi liên tầng");
+            }
             List<GiftBox> list_gift = new ArrayList<>();
             int rewardMultiplier = (stageIndex >= 7) ? 2 : 1;
 

@@ -290,12 +290,20 @@ public class Party {
     }
 
     private synchronized void add_new_mem(Player p) throws IOException {
-        if (this.list.size() < 4) {
+        if (this.list.size() < 5) {
             list.add(p);
             p.party = this;
             add_buff_party(p.clazz);
             this.send_info();
             Service.send_box_ThongBao_OK(p, "Vào nhóm thành công!");
+            if (this.list.size() == 5) {
+                for (Player mem : list) {
+                    if (mem.daily_achievements[4] == 0) {
+                        mem.daily_achievements[4] = 1;
+                        Service.send_box_ThongBao_OK(mem, "Hoàn thành Thành tích hằng ngày: Lập nhóm 5 người");
+                    }
+                }
+            }
         } else {
             Service.send_box_ThongBao_OK(list.get(0), "Nhóm đầy!");
         }
