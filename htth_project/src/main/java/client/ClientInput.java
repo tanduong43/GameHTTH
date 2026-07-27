@@ -11,6 +11,7 @@ import database.SQL;
 import io.Message;
 import map.Map;
 import template.*;
+import activities.Fight;
 /**
  *
  * @author Truongbk
@@ -23,6 +24,39 @@ public class ClientInput {
             name[i] = m2.reader().readUTF();
         }
         switch (id) {
+            case Fight.INPUT_ID_FIGHT_RUBY: { // Nhập số ruby cược cho thách đấu siêu hạng
+                if (name.length == 1) {
+                    if (!Util.isnumber(name[0])) {
+                        Service.send_box_ThongBao_OK(p, "Số ruby không hợp lệ");
+                        p.fight_click_target = null;
+                        return;
+                    }
+                    int rubyBet = Integer.parseInt(name[0]);
+                    if (rubyBet <= 0) {
+                        Service.send_box_ThongBao_OK(p, "Số ruby cược phải lớn hơn 0");
+                        p.fight_click_target = null;
+                        return;
+                    }
+                    if (p.get_ngoc() < rubyBet) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không đủ " + rubyBet + " ruby!");
+                        p.fight_click_target = null;
+                        return;
+                    }
+                    Player p0 = p.fight_click_target;
+                    p.fight_click_target = null;
+                    if (p0 == null || !p0.map.equals(p.map)) {
+                        Service.send_box_ThongBao_OK(p, "Đối phương đã rời khỏi đây");
+                        return;
+                    }
+                    if (p0.targetFight != null) {
+                        Service.send_box_ThongBao_OK(p, "Đối phương đang nhận lời mời từ người khác");
+                        return;
+                    }
+                    // Gửi lời mời kèm số ruby cược, typeFight=1 (siêu hạng)
+                    Fight.sendFightInvite(p, p0, rubyBet, 1);
+                }
+                break;
+            }
             case 271: {
                 if (name.length == 1) {
                     String newName = name[0].replace(" ", "");

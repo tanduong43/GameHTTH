@@ -106,7 +106,10 @@ public class Player {
     public short originalX = -1;
     public short originalY = -1;
     public Player pvp_target;
+    public byte type_pk_wait;
     public boolean pvp_accept;
+    public Player fight_click_target;
+    public int fight_ruby_bet; // số ruby cược khi gửi lời mời siêu hạng (type_map=3)
     public int pvp_win;
     public int pvp_lose;
     public short id_ship_packet = -1;

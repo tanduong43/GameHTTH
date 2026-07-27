@@ -94,34 +94,36 @@ public class Pvp {
                     //
                     p.pvp_accept = true;
                     if (p.pvp_accept && p.pvp_target.pvp_accept) {
-                        if (p.get_pvp_ticket() < 1) {
-                            if (p.pvp_target.get_pvp_ticket() < 1) {
+                        if (p.type_pk_wait == 0) {
+                            if (p.get_pvp_ticket() < 1) {
+                                if (p.pvp_target.get_pvp_ticket() < 1) {
+                                    show_table(p.pvp_target);
+                                    stop_find(p.pvp_target);
+                                    Service.send_box_ThongBao_OK(p.pvp_target, "Bạn không đủ vé pvp!");
+                                } else {
+                                    show_table(p.pvp_target);
+                                    start_find(p.pvp_target);
+                                    Service.send_box_ThongBao_OK(p.pvp_target,
+                                            "Đối phương không đủ vé pvp, bạn được xếp vào hàng đợi tiếp!");
+                                }
+                                show_table(p);
+                                stop_find(p);
+                                Service.send_box_ThongBao_OK(p, "Bạn không đủ vé pvp!");
+                                return;
+                            } else if (p.pvp_target.get_pvp_ticket() < 1) {
                                 show_table(p.pvp_target);
                                 stop_find(p.pvp_target);
                                 Service.send_box_ThongBao_OK(p.pvp_target, "Bạn không đủ vé pvp!");
-                            } else {
-                                show_table(p.pvp_target);
-                                start_find(p.pvp_target);
-                                Service.send_box_ThongBao_OK(p.pvp_target,
+                                //
+                                show_table(p);
+                                start_find(p);
+                                Service.send_box_ThongBao_OK(p,
                                         "Đối phương không đủ vé pvp, bạn được xếp vào hàng đợi tiếp!");
+                                return;
                             }
-                            show_table(p);
-                            stop_find(p);
-                            Service.send_box_ThongBao_OK(p, "Bạn không đủ vé pvp!");
-                            return;
-                        } else if (p.pvp_target.get_pvp_ticket() < 1) {
-                            show_table(p.pvp_target);
-                            stop_find(p.pvp_target);
-                            Service.send_box_ThongBao_OK(p.pvp_target, "Bạn không đủ vé pvp!");
-                            //
-                            show_table(p);
-                            start_find(p);
-                            Service.send_box_ThongBao_OK(p,
-                                    "Đối phương không đủ vé pvp, bạn được xếp vào hàng đợi tiếp!");
-                            return;
+                            p.update_pvp_ticket(-1);
+                            p.pvp_target.update_pvp_ticket(-1);
                         }
-                        p.update_pvp_ticket(-1);
-                        p.pvp_target.update_pvp_ticket(-1);
                         //
                         p.map.leave_map(p, 2);
                         p.pvp_target.map.leave_map(p.pvp_target, 2);
@@ -160,7 +162,7 @@ public class Pvp {
                         map_create.map_pvp.status_pvp = 0;
                         map_create.map_pvp.num_win_p1 = 0;
                         map_create.map_pvp.num_win_p2 = 0;
-                        map_create.map_pvp.type_map = 0;// map pvp
+                        map_create.map_pvp.type_map = p.type_pk_wait;// 0 = sieu hang, 1 = giao huu
                         map_create.start_map();
                         Map.add_map_plus(map_create);
                     }

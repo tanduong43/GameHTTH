@@ -611,7 +611,8 @@ public class Map implements Runnable {
                     if (p_select.pvp_target != null) {
                         for (int i = 0; i < list_pvp_wait.size(); i++) {
                             if (list_pvp_wait.get(i).pvp_target != null
-                                    && !list_pvp_wait.get(i).pvp_target.equals(p_select)) {
+                                    && !list_pvp_wait.get(i).pvp_target.equals(p_select)
+                                    && list_pvp_wait.get(i).type_pk_wait == p_select.type_pk_wait) {
                                 p_select_2 = list_pvp_wait.get(i);
                                 list_pvp_wait.remove(i);
                                 break;
@@ -809,6 +810,28 @@ public class Map implements Runnable {
                                                 + " điểm truy nã cùng 1 Rương Truy nã.");
                             }
                         }
+                    } else if (this.map_pvp.type_map == 3) { // thách đấu siêu hạng cá cược ruby
+                        int rubyBet = this.map_pvp.ruby_bet;
+                        int rubyWin = (int) (rubyBet * 2 * 0.9); // người thắng nhận 90% tổng
+                        Player winner, loser;
+                        if (this.map_pvp.num_win_p1 == 3) {
+                            winner = players.get(0);
+                            loser = players.get(1);
+                        } else {
+                            winner = players.get(1);
+                            loser = players.get(0);
+                        }
+                        Pvp.pvp_notice(winner, 3);
+                        Pvp.pvp_notice(loser, 4);
+                        winner.update_ngoc(rubyWin);
+                        winner.update_money();
+                        Service.send_box_ThongBao_OK(winner,
+                                "Trận đấu kết thúc! Bạn chiến thắng và nhận được "
+                                        + rubyWin + " ruby (90% tổng cược)!");
+                        if (!loser.isBot) {
+                            Service.send_box_ThongBao_OK(loser,
+                                    "Trận đấu kết thúc! Bạn thua và mất " + rubyBet + " ruby.");
+                        }
                     }
                 } catch (IndexOutOfBoundsException e) {
                     this.map_pvp.status_pvp = 3;
@@ -849,6 +872,13 @@ public class Map implements Runnable {
                                 p2.update_pvpPoint(15);
                             }
                         }
+                    } else if (this.map_pvp.type_map == 3 && this.map_pvp.ruby_bet > 0) {
+                        // Hết giờ (hòa) → hoàn ruby cho cả hai bên
+                        int rubyBet = this.map_pvp.ruby_bet;
+                        for (int i = 0; i < players.size(); i++) {
+                            players.get(i).update_ngoc(rubyBet);
+                            players.get(i).update_money();
+                        }
                     }
                 } catch (Exception e) {
                 }
@@ -859,6 +889,9 @@ public class Map implements Runnable {
                     if (this.map_pvp.type_map == 0) { // la map pvp
                         Service.send_box_ThongBao_OK(players.get(i),
                                 "Hết thời gian, kết quả hòa, bạn sẽ được đưa về map chờ");
+                    } else if (this.map_pvp.type_map == 3) { // siêu hạng cá cược → hoàn ruby
+                        Service.send_box_ThongBao_OK(players.get(i),
+                                "Hết thời gian! Kết quả hòa, ruby cược đã được hoàn lại.");
                     } else {
                         Service.send_box_ThongBao_OK(players.get(i),
                                 "Đối thủ xứng tầm không thể phân biệt thắng thua");
@@ -866,11 +899,12 @@ public class Map implements Runnable {
                 }
             } else if (this.map_pvp.status_pvp == 4 && this.map_pvp.time_pvp <= 0) {
                 Vgo vgo = new Vgo();
-                if (this.map_pvp.type_map == 0) { // la map pvp
+                if (this.map_pvp.type_map == 0) { // la map pvp (siêu hạng queue)
                     vgo.map_go = Map.get_map_by_id(1000);
                 } else if (this.map_pvp.type_map == 2) { // la map truy na
                     vgo.map_go = Map.get_map_by_id(119);
                 } else {
+                    // type_map==1 (giao hữu) và type_map==3 (siêu hạng cá cược) → về làng
                     vgo.map_go = Map.get_map_by_id(1);
                 }
                 vgo.xnew = (short) (vgo.map_go[0].template.maxW / 2);

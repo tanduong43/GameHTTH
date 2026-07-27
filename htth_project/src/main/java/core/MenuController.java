@@ -1097,6 +1097,28 @@ public class MenuController {
           }
           break;
         }
+        case -998: {
+            Player p0 = p.fight_click_target;
+            if (p0 != null && p0.map.equals(p.map)) {
+                if (p0.targetFight != null) {
+                    Service.send_box_ThongBao_OK(p, "Đối phương đang nhận lời mời từ người khác");
+                } else {
+                    Message m = new Message(-35);
+                    m.writer().writeByte(0);
+                    m.writer().writeShort(p.index_map); 
+                    m.writer().writeUTF(p.name);
+                    m.writer().writeShort(99); 
+                    m.writer().writeByte(index); 
+                    p0.conn.addmsg(m);
+                    m.cleanup();
+                    p0.targetFight = p; 
+                }
+            } else {
+                Service.send_box_ThongBao_OK(p, "Đối phương offline");
+            }
+            p.fight_click_target = null;
+            break;
+        }
         case -997: {
           Menu_HuongDan(p, index);
           break;
