@@ -1035,16 +1035,16 @@ public class MenuController {
         }
         case 1005: {
           if (index >= 0 && index < 6) {
-              if (p.daily_achievements[index] == 1 && !p.daily_achievements_claimed[index]) {
-                  p.daily_achievements_claimed[index] = true;
-                  p.update_ngoc(10);
-                  p.update_money();
-                  Service.send_box_ThongBao_OK(p, "Nhận thưởng thành công 10 Ruby!");
-              } else if (p.daily_achievements_claimed[index]) {
-                  Service.send_box_ThongBao_OK(p, "Bạn đã nhận thưởng rồi!");
-              } else {
-                  Service.send_box_ThongBao_OK(p, "Nhiệm vụ chưa hoàn thành!");
-              }
+            if (p.daily_achievements[index] == 1 && !p.daily_achievements_claimed[index]) {
+              p.daily_achievements_claimed[index] = true;
+              p.update_ngoc(10);
+              p.update_money();
+              Service.send_box_ThongBao_OK(p, "Nhận thưởng thành công 10 Ruby!");
+            } else if (p.daily_achievements_claimed[index]) {
+              Service.send_box_ThongBao_OK(p, "Bạn đã nhận thưởng rồi!");
+            } else {
+              Service.send_box_ThongBao_OK(p, "Nhiệm vụ chưa hoàn thành!");
+            }
           }
           break;
         }
@@ -1114,26 +1114,26 @@ public class MenuController {
           break;
         }
         case -998: {
-            Player p0 = p.fight_click_target;
-            if (p0 != null && p0.map.equals(p.map)) {
-                if (p0.targetFight != null) {
-                    Service.send_box_ThongBao_OK(p, "Đối phương đang nhận lời mời từ người khác");
-                } else {
-                    Message m = new Message(-35);
-                    m.writer().writeByte(0);
-                    m.writer().writeShort(p.index_map); 
-                    m.writer().writeUTF(p.name);
-                    m.writer().writeShort(99); 
-                    m.writer().writeByte(index); 
-                    p0.conn.addmsg(m);
-                    m.cleanup();
-                    p0.targetFight = p; 
-                }
+          Player p0 = p.fight_click_target;
+          if (p0 != null && p0.map.equals(p.map)) {
+            if (p0.targetFight != null) {
+              Service.send_box_ThongBao_OK(p, "Đối phương đang nhận lời mời từ người khác");
             } else {
-                Service.send_box_ThongBao_OK(p, "Đối phương offline");
+              Message m = new Message(-35);
+              m.writer().writeByte(0);
+              m.writer().writeShort(p.index_map);
+              m.writer().writeUTF(p.name);
+              m.writer().writeShort(99);
+              m.writer().writeByte(index);
+              p0.conn.addmsg(m);
+              m.cleanup();
+              p0.targetFight = p;
             }
-            p.fight_click_target = null;
-            break;
+          } else {
+            Service.send_box_ThongBao_OK(p, "Đối phương offline");
+          }
+          p.fight_click_target = null;
+          break;
         }
         case -997: {
           Menu_HuongDan(p, index);
@@ -1757,12 +1757,14 @@ public class MenuController {
         }
         case 1: {
           String[] menus = new String[6];
-          String[] names = {"Tham gia PVP", "Đi Liên Tầng", "Bảo vệ Namie", "Phó bản Hang Động", "Lập nhóm 5 người", "Đồ sát 1 người"};
+          String[] names = { "Tham gia PVP", "Đi Liên Tầng", "Bảo vệ Namie", "Phó bản Hang Động", "Lập nhóm 5 người",
+              "Đồ sát 1 người" };
           for (int i = 0; i < 6; i++) {
-              String status = p.daily_achievements_claimed[i] ? "Đã nhận" : (p.daily_achievements[i] == 1 ? "Hoàn thành" : "Chưa làm");
-              menus[i] = names[i] + " [" + status + "]";
+            String status = p.daily_achievements_claimed[i] ? "Đã nhận"
+                : (p.daily_achievements[i] == 1 ? "Hoàn thành" : "Chưa làm");
+            menus[i] = names[i] + " [" + status + "]";
           }
-          send_dynamic_menu(p, 1005, "Thành tích hằng ngày\nPhần thưởng: 10 Ruby/nhiệm vụ", menus, null);
+          send_dynamic_menu(p, 1005, "Thành tích hằng ngày", menus, null);
           break;
         }
         case 2: {

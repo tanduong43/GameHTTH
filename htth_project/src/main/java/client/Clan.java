@@ -147,7 +147,17 @@ public class Clan {
                     break;
                 }
             }
-            m.writer().writeByte(0);
+            byte borderIconClan = 0;
+            if (Clan.BXH != null && !Clan.BXH.isEmpty()) {
+                if (Clan.BXH.get(0).equals(p0.clan.name)) {
+                    borderIconClan = 1; // Top 1: Khung Vàng
+                } else if (Clan.BXH.size() > 1 && Clan.BXH.get(1).equals(p0.clan.name)) {
+                    borderIconClan = 2; // Top 2: Khung Bạc
+                } else if (Clan.BXH.size() > 2 && Clan.BXH.get(2).equals(p0.clan.name)) {
+                    borderIconClan = 3; // Top 3: Khung Đồng
+                }
+            }
+            m.writer().writeByte(borderIconClan);
             if (b) {
                 p.list_msg_cache.add(m);
             } else {

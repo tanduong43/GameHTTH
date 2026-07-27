@@ -205,8 +205,9 @@ public class Manager {
                 map_temp.max_player = rs.getByte("maxplayer");
                 // npc
                 String npcsStr = rs.getString("npcs");
-                JSONArray js_npc = (npcsStr != null && !npcsStr.trim().isEmpty() && !npcsStr.equals("null")) 
-                        ? (JSONArray) JSONValue.parse(npcsStr) : new JSONArray();
+                JSONArray js_npc = (npcsStr != null && !npcsStr.trim().isEmpty() && !npcsStr.equals("null"))
+                        ? (JSONArray) JSONValue.parse(npcsStr)
+                        : new JSONArray();
                 map_temp.npcs = new ArrayList<>();
                 for (int i = 0; i < js_npc.size(); i++) {
                     JSONArray js_npc_temp = (JSONArray) JSONValue.parse(js_npc.get(i).toString());
@@ -238,8 +239,9 @@ public class Manager {
                 }
                 js_npc.clear();
                 String boatStr = rs.getString("boat");
-                js_npc = (boatStr != null && !boatStr.trim().isEmpty() && !boatStr.equals("null")) 
-                        ? (JSONArray) JSONValue.parse(boatStr) : new JSONArray();
+                js_npc = (boatStr != null && !boatStr.trim().isEmpty() && !boatStr.equals("null"))
+                        ? (JSONArray) JSONValue.parse(boatStr)
+                        : new JSONArray();
                 map_temp.list_boat = new ArrayList<>();
                 for (int i = 0; i < js_npc.size(); i++) {
                     JSONArray js_temp = (JSONArray) js_npc.get(i);
@@ -251,8 +253,9 @@ public class Manager {
                 js_npc.clear();
                 map_temp.vgos = new ArrayList<>();
                 String vgosStr = rs.getString("vgos");
-                js_npc = (vgosStr != null && !vgosStr.trim().isEmpty() && !vgosStr.equals("null")) 
-                        ? (JSONArray) JSONValue.parse(vgosStr) : new JSONArray();
+                js_npc = (vgosStr != null && !vgosStr.trim().isEmpty() && !vgosStr.equals("null"))
+                        ? (JSONArray) JSONValue.parse(vgosStr)
+                        : new JSONArray();
                 for (int i = 0; i < js_npc.size(); i++) {
                     JSONArray js_0 = (JSONArray) js_npc.get(i);
                     Vgo vgo_temp = new Vgo();
@@ -270,8 +273,9 @@ public class Manager {
                 map_temp.b = rs.getByte("b");
                 map_temp.specMap = rs.getByte("specMap");
                 String dataStr = rs.getString("data");
-                js_npc = (dataStr != null && !dataStr.trim().isEmpty() && !dataStr.equals("null")) 
-                        ? (JSONArray) JSONValue.parse(dataStr) : new JSONArray();
+                js_npc = (dataStr != null && !dataStr.trim().isEmpty() && !dataStr.equals("null"))
+                        ? (JSONArray) JSONValue.parse(dataStr)
+                        : new JSONArray();
                 map_temp.data = new byte[2][];
                 for (int i = 0; i < js_npc.size(); i++) {
                     JSONArray js_in = (JSONArray) js_npc.get(i);
@@ -283,8 +287,9 @@ public class Manager {
                 js_npc.clear();
                 // System.out.println(id_map);
                 String mapBackStr = rs.getString("MapBack");
-                js_npc = (mapBackStr != null && !mapBackStr.trim().isEmpty() && !mapBackStr.equals("null")) 
-                        ? (JSONArray) JSONValue.parse(mapBackStr) : new JSONArray();
+                js_npc = (mapBackStr != null && !mapBackStr.trim().isEmpty() && !mapBackStr.equals("null"))
+                        ? (JSONArray) JSONValue.parse(mapBackStr)
+                        : new JSONArray();
                 if (js_npc.size() >= 4) {
                     map_temp.IDBack = Byte.parseByte(js_npc.get(0).toString());
                     map_temp.HBack = Short.parseShort(js_npc.get(1).toString());
@@ -301,8 +306,10 @@ public class Manager {
                 map_temp.level = rs.getByte("level");
                 map_temp.typeChangeMap = rs.getByte("typeChangeMap");
                 String mPosMapTrainStr = rs.getString("mPosMapTrain");
-                js_npc = (mPosMapTrainStr != null && !mPosMapTrainStr.trim().isEmpty() && !mPosMapTrainStr.equals("null")) 
-                        ? (JSONArray) JSONValue.parse(mPosMapTrainStr) : new JSONArray();
+                js_npc = (mPosMapTrainStr != null && !mPosMapTrainStr.trim().isEmpty()
+                        && !mPosMapTrainStr.equals("null"))
+                                ? (JSONArray) JSONValue.parse(mPosMapTrainStr)
+                                : new JSONArray();
                 map_temp.mPosMapTrain = new byte[js_npc.size()][];
                 for (int i = 0; i < js_npc.size(); i++) {
                     JSONArray js_in = (JSONArray) js_npc.get(i);
@@ -321,8 +328,9 @@ public class Manager {
                     m_temp[i2] = new Map();
                     m_temp[i2].zone_id = (byte) i2;
                     m_temp[i2].template = map_temp;
-                    JSONArray js = (mob_json != null && !mob_json.trim().isEmpty() && !mob_json.equals("null")) 
-                            ? (JSONArray) JSONValue.parse(mob_json) : new JSONArray();
+                    JSONArray js = (mob_json != null && !mob_json.trim().isEmpty() && !mob_json.equals("null"))
+                            ? (JSONArray) JSONValue.parse(mob_json)
+                            : new JSONArray();
                     m_temp[i2].list_mob = new int[js.size()];
                     for (int i = 0; i < js.size(); i++) {
                         JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
