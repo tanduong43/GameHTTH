@@ -273,9 +273,9 @@ public class Service {
             m.writer().writeByte(1);
             m.writer().writeShort(p0.index_map);
             m.writer().writeShort(effectId);
-            m.writer().writeInt(-1); // time: -1 = vĩnh viễn
+            m.writer().writeInt(2000000000); // time: 2 tỷ ms (tương đương 23 ngày liên tục để không bị tắt animation)
             m.writer().writeByte(4); // typemove: 4 = effect trên đầu
-            m.writer().writeByte(-1); // loop: -1 (255) = loop vô hạn animation
+            m.writer().writeByte(-1); // loop: -1 = vòng lặp vô hạn
         }
         if (p != null) {
             p.conn.addmsg(m);

@@ -1264,16 +1264,7 @@ public class Player {
                 }
             }
         }
-        if (map_go[0].template.id != 119 && map_go[0].template.id != 120 && map_go[0].template.id != 122
-                && map_go[0].template.id != 123 && map_go[0].template.id != 54 && map_go[0].template.id != 58
-                && map_go[0].template.id != 59 && map_go[0].template.id != 123 && map_go[0].template.id != 984
-                && map_go[0].template.id != 1000
-                && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
-                && map_go[0].template.id > idMap) {
-            Service.send_box_ThongBao_OK(this,
-                    "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
-            return;
-        }
+
         if (Map.is_map_dungeon(map_go[0].template.id) && this.dungeon != null) {
             int id_map = map_go[0].template.id;
             Map originalMap = map_go[0];
@@ -1402,25 +1393,6 @@ public class Player {
     }
 
     public boolean canGoToMap(int mapId) {
-        if (this.list_quest == null || this.list_quest.isEmpty()) {
-            return true;
-        }
-        QuestP quest_select = this.list_quest.get(0);
-        if (quest_select != null) {
-            int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
-            for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-                if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
-                    idMap = MapCanGoTo.idMap[i - 1];
-                    break;
-                }
-            }
-            if (mapId != 119 && mapId != 120 && mapId != 122 && mapId != 123
-                    && mapId != 54 && mapId != 58 && mapId != 59 && mapId != 984 && mapId != 1000
-                    && mapId != 127 && !Map.is_map_dungeon(mapId)
-                    && idMap < mapId) {
-                return false;
-            }
-        }
         return true;
     }
 
