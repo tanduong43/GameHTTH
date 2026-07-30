@@ -104,53 +104,49 @@ public class MessageHandler {
                 byte type = m.reader().readByte();
                 short id = m.reader().readShort();
                 if (conn.p != null && type == 0) {
-                    // System.out.println("request skill: " + id);
+                    System.out.println("[DanhHieu Log] Client " + conn.p.name + " request effect id=" + id + " zoom=x" + conn.zoomlv);
                     try {
-                        Message m2 = new Message(74);
-                        m2.writer().writeByte(0);
-                        m2.writer().writeShort(id);
-                        byte[] data1 = Util
-                                .loadfile("data/template/skill/x" + conn.zoomlv + "/data/" + id);
-                        byte[] data2 = Util.loadfile(
-                                "data/template/skill/x" + conn.zoomlv + "/img/" + id + ".png");
-                        m2.writer().writeShort(data1.length);
-                        m2.writer().write(data1);
-                        m2.writer().write(data2);
-                        conn.addmsg(m2);
-                        m2.cleanup();
-                    } catch (Exception e) {
-                    }
-                } else if (conn.p != null && type == 1) {
-                    System.out.println("[DanhHieu Log] Client " + conn.p.name + " requested title effect id=" + id
-                            + ", zoom=x" + conn.zoomlv);
-                    try {
-                        String dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id;
-                        String imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png";
-                        if (!new java.io.File(dataPath).exists() && id >= 3000) {
-                            dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + (id - 3000);
-                            imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + (id - 3000) + ".png";
+                        byte[] data1 = null;
+                        byte[] data2 = null;
+                        
+                        // Ưu tiên đọc từ folder danh hiệu effect trước
+                        try {
+                            data1 = Util.loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
+                        } catch (Exception e) {}
+                        
+                        try {
+                            data2 = Util.loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
+                        } catch (Exception e) {}
+                        
+                        // Nếu thiếu data1, lấy từ skill fallback
+                        if (data1 == null) {
+                            try {
+                                data1 = Util.loadfile("data/template/skill/x" + conn.zoomlv + "/data/" + id);
+                            } catch (Exception e) {}
                         }
-                        byte[] data1 = Util.loadfile(dataPath);
-                        byte[] data2 = Util.loadfile(imgPath);
+                        
+                        // Nếu thiếu data2, lấy từ skill fallback
                         if (data2 == null) {
-                            data2 = Util.loadfile(
-                                    "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
+                            try {
+                                data2 = Util.loadfile("data/template/skill/x" + conn.zoomlv + "/img/" + id + ".png");
+                            } catch (Exception e) {}
                         }
+                        
                         if (data1 != null && data2 != null) {
                             Message m2 = new Message(74);
-                            m2.writer().writeByte(1);
+                            m2.writer().writeByte(0);
                             m2.writer().writeShort(id);
                             m2.writer().writeShort(data1.length);
                             m2.writer().write(data1);
                             m2.writer().write(data2);
                             conn.addmsg(m2);
                             m2.cleanup();
+                            System.out.println("[DanhHieu Log] Gui effect id=" + id + " thanh cong!");
                         } else {
-                            System.out.println("[DanhHieu Log] Client request failed id=" + id + ", zoom=x"
-                                    + conn.zoomlv + ", data=" + (data1 != null) + ", img=" + (data2 != null));
+                            System.out.println("[DanhHieu Log] LOI: Khong tim thay file data hoac img cho effect id=" + id);
                         }
                     } catch (Exception e) {
-                        System.out.println("[DanhHieu Log] Client request error id=" + id + ": " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }
                 break;
@@ -673,10 +669,12 @@ public class MessageHandler {
                             e.printStackTrace();
                         }
                     }
-                    // int loginEffectId = Service.getDanhHieuEffectId(conn.p);
-                    // if (loginEffectId >= 0) {
-                    // Service.send_danhieu_effect(conn.p, loginEffectId);
-                    // }
+                    if (conn.p.idDanhHieu >= 0) {
+                        template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(conn.p.idDanhHieu);
+                        if (dh != null && dh.getEffectId() >= 0) {
+                            Service.send_danhieu_effect(conn.p, conn.p, dh.getEffectId(), false);
+                        }
+                    }
                     Service.getThanhTich(conn.p, conn.p);
                     conn.p.map.send_in4_obj_inmap(conn.p);
                     conn.p.wait_change_map = false;
@@ -907,7 +905,8 @@ public class MessageHandler {
             // Reconnect BossHunt check
             activities.BossHunt activeBossHunt = activities.BossHunt.findActiveHunt(conn.p.name);
 
-            // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về làng đã đăng ký phó bản
+            // Safety fallback: nếu vẫn đang trong map BossHunt instance thì về làng đã đăng
+            // ký phó bản
             if (conn.p.map != null && conn.p.map.map_bossHunt != null) {
                 int targetMapId = 1;
                 if (activeBossHunt != null) {
@@ -951,8 +950,10 @@ public class MessageHandler {
             }
             // Reconnect HangDong check
             activities.HangDong activeHangDong = activities.HangDong.findActive(conn.p.name);
-            // Safety fallback: nếu vẫn đang trong các map HangDong/Dungeon (id 167-176) nhưng no active dungeon
-            if (conn.p.map != null && conn.p.map.template.id >= 167 && conn.p.map.template.id <= 176 && conn.p.dungeon == null) {
+            // Safety fallback: nếu vẫn đang trong các map HangDong/Dungeon (id 167-176)
+            // nhưng no active dungeon
+            if (conn.p.map != null && conn.p.map.template.id >= 167 && conn.p.map.template.id <= 176
+                    && conn.p.dungeon == null) {
                 int targetMapId = conn.p.originalMapId;
                 if (targetMapId <= 0) {
                     targetMapId = conn.p.id_map_save;
@@ -961,7 +962,7 @@ public class MessageHandler {
                     targetMapId = 25; // Default fallback to Syrup Village for Single Dungeon
                 }
                 System.out.println("[HangDong/Dungeon] Login safety: player " + conn.p.name
-                        + " still in HangDong/Dungeon map (" + conn.p.map.template.id 
+                        + " still in HangDong/Dungeon map (" + conn.p.map.template.id
                         + ") but no active dungeon, redirecting to map " + targetMapId);
                 map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {

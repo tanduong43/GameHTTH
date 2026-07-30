@@ -206,12 +206,12 @@ public class Player {
     public long time_change_map;
     public boolean isBot = false;
     public long time_start_find_wanted = 0;
-    
+
     // Thợ săn hải tặc bounty
     public int thosan_bounty = 0;
     public long time_bounty_posted = 0;
     public long last_bounty_announce_time = 0;
-    
+
     public int diemdanh;
     public int diemdanhvip;
     public long[] time_sk = new long[10000];
@@ -241,6 +241,23 @@ public class Player {
             }
             id = rs.getInt("id");
             hangdong_stage = rs.getInt("hangdong_stage");
+            try {
+                idDanhHieu = rs.getShort("danhhieu");
+                String listDhStr = rs.getString("list_danhhieu");
+                listDanhHieu = new ArrayList<>();
+                if (listDhStr != null && !listDhStr.isEmpty()) {
+                    JSONArray jsDh = (JSONArray) JSONValue.parse(listDhStr);
+                    if (jsDh != null) {
+                        for (int i = 0; i < jsDh.size(); i++) {
+                            listDanhHieu.add(Integer.parseInt(jsDh.get(i).toString()));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // Ignore if columns don't exist yet
+                idDanhHieu = -1;
+                listDanhHieu = new ArrayList<>();
+            }
             index_map = (short) id;
             clazz = rs.getByte("clazz");
             pvppoint = rs.getInt("pvppoint");
@@ -318,7 +335,8 @@ public class Player {
                     for (int i = 0; i < jsDa.size() && i < daily_achievements.length; i++) {
                         daily_achievements[i] = Integer.parseInt(jsDa.get(i).toString());
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
             }
             if (js.size() > 19 && js.get(19) != null) {
                 try {
@@ -326,7 +344,8 @@ public class Player {
                     for (int i = 0; i < jsDaClaimed.size() && i < daily_achievements_claimed.length; i++) {
                         daily_achievements_claimed[i] = Integer.parseInt(jsDaClaimed.get(i).toString()) == 1;
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
             }
             this.claimedMilestones = new ArrayList<>();
             if (this.conn != null && this.conn.claimed_milestones != null && !this.conn.claimed_milestones.isEmpty()) {
@@ -736,8 +755,9 @@ public class Player {
             this.originalX = session.originalX;
             this.originalY = session.originalY;
             if (session.oldMap != null) {
-                // Đang không ở trong hang động, cho player về lại map cũ (bỏ qua check isMapLang vì ta đang reconnect)
-                // Tuy nhiên `setup` mặc định đẩy về village nếu ko có tọa độ save, 
+                // Đang không ở trong hang động, cho player về lại map cũ (bỏ qua check
+                // isMapLang vì ta đang reconnect)
+                // Tuy nhiên `setup` mặc định đẩy về village nếu ko có tọa độ save,
                 // ta sẽ đặt lại tọa độ map cũ ở đây.
                 this.map = session.oldMap;
             }
@@ -1189,14 +1209,16 @@ public class Player {
             //
             result = ps.executeUpdate();
 
-            // Lưu tích tiêu ruby riêng biệt (tránh lệch chỉ số tham số trong câu lệnh chính)
+            // Lưu tích tiêu ruby riêng biệt (tránh lệch chỉ số tham số trong câu lệnh
+            // chính)
             StringBuilder sbTichTieu = new StringBuilder();
             for (int i = 0; i < p.claimedTichtieuRuby.size(); i++) {
                 sbTichTieu.append(p.claimedTichtieuRuby.get(i));
-                if (i < p.claimedTichtieuRuby.size() - 1) sbTichTieu.append(",");
+                if (i < p.claimedTichtieuRuby.size() - 1)
+                    sbTichTieu.append(",");
             }
             java.sql.PreparedStatement psTieu = connection.prepareStatement(
-                "UPDATE `players` SET `tichtieu_ruby` = ?, `claimed_tichtieu_ruby` = ?, `thosan_bounty` = ?, `time_bounty_posted` = ? WHERE `id` = ?");
+                    "UPDATE `players` SET `tichtieu_ruby` = ?, `claimed_tichtieu_ruby` = ?, `thosan_bounty` = ?, `time_bounty_posted` = ? WHERE `id` = ?");
             psTieu.setInt(1, p.tichtieu_ruby);
             psTieu.setString(2, sbTichTieu.toString());
             psTieu.setInt(3, p.thosan_bounty);
@@ -1605,17 +1627,17 @@ public class Player {
         try {
             connection = SQL.gI().getCon();
             st = connection.createStatement();
-            
+
             // Perform atomic update first to avoid race conditions with web deposits
             int rows = st.executeUpdate(
-                "UPDATE `accounts` SET `coin` = `coin` + " + coin_exchange + " WHERE BINARY `user` = '" + conn.user + "' AND `coin` + " + coin_exchange + " >= 0"
-            );
-            
+                    "UPDATE `accounts` SET `coin` = `coin` + " + coin_exchange + " WHERE BINARY `user` = '" + conn.user
+                            + "' AND `coin` + " + coin_exchange + " >= 0");
+
             if (rows == 0) {
                 Service.send_box_ThongBao_OK(this, "Không đủ coin");
                 return false;
             }
-            
+
             // Read back the exact updated value
             rs = st.executeQuery("SELECT `coin` FROM `accounts` WHERE BINARY `user` = '" + conn.user + "' LIMIT 1;");
             if (rs.next()) {
@@ -1624,7 +1646,8 @@ public class Player {
 
             if (coin_exchange < 0) {
                 this.update_tichluy(-coin_exchange);
-                System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange) + " Coin. Tích luỹ: " + this.tichLuy);
+                System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange)
+                        + " Coin. Tích luỹ: " + this.tichLuy);
             }
         } catch (SQLException e) {
             Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");
@@ -2478,6 +2501,12 @@ public class Player {
                 Service.getThanhTich(this, p0);
                 Service.update_PK(this, p0, false);
                 Service.pet(this, p0, false);
+            }
+        }
+        if (this.idDanhHieu >= 0) {
+            template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(this.idDanhHieu);
+            if (dh != null && dh.getEffectId() >= 0) {
+                Service.send_danhieu_effect(this, null, dh.getEffectId(), false);
             }
         }
     }

@@ -23,6 +23,7 @@ import core.MenuController;
 import core.Service;
 import core.Util;
 import io.Message;
+import template.DanhHieuTemplate;
 import template.DataTemplate;
 import template.EffTemplate;
 import template.FriendTemp;
@@ -3788,10 +3789,39 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 9);
                 else if (cmd.equals("resethangdong") || cmd.equals("reset_hangdong"))
                     MenuController.Menu_Admin(p, (byte) 10);
+                else if (cmd.startsWith("setdanhhieu ")) {
+                    String[] parts = cmd.split(" ");
+                    if (parts.length >= 3) {
+                        String targetName = parts[1];
+                        int dhId = Integer.parseInt(parts[2]);
+                        Player p0 = map.Map.get_player_by_name_allmap(targetName);
+                        if (p0 != null) {
+                            p0.idDanhHieu = (short) dhId;
+                            if (p0.listDanhHieu == null) p0.listDanhHieu = new java.util.ArrayList<>();
+                            if (!p0.listDanhHieu.contains(dhId)) p0.listDanhHieu.add(dhId);
+                            Service.send_box_ThongBao_OK(p, "Set danh hieu " + dhId + " cho " + targetName + " thanh cong!");
+                            Service.send_box_ThongBao_OK(p0, "Ban nhan duoc danh hieu moi! Hay chon no trong menu Hanh Trang.");
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Khong tim thay player " + targetName);
+                        }
+                    }
+                }
                 else
                     Service.send_box_ThongBao_OK(p, "Lenh admin khong hop le!");
                 return;
             }
+        }
+        if (txt.equals("danhhieu") || txt.equals("/danhhieu")) {
+            MenuController.Menu_DanhHieu(p, (byte) 0);
+            return;
+        } else if (txt.startsWith("adddh ") || txt.startsWith("/adddh ")) {
+            try {
+                int dhId = Integer.parseInt(txt.split(" ")[1]);
+                if (p.listDanhHieu == null) p.listDanhHieu = new java.util.ArrayList<>();
+                if (!p.listDanhHieu.contains(dhId)) p.listDanhHieu.add(dhId);
+                Service.send_box_ThongBao_OK(p, "Ban da nhan duoc danh hieu " + dhId + "!");
+            } catch (Exception e) {}
+            return;
         }
         this.send_chat_popup(0, p.index_map, s, false);
     }
@@ -4033,6 +4063,19 @@ public class Map implements Runnable {
             Service.Weapon_fashion(p0, p, false);
             Service.getThanhTich(p0, p);
             Service.charWearing(p0, p, false);
+            // Gửi danh hiệu effect
+            if (p0.idDanhHieu >= 0) {
+                DanhHieuTemplate dhP0 = DanhHieuTemplate.get(p0.idDanhHieu);
+                if (dhP0 != null && dhP0.getEffectId() >= 0) {
+                    Service.send_danhieu_effect(p0, p, dhP0.getEffectId(), false);
+                }
+            }
+            if (p.idDanhHieu >= 0) {
+                DanhHieuTemplate dhP = DanhHieuTemplate.get(p.idDanhHieu);
+                if (dhP != null && dhP.getEffectId() >= 0) {
+                    Service.send_danhieu_effect(p, p0, dhP.getEffectId(), false);
+                }
+            }
             //
             this.update_boat(p0, p, false);
             this.update_boat(p, p0, false);

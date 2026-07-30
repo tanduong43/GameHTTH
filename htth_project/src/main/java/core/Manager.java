@@ -874,6 +874,11 @@ public class Manager {
                         }
                     }
                 }
+                temp.description = rs.getString("description");
+                temp.color = rs.getString("color");
+                temp.rarity = rs.getByte("rarity");
+                temp.effect_id = rs.getInt("effect_id");
+                temp.duration = rs.getLong("duration");
                 template.DanhHieuTemplate.ENTRYS.add(temp);
             }
             rs.close();

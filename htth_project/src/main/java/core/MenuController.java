@@ -38,6 +38,7 @@ import map.Npc;
 import map.Vgo;
 import template.Clan_member;
 import template.DaThanThoai;
+import template.DanhHieuTemplate;
 import template.EffTemplate;
 import template.ItemFashion;
 import template.ItemFashionP;
@@ -618,6 +619,41 @@ public class MenuController {
         }
         case 1002: {
           Menu_LucThuc(p, index);
+          break;
+        }
+        case 9090: { // Danh hieu selection
+          if (index == 0) { // Bo danh hieu
+            if (p.idDanhHieu >= 0) {
+              DanhHieuTemplate oldDh = DanhHieuTemplate.get(p.idDanhHieu);
+              if (oldDh != null && oldDh.getEffectId() >= 0) {
+                Service.send_danhieu_effect(p, null, oldDh.getEffectId(), true); // remove effect trước
+              }
+            }
+            p.idDanhHieu = -1;
+            p.update_info_to_all();
+            Service.send_box_ThongBao_OK(p, "Đã cất danh hiệu thành công!");
+          } else {
+            int dhIndex = index - 1;
+            if (p.listDanhHieu != null && dhIndex >= 0 && dhIndex < p.listDanhHieu.size()) {
+              // Xóa effect cũ nếu có
+              if (p.idDanhHieu >= 0) {
+                DanhHieuTemplate oldDh = DanhHieuTemplate.get(p.idDanhHieu);
+                if (oldDh != null && oldDh.getEffectId() >= 0) {
+                  Service.send_danhieu_effect(p, null, oldDh.getEffectId(), true);
+                }
+              }
+              // Set danh hiệu mới
+              p.idDanhHieu = p.listDanhHieu.get(dhIndex).shortValue();
+              DanhHieuTemplate dh = DanhHieuTemplate.get(p.idDanhHieu);
+              if (dh != null) {
+                Service.send_box_ThongBao_OK(p, "Đã đổi danh hiệu thành: " + dh.name);
+                if (dh.getEffectId() >= 0) {
+                  // Service.send_danhieu_effect(p, null, dh.getEffectId(), false); // thêm effect mới (bỏ vì update_info_to_all đã gọi)
+                }
+              }
+            }
+          }
+          p.update_info_to_all();
           break;
         }
         case 978: {
@@ -1780,6 +1816,24 @@ public class MenuController {
           break;
         }
         case 5:
+        case 6: {
+          if (p.listDanhHieu == null || p.listDanhHieu.isEmpty()) {
+              Service.send_box_ThongBao_OK(p, "Bạn chưa có danh hiệu nào.");
+              return;
+          }
+          String[] menu = new String[p.listDanhHieu.size() + 1];
+          menu[0] = "Bỏ danh hiệu";
+          for (int i = 0; i < p.listDanhHieu.size(); i++) {
+              DanhHieuTemplate dh = DanhHieuTemplate.get(p.listDanhHieu.get(i).shortValue());
+              if (dh != null) {
+                  menu[i + 1] = dh.name + (p.idDanhHieu == dh.id ? " (Đang dùng)" : "");
+              } else {
+                  menu[i + 1] = "Lỗi";
+              }
+          }
+          send_dynamic_menu(p, 9090, "Danh Hiệu", menu, null);
+          break;
+        }
 
       }
     }
@@ -2953,6 +3007,19 @@ public class MenuController {
       p.conn.addmsg(m);
       m.cleanup();
     }
+  }
+
+  public static void Menu_DanhHieu(Player p, byte type) throws IOException {
+    if (p.listDanhHieu == null) {
+      p.listDanhHieu = new java.util.ArrayList<>();
+    }
+    String[] name = new String[p.listDanhHieu.size() + 1];
+    name[0] = "Bỏ danh hiệu";
+    for (int i = 0; i < p.listDanhHieu.size(); i++) {
+      template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p.listDanhHieu.get(i).shortValue());
+      name[i + 1] = (dh != null) ? dh.name : "Danh hiệu " + p.listDanhHieu.get(i);
+    }
+    send_dynamic_menu(p, 9090, "Danh Hiệu", name, null);
   }
 
 }

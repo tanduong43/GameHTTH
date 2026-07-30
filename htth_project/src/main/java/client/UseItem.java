@@ -144,15 +144,17 @@ public class UseItem {
                     }
                 }
             } else {
-                if (it_temp.name != null && (it_temp.name.toLowerCase().contains("pháo hoa") || it_temp.name.toLowerCase().contains("phao hoa") || id == 359 || id == 361)) {
+                if (it_temp.name != null && (it_temp.name.toLowerCase().contains("pháo hoa")
+                        || it_temp.name.toLowerCase().contains("phao hoa") || id == 359 || id == 361)) {
                     Service.send_eff(p, 23, 0); // Hiệu ứng Pháo hoa rực rỡ
                     p.num_phao_hoa++;
 
-                    boolean isMilestone = (p.num_phao_hoa == 1 || p.num_phao_hoa == 10 || p.num_phao_hoa == 100 
-                                            || p.num_phao_hoa == 1000 || p.num_phao_hoa == 10000 || p.num_phao_hoa == 100000);
+                    boolean isMilestone = (p.num_phao_hoa == 1 || p.num_phao_hoa == 10 || p.num_phao_hoa == 100
+                            || p.num_phao_hoa == 1000 || p.num_phao_hoa == 10000 || p.num_phao_hoa == 100000);
 
                     if (isMilestone) {
-                        Manager.gI().chatKTG(0, "Chúc mừng " + p.name + " vừa bắn đạt mốc " + Util.number_format(p.num_phao_hoa) + " Pháo hoa rực rỡ!", 5);
+                        Manager.gI().chatKTG(0, "Chúc mừng " + p.name + " vừa bắn đạt mốc "
+                                + Util.number_format(p.num_phao_hoa) + " Pháo hoa rực rỡ!", 5);
                     }
 
                     // Tặng quà pháo hoa ngẫu nhiên từ danh sách quy định
@@ -224,7 +226,7 @@ public class UseItem {
 
                     if (p.item.add_item_bag47(catReward, idReward, quantReward)) {
                         p.item.update_Inventory(-1, false);
-                        
+
                         List<GiftBox> gifts = new ArrayList<>();
                         GiftBox gb = new GiftBox();
                         gb.id = idReward;
@@ -244,7 +246,9 @@ public class UseItem {
                             }
                         }
                         gifts.add(gb);
-                        Service.send_gift(p, 1, "Pháo Hoa", "Bạn vừa đốt 1 Pháo Hoa!\nTổng đã đốt: " + Util.number_format(p.num_phao_hoa), gifts, true);
+                        Service.send_gift(p, 1, "Pháo Hoa",
+                                "Bạn vừa đốt 1 Pháo Hoa!\nTổng đã đốt: " + Util.number_format(p.num_phao_hoa), gifts,
+                                true);
 
                         // Tặng quà cho các người chơi khác trong map
                         for (int i = 0; i < p.map.players.size(); i++) {
@@ -255,17 +259,54 @@ public class UseItem {
                                 short idReward0 = 86;
                                 int quantReward0 = 1;
                                 switch (rewardType0) {
-                                    case 0: { catReward0 = 7; idReward0 = 4; quantReward0 = Util.random(1, 4); break; }
-                                    case 1: { catReward0 = 7; idReward0 = 5; quantReward0 = 1; break; }
-                                    case 2: { catReward0 = 7; idReward0 = 6; quantReward0 = 1; break; }
-                                    case 3: { catReward0 = 7; idReward0 = 9; quantReward0 = Util.random(1, 3); break; }
-                                    case 4: { catReward0 = 4; idReward0 = 86; quantReward0 = 1; break; }
-                                    case 5: { catReward0 = 4; idReward0 = 87; quantReward0 = 1; break; }
-                                    case 6: { catReward0 = 4; idReward0 = 221; quantReward0 = Util.random(1, 3); break; }
-                                    case 7: { 
+                                    case 0: {
+                                        catReward0 = 7;
+                                        idReward0 = 4;
+                                        quantReward0 = Util.random(1, 4);
+                                        break;
+                                    }
+                                    case 1: {
+                                        catReward0 = 7;
+                                        idReward0 = 5;
+                                        quantReward0 = 1;
+                                        break;
+                                    }
+                                    case 2: {
+                                        catReward0 = 7;
+                                        idReward0 = 6;
+                                        quantReward0 = 1;
+                                        break;
+                                    }
+                                    case 3: {
+                                        catReward0 = 7;
+                                        idReward0 = 9;
+                                        quantReward0 = Util.random(1, 3);
+                                        break;
+                                    }
+                                    case 4: {
+                                        catReward0 = 4;
+                                        idReward0 = 86;
+                                        quantReward0 = 1;
+                                        break;
+                                    }
+                                    case 5: {
+                                        catReward0 = 4;
+                                        idReward0 = 87;
+                                        quantReward0 = 1;
+                                        break;
+                                    }
+                                    case 6: {
+                                        catReward0 = 4;
+                                        idReward0 = 221;
+                                        quantReward0 = Util.random(1, 3);
+                                        break;
+                                    }
+                                    case 7: {
                                         short[] gemLvl3 = new short[] { 44, 50, 56, 62, 68, 74 };
-                                        catReward0 = 4; idReward0 = gemLvl3[Util.random(gemLvl3.length)]; quantReward0 = 1; 
-                                        break; 
+                                        catReward0 = 4;
+                                        idReward0 = gemLvl3[Util.random(gemLvl3.length)];
+                                        quantReward0 = 1;
+                                        break;
                                     }
                                 }
                                 if (p0.item.add_item_bag47(catReward0, idReward0, quantReward0)) {
@@ -289,9 +330,12 @@ public class UseItem {
                                         }
                                     }
                                     gifts0.add(gb0);
-                                    Service.send_gift(p0, 1, "Quà Pháo Hoa", p.name + " vừa đốt Pháo Hoa!\nBạn may mắn nhận được lộc rơi xuống!", gifts0, true);
+                                    Service.send_gift(p0, 1, "Quà Pháo Hoa",
+                                            p.name + " vừa đốt Pháo Hoa!\nBạn may mắn nhận được lộc rơi xuống!", gifts0,
+                                            true);
                                 } else {
-                                    Service.send_box_ThongBao_OK(p0, "Hành trang không đủ chỗ trống để nhận lộc Pháo Hoa từ " + p.name + "!");
+                                    Service.send_box_ThongBao_OK(p0,
+                                            "Hành trang không đủ chỗ trống để nhận lộc Pháo Hoa từ " + p.name + "!");
                                 }
                             }
                         }
