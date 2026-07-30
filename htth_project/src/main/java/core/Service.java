@@ -264,7 +264,6 @@ public class Service {
      */
     public static void send_danhieu_effect(Player p0, Player p, int effectId, boolean isRemove) throws IOException {
         if (effectId < 0) return;
-        System.out.println("[Debug DanhHieu] -> Gửi effectId=" + effectId + " của player=" + p0.name + " (isRemove=" + isRemove + ")");
         Message m = new Message(74);
         if (isRemove) {
             m.writer().writeByte(2);
@@ -275,8 +274,8 @@ public class Service {
             m.writer().writeShort(p0.index_map);
             m.writer().writeShort(effectId);
             m.writer().writeInt(-1); // time: -1 = vĩnh viễn
-            m.writer().writeByte(0); // typemove: 0 = effect chuẩn (không flip)
-            m.writer().writeByte(0); // loop: 0
+            m.writer().writeByte(4); // typemove: 4 = effect trên đầu
+            m.writer().writeByte(-1); // loop: -1 (255) = loop vô hạn animation
         }
         if (p != null) {
             p.conn.addmsg(m);
