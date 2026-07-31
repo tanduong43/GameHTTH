@@ -52,8 +52,7 @@ public class ClientYesNo {
     public static void process(Player p, Message m2) throws IOException {
         short id = m2.reader().readShort();
         byte value = m2.reader().readByte();
-        // System.out.println("id " + id);
-        // System.out.println("value " + value);
+        core.Service.send_box_ThongBao_OK(p, "DEBUG: id=" + id + " value=" + value);
         if (id == 8888) {
             if (value == 0) { // Đồng ý
                 activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);
@@ -229,10 +228,43 @@ public class ClientYesNo {
                         return;
                     }
 
-                    p.item.remove_item47(4, 228, 1);
+                    p.data_yesno = new int[] { 2281, itf.ID };
+                    Service.send_box_yesno(p, 2281, "Thông báo", "Bạn có chắc muốn nhận thời trang " + itf.name + " không?", new String[]{"Xác nhận", "Đóng"}, new byte[]{-1, -1});
+                    return;
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Thời trang không hợp lệ!");
+                }
+            }
+            p.data_yesno = null;
+            p.map_tele = null;
+            return;
+        }
+
+        if (id == 2281 && p.data_yesno != null && p.data_yesno[0] == 2281) {
+            if (value == 0) { // Đồng ý
+                int fashionId = p.data_yesno[1];
+                ItemFashion itf = ItemFashion.get_item(fashionId);
+                if (itf != null) {
+                    if (p.check_fashion(itf.ID) != null) {
+                        Service.send_box_ThongBao_OK(p, "Bạn đã sở hữu thời trang này rồi!");
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
+
+                    int chestId = p.data_yesno.length > 2 ? p.data_yesno[2] : 228;
+                    int numChest = p.item.total_item_bag_by_id(4, chestId);
+                    if (numChest <= 0) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không có Rương Trang Phục!");
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
+
+                    p.item.remove_item47(4, chestId, 1);
                     Message m3 = new Message(-13);
-                    m3.writer().writeShort(228);
-                    m3.writer().writeShort(p.item.total_item_bag_by_id(4, 228));
+                    m3.writer().writeShort(chestId);
+                    m3.writer().writeShort(p.item.total_item_bag_by_id(4, chestId));
                     p.conn.addmsg(m3);
                     m3.cleanup();
                     p.item.update_Inventory(-1, false);
@@ -249,8 +281,6 @@ public class ClientYesNo {
                     ItemFashionP.show_table(p, 105);
 
                     Service.send_box_ThongBao_OK(p, "Nhận thành công thời trang " + itf.name);
-                } else {
-                    Service.send_box_ThongBao_OK(p, "Thời trang không hợp lệ!");
                 }
             }
             p.data_yesno = null;

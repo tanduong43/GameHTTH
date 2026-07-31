@@ -969,24 +969,42 @@ public class Service {
                     Service.charWearing(p, p0, false);
                 }
                 ItemFashionP.show_table(p, 108);
-                Service.send_box_ThongBao_OK(p, "Mua thÃ nh cÃ´ng " + ith.name);
+                Service.send_box_ThongBao_OK(p, "Mua thành công " + ith.name);
             } else {
-                Service.send_box_ThongBao_OK(p, "Mua tháº¥t báº¡i, hÃ£y thá»­ láº¡i!");
+                Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
         } else if (cat == -1 && TypeShop == 105) {
             ItemFashion itf = ItemFashion.get_item(id);
             if (itf != null) {
+                if (p.data_yesno != null && p.data_yesno[0] == 110) {
+                    int chestId = p.data_yesno[1];
+                    int numChest = p.item.total_item_bag_by_id(4, chestId);
+                    if (numChest <= 0) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không có Rương Trang Phục!");
+                        p.data_yesno = null;
+                        return;
+                    }
+                    if (p.check_fashion(itf.ID) != null) {
+                        Service.send_box_ThongBao_OK(p, "Bạn đã sở hữu thời trang này rồi!");
+                        p.data_yesno = null;
+                        return;
+                    }
+                    p.data_yesno = new int[] { 2281, itf.ID, chestId };
+                    Service.send_box_yesno(p, 2281, "Thông báo", "Bạn có chắc muốn nhận thời trang " + itf.name + " không?", new String[]{"Xác nhận", "Đóng"}, new byte[]{-1, -1});
+                    return;
+                }
+                
                 if (itf.price == -1) {
                     Service.send_box_ThongBao_OK(p,
-                            "Äá»“ thá»i trang " + itf.name + " hiá»‡n táº¡i chÆ°a Ä‘Æ°á»£c bÃ¡n");
+                            "Đồ thời trang " + itf.name + " hiện tại chưa được bán");
                     return;
                 }
                 if (p.get_ngoc() < itf.price) {
-                    Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + itf.price + " ruby!");
+                    Service.send_box_ThongBao_OK(p, "Không đủ " + itf.price + " ruby!");
                     return;
                 }
                 if (p.check_fashion(itf.ID) != null) {
-                    Service.send_box_ThongBao_OK(p, "ÄÃ£ mua rá»“i!");
+                    Service.send_box_ThongBao_OK(p, "Đã mua rồi!");
                     return;
                 }
                 p.update_ngoc(-itf.price);
@@ -1001,10 +1019,11 @@ public class Service {
                 }
                 Service.UpdateInfoMaincharInfo(p);
                 ItemFashionP.show_table(p, 105);
-                Service.send_box_ThongBao_OK(p, "Mua thÃ nh cÃ´ng " + itf.name);
+                Service.send_box_ThongBao_OK(p, "Mua thành công " + itf.name);
             } else {
-                Service.send_box_ThongBao_OK(p, "Mua tháº¥t báº¡i, hÃ£y thá»­ láº¡i!");
+                Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
+
         } else if (cat == -1 && TypeShop == 111) {
             if ((p.item.able_bag() < 1 && p.item.total_item_bag_by_id(4, id) == 0)
                     || ((p.item.total_item_bag_by_id(4, id)
@@ -1661,6 +1680,48 @@ public class Service {
         m.cleanup();
     }
 
+    public static void open_box_fashion(Player p, java.util.List<template.ItemFashion> list, int id_chest,
+            String s1, String s2) throws IOException {
+        int ver_ = p.conn.getVersionInt();
+        Message m = new Message(-19);
+        m.writer().writeByte(105);
+        m.writer().writeUTF(s2);
+        m.writer().writeByte(105);
+        m.writer().writeShort(list.size());
+        for (int i = 0; i < list.size(); i++) {
+            template.ItemFashion temp = list.get(i);
+            m.writer().writeByte(temp.ID);
+            
+            String name = temp.name.replace("Trang phục ", "").replace("Thời trang ", "");
+            if (name.length() > 15) {
+                name = name.substring(0, 14) + "...";
+            }
+            
+            m.writer().writeUTF(name);
+            m.writer().writeUTF(temp.info);
+            m.writer().writeShort(temp.idIcon);
+            m.writer().writeByte(temp.mWearing.length);
+            for (int j = 0; j < temp.mWearing.length; j++) {
+                m.writer().writeShort(temp.mWearing[j]);
+            }
+            if (p.check_fashion(temp.ID) != null) {
+                m.writer().writeInt(0);
+                m.writer().writeShort(0); // 0 means 'Owned' in client
+            } else {
+                m.writer().writeInt(0);
+                m.writer().writeShort(temp.price == -1 ? 1 : temp.price);
+            }
+            
+            if (ver_ >= 115) {
+                m.writer().writeByte(0);
+            }
+        }
+        p.conn.addmsg(m);
+        m.cleanup();
+        
+        p.data_yesno = new int[] { 110, id_chest };
+    }
+
     public static void CountDown_Ticket(Player p) throws IOException {
         //
         if (p.get_ticket() >= p.get_ticket_max()) {
@@ -2227,5 +2288,33 @@ public class Service {
             p.conn.addmsg(m);
             m.cleanup();
         }
+    }
+
+    public static void sendArchiDaily(Player p) throws IOException {
+        Message m = new Message(37);
+        m.writer().writeByte(0);
+        m.writer().writeUTF("Thành tích hằng ngày");
+        m.writer().writeByte(6);
+        String[] names = { "Tham gia PVP", "Đi Liên Tầng", "Bảo vệ Namie", "Phó bản Hang Động", "Lập nhóm 5 người", "Đồ sát 1 người" };
+        String[] infos = { "Tham gia trận đấu PVP", "Vượt 1 tầng Liên Tầng", "Bảo vệ thành công Namie", "Đi phó bản Hang Động", "Lập một nhóm gồm 5 người", "Tiêu diệt 1 người chơi khác" };
+        short[] icons = { 132, 161, 128, 127, 162, 140 };
+        for (int i = 0; i < 6; i++) {
+            m.writer().writeUTF(names[i]);
+            m.writer().writeUTF(infos[i]);
+            m.writer().writeInt(p.daily_achievements[i]); // valueCur
+            m.writer().writeInt(1); // valueMax
+            m.writer().writeShort(icons[i]);
+            byte typeReward = -1;
+            if (p.daily_achievements_claimed[i]) {
+                typeReward = 2; // GOT
+            } else if (p.daily_achievements[i] >= 1) {
+                typeReward = 1; // READY
+            } else {
+                typeReward = 0; // DOING
+            }
+            m.writer().writeByte(typeReward);
+        }
+        p.conn.addmsg(m);
+        m.cleanup();
     }
 }

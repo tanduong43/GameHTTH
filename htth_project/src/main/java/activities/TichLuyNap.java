@@ -67,8 +67,7 @@ public class TichLuyNap {
 
         // MỐC 0: 50k Extol
         Milestone m0 = new Milestone(50, "Tích luỹ nạp 50k Extol", 50000);
-        m0.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
-        m0.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
+        m0.addReward("Thời trang Doflamingo", (byte) 105, (short) 127, (short) 127, 1);
         m0.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
         m0.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 3);
         m0.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
@@ -79,74 +78,69 @@ public class TichLuyNap {
 
         // MỐC 1: 100k Extol
         Milestone m1 = new Milestone(100, "Tích luỹ nạp 100k Extol", 100000);
-        m1.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
-        m1.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
+        m1.addReward("Thời trang Chấn thiên", (byte) 105, (short) 53, (short) 53, 1);
         m1.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
         m1.addReward("Đá hải thạch 1", (byte) 4, (short) 221, (short) 221, 100);
         m1.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
         m1.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 10);
-        m1.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
-        m1.addReward("Thời trang Doflamingo", (byte) 105, (short) 127, (short) 127, 1);
+        m1.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 2);
         m1.addReward("Lông vũ", (byte) 7, (short) 13, (short) 13, 200);
         MILESTONES.add(m1);
 
         // MỐC 2: 200k Extol
         Milestone m2 = new Milestone(200, "Tích luỹ nạp 200k Extol", 200000);
-        m2.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
-        m2.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
-        m2.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
-        m2.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 3);
-        m2.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
-        m2.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 10);
+        m2.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 50);
+        m2.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 10);
+        m2.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 50);
+        m2.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 50);
         m2.addReward("Rương cam cùng hệ lv100", (byte) 4, (short) 131, (short) 131, 50);
         m2.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
         m2.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 1);
         m2.addReward("Đá khảm ngẫu nhiên", (byte) 4, (short) 327, (short) 327, 20);
         m2.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 1);
         m2.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
-        m2.addReward("Trang phục Đấng", (byte) 105, (short) 59, (short) 59, 1);
+        m2.addReward("Trang phục Bão tố", (byte) 105, (short) 55, (short) 55, 1);
         MILESTONES.add(m2);
 
         // MỐC 3: 300k Extol
         Milestone m3 = new Milestone(300, "Tích luỹ nạp 300k Extol", 300000);
-        m3.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 10);
-        m3.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
-        m3.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 30);
-        m3.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
-        m3.addReward("Trang phục Raid Suit Judge", (byte) 105, (short) 116, (short) 116, 1);
+        m3.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 50);
+        m3.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 50);
+        m3.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 50);
+        m3.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 5);
         m3.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
         m3.addReward("Topaz - Saphia thần thoại", (byte) 4, (short) 655, (short) 655, 5);
         m3.addReward("Đá khảm siêu cấp", (byte) 4, (short) 324, (short) 324, 5);
         m3.addReward("Trang phục Thần Tài", (byte) 105, (short) 95, (short) 95, 1);
+        m3.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 20);
         MILESTONES.add(m3);
 
         // MỐC 4: 500k Extol
         Milestone m4 = new Milestone(500, "Tích luỹ nạp 500k Extol", 500000);
-        m4.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 10);
-        m4.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
-        m4.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 30);
+        m4.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 100);
+        m4.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 100);
+        m4.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 100);
         m4.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
         m4.addReward("Trang phục Mihawk", (byte) 105, (short) 118, (short) 118, 1);
+        m4.addReward("Trang phục Raid Suit Judge", (byte) 105, (short) 116, (short) 116, 1);
         m4.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
-        m4.addReward("Ngọc - Saphia thần thoại", (byte) 4, (short) 665, (short) 665, 5);
+        m4.addReward("Hổ phách - Ruby thần thoại", (byte) 4, (short) 679, (short) 679, 5);
         m4.addReward("Đá khảm ngẫu nhiên", (byte) 4, (short) 327, (short) 327, 5);
         m4.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 5);
+        m4.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 50);
         MILESTONES.add(m4);
 
         // MỐC 5: 1M Extol
         Milestone m5 = new Milestone(1000, "Tích luỹ nạp 1M Extol", 1000000);
-        m5.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 10);
-        m5.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
-        m5.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 30);
+        m5.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 150);
+        m5.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 200);
+        m5.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 200);
         m5.addReward("Trang phục Râu đen", (byte) 105, (short) 74, (short) 74, 1);
         m5.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
-        m5.addReward("Ngọc - Saphia thần thoại", (byte) 4, (short) 665, (short) 665, 5);
         m5.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 5);
         m5.addReward("Tiến cấp đơn", (byte) 4, (short) 413, (short) 413, 20);
-        m5.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 10);
-        m5.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 10);
-        m5.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 10);
-        m5.addReward("Rương trang phục", (byte) 4, (short) 228, (short) 228, 10);
+        m5.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 100);
+        m5.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 20);
         MILESTONES.add(m5);
     }
 

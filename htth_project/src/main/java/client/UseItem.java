@@ -850,42 +850,37 @@ public class UseItem {
                         return false;
                     }
                     case 228: {
-                        ItemFashion f109 = ItemFashion.get_item(109);
-                        ItemFashion f110 = ItemFashion.get_item(110);
-                        ItemFashion f119 = ItemFashion.get_item(119);
-                        ItemFashion f123 = ItemFashion.get_item(123);
+                        ItemFashion[] fashions = {
+                                ItemFashion.get_item(109),
+                                ItemFashion.get_item(110),
+                                ItemFashion.get_item(119),
+                                ItemFashion.get_item(123),
+                                ItemFashion.get_item(74),
+                                ItemFashion.get_item(128),
+                                ItemFashion.get_item(120),
+                                ItemFashion.get_item(77),
+                                ItemFashion.get_item(103),
+                                ItemFashion.get_item(104),
+                                ItemFashion.get_item(85),
+                                ItemFashion.get_item(86),
+                                ItemFashion.get_item(87),
+                                ItemFashion.get_item(88),
+                                ItemFashion.get_item(89)
+                        };
 
-                        List<String> listOptions = new ArrayList<>();
+                        List<ItemFashion> validFashions = new ArrayList<>();
                         List<Integer> listIds = new ArrayList<>();
 
-                        if (f109 != null) {
-                            listOptions.add(f109.name);
-                            listIds.add(109);
-                        }
-                        if (f110 != null) {
-                            listOptions.add(f110.name);
-                            listIds.add(110);
-                        }
-                        if (f119 != null) {
-                            listOptions.add(f119.name);
-                            listIds.add(119);
-                        }
-                        if (f123 != null) {
-                            listOptions.add(f123.name);
-                            listIds.add(123);
+                        for (ItemFashion f : fashions) {
+                            if (f != null) {
+                                validFashions.add(f);
+                                listIds.add((int) f.ID);
+                            }
                         }
 
-                        if (listOptions.isEmpty()) {
+                        if (validFashions.isEmpty()) {
                             Service.send_box_ThongBao_OK(p, "Không tìm thấy thời trang trong hệ thống!");
                             return false;
-                        }
-
-                        listOptions.add("Hủy");
-
-                        String[] str = listOptions.toArray(new String[0]);
-                        byte[] select = new byte[str.length];
-                        for (int i = 0; i < select.length; i++) {
-                            select[i] = (byte) -1;
                         }
 
                         p.data_yesno = new int[listIds.size() + 1];
@@ -894,8 +889,7 @@ public class UseItem {
                             p.data_yesno[i + 1] = listIds.get(i);
                         }
 
-                        Service.send_box_yesno(p, 228, "Rương Trang Phục", "Chọn 1 trang phục mà bạn muốn nhận:", str,
-                                select);
+                        Service.open_box_fashion(p, validFashions, 228, "Hộp thời trang cấp 1", "Chọn thời trang bạn muốn nhận:");
                         return false;
                     }
                     case 80: {
