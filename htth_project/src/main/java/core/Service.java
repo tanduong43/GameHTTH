@@ -336,7 +336,7 @@ public class Service {
                 break;
             }
             case 6: {
-                m.writer().writeUTF("Shop NguyÃªn liá»‡u");
+                m.writer().writeUTF("Shop Nguyên liệu");
                 m.writer().writeByte(7);
                 byte[] id_sell = ItemSell.get_it_sell_material();
                 m.writer().writeShort(id_sell.length);
@@ -351,7 +351,7 @@ public class Service {
                 for (int i = 0; i < id_sell.length; i++) {
                     send_item_template_4(p, id_sell[i]);
                 }
-                m.writer().writeUTF("QuÃ¡n Äƒn");
+                m.writer().writeUTF("Quán ăn");
                 m.writer().writeByte(4);
                 m.writer().writeShort(id_sell.length);
                 for (int i = 0; i < id_sell.length; i++) {
@@ -362,7 +362,7 @@ public class Service {
             }
 
             case 99: {
-                m.writer().writeUTF("RÆ°Æ¡ng Ä‘á»“");
+                m.writer().writeUTF("Rương đồ");
                 m.writer().writeByte(99);
                 m.writer().writeShort(0);
                 break;
@@ -378,7 +378,7 @@ public class Service {
                 break;
             }
             case 119: {
-                m.writer().writeUTF("ThÃ¹ng RÃ¡c");
+                m.writer().writeUTF("Thùng Rác");
                 m.writer().writeByte(3);
                 m.writer().writeShort(p.item.save_item_wear.size());
                 for (int i = p.item.save_item_wear.size() - 1; i >= 0; i--) {
@@ -662,10 +662,10 @@ public class Service {
         Map[] map_enter = Map.get_map_by_id(p.map.template.id);
         if (select > -1 && select < map_enter.length) {
             if (map_enter[select].equals(p.map)) {
-                Service.send_box_ThongBao_OK(p, "Hiá»‡n táº¡i Ä‘ang á»Ÿ khu nÃ y");
+                Service.send_box_ThongBao_OK(p, "Hiện tại đang ở khu này");
             } else {
                 if (map_enter[select].players.size() >= map_enter[select].template.max_player) {
-                    Service.send_box_ThongBao_OK(p, "Hiá»‡n táº¡i khu vá»±c Ä‘Ã£ Ä‘áº§y, hÃ£y thá»­ láº¡i sau!");
+                    Service.send_box_ThongBao_OK(p, "Hiện tại khu vực đã đầy, hãy thử lại sau!");
                 } else {
                     if (p.map.template.id == 42 && Boss.BOSS_AREA[0] != -1) {
                         if (Boss.BOSS_AREA[0] == select) {
@@ -775,7 +775,7 @@ public class Service {
             cat = m2.reader().readByte();
         }
         if (value <= 0 || value > DataTemplate.MAX_ITEM_IN_BAG) {
-            Service.send_box_ThongBao_OK(p, "Sá»‘ lÆ°á»£ng khÃ´ng há»£p lá»‡!");
+            Service.send_box_ThongBao_OK(p, "Số lượng không hợp lệ!");
             return;
         }
         boolean check = false;
@@ -791,14 +791,14 @@ public class Service {
                         if (isRuby) {
                             if (p.get_ngoc() < price) {
                                 Service.send_box_ThongBao_OK(p,
-                                        "Báº¡n khÃ´ng Ä‘á»§ " + price + " ruby!");
+                                        "Bạn không đủ " + price + " ruby!");
                                 return;
                             }
                             p.update_ngoc(-price);
                         } else {
                             if (p.get_vang() < price) {
                                 Service.send_box_ThongBao_OK(p,
-                                        "Báº¡n khÃ´ng Ä‘á»§ " + price + " beri!");
+                                        "Bạn không đủ " + price + " beri!");
                                 return;
                             }
                             p.update_vang(-price);
@@ -812,7 +812,7 @@ public class Service {
                         p.item.update_Inventory(-1, false);
                         check = true;
                     } else {
-                        Service.send_box_ThongBao_OK(p, "HÃ nh trang khÃ´ng Ä‘á»§ chá»— trá»‘ng!");
+                        Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
                         return;
                     }
                     break;
@@ -821,16 +821,16 @@ public class Service {
             //
             if (check) {
                 Service.send_box_ThongBao_OK(p,
-                        "Mua thÃ nh cÃ´ng " + ItemTemplate3.get_it_by_id(id).name);
+                        "Mua thành công " + ItemTemplate3.get_it_by_id(id).name);
             } else {
-                Service.send_box_ThongBao_OK(p, "Mua tháº¥t báº¡i, hÃ£y thá»­ láº¡i!");
+                Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
         } else if (cat == -1 && TypeShop == 20) {
             if (ItemSell.check_item_sell_potion(id)) {
                 if ((p.item.able_bag() < 1 && p.item.total_item_bag_by_id(4, id) == 0)
                         || ((p.item.total_item_bag_by_id(4, id)
                                 + value) > DataTemplate.MAX_ITEM_IN_BAG)) {
-                    Service.send_box_ThongBao_OK(p, "HÃ nh trang khÃ´ng Ä‘á»§ chá»— trá»‘ng!");
+                    Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
                     return;
                 }
                 ItemTemplate4 it_template = ItemTemplate4.get_it_by_id(id);
@@ -838,7 +838,7 @@ public class Service {
                     int vang_req = it_template.ruby * value;
                     if (vang_req > 0) {
                         if (p.get_ngoc() < vang_req) {
-                            Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + vang_req + " ruby");
+                            Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " ruby");
                             return;
                         }
                         p.update_ngoc(-vang_req);
@@ -848,7 +848,7 @@ public class Service {
                             return;
                         }
                         if (p.get_vang() < vang_req) {
-                            Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + vang_req + " beri");
+                            Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " beri");
                             return;
                         }
                         p.update_vang(-vang_req);
@@ -874,7 +874,7 @@ public class Service {
                     }
                     p.update_money();
                 } else {
-                    Service.send_box_ThongBao_OK(p, "CÃ³ lá»—i xáº£y ra, hÃ£y bÃ¡o cho admin!");
+                    Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra, hãy báo cho admin!");
                 }
             }
         } else if (cat == -1 && TypeShop == 6) {
@@ -882,7 +882,7 @@ public class Service {
                 if ((p.item.able_bag() < 1 && p.item.total_item_bag_by_id(7, id) == 0)
                         || ((p.item.total_item_bag_by_id(7, id)
                                 + value) > DataTemplate.MAX_ITEM_IN_BAG)) {
-                    Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y!");
+                    Service.send_box_ThongBao_OK(p, "Hành trang đầy!");
                     return;
                 }
                 ItemTemplate7 it_template = ItemTemplate7.get_it_by_id(id);
@@ -890,7 +890,7 @@ public class Service {
                     int vang_req = it_template.priceruby * value;
                     if (vang_req > 0) {
                         if (p.get_ngoc() < vang_req) {
-                            Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + vang_req + " ruby");
+                            Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " ruby");
                             return;
                         }
                         p.update_ngoc(-vang_req);
@@ -900,7 +900,7 @@ public class Service {
                             return;
                         }
                         if (p.get_vang() < vang_req) {
-                            Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + vang_req + " beri");
+                            Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " beri");
                             return;
                         }
                         p.update_vang(-vang_req);
@@ -914,7 +914,7 @@ public class Service {
                     //
                     p.item.update_Inventory(-1, false);
                 } else {
-                    Service.send_box_ThongBao_OK(p, "CÃ³ lá»—i xáº£y ra, hÃ£y bÃ¡o cho admin!");
+                    Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra, hãy báo cho admin!");
                 }
             }
         } else if (cat == -1 && TypeShop == 103) {
@@ -925,7 +925,7 @@ public class Service {
                     return;
                 }
                 if (p.get_ngoc() < 500) {
-                    Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ 500 ruby!");
+                    Service.send_box_ThongBao_OK(p, "Không đủ 500 ruby!");
                     return;
                 }
                 p.update_ngoc(-500);
@@ -941,9 +941,9 @@ public class Service {
                     Service.charWearing(p, p0, false);
                 }
                 ItemFashionP.show_table(p, 103);
-                Service.send_box_ThongBao_OK(p, "Mua thÃ nh cÃ´ng " + ith.name);
+                Service.send_box_ThongBao_OK(p, "Mua thành công " + ith.name);
             } else {
-                Service.send_box_ThongBao_OK(p, "Mua tháº¥t báº¡i, hÃ£y thá»­ láº¡i!");
+                Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
         } else if (cat == -1 && TypeShop == 112) {
             ItemHair ith = ItemHair.get_item(id, 108);
@@ -953,7 +953,7 @@ public class Service {
                     return;
                 }
                 if (p.get_ngoc() < 500) {
-                    Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ 500 ruby!");
+                    Service.send_box_ThongBao_OK(p, "Không đủ 500 ruby!");
                     return;
                 }
                 p.update_ngoc(-500);
@@ -1028,7 +1028,7 @@ public class Service {
             if ((p.item.able_bag() < 1 && p.item.total_item_bag_by_id(4, id) == 0)
                     || ((p.item.total_item_bag_by_id(4, id)
                             + value) > DataTemplate.MAX_ITEM_IN_BAG)) {
-                Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y!");
+                Service.send_box_ThongBao_OK(p, "Hành trang đầy!");
                 return;
             }
             for (int i = 0; i < Rebuild_Item.ID_SELL.length; i++) {
@@ -1038,7 +1038,7 @@ public class Service {
                         int vang_req = it_temp.ruby * value;
                         if (vang_req > 0) {
                             if (p.get_ngoc() < vang_req) {
-                                Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + vang_req + " ruby");
+                                Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " ruby");
                                 return;
                             }
                             p.update_ngoc(-vang_req);
@@ -1048,7 +1048,7 @@ public class Service {
                                 return;
                             }
                             if (p.get_vang() < vang_req) {
-                                Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + vang_req + " beri");
+                                Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " beri");
                                 return;
                             }
                             p.update_vang(-vang_req);
@@ -1059,7 +1059,7 @@ public class Service {
                                 if (p.item.total_item_bag_by_id(4,
                                         46) >= DataTemplate.MAX_ITEM_IN_BAG) {
                                     p.update_ngoc(vang_req);
-                                    Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y!");
+                                    Service.send_box_ThongBao_OK(p, "Hành trang đầy!");
                                     return;
                                 }
                                 it.id = 46;
@@ -1071,7 +1071,7 @@ public class Service {
                                 if (p.item.total_item_bag_by_id(4,
                                         52) >= DataTemplate.MAX_ITEM_IN_BAG) {
                                     p.update_ngoc(vang_req);
-                                    Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y!");
+                                    Service.send_box_ThongBao_OK(p, "Hành trang đầy!");
                                     return;
                                 }
                                 it.id = 52;
@@ -1083,7 +1083,7 @@ public class Service {
                                 if (p.item.total_item_bag_by_id(4,
                                         58) >= DataTemplate.MAX_ITEM_IN_BAG) {
                                     p.update_ngoc(vang_req);
-                                    Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y!");
+                                    Service.send_box_ThongBao_OK(p, "Hành trang đầy!");
                                     return;
                                 }
                                 it.id = 58;
@@ -1095,7 +1095,7 @@ public class Service {
                                 if (p.item.total_item_bag_by_id(4,
                                         64) >= DataTemplate.MAX_ITEM_IN_BAG) {
                                     p.update_ngoc(vang_req);
-                                    Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y!");
+                                    Service.send_box_ThongBao_OK(p, "Hành trang đầy!");
                                     return;
                                 }
                                 it.id = 64;
@@ -1107,7 +1107,7 @@ public class Service {
                                 if (p.item.total_item_bag_by_id(4,
                                         70) >= DataTemplate.MAX_ITEM_IN_BAG) {
                                     p.update_ngoc(vang_req);
-                                    Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y!");
+                                    Service.send_box_ThongBao_OK(p, "Hành trang đầy!");
                                     return;
                                 }
                                 it.id = 70;
@@ -1119,7 +1119,7 @@ public class Service {
                                 if (p.item.total_item_bag_by_id(4,
                                         76) >= DataTemplate.MAX_ITEM_IN_BAG) {
                                     p.update_ngoc(vang_req);
-                                    Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y!");
+                                    Service.send_box_ThongBao_OK(p, "Hành trang đầy!");
                                     return;
                                 }
                                 it.id = 76;
@@ -1141,13 +1141,13 @@ public class Service {
                             p.conn.addmsg(m22);
                             m22.cleanup();
                         } else {
-                            Service.send_box_ThongBao_OK(p, "KhÃ´ng thá»ƒ mua vá»›i sá»‘ lÆ°á»£ng nÃ y");
+                            Service.send_box_ThongBao_OK(p, "Không thể mua với số lượng này");
                             p.update_ngoc(vang_req);
                         }
                         p.item.update_Inventory(-1, false);
                         p.update_money();
                     } else {
-                        Service.send_box_ThongBao_OK(p, "CÃ³ lá»—i xáº£y ra, hÃ£y bÃ¡o cho admin!");
+                        Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra, hãy báo cho admin!");
                     }
                     break;
                 }
@@ -1160,7 +1160,7 @@ public class Service {
                     return;
                 }
                 if (p.get_ngoc() < 5) {
-                    Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ 5 ruby!");
+                    Service.send_box_ThongBao_OK(p, "Không đủ 5 ruby!");
                     return;
                 }
                 p.update_ngoc(-5);
@@ -1172,9 +1172,9 @@ public class Service {
                 p.update_new_part_boat(temp_new);
                 ItemBoat.update_part_boat_when_shopping(p);
                 ItemFashionP.show_table(p, 102);
-                Service.send_box_ThongBao_OK(p, "Mua thÃ nh cÃ´ng " + itb.name);
+                Service.send_box_ThongBao_OK(p, "Mua thành công " + itb.name);
             } else {
-                Service.send_box_ThongBao_OK(p, "Mua tháº¥t báº¡i, hÃ£y thá»­ láº¡i!");
+                Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
         } else if (p.clan != null && TypeShop == 98 && value == 1 && cat == -1 && id >= 0
                 && id < 10) {
@@ -1188,7 +1188,7 @@ public class Service {
             }
             Message m = new Message(-52);
             m.writer().writeByte(21);
-            m.writer().writeUTF("ÄÄƒng kÃ½ bÄƒng háº£i táº·c " + p.clan.name + " thÃ nh cÃ´ng");
+            m.writer().writeUTF("ÄÄƒng kÃ½ bÄƒng háº£i táº·c " + p.clan.name + " thành công");
             p.conn.addmsg(m);
             m.cleanup();
         } else if (p.clan != null && TypeShop == 97 && value == 1 && cat == -1 && id >= 0
@@ -1215,7 +1215,7 @@ public class Service {
             } else {
                 int ngoc_quant = Clan.get_ngoc_icon(id);
                 if (p.clan.get_ngoc() < ngoc_quant) {
-                    Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + ngoc_quant + " ruby bÄƒng");
+                    Service.send_box_ThongBao_OK(p, "Không đủ " + ngoc_quant + " ruby băng");
                 } else {
                     p.clan.update_ruby(-ngoc_quant);
                     p.clan.icon = id;
@@ -1246,7 +1246,7 @@ public class Service {
                     if (ItemTemplate8.ENTRYS.get(i).ruby > 0) {
                         int vang_req = ItemTemplate8.ENTRYS.get(i).ruby * value;
                         if (p.clan.get_ngoc() < vang_req) {
-                            Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + vang_req + " ruby bÄƒng");
+                            Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " ruby băng");
                             return;
                         }
                         p.clan.update_ruby(-vang_req);
@@ -1269,7 +1269,7 @@ public class Service {
                     } else if (ItemTemplate8.ENTRYS.get(i).beri > 0) {
                         int vang_req = ItemTemplate8.ENTRYS.get(i).beri * value;
                         if (p.clan.get_vang() < vang_req) {
-                            Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ " + vang_req + " beri bÄƒng");
+                            Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " beri băng");
                             return;
                         }
                         p.clan.update_beri(-vang_req);
@@ -1290,7 +1290,7 @@ public class Service {
                         it_add.quant += value;
                         check = true;
                     } else {
-                        Service.send_box_ThongBao_OK(p, "Váº­t pháº©m chÆ°a bÃ¡n");
+                        Service.send_box_ThongBao_OK(p, "Vật phẩm chưa bán");
                     }
                     break;
                 }
@@ -1315,7 +1315,7 @@ public class Service {
                 if (temp_shop.limit_data.containsKey(p.name)) {
                     int value_old = temp_shop.limit_data.get(p.name);
                     if (value_old >= temp_shop.limit) {
-                        Service.send_box_ThongBao_OK(p, "Báº¡n Ä‘Ã£ háº¿t lÆ°á»£t Ä‘á»•i váº­t pháº©m nÃ y");
+                        Service.send_box_ThongBao_OK(p, "Bạn đã hết lượt đổi vật phẩm này");
                         return;
                     }
                 }
@@ -1326,7 +1326,7 @@ public class Service {
                             int diemtichluy = temp_shop.point;
                             if (p.getTichLuy() < diemtichluy) {
                                 Service.send_box_ThongBao_OK(p,
-                                        "KhÃ´ng Ä‘á»§ " + temp_shop.point + " Ä‘iá»ƒm tÃ­ch lÅ©y");
+                                        "Không đủ " + temp_shop.point + " điểm tích lũy");
                                 return;
                             }
                             p.update_TichLuy(-diemtichluy);
@@ -1345,7 +1345,7 @@ public class Service {
                             int diemtichluy = temp_shop.point;
                             if (p.getTichLuy() < diemtichluy) {
                                 Service.send_box_ThongBao_OK(p,
-                                        "KhÃ´ng Ä‘á»§ " + temp_shop.point + " Ä‘iá»ƒm tÃ­ch lÅ©y");
+                                        "Không đủ " + temp_shop.point + " điểm tích lũy");
                                 return;
                             }
                             p.update_TichLuy(-diemtichluy);
@@ -1360,7 +1360,7 @@ public class Service {
                             int diemtichluy = temp_shop.point;
                             if (p.getTichLuy() < diemtichluy) {
                                 Service.send_box_ThongBao_OK(p,
-                                        "KhÃ´ng Ä‘á»§ " + temp_shop.point + " Ä‘iá»ƒm tÃ­ch lÅ©y");
+                                        "Không đủ " + temp_shop.point + " điểm tích lũy");
                                 return;
                             }
                             if (p.check_fashion(itf.ID) != null) {
@@ -1379,7 +1379,7 @@ public class Service {
                             Service.UpdateInfoMaincharInfo(p);
                             check = true;
                         } else {
-                            Service.send_box_ThongBao_OK(p, "chÆ°a má»Ÿ Ä‘á»•i váº­t pháº©m nÃ y");
+                            Service.send_box_ThongBao_OK(p, "chưa mở đổi vật phẩm này");
                         }
                         break;
                     }
@@ -1402,7 +1402,7 @@ public class Service {
             Item_wear it_select = p.item.save_item_wear.get(id);
             if (it_select != null) {
                 if (p.get_ngoc() < 5) {
-                    Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ 5 ruby");
+                    Service.send_box_ThongBao_OK(p, "Không đủ 5 ruby");
                     return;
                 }
                 if (p.item.able_bag() > 0) {
@@ -1413,12 +1413,12 @@ public class Service {
                         p.item.update_Inventory(-1, false);
                         Service.Send_UI_Shop(p, 119);
                         Service.send_box_ThongBao_OK(p,
-                                "Láº¥y " + it_select.template.name + " vá» thÃ nh cÃ´ng, phÃ­ 5 ruby");
+                                "Lấy " + it_select.template.name + " vá» thÃ nh cÃ´ng, phÃ­ 5 ruby");
                     } else {
                         p.item.remove_item_wear(it_select);
                     }
                 } else {
-                    Service.send_box_ThongBao_OK(p, "HÃ nh trang Ä‘áº§y");
+                    Service.send_box_ThongBao_OK(p, "Hành trang đầy");
                 }
             }
         } else if (TypeShop == 116 && id >= 647 && id <= 682 && value == 1 && cat == 4) { // da than
@@ -1433,7 +1433,7 @@ public class Service {
             if (temp4 != null && temp4_2 != null) {
                 if (p.item.total_item_bag_by_id(4, temp4.id) >= 3) {
                     if (p.get_ngoc() < 40) {
-                        Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ 40 ruby");
+                        Service.send_box_ThongBao_OK(p, "Không đủ 40 ruby");
                         return;
                     }
                     p.update_ngoc(-40);
@@ -1442,14 +1442,14 @@ public class Service {
                     if (suc) {
                         p.item.remove_item47(4, temp4.id, 3);
                         p.item.add_item_bag47(4, id, 1);
-                        Service.send_box_ThongBao_OK(p, "ThÃ nh cÃ´ng, nháº­n Ä‘Æ°á»£c 1 " + temp4_2.name);
+                        Service.send_box_ThongBao_OK(p, "Thành công, nhận được 1 " + temp4_2.name);
                     } else {
                         Service.send_box_ThongBao_OK(p,
-                                "Ráº¥t tiáº¿c viá»‡c nÃ¢ng cáº¥p " + temp4_2.name + " tháº¥t báº¡i");
+                                "Rất tiếc việc nâng cấp " + temp4_2.name + " thất bại");
                     }
                     p.item.update_Inventory(-1, false);
                 } else {
-                    Service.send_box_ThongBao_OK(p, "KhÃ´ng Ä‘á»§ 3 " + temp4.name);
+                    Service.send_box_ThongBao_OK(p, "Không đủ 3 " + temp4.name);
                 }
             }
         }
@@ -1459,7 +1459,7 @@ public class Service {
         Message m = new Message(-11);
         m.writer().writeShort(0);
         m.writer().writeByte(0);
-        m.writer().writeUTF("ThÃ´ng BÃ¡o");
+        m.writer().writeUTF("Thông Báo");
         m.writer().writeUTF(notice);
         m.writer().writeByte(0);
         p.conn.addmsg(m);
@@ -1578,7 +1578,7 @@ public class Service {
                         if (p.item.bag3[id] != null) {
                             if (p.item.bag3[id].levelup > 0) {
                                 Service.send_box_ThongBao_OK(p,
-                                        "Váº­t pháº©m Ä‘Ã£ nÃ¢ng cáº¥p khÃ´ng thá»ƒ há»§y! HÃ£y láº¡i npc Johny Ä‘á»ƒ tÃ¡ch trang bá»‹ nÃ y");
+                                        "Vật phẩm đã nâng cấp không thể hủy! Hãy lại npc Johny để tách trang bị này");
                                 return;
                             }
                             int vang_recive = 0;
@@ -1885,7 +1885,7 @@ public class Service {
                             it_add.numLoKham = (byte) numLoKham;
                             p.item.add_item_bag3(it_add);
                             //
-                            if (it_add.template.name.equals("Dial Tháº§n Thoáº¡i")) {
+                            if (it_add.template.name.equals("Dial Thần Thoại")) {
                                 for (int j = 0; j < 2; j++) {
                                     int random_add = Util.random(7);
                                     switch (random_add) {

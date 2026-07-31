@@ -25,6 +25,8 @@ import activities.Upgrade_Skin;
 import activities.VongQuay;
 import client.Clazz;
 import client.Player;
+import client.Pet;
+import client.MyPet;
 import database.SQL;
 import event.Doriki;
 import event.EventSpecial;
@@ -426,7 +428,7 @@ public class MenuController {
         case -133: {
           send_dynamic_menu(p, type, "Kho Báu",
               new String[] { "Vòng quay kho báu", "Hoàn mỹ - Kích ẩn", "Vòng quay ốc sên", "Lục Thức",
-                  "Sức Mạnh Vật Lý", "Doriki" },
+                  "Sức Mạnh Vật Lý", "Doriki", "Quay Pet" },
               null);
           break;
         }
@@ -2380,6 +2382,11 @@ public class MenuController {
         send_dynamic_menu(p, 1001, "Doriki", new String[] { "Hướng dẫn", "Nâng Cấp", "Doriki" }, null);
         break;
       }
+      case 6: { // Quay Pet
+        p.type_vongquay = 1;
+        activities.VongQuayPet.show_table(p);
+        break;
+      }
     }
   }
 
@@ -2952,19 +2959,18 @@ public class MenuController {
   private static void send_dynamic_menu(Player p, int idNPC, String title, int[] name)
       throws IOException {
     if (!p.isdie) {
-      int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
-      //
-      QuestP quest_select = p.list_quest.get(0);
-      if (quest_select != null) {
-        for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-          if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
-            idMap = MapCanGoTo.idMap[i - 1];
-            break;
-          }
-        }
-      }
-      // System.out.println(idMap);
-      //
+      // Bypass map progression check for UI menu
+      // int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
+      // QuestP quest_select = p.list_quest.get(0);
+      // if (quest_select != null) {
+      //   for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
+      //     if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
+      //       idMap = MapCanGoTo.idMap[i - 1];
+      //       break;
+      //     }
+      //   }
+      // }
+      
       Message m = new Message(-20);
       m.writer().writeByte(1);
       m.writer().writeShort(idNPC);
@@ -2974,11 +2980,10 @@ public class MenuController {
       for (int i = 0; i < name.length; i++) {
         Map map = Map.get_map_by_id(name[i])[0];
         m.writer().writeUTF(map.template.name);
-        if (name[i] <= idMap) {
-          m.writer().writeByte(map.template.id == p.map.template.id ? 4 : 2);
-        } else {
-          m.writer().writeByte(1);
-        }
+        
+        // Always render as unlocked (2 = unlocked, 4 = current map)
+        m.writer().writeByte(map.template.id == p.map.template.id ? 4 : 2);
+        
         m.writer().writeByte(7);
       }
       p.conn.addmsg(m);

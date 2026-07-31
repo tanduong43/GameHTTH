@@ -3624,6 +3624,9 @@ public class Map implements Runnable {
                 long b = dame * a;
                 long c = (mob_target.level - p.level) * a;
                 exp_up_add = (b / 2) + (b * c / 100);
+                if (exp_up_add < 1) {
+                    exp_up_add = 1;
+                }
 
                 // if (p.level < 10){
                 // exp_up_add = exp_up_add * 5;

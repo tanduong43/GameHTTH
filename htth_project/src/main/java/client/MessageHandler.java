@@ -438,7 +438,11 @@ public class MessageHandler {
             }
             case 54: {
                 if (conn.p != null) {
-                    VongQuay.process(conn.p, m);
+                    if (conn.p.type_vongquay == 1) {
+                        activities.VongQuayPet.process(conn.p, m);
+                    } else {
+                        VongQuay.process(conn.p, m);
+                    }
                 }
                 break;
             }

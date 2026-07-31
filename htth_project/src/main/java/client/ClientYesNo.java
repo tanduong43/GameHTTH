@@ -52,7 +52,7 @@ public class ClientYesNo {
     public static void process(Player p, Message m2) throws IOException {
         short id = m2.reader().readShort();
         byte value = m2.reader().readByte();
-        core.Service.send_box_ThongBao_OK(p, "DEBUG: id=" + id + " value=" + value);
+        // core.Service.send_box_ThongBao_OK(p, "DEBUG: id=" + id + " value=" + value);
         if (id == 8888) {
             if (value == 0) { // Đồng ý
                 activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);
@@ -3173,26 +3173,27 @@ public class ClientYesNo {
                             int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
                             int idMapPb = MapCanGoTo.idMapPb[MapCanGoTo.idMapPb.length - 1];
                             //
-                            QuestP quest_select = p.list_quest.get(0);
-                            if (quest_select != null) {
-                                for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-                                    if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
-                                        idMap = MapCanGoTo.idMap[i - 1];
-                                        break;
-                                    }
-                                }
-                            }
-                            if (map_go[0].template.id != 119 && map_go[0].template.id != 120
-                                    && map_go[0].template.id != 122 && map_go[0].template.id != 123
-                                    && map_go[0].template.id != 54 && map_go[0].template.id != 58
-                                    && map_go[0].template.id != 59 && map_go[0].template.id != 123
-                                    && map_go[0].template.id != 984 && map_go[0].template.id != 1000
-                                    && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
-                                    && map_go[0].template.id > idMap) {
-                                Service.send_box_ThongBao_OK(p,
-                                        "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
-                                return;
-                            }
+                            // Bypass map progression check
+                            // QuestP quest_select = p.list_quest.get(0);
+                            // if (quest_select != null) {
+                            //     for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
+                            //         if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
+                            //             idMap = MapCanGoTo.idMap[i - 1];
+                            //             break;
+                            //         }
+                            //     }
+                            // }
+                            // if (map_go[0].template.id != 119 && map_go[0].template.id != 120
+                            //         && map_go[0].template.id != 122 && map_go[0].template.id != 123
+                            //         && map_go[0].template.id != 54 && map_go[0].template.id != 58
+                            //         && map_go[0].template.id != 59 && map_go[0].template.id != 123
+                            //         && map_go[0].template.id != 984 && map_go[0].template.id != 1000
+                            //         && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
+                            //         && map_go[0].template.id > idMap) {
+                            //     Service.send_box_ThongBao_OK(p,
+                            //             "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
+                            //     return;
+                            // }
                             //
                             if (p.map.template.id == map_go[0].template.id) {
                                 Service.send_box_ThongBao_OK(p, "Đang ở map này rồi!");

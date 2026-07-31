@@ -138,6 +138,7 @@ public class Player {
     private int kimcuong;
     public boolean ischangemap = true;
     public short thongthao;
+    public byte type_vongquay = 0;
     public int pointPk;
     public short pointAttribute;
     public int typePirate;
@@ -399,6 +400,11 @@ public class Player {
                 tempPet.id = Short.parseShort(js_in2.get(0).toString());
                 tempPet.template = Pet.getTemplate(Short.parseShort(js_in2.get(1).toString()));
                 tempPet.isUse = Byte.parseByte(js_in2.get(2).toString()) == 1;
+                if (js_in2.size() > 3) {
+                    tempPet.expiryTime = Long.parseLong(js_in2.get(3).toString());
+                } else {
+                    tempPet.expiryTime = -1;
+                }
                 if (tempPet.template != null) {
                     my_pet.add(tempPet);
                 }
@@ -1181,6 +1187,7 @@ public class Player {
                 js_in2.add(pet.id);
                 js_in2.add(pet.template.id);
                 js_in2.add(pet.isUse ? 1 : 0);
+                js_in2.add(pet.expiryTime);
                 js.add(js_in2);
             }
             ps.setNString(25, js.toJSONString());
@@ -1406,26 +1413,27 @@ public class Player {
             return;
         }
         //
-        QuestP quest_select = this.list_quest.get(0);
-        if (quest_select != null) {
-            int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
-            for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-                if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
-                    idMap = MapCanGoTo.idMap[i - 1];
-                    break;
-                }
-            }
-            if (map_go[0].template.id != 119 && map_go[0].template.id != 120 && map_go[0].template.id != 122
-                    && map_go[0].template.id != 123 && map_go[0].template.id != 54 && map_go[0].template.id != 58
-                    && map_go[0].template.id != 59 && map_go[0].template.id != 123 && map_go[0].template.id != 984
-                    && map_go[0].template.id != 1000
-                    && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
-                    && idMap < map_go[0].template.id) {
-                Service.send_box_ThongBao_OK(this,
-                        "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
-                return;
-            }
-        }
+        // Bypass map progression check
+        // QuestP quest_select = this.list_quest.get(0);
+        // if (quest_select != null) {
+        //     int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
+        //     for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
+        //         if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
+        //             idMap = MapCanGoTo.idMap[i - 1];
+        //             break;
+        //         }
+        //     }
+        //     if (map_go[0].template.id != 119 && map_go[0].template.id != 120 && map_go[0].template.id != 122
+        //             && map_go[0].template.id != 123 && map_go[0].template.id != 54 && map_go[0].template.id != 58
+        //             && map_go[0].template.id != 59 && map_go[0].template.id != 123 && map_go[0].template.id != 984
+        //             && map_go[0].template.id != 1000
+        //             && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
+        //             && idMap < map_go[0].template.id) {
+        //         Service.send_box_ThongBao_OK(this,
+        //                 "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
+        //         return;
+        //     }
+        // }
         //
         Message m = new Message(30);
         this.conn.addmsg(m);

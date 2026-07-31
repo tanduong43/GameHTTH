@@ -66,30 +66,38 @@ public class Pet {
     }
 
     public static String getPetDescription(MyPet pet) {
-        if (pet.template.op == null || pet.template.op.isEmpty()) {
-            return pet.template.name;
-        }
         StringBuilder sb = new StringBuilder();
-        for (int j = 0; j < pet.template.op.size(); j++) {
-            Option op = pet.template.op.get(j);
-            String opName = "";
-            for (template.ItemOptionTemplate entry : template.ItemOptionTemplate.ENTRYS) {
-                if (entry.id == op.id) {
-                    opName = entry.name;
-                    break;
+        if (pet.template.op == null || pet.template.op.isEmpty()) {
+            sb.append(pet.template.name);
+        } else {
+            for (int j = 0; j < pet.template.op.size(); j++) {
+                Option op = pet.template.op.get(j);
+                String opName = "";
+                for (template.ItemOptionTemplate entry : template.ItemOptionTemplate.ENTRYS) {
+                    if (entry.id == op.id) {
+                        opName = entry.name;
+                        break;
+                    }
+                }
+                if (opName.isEmpty()) {
+                    opName = "Chỉ số " + op.id;
+                }
+                if (opName.endsWith("+") || opName.endsWith("-")) {
+                    sb.append(opName).append(op.getParam());
+                } else {
+                    sb.append(opName).append(": +").append(op.getParam());
+                }
+                if (j < pet.template.op.size() - 1) {
+                    sb.append("\n");
                 }
             }
-            if (opName.isEmpty()) {
-                opName = "Chỉ số " + op.id;
-            }
-            if (opName.endsWith("+") || opName.endsWith("-")) {
-                sb.append(opName).append(op.getParam());
-            } else {
-                sb.append(opName).append(": +").append(op.getParam());
-            }
-            if (j < pet.template.op.size() - 1) {
-                sb.append("\n");
-            }
+        }
+        
+        if (pet.expiryTime != -1) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm dd/MM/yyyy");
+            sb.append("\n[HSD: ").append(sdf.format(new java.util.Date(pet.expiryTime))).append("]");
+        } else {
+            sb.append("\n[HSD: Vĩnh viễn]");
         }
         return sb.toString();
     }
@@ -99,6 +107,23 @@ public class Pet {
     }
 
     private static void show_inven(Player p) throws IOException {
+        long currentTime = System.currentTimeMillis();
+        boolean hasExpired = false;
+        for (int i = p.my_pet.size() - 1; i >= 0; i--) {
+            MyPet pet = p.my_pet.get(i);
+            if (pet.expiryTime != -1 && currentTime > pet.expiryTime) {
+                if (pet.isUse) {
+                    pet.isUse = false;
+                    p.update_info_to_all();
+                }
+                p.my_pet.remove(i);
+                hasExpired = true;
+            }
+        }
+        if (hasExpired) {
+            Service.send_box_ThongBao_OK(p, "Một số pet của bạn đã hết hạn sử dụng và bị thu hồi.");
+        }
+
         Message m = new Message(-80);
         m.writer().writeByte(3);
         m.writer().writeShort(p.my_pet.size());
