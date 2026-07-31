@@ -84,7 +84,7 @@ public class VongQuayPet {
                         petName += " (3 ngày)";
                     }
                     m.writer().writeUTF(petName);
-                    m.writer().writeShort(rollPet.template.icon);
+                    m.writer().writeShort(rollPet.template.id);
                     m.writer().writeInt(1); // quant
                     m.writer().writeByte(0); // color
                     
