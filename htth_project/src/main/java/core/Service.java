@@ -718,7 +718,7 @@ public class Service {
         if (pet_select != null) {
             Message m = new Message(-80);
             m.writer().writeByte(0);
-            m.writer().writeShort(0);
+            m.writer().writeShort(p0.index_map);
             m.writer().writeShort(p0.index_map);
             m.writer().writeShort(pet_select.template.frame); // 977
             m.writer().writeByte(pet_select.template.type); // 5

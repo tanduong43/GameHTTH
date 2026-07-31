@@ -103,7 +103,21 @@ public class Pet {
     }
 
     public static String getPetNameWithStats(MyPet pet) {
-        return pet.template.name;
+        if (pet.expiryTime != -1) {
+            long remaining = pet.expiryTime - System.currentTimeMillis();
+            if (remaining > 0) {
+                long days = remaining / (24 * 60 * 60 * 1000L);
+                long hours = (remaining % (24 * 60 * 60 * 1000L)) / (60 * 60 * 1000L);
+                if (days > 0) {
+                    return pet.template.name + " (" + days + " ngày)";
+                } else {
+                    return pet.template.name + " (" + hours + " giờ)";
+                }
+            } else {
+                return pet.template.name + " (Hết hạn)";
+            }
+        }
+        return pet.template.name + " (Vĩnh viễn)";
     }
 
     private static void show_inven(Player p) throws IOException {

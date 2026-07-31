@@ -427,8 +427,9 @@ public class MenuController {
         }
         case -133: {
           send_dynamic_menu(p, type, "Kho Báu",
-              new String[] { "Vòng quay kho báu", "Hoàn mỹ - Kích ẩn", "Vòng quay ốc sên", "Lục Thức",
-                  "Sức Mạnh Vật Lý", "Doriki", "Quay Pet" },
+              new String[] { "Vòng quay kho báu", "Hoàn mỹ - Kích ẩn",
+                  // "Vòng quay ốc sên", "Lục Thức","Sức Mạnh Vật Lý", "Doriki",
+                  "Quay Pet" },
               null);
           break;
         }
@@ -649,7 +650,8 @@ public class MenuController {
               if (dh != null) {
                 Service.send_box_ThongBao_OK(p, "Đã đổi danh hiệu thành: " + dh.name);
                 if (dh.getEffectId() >= 0) {
-                  // Service.send_danhieu_effect(p, null, dh.getEffectId(), false); // thêm effect mới (bỏ vì update_info_to_all đã gọi)
+                  // Service.send_danhieu_effect(p, null, dh.getEffectId(), false); // thêm effect
+                  // mới (bỏ vì update_info_to_all đã gọi)
                 }
               }
             }
@@ -1070,7 +1072,6 @@ public class MenuController {
           }
           break;
         }
-
 
         case -72: { // npc nami
           Menu_Nami(p, index);
@@ -1797,18 +1798,18 @@ public class MenuController {
         case 5:
         case 6: {
           if (p.listDanhHieu == null || p.listDanhHieu.isEmpty()) {
-              Service.send_box_ThongBao_OK(p, "Bạn chưa có danh hiệu nào.");
-              return;
+            Service.send_box_ThongBao_OK(p, "Bạn chưa có danh hiệu nào.");
+            return;
           }
           String[] menu = new String[p.listDanhHieu.size() + 1];
           menu[0] = "Bỏ danh hiệu";
           for (int i = 0; i < p.listDanhHieu.size(); i++) {
-              DanhHieuTemplate dh = DanhHieuTemplate.get(p.listDanhHieu.get(i).shortValue());
-              if (dh != null) {
-                  menu[i + 1] = dh.name + (p.idDanhHieu == dh.id ? " (Đang dùng)" : "");
-              } else {
-                  menu[i + 1] = "Lỗi";
-              }
+            DanhHieuTemplate dh = DanhHieuTemplate.get(p.listDanhHieu.get(i).shortValue());
+            if (dh != null) {
+              menu[i + 1] = dh.name + (p.idDanhHieu == dh.id ? " (Đang dùng)" : "");
+            } else {
+              menu[i + 1] = "Lỗi";
+            }
           }
           send_dynamic_menu(p, 9090, "Danh Hiệu", menu, null);
           break;
@@ -2365,28 +2366,36 @@ public class MenuController {
             new String[] { "Hoàn mỹ", "Kích ẩn", "Phục hồi chế tác" }, null);
         break;
       }
-
-      case 2: {
-        Service.send_box_ThongBao_OK(p, "Chức năng chưa ra mắt");
-        break;
-      }
-      case 3: { // Lục Thức
-        send_dynamic_menu(p, 1002, "Lục Thức", new String[] { "Hướng dẫn", "Luyện Lục Thức", "Cảnh Giới" }, null);
-        break;
-      }
-      case 4: { // Sức Mạnh Vật Lý
-        send_dynamic_menu(p, 1003, "Sức Mạnh Vật Lý", new String[] { "Hướng dẫn", "Tăng Sức Mạnh", "Thể Trạng" }, null);
-        break;
-      }
-      case 5: { // Doriki
-        send_dynamic_menu(p, 1001, "Doriki", new String[] { "Hướng dẫn", "Nâng Cấp", "Doriki" }, null);
-        break;
-      }
-      case 6: { // Quay Pet
+      case 2: { // Quay Pet
         p.type_vongquay = 1;
         activities.VongQuayPet.show_table(p);
         break;
       }
+
+      // case 2: {
+      // Service.send_box_ThongBao_OK(p, "Chức năng chưa ra mắt");
+      // break;
+      // }
+      // case 3: { // Lục Thức
+      // send_dynamic_menu(p, 1002, "Lục Thức", new String[] { "Hướng dẫn", "Luyện Lục
+      // Thức", "Cảnh Giới" }, null);
+      // break;
+      // }
+      // case 4: { // Sức Mạnh Vật Lý
+      // send_dynamic_menu(p, 1003, "Sức Mạnh Vật Lý", new String[] { "Hướng dẫn",
+      // "Tăng Sức Mạnh", "Thể Trạng" }, null);
+      // break;
+      // }
+      // case 5: { // Doriki
+      // send_dynamic_menu(p, 1001, "Doriki", new String[] { "Hướng dẫn", "Nâng Cấp",
+      // "Doriki" }, null);
+      // break;
+      // }
+      // case 6: { // Quay Pet
+      // p.type_vongquay = 1;
+      // activities.VongQuayPet.show_table(p);
+      // break;
+      // }
     }
   }
 
@@ -2963,14 +2972,14 @@ public class MenuController {
       // int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
       // QuestP quest_select = p.list_quest.get(0);
       // if (quest_select != null) {
-      //   for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-      //     if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
-      //       idMap = MapCanGoTo.idMap[i - 1];
-      //       break;
-      //     }
-      //   }
+      // for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
+      // if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
+      // idMap = MapCanGoTo.idMap[i - 1];
+      // break;
       // }
-      
+      // }
+      // }
+
       Message m = new Message(-20);
       m.writer().writeByte(1);
       m.writer().writeShort(idNPC);
@@ -2980,10 +2989,10 @@ public class MenuController {
       for (int i = 0; i < name.length; i++) {
         Map map = Map.get_map_by_id(name[i])[0];
         m.writer().writeUTF(map.template.name);
-        
+
         // Always render as unlocked (2 = unlocked, 4 = current map)
         m.writer().writeByte(map.template.id == p.map.template.id ? 4 : 2);
-        
+
         m.writer().writeByte(7);
       }
       p.conn.addmsg(m);

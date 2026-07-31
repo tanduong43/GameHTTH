@@ -889,7 +889,8 @@ public class UseItem {
                             p.data_yesno[i + 1] = listIds.get(i);
                         }
 
-                        Service.open_box_fashion(p, validFashions, 228, "Hộp thời trang cấp 1", "Chọn thời trang bạn muốn nhận:");
+                        Service.open_box_fashion(p, validFashions, 228, "Hộp thời trang cấp 1",
+                                "Chọn thời trang bạn muốn nhận:");
                         return false;
                     }
                     case 80: {

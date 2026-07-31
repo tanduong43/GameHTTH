@@ -1416,23 +1416,26 @@ public class Player {
         // Bypass map progression check
         // QuestP quest_select = this.list_quest.get(0);
         // if (quest_select != null) {
-        //     int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
-        //     for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-        //         if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
-        //             idMap = MapCanGoTo.idMap[i - 1];
-        //             break;
-        //         }
-        //     }
-        //     if (map_go[0].template.id != 119 && map_go[0].template.id != 120 && map_go[0].template.id != 122
-        //             && map_go[0].template.id != 123 && map_go[0].template.id != 54 && map_go[0].template.id != 58
-        //             && map_go[0].template.id != 59 && map_go[0].template.id != 123 && map_go[0].template.id != 984
-        //             && map_go[0].template.id != 1000
-        //             && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
-        //             && idMap < map_go[0].template.id) {
-        //         Service.send_box_ThongBao_OK(this,
-        //                 "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
-        //         return;
-        //     }
+        // int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
+        // for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
+        // if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
+        // idMap = MapCanGoTo.idMap[i - 1];
+        // break;
+        // }
+        // }
+        // if (map_go[0].template.id != 119 && map_go[0].template.id != 120 &&
+        // map_go[0].template.id != 122
+        // && map_go[0].template.id != 123 && map_go[0].template.id != 54 &&
+        // map_go[0].template.id != 58
+        // && map_go[0].template.id != 59 && map_go[0].template.id != 123 &&
+        // map_go[0].template.id != 984
+        // && map_go[0].template.id != 1000
+        // && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
+        // && idMap < map_go[0].template.id) {
+        // Service.send_box_ThongBao_OK(this,
+        // "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
+        // return;
+        // }
         // }
         //
         Message m = new Message(30);

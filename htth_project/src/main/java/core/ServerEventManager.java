@@ -68,16 +68,20 @@ public class ServerEventManager {
                     if (min % 5 == 0 && sec == 0) {
                         Boss.spawn_event_boss();
                     }
-                    if (hour == 18 && min == 0 && sec == 0) {
-                        Boss.create_boss();
+                    if ((hour == 18 || hour == 22) && sec == 0) {
+                        // Kiểm tra xem Boss đã được gọi ra chưa (phòng trường hợp restart server lúc 18h)
+                        boolean isMissed = true;
+                        for (byte b : Boss.BOSS_LIVE) {
+                            if (b != 0) {
+                                isMissed = false;
+                                break;
+                            }
+                        }
+                        if (isMissed) {
+                            Boss.create_boss();
+                        }
                     }
-                    if (hour == 19 && min == 0 && sec == 0) {
-                        Boss.result_boss();
-                    }
-                    if (hour == 22 && min == 0 && sec == 0) {
-                        Boss.create_boss();
-                    }
-                    if (hour == 23 && min == 0 && sec == 0) {
+                    if ((hour == 19 || hour == 23) && min == 0 && sec == 0) {
                         Boss.result_boss();
                     }
                     if (sec == 0) {
