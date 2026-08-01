@@ -18,6 +18,17 @@ public class VongQuayPet {
         m.cleanup();
     }
 
+    private static java.util.List<Pet> getRollablePets() {
+        java.util.List<Pet> list = new java.util.ArrayList<>();
+        for (Pet pTemplate : Pet.ENTRY) {
+            String name = pTemplate.name.toLowerCase();
+            if (!name.contains("thần hoả") && !name.contains("thần hỏa") && !name.contains("zeus")) {
+                list.add(pTemplate);
+            }
+        }
+        return list;
+    }
+
     public static void process(Player p, Message m2) throws IOException {
         byte action = m2.reader().readByte();
         switch (action) {
@@ -26,10 +37,11 @@ public class VongQuayPet {
                 m.writer().writeByte(3);
                 int numSlots = 14;
                 m.writer().writeByte(numSlots);
+                java.util.List<Pet> rollablePets = getRollablePets();
                 for (int i = 0; i < numSlots; i++) {
-                    if (!Pet.ENTRY.isEmpty()) {
+                    if (!rollablePets.isEmpty()) {
                         m.writer().writeByte(110); // Thử type 110
-                        m.writer().writeShort(Pet.ENTRY.get(Util.random(Pet.ENTRY.size())).icon);
+                        m.writer().writeShort(rollablePets.get(Util.random(rollablePets.size())).icon);
                     } else {
                         m.writer().writeByte(110); // Dự phòng type 4
                         m.writer().writeShort(110); // Dùng icon dự phòng nếu chưa có Pet
@@ -51,7 +63,8 @@ public class VongQuayPet {
                     Service.send_box_ThongBao_OK(p, "Bạn không đủ " + rubyCost + " Ruby để quay!");
                     return;
                 }
-                if (Pet.ENTRY.isEmpty()) {
+                java.util.List<Pet> rollablePets = getRollablePets();
+                if (rollablePets.isEmpty()) {
                     Service.send_box_ThongBao_OK(p, "Hệ thống chưa cập nhật Pet!");
                     return;
                 }
@@ -61,8 +74,8 @@ public class VongQuayPet {
 
                 MyPet[] list_reward = new MyPet[numSpins];
                 for (int i = 0; i < numSpins; i++) {
-                    int petIndex = Util.random(Pet.ENTRY.size());
-                    Pet randomPetTemplate = Pet.ENTRY.get(petIndex);
+                    int petIndex = Util.random(rollablePets.size());
+                    Pet randomPetTemplate = rollablePets.get(petIndex);
                     MyPet newPet = new MyPet();
                     newPet.id = (short) (p.my_pet.size() + i); // Tạm tính ID
                     newPet.template = randomPetTemplate;
