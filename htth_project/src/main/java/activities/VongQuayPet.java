@@ -56,6 +56,7 @@ public class VongQuayPet {
                     return;
                 }
                 p.update_ngoc(-rubyCost);
+                p.update_money();
                 p.update_info_to_all();
 
                 MyPet[] list_reward = new MyPet[numSpins];
