@@ -450,6 +450,7 @@ public class Service {
                 short id_request = id;
                 // System.out.println("request icon " + id);
                 if (id_request == 23088 || id_request == 23089 //
+                        || id_request == 24424// skill buf trai bong toi
                 ) {
                     return;
                 }
