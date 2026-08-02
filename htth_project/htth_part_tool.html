@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTH Part Alignment Tool</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 100vh; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; color: #4CAF50; }
+        .main { display: flex; flex: 1; gap: 20px; overflow: hidden; }
+        .left-panel { width: 300px; background: #2d2d2d; padding: 15px; border-radius: 8px; overflow-y: auto; }
+        .center-panel { flex: 1; display: flex; flex-direction: column; align-items: center; background: #2d2d2d; padding: 15px; border-radius: 8px; }
+        .right-panel { width: 350px; background: #2d2d2d; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; }
+        .canvas-container { position: relative; width: 400px; height: 400px; background: #3d3d3d; border: 2px solid #555; border-radius: 4px; overflow: hidden; margin-top: 20px; cursor: move; }
+        .crosshair { position: absolute; top: 50%; left: 50%; width: 100%; height: 1px; background: rgba(255,0,0,0.5); pointer-events: none; z-index: 10; }
+        .crosshair.vertical { width: 1px; height: 100%; top: 0; left: 50%; }
+        #bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.5; pointer-events: none; }
+        #sprite-canvas { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; }
+        .image-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+        .image-item { width: 40px; height: 40px; background: #444; border: 2px solid transparent; cursor: pointer; object-fit: contain; }
+        .image-item.active { border-color: #4CAF50; }
+        .frame-list { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; flex: 1; overflow-y: auto; }
+        .frame-item { background: #3d3d3d; padding: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .frame-item.active { border-left: 4px solid #4CAF50; background: #454545; }
+        select, button, input[type="file"] { width: 100%; padding: 8px; margin-bottom: 10px; background: #444; color: #fff; border: 1px solid #555; border-radius: 4px; }
+        button { background: #4CAF50; cursor: pointer; font-weight: bold; border: none; }
+        button:hover { background: #45a049; }
+        textarea { width: 100%; height: 150px; background: #1e1e1e; color: #00ff00; border: 1px solid #555; font-family: monospace; resize: none; padding: 10px; box-sizing: border-box; }
+        .controls { display: flex; justify-content: space-between; width: 100%; max-width: 400px; margin-top: 10px; }
+        .controls button { width: 40px; height: 40px; margin: 2px; }
+        .help-text { font-size: 13px; color: #aaa; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>HTTH Part Creator Tool</h1>
+        <p>Phiên bản Hỗ trợ Ảnh Nền để dễ "ghép ảnh"</p>
+    </div>
+    
+    <div class="main">
+        <!-- Left: Image Upload -->
+        <div class="left-panel">
+            <h3>1. Tải ảnh rời (img folder)</h3>
+            <p class="help-text">Chọn tất cả 40 ảnh Kaido ở đây.</p>
+            <input type="file" id="file-upload" multiple accept="image/png" />
+            <div class="image-list" id="image-list"></div>
+        </div>
+
+        <!-- Center: Alignment Canvas -->
+        <div class="center-panel">
+            <h3>2. Căn chỉnh (Kéo thả)</h3>
+            <p class="help-text">Tải 1 ảnh nhân vật hoàn chỉnh (chụp màn hình) làm nền để dễ canh khớp tay chân!</p>
+            <input type="file" id="bg-upload" accept="image/*" title="Tải ảnh nền nhân vật (để canh chừng)" />
+            
+            <div class="canvas-container" id="canvas-container">
+                <canvas id="bg-canvas"></canvas>
+                <div class="crosshair"></div>
+                <div class="crosshair vertical"></div>
+                <canvas id="sprite-canvas"></canvas>
+            </div>
+            <div class="controls">
+                <div style="text-align: center; width: 100%;">
+                    <button onclick="moveSprite(0, -1)">▲</button><br>
+                    <button onclick="moveSprite(-1, 0)">◀</button>
+                    <button onclick="moveSprite(0, 1)">▼</button>
+                    <button onclick="moveSprite(1, 0)">▶</button>
+                </div>
+            </div>
+            <p>Tọa độ (dx, dy): <span id="coord-display">0, 0</span></p>
+            <p>ID Ảnh: <input type="number" id="image-id-input" style="width: 80px; display: inline-block;" onchange="updateImageId()"></p>
+        </div>
+
+        <!-- Right: Frame Management -->
+        <div class="right-panel">
+            <h3>3. Chọn loại Part (Khung xương)</h3>
+            <p class="help-text">Chọn đúng loại để tạo đủ số Khung hình (Frame).</p>
+            <select id="part-type" onchange="changePartType()">
+                <option value="0">Vũ khí (Type 0 - 5 frames)</option>
+                <option value="1" selected>Mũ (Type 1 - 20 frames)</option>
+                <option value="2">Dây chuyền (Type 2 - 15 frames)</option>
+                <option value="3">Áo (Type 3 - 24 frames)</option>
+                <option value="4">Nhẫn (Type 4 - 2 frames)</option>
+                <option value="5">Quần (Type 5 - 2 frames)</option>
+            </select>
+            
+            <p class="help-text">Click từng Frame, sau đó click chọn Ảnh ở Cột 1 để gán ảnh vào Frame đó.</p>
+            <div class="frame-list" id="frame-list">
+                <!-- Frames generated by JS -->
+            </div>
+
+            <h3 style="margin-top: 15px;">Mã JSON (Kết quả)</h3>
+            <textarea id="json-output" readonly></textarea>
+            <button onclick="copyJson()">Copy JSON</button>
+        </div>
+    </div>
+
+    <script>
+        let uploadedImages = {};
+        let currentFrameIndex = 0;
+        let frames = [];
+        let isDragging = false;
+        let dragStart = {x: 0, y: 0};
+        
+        const partFrames = { 0: 5, 1: 20, 2: 15, 3: 24, 4: 2, 5: 2 };
+
+        const canvas = document.getElementById('sprite-canvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+        
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+
+        // Handle Background image
+        document.getElementById('bg-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const img = new Image();
+            img.onload = () => {
+                bgCanvas.width = container.clientWidth;
+                bgCanvas.height = container.clientHeight;
+                // Center it
+                const x = (bgCanvas.width - img.width) / 2;
+                const y = (bgCanvas.height - img.height) / 2;
+                bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+                bgCtx.drawImage(img, x, y);
+            };
+            img.src = URL.createObjectURL(file);
+        });
+
+        // Initialize frames
+        function changePartType() {
+            const type = document.getElementById('part-type').value;
+            const count = partFrames[type];
+            frames = Array(count).fill(null).map(() => ({ imgId: 0, dx: 0, dy: 0, file: null }));
+            currentFrameIndex = 0;
+            renderFrameList();
+            renderCanvas();
+        }
+
+        // Handle Image Upload
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            const files = e.target.files;
+            const list = document.getElementById('image-list');
+            list.innerHTML = '';
+            
+            // Sort files logically
+            const sortedFiles = Array.from(files).sort((a,b) => {
+                const idA = a.name.match(/(\d+)/) ? parseInt(a.name.match(/(\d+)/)[1]) : 0;
+                const idB = b.name.match(/(\d+)/) ? parseInt(b.name.match(/(\d+)/)[1]) : 0;
+                return idA - idB;
+            });
+
+            for(let file of sortedFiles) {
+                const idMatch = file.name.match(/(\d+)/);
+                const id = idMatch ? parseInt(idMatch[1]) : 0;
+                
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+                uploadedImages[id] = img;
+                
+                img.className = 'image-item';
+                img.title = `ID: ${id}`;
+                img.onclick = () => selectImageForFrame(id, img);
+                list.appendChild(img);
+            }
+        });
+
+        function selectImageForFrame(id, imgElement) {
+            frames[currentFrameIndex].imgId = id;
+            frames[currentFrameIndex].file = uploadedImages[id];
+            renderFrameList();
+            renderCanvas();
+        }
+        
+        function updateImageId() {
+            frames[currentFrameIndex].imgId = parseInt(document.getElementById('image-id-input').value) || 0;
+            renderFrameList();
+        }
+
+        function renderFrameList() {
+            const list = document.getElementById('frame-list');
+            list.innerHTML = '';
+            frames.forEach((f, index) => {
+                const div = document.createElement('div');
+                div.className = `frame-item ${index === currentFrameIndex ? 'active' : ''}`;
+                div.innerHTML = `<span>Frame ${index}</span><span>ID: ${f.imgId} | ${f.dx}, ${f.dy}</span>`;
+                div.onclick = () => {
+                    currentFrameIndex = index;
+                    renderFrameList();
+                    renderCanvas();
+                };
+                list.appendChild(div);
+            });
+            updateJson();
+        }
+
+        function renderCanvas() {
+            const frame = frames[currentFrameIndex];
+            document.getElementById('coord-display').innerText = `${frame.dx}, ${frame.dy}`;
+            document.getElementById('image-id-input').value = frame.imgId;
+            
+            if (frame.file) {
+                canvas.width = frame.file.width;
+                canvas.height = frame.file.height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(frame.file, 0, 0);
+                canvas.style.marginLeft = `${frame.dx}px`;
+                canvas.style.marginTop = `${frame.dy}px`;
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.width = 0;
+                canvas.height = 0;
+            }
+        }
+
+        function moveSprite(mx, my) {
+            frames[currentFrameIndex].dx += mx;
+            frames[currentFrameIndex].dy += my;
+            renderCanvas();
+            renderFrameList();
+        }
+
+        // Dragging logic
+        container.addEventListener('mousedown', e => {
+            isDragging = true;
+            dragStart = { x: e.clientX, y: e.clientY };
+        });
+        
+        window.addEventListener('mousemove', e => {
+            if (!isDragging || !frames[currentFrameIndex].file) return;
+            const dx = e.clientX - dragStart.x;
+            const dy = e.clientY - dragStart.y;
+            frames[currentFrameIndex].dx += dx;
+            frames[currentFrameIndex].dy += dy;
+            dragStart = { x: e.clientX, y: e.clientY };
+            renderCanvas();
+            renderFrameList();
+        });
+        
+        window.addEventListener('mouseup', () => isDragging = false);
+
+        // Keyboard arrows
+        window.addEventListener('keydown', e => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+                if (e.key === 'ArrowUp') moveSprite(0, -1);
+                if (e.key === 'ArrowDown') moveSprite(0, 1);
+                if (e.key === 'ArrowLeft') moveSprite(-1, 0);
+                if (e.key === 'ArrowRight') moveSprite(1, 0);
+            }
+        });
+
+        function updateJson() {
+            const data = frames.map(f => [f.imgId, f.dx, f.dy]);
+            document.getElementById('json-output').value = JSON.stringify(data);
+        }
+
+        function copyJson() {
+            const jsonText = document.getElementById('json-output');
+            jsonText.select();
+            document.execCommand('copy');
+            alert('Đã copy mã JSON!');
+        }
+
+        changePartType(); // Init
+    </script>
+</body>
+</html>
