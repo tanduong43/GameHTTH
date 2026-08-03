@@ -408,12 +408,12 @@ public class MenuController {
           if (p.conn.status != 1) {
             send_dynamic_menu(
                 p, type, get_name_npc(type), new String[] { "Kích Hoạt Tài Khoản", "Thách đấu",
-                    "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip,
+                    "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình", /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip,
                     "Vị trí Boss", "Top Siêu Trùm" },
                 null);
           } else {
             send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Thách đấu", "Cao thủ",
-                "Băng hải tặc", "Truy nã", "Đá hành trình", "Điểm Danh", "Điểm Danh Vip " + p.conn.vip, "Vị trí Boss",
+                "Băng hải tặc", "Truy nã", "Đá hành trình", /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip, "Vị trí Boss",
                 "Top Siêu Trùm" },
                 null);
           }
@@ -2348,6 +2348,7 @@ public class MenuController {
             new String[] { "Kho hành trình", "Bản đồ hành trình", "Hướng dẫn" }, null);
         break;
       }
+      /*
       case 6: {
         if (p.diemdanh == 0) {
           p.diemdanh = 1;
@@ -2362,7 +2363,8 @@ public class MenuController {
         }
         break;
       }
-      case 7: {
+      */
+      case 6: { // Điểm danh VIP
         if (p.diemdanhvip == 0) {
           p.diemdanhvip = 1;
           int ruby = 100;
@@ -2405,7 +2407,7 @@ public class MenuController {
         }
         break;
       }
-      case 8: {
+      case 7: { // Vị trí Boss
         List<map.Boss> aliveBosses = new ArrayList<>();
         if (map.Boss.ENTRYS != null) {
           for (int i = 0; i < map.Boss.ENTRYS.size(); i++) {
@@ -2430,7 +2432,7 @@ public class MenuController {
         }
         break;
       }
-      case 9: {
+      case 8: { // Top Siêu Trùm
         String[] bossNames = new String[6];
         for (int i = 0; i < 6; i++) {
           int mobId = 135 + i;
