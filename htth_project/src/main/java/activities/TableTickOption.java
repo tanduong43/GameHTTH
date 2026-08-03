@@ -110,6 +110,64 @@ public class TableTickOption {
                         }
                         break;
                     }
+                    case 4: { // pho ban pvp bang
+                        if (type == 1) { // accept
+                            if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
+                                for (int i = 0; i < p.tableTickOption.list_check.length; i++) {
+                                    if (p.tableTickOption.list_check[i] == 0) {
+                                        Service.send_box_ThongBao_OK(p,
+                                                p.tableTickOption.listP.get(i).name
+                                                        + " chưa tick chọn");
+                                        return;
+                                    }
+                                }
+                                String name_ok = "";
+                                for (int i = 0; i < p.tableTickOption.list_check.length; i++) {
+                                    if (p.tableTickOption.list_check[i] == 1) {
+                                        name_ok += p.tableTickOption.listP.get(i).name + ", ";
+                                    }
+                                }
+                                Service.send_box_yesno(p, 151, "Thông báo",
+                                        ("Xác nhận tham gia phó bản PVP Băng với thành viên sau:\n"
+                                                + name_ok),
+                                        new String[] { "Đồng ý", "Huỷ" }, new byte[] { 2, 1 });
+                            } else {
+                                Message m = new Message(-74);
+                                m.writer().writeByte(1);
+                                m.writer().writeShort(4); // id dialog
+                                m.writer().writeShort(p.index_map);
+                                for (int i = 0; i < p.tableTickOption.listP.size(); i++) {
+                                    Player p0 = Map.get_player_by_name_allmap(
+                                            p.tableTickOption.listP.get(i).name);
+                                    if (p0 != null) {
+                                        p0.conn.addmsg(m);
+                                    }
+                                    if (p.name.equals(p.tableTickOption.listP.get(i).name)) {
+                                        p.tableTickOption.list_check[i] = 1;
+                                    }
+                                }
+                                m.cleanup();
+                            }
+                        } else if (type == 2) { // huy
+                            Message m = new Message(-74);
+                            m.writer().writeByte(3);
+                            m.writer().writeShort(4); // id dialog
+                            m.writer().writeShort(p.index_map);
+                            for (int i = 0; i < p.tableTickOption.listP.size(); i++) {
+                                Player p0 = Map.get_player_by_name_allmap(
+                                        p.tableTickOption.listP.get(i).name);
+                                if (p0 != null) {
+                                    p0.conn.addmsg(m);
+                                }
+                                if (p.name.equals(p.tableTickOption.listP.get(i).name)) {
+                                    p.tableTickOption.list_check[i] = -1;
+                                }
+                            }
+                            m.cleanup();
+                            p.tableTickOption = null;
+                        }
+                        break;
+                    }
                     case 1: { // lien tang
                         if (type == 1) { // leader clicked Start OR member clicked Ready
                             TableTickOption lobby = p.tableTickOption;

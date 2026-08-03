@@ -778,7 +778,54 @@ public class MenuController {
           // pho ban bang select
           if (p.clan != null) {
             switch (index) {
-              case 0: {
+              case 0: { // dang ky pho ban pvp bang
+                if (p.clan.map_create != null && p.clan.map_create.map_pvp_clan != null) { // enter map
+                  if (p.clan.map_create.map_pvp_clan.clan1.equals(p.clan)) {
+                    p.type_pk = 4;
+                  } else {
+                    p.type_pk = 5;
+                  }
+                  Vgo vgo = new Vgo();
+                  vgo.map_go = new Map[1];
+                  vgo.map_go[0] = p.clan.map_create;
+                  vgo.xnew = 350;
+                  vgo.ynew = 260;
+                  p.goto_map(vgo);
+                } else {
+                  boolean check_tt_tp = false;
+                  for (int i = 0; i < p.clan.members.size(); i++) {
+                    if (p.clan.members.get(i).name.equals(p.name)
+                        && (p.clan.members.get(i).levelInclan == 0
+                            || p.clan.members.get(i).levelInclan == 1)) {
+                      check_tt_tp = true;
+                      break;
+                    }
+                  }
+                  if (check_tt_tp) {
+                    if (p.tableTickOption == null) {
+                      p.tableTickOption = new TableTickOption();
+                      p.tableTickOption.listP = new ArrayList<>();
+                      p.tableTickOption.idDialog = 4; // 4 = Phó bản PVP Băng
+                      p.tableTickOption.listP.add(p);
+                      for (int i = 0; i < p.clan.members.size(); i++) {
+                        Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
+                        if (p0 != null && p0.index_map != p.index_map && p0.map.equals(p.map)) {
+                          p.tableTickOption.listP.add(p0);
+                        }
+                      }
+                      p.tableTickOption.list_check = new byte[p.tableTickOption.listP.size()];
+                      p.tableTickOption.list_check[0] = 1;
+                      for (int i = 1; i < p.tableTickOption.list_check.length; i++) {
+                        p.tableTickOption.list_check[i] = 0;
+                      }
+                      TableTickOption.show_table(p, "Phó bản PVP Băng");
+                    } else {
+                      Service.send_box_ThongBao_OK(p, "Băng đã đăng ký, đang chờ ghép đội!");
+                    }
+                  } else {
+                    Service.send_box_ThongBao_OK(p, "Bạn không phải thuyền trưởng hoặc thuyền phó");
+                  }
+                }
                 break;
               }
               case 1: { // dang ky pho ban khong lo

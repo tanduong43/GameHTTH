@@ -36,6 +36,7 @@ import template.ItemTemplate4;
 import template.ItemTemplate7;
 import template.Item_wear;
 import template.Map_Little_Garden;
+import template.Map_Pvp_Clan;
 import template.Map_ThuThachVeThan;
 import template.Map_clan_resource;
 import template.Map_pvp;
@@ -66,6 +67,7 @@ public class Map implements Runnable {
     public Dungeon map_dungeon;
     public Map_clan_resource clan_resource;
     public Map_Little_Garden map_little_garden;
+    public Map_Pvp_Clan map_pvp_clan;
     public activities.BossHunt map_bossHunt;
     public ItemMap[] list_it_map = new ItemMap[1_000];
     public boolean can_PK = true;
@@ -154,6 +156,7 @@ public class Map implements Runnable {
         update_map_dungeon();
         update_map_pvp();
         update_map_little_garden();
+        update_map_pvp_clan();
         update_map_ThuThachVeThan();
         update_map_Wanted();
         update_map_bossHunt();
@@ -502,20 +505,20 @@ public class Map implements Runnable {
             if (this.map_little_garden.is_finish
                     || this.map_little_garden.time < System.currentTimeMillis()) {
                 // tong ket
-                int xp_receiv1 = 400;
-                int xp_receiv2 = 400;
-                int rb_receiv1 = 150;
-                int rb_receiv2 = 150;
+                int xp_receiv1 = 1500;
+                int xp_receiv2 = 1500;
+                int rb_receiv1 = 250;
+                int rb_receiv2 = 250;
                 if (this.map_little_garden.hp_1 <= 0) {
-                    xp_receiv2 = 1000;
-                    xp_receiv1 = 300;
-                    rb_receiv2 = 200;
-                    rb_receiv1 = 100;
-                } else if (this.map_little_garden.hp_2 <= 0) {
+                    xp_receiv2 = 2000;
                     xp_receiv1 = 1000;
-                    xp_receiv2 = 300;
+                    rb_receiv2 = 500;
                     rb_receiv1 = 200;
-                    rb_receiv2 = 100;
+                } else if (this.map_little_garden.hp_2 <= 0) {
+                    xp_receiv1 = 2000;
+                    xp_receiv2 = 1000;
+                    rb_receiv1 = 500;
+                    rb_receiv2 = 200;
                 }
                 //
                 this.map_little_garden.clan1.update_xp(xp_receiv1);
@@ -591,6 +594,108 @@ public class Map implements Runnable {
                 // } catch (IOException e) {
                 // e.printStackTrace();
                 // }
+                this.running = false;
+            }
+        }
+    }
+
+    private void update_map_pvp_clan() {
+        if (this.map_pvp_clan != null) {
+            if (this.map_pvp_clan.is_finish
+                    || this.map_pvp_clan.time_end < System.currentTimeMillis()) {
+                this.map_pvp_clan.is_finish = true;
+
+                int xp1 = 1200;
+                int xp2 = 1200;
+                int rb1 = 300;
+                int rb2 = 300;
+
+                if (this.map_pvp_clan.score_clan1 > this.map_pvp_clan.score_clan2) {
+                    xp1 = 1800;
+                    rb1 = 500;
+                    xp2 = 1000;
+                    rb2 = 250;
+                } else if (this.map_pvp_clan.score_clan2 > this.map_pvp_clan.score_clan1) {
+                    xp2 = 1800;
+                    rb2 = 500;
+                    xp1 = 1000;
+                    rb1 = 250;
+                }
+
+                if (this.map_pvp_clan.clan1 != null) {
+                    this.map_pvp_clan.clan1.update_xp(xp1);
+                    this.map_pvp_clan.clan1.update_ruby(rb1);
+                    for (int i1 = 0; i1 < this.map_pvp_clan.clan1.members.size(); i1++) {
+                        Player p0 = Map.get_player_by_name_allmap(
+                                this.map_pvp_clan.clan1.members.get(i1).name);
+                        if (p0 != null) {
+                            try {
+                                Clan.set_data(p0, false);
+                                Clan.send_money(p0, false);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    try {
+                        String resultTxt = (xp1 == 1800) ? "THẮNG" : (xp1 == 1000 ? "THUA" : "HÒA");
+                        this.map_pvp_clan.clan1.chat_on_board(
+                                this.map_pvp_clan.clan1.members.get(0).id,
+                                this.map_pvp_clan.clan1.members.get(0).name,
+                                ("Phó bản PVP Băng [" + resultTxt + "] với " + this.map_pvp_clan.clan2.name
+                                        + ": nhận được " + xp1 + " xp băng và " + rb1 + " ruby băng"),
+                                -3);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    this.map_pvp_clan.clan1.map_create = null;
+                }
+
+                if (this.map_pvp_clan.clan2 != null) {
+                    this.map_pvp_clan.clan2.update_xp(xp2);
+                    this.map_pvp_clan.clan2.update_ruby(rb2);
+                    for (int i1 = 0; i1 < this.map_pvp_clan.clan2.members.size(); i1++) {
+                        Player p0 = Map.get_player_by_name_allmap(
+                                this.map_pvp_clan.clan2.members.get(i1).name);
+                        if (p0 != null) {
+                            try {
+                                Clan.set_data(p0, false);
+                                Clan.send_money(p0, false);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    try {
+                        String resultTxt = (xp2 == 1800) ? "THẮNG" : (xp2 == 1000 ? "THUA" : "HÒA");
+                        this.map_pvp_clan.clan2.chat_on_board(
+                                this.map_pvp_clan.clan2.members.get(0).id,
+                                this.map_pvp_clan.clan2.members.get(0).name,
+                                ("Phó bản PVP Băng [" + resultTxt + "] với " + this.map_pvp_clan.clan1.name
+                                        + ": nhận được " + xp2 + " xp băng và " + rb2 + " ruby băng"),
+                                -3);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    this.map_pvp_clan.clan2.map_create = null;
+                }
+
+                Vgo vgo = new Vgo();
+                vgo.map_go = Map.get_map_by_id(33);
+                vgo.xnew = 710;
+                vgo.ynew = 320;
+                List<Player> playerList = new ArrayList<>();
+                for (int i = 0; i < players.size(); i++) {
+                    playerList.add(players.get(i));
+                }
+                playerList.forEach(l -> {
+                    try {
+                        l.type_pk = -1;
+                        l.goto_map(vgo);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
                 this.running = false;
             }
         }
@@ -2783,6 +2888,13 @@ public class Map implements Runnable {
                 if (p_target.hp <= 0) {
                     p_target.hp = 0;
                     p_target.isdie = true;
+                    if (this.map_pvp_clan != null && !this.map_pvp_clan.is_finish) {
+                        if (p_target.type_pk == 4) {
+                            this.map_pvp_clan.score_clan2++;
+                        } else if (p_target.type_pk == 5) {
+                            this.map_pvp_clan.score_clan1++;
+                        }
+                    }
                     if (this.map_pvp != null) {
                         die_player(p_target, p);
                     } else {

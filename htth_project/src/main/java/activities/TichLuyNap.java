@@ -65,7 +65,7 @@ public class TichLuyNap {
     private static void initMilestones() {
         MILESTONES.clear();
 
-        // MỐC 0: 50k Extol
+        // MỐC 1: 50k Extol
         Milestone m0 = new Milestone(50, "Tích luỹ nạp 50k Extol", 50000);
         m0.addReward("Thời trang Doflamingo", (byte) 105, (short) 127, (short) 127, 1);
         m0.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 10);
@@ -76,7 +76,7 @@ public class TichLuyNap {
         m0.addReward("Rương dial", (byte) 4, (short) 455, (short) 455, 5);
         MILESTONES.add(m0);
 
-        // MỐC 1: 100k Extol
+        // MỐC 2: 100k Extol
         Milestone m1 = new Milestone(100, "Tích luỹ nạp 100k Extol", 100000);
         m1.addReward("Thời trang Chấn thiên", (byte) 105, (short) 53, (short) 53, 1);
         m1.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 25);
@@ -87,9 +87,10 @@ public class TichLuyNap {
         m1.addReward("Lông vũ", (byte) 7, (short) 13, (short) 13, 200);
         m1.addReward("Rương dial", (byte) 4, (short) 455, (short) 455, 5);
         m1.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 20);
+        m1.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 1);
         MILESTONES.add(m1);
 
-        // MỐC 2: 200k Extol
+        // MỐC 3: 200k Extol
         Milestone m2 = new Milestone(200, "Tích luỹ nạp 200k Extol", 200000);
         m2.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 50);
         m2.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 30);
@@ -102,9 +103,10 @@ public class TichLuyNap {
         m2.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 1);
         m2.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
         m2.addReward("Trang phục Bão tố", (byte) 105, (short) 55, (short) 55, 1);
+        m2.addReward("Tiến cấp đơn", (byte) 4, (short) 413, (short) 413, 5);
         MILESTONES.add(m2);
 
-        // MỐC 3: 300k Extol
+        // MỐC 4: 300k Extol
         Milestone m3 = new Milestone(300, "Tích luỹ nạp 300k Extol", 300000);
         m3.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 50);
         m3.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 60);
@@ -116,9 +118,10 @@ public class TichLuyNap {
         m3.addReward("Trang phục Thần Tài", (byte) 105, (short) 95, (short) 95, 1);
         m3.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 20);
         m3.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 1);
+        m3.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 3);
         MILESTONES.add(m3);
 
-        // MỐC 4: 500k Extol
+        // MỐC 5: 500k Extol
         Milestone m4 = new Milestone(500, "Tích luỹ nạp 500k Extol", 500000);
         m4.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 100);
         m4.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 100);
@@ -132,20 +135,56 @@ public class TichLuyNap {
         m4.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 5);
         m4.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 50);
         m4.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 1);
+        m4.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 5);
         MILESTONES.add(m4);
 
-        // MỐC 5: 1M Extol
+        // MỐC 6: 1M Extol
         Milestone m5 = new Milestone(1000, "Tích luỹ nạp 1M Extol", 1000000);
         m5.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 150);
         m5.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 200);
         m5.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 200);
         m5.addReward("Trang phục Râu đen", (byte) 105, (short) 74, (short) 74, 1);
-        m5.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
         m5.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 5);
         m5.addReward("Tiến cấp đơn", (byte) 4, (short) 413, (short) 413, 20);
         m5.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 100);
         m5.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 20);
+        m5.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 6);
+        m5.addReward("Rương dial", (byte) 4, (short) 455, (short) 455, 50);
+        m5.addReward("Thời trang Mihawk Gold", (byte) 105, (short) 119, (short) 119, 1);
         MILESTONES.add(m5);
+
+        // MỐC 7: 2M Extol
+        Milestone m6 = new Milestone(2000, "Tích luỹ nạp 2M Extol", 2000000);
+        m6.addReward("Thời trang Gol D.Roger", (byte) 105, (short) 128, (short) 128, 1);
+        m6.addReward("Tiến cấp đơn", (byte) 4, (short) 413, (short) 413, 50);
+        m6.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 5);
+        m6.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 15);
+        m6.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 200);
+        m6.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 15);
+        m6.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 50);
+        m6.addReward("Rương dial", (byte) 4, (short) 455, (short) 455, 60);
+        m6.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 200);
+        m6.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 500);
+        m6.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 500);
+        MILESTONES.add(m6);
+
+        // MỐC 8: 5M Extol
+        Milestone m7 = new Milestone(5000, "Tích luỹ nạp 5M Extol", 5000000);
+        m7.addReward("Thời trang Nami Wano", (byte) 105, (short) 125, (short) 125, 1);
+        m7.addReward("Thời trang UTA", (byte) 105, (short) 123, (short) 123, 1);
+        m7.addReward("Tiến cấp đơn", (byte) 4, (short) 413, (short) 413, 150);
+        m7.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 15);
+        m7.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 40);
+        m7.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 800);
+        m7.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 40);
+        m7.addReward("Ruby - Saphia thần thoại", (byte) 4, (short) 660, (short) 660, 10);
+        m7.addReward("Hổ phách - Saphia thần thoại", (byte) 4, (short) 681, (short) 681, 10);
+        m7.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 100);
+        m7.addReward("Rương dial", (byte) 4, (short) 455, (short) 455, 100);
+        m7.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 500);
+        m7.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 1000);
+        m7.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 1000);
+        MILESTONES.add(m7);
     }
 
     public static short getIcon(byte type, int id) {

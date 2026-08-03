@@ -10,6 +10,7 @@ import activities.Dungeon;
 import activities.HanhTrinh;
 import activities.Learn_Skill;
 import activities.LittleGarden;
+import activities.PvpClan;
 import activities.Market;
 import activities.Max_Level;
 import activities.Rebuild_Item;
@@ -1126,6 +1127,23 @@ public class ClientYesNo {
                                 }
                             }
                             LittleGarden.add_clan_wait(p.clan);
+                            p.tableTickOption.is_finish = true;
+                        }
+                    }
+                    break;
+                }
+                case 151: {
+                    if (p.tableTickOption != null && !p.tableTickOption.is_finish) {
+                        if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
+                            for (int i = 0; i < p.tableTickOption.listP.size(); i++) {
+                                Player p0 = Map.get_player_by_name_allmap(
+                                        p.tableTickOption.listP.get(i).name);
+                                if (p0 != null) {
+                                    Service.send_box_ThongBao_OK(p0,
+                                            "Đăng ký tham gia PVP Băng thành công, đang chờ ghép đội với Băng khác!");
+                                }
+                            }
+                            PvpClan.add_clan_wait(p.clan);
                             p.tableTickOption.is_finish = true;
                         }
                     }
