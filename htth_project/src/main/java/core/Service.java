@@ -419,7 +419,7 @@ public class Service {
                     m.writer().writeShort(-1);
                 } else if (i == 0 && !p0.is_show_weapon) {
                     m.writer().writeShort(-1);
-                } else if (fashion != null && fashion[i] != -1) {
+                } else if (fashion != null && i < fashion.length && fashion[i] != -1) {
                     m.writer().writeShort(fashion[i]);
                 } else {
                     m.writer().writeShort(ItemTemplate3.get_it_by_id(it_w.template.id).part);
@@ -1998,6 +1998,12 @@ public class Service {
                             }
                         }
                     }
+                    break;
+                }
+                case 11: {
+                    template.ItemFashionP2 temp2 = new template.ItemFashionP2();
+                    temp2.id = temp.id;
+                    p.fashion.add(temp2);
                     break;
                 }
                 case 4: {

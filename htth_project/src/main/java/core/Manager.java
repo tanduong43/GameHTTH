@@ -553,7 +553,7 @@ public class Manager {
                             Integer.parseInt(js2.get(1).toString())));
                 }
                 ItemFashion.ENTRYS
-                        .add(new ItemFashion((byte) id, icon, name, info, wear, op, rs.getInt("price")));
+                        .add(new ItemFashion((short) id, icon, name, info, wear, op, rs.getInt("price")));
             }
             rs.close();
             System.out.println("load fashion temp ok");

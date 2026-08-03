@@ -1245,7 +1245,52 @@ public class MenuController {
         case 970: {
           int mobId = 135 + index;
           if (mobId >= 135 && mobId <= 140) {
-            BXH.sendTopBoss(p, mobId, 0);
+            p.tempMobIdBoss = mobId;
+            template.MobTemplate mobT = template.MobTemplate.ENTRYS.get(mobId);
+            String bossName = (mobT != null) ? mobT.name : ("Boss " + mobId);
+            send_dynamic_menu(p, 971, "Lựa chọn - " + bossName, new String[]{"Xem Bảng Xếp Hạng", "Nhận Thưởng"}, null);
+          }
+          break;
+        }
+        case 971: {
+          if (p.tempMobIdBoss >= 135 && p.tempMobIdBoss <= 140) {
+            if (index == 0) {
+              BXH.sendTopBoss(p, p.tempMobIdBoss, 0);
+            } else if (index == 1) {
+              List<template.InfoMemList> topPlayers = BXH.TOP_SIEU_TRUM_MAP.get(p.tempMobIdBoss);
+              if (topPlayers == null || topPlayers.isEmpty()) {
+                Service.send_box_ThongBao_OK(p, "Chưa có dữ liệu Top cho Siêu Trùm này!");
+                break;
+              }
+              int myRank = -1;
+              for (int i = 0; i < Math.min(3, topPlayers.size()); i++) {
+                if (topPlayers.get(i).name.equals(p.name)) {
+                  myRank = i;
+                  break;
+                }
+              }
+              if (myRank == -1) {
+                Service.send_box_ThongBao_OK(p, "Bạn không nằm trong Top 3 Siêu Trùm này nên không thể nhận thưởng!");
+                break;
+              }
+              List<Integer> claimedList = BXH.claimedTopBossRewards.computeIfAbsent(p.tempMobIdBoss, k -> new ArrayList<>());
+              if (claimedList.contains(p.id)) {
+                Service.send_box_ThongBao_OK(p, "Bạn đã nhận phần thưởng Top Siêu Trùm này rồi!");
+                break;
+              }
+              
+              int khienAmount = (myRank == 0) ? 3 : (myRank == 1) ? 2 : 1;
+              int rubyAmount = (myRank == 0) ? 300 : (myRank == 1) ? 200 : 100;
+              
+              if (p.item.add_item_bag47(7, 10, khienAmount)) {
+                  p.update_ngoc(rubyAmount);
+                  p.item.update_Inventory(-1, false);
+                  claimedList.add(p.id);
+                  Service.send_box_ThongBao_OK(p, "Bạn đã nhận thành công thưởng Top " + (myRank + 1) + " Siêu Trùm:\n" + khienAmount + " Khiên, " + rubyAmount + " Ruby!");
+              } else {
+                  Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống để nhận quà!");
+              }
+            }
           }
           break;
         }

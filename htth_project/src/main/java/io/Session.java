@@ -62,16 +62,18 @@ public class Session implements Runnable {
     public int vip;
     public int tichnap;
     public String claimed_milestones;
-    
+
     public int getVersionInt() {
         try {
-            if (version == null) return 0;
+            if (version == null)
+                return 0;
             String v = version.replace(".", "").replaceAll("[^0-9]", "");
             return Integer.parseInt(v);
         } catch (Exception e) {
             return 0;
         }
     }
+
     private boolean getImgAPK = false;
 
     public Session(Socket socket) {
@@ -852,9 +854,9 @@ public class Session implements Runnable {
                             }
                         }
                     }
-                    if (fashion_ != null && fashion_[6] != -1) {
+                    if (fashion_ != null && fashion_.length > 6 && fashion_[6] != -1) {
                         // hair_ = -2;
-                        hair_ = fashion_[7];
+                        hair_ = (fashion_.length > 7) ? fashion_[7] : -1;
                         head_ = fashion_[6];
                     } else {
                         for (int i0 = 0; i0 < itfashionP.size(); i0++) {

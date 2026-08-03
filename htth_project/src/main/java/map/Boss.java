@@ -142,7 +142,10 @@ public class Boss {
             case 78: return List.of(82, 84, 85, 86);
             case 92: return List.of(92, 94, 95, 96, 97, 98, 99, 100, 101);
             case 112: return List.of(112, 114, 115, 116, 117, 118, 124, 125, 126);
+            case 121: return List.of(32, 34, 35, 36);
             case 163: return List.of(192, 193, 194, 195, 196, 197);
+            case 173: return List.of(92, 94, 95, 96, 97, 98, 99, 100, 101);
+            case 174: return List.of(112, 114, 115, 116, 117, 118, 124, 125, 126);
             default: return null;
         }
     }
@@ -166,8 +169,10 @@ public class Boss {
             case 78: return new int[]{10, 20};
             case 92: return new int[]{10, 30};
             case 112: return new int[]{10, 40};
+            case 121: return new int[]{10, 45};
             case 163: return new int[]{10, 50};
             case 172: return new int[]{11, 0};
+            case 173: return new int[]{0, 0};
             default: return new int[]{0, 0}; // mặc định xuất hiện ngay lúc 00:00
         }
     }
@@ -379,7 +384,7 @@ public class Boss {
                 if (boss.mob.isdie || boss.mob.hp <= 0) {
                     boss.status = STATUS_DEAD;
                     boss.timeDeath = now;
-                    boss.timeNextRespawn = now + 900000; // 15 phút hồi sinh
+                    boss.timeNextRespawn = now + 1800000; // 30 phút hồi sinh
                     
                     System.out.println("[DEBUG LOG] Boss thegioi=3 Died - ID: " + boss.mob.mob_template.mob_id
                             + " | Name: " + boss.mob.mob_template.name
@@ -509,9 +514,9 @@ public class Boss {
                         && tempB.TopDame.size() > 0) {
                     list_select = tempB.TopDame;
                     boss_select = tempB;
+                    tempB.mob.map.can_PK = true;
                     break;
                 }
-                tempB.mob.map.can_PK = true;
             }
             if (boss_select != null) {
                 core.BXH.updateTopBoss(boss_select);
@@ -535,7 +540,7 @@ public class Boss {
         List<Boss> list_remove = new ArrayList<>();
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
             Boss temp = Boss.ENTRYS.get(i);
-            if (!temp.mob.isdie) {
+            if (!temp.mob.isdie && temp.thegioi == 1) {
                 list_remove.add(temp);
             }
         }
@@ -555,5 +560,132 @@ public class Boss {
         }
         BOSS_LIVE = new byte[] { 0, 0, 0, 0, 0, 0 };
         BOSS_AREA = new byte[] { -1, -1, -1, -1, -1, -1 };
+    }
+
+    public static long dualEventDespawnTime = 0;
+    public static boolean isDualEventActive = false;
+
+    public static void spawnDualEventBosses() {
+        int[] allowedMaps = new int[] { 32, 34, 35, 36 };
+        int targetMapId = allowedMaps[Util.random(allowedMaps.length)];
+        Map[] zones = Map.get_map_by_id(targetMapId);
+
+        if (zones == null || zones.length == 0) {
+            return;
+        }
+
+        Boss bossEch = null;
+
+        for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+            Boss b = Boss.ENTRYS.get(i);
+            if (b.mob != null && b.mob.mob_template != null) {
+                if (b.mob.mob_template.mob_id == 121) {
+                    bossEch = b;
+                    break;
+                }
+            }
+        }
+
+        if (bossEch == null) {
+            return;
+        }
+
+        Map randomMap = zones[Util.random(zones.length)];
+        short spawnX = 300;
+        short spawnY = 300;
+        if (randomMap.template.npcs.size() > 0) {
+            Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
+            spawnX = npc.x;
+            spawnY = npc.y;
+        }
+
+        // Spawn Boss Mèo truyền thuyết
+        bossEch.mob.isdie = false;
+        bossEch.mob.hp = bossEch.mob.hp_max;
+        bossEch.mob.id_target = -1;
+        bossEch.levelBoss = 1;
+        bossEch.mob.index = bossEch.index_mob_save;
+        bossEch.mob.map = randomMap;
+        bossEch.mob.x = spawnX;
+        bossEch.mob.y = spawnY;
+        bossEch.TopDame.clear();
+
+        isDualEventActive = true;
+        dualEventDespawnTime = System.currentTimeMillis() + 30 * 60 * 1000L; // 30 phút
+
+        try {
+            Manager.gI().chatKTG(0,
+                    "SỰ KIỆN: Boss Mèo truyền thuyết đã xuất hiện tại "
+                            + randomMap.template.name + " (Khu " + (randomMap.zone_id + 1)
+                            + ")! Sự kiện kéo dài 30 phút, các thuyền trưởng hãy mau đi săn!",
+                    5);
+
+            Message m_local = new Message(1);
+            m_local.writer().writeByte(1);
+            m_local.writer().writeShort(bossEch.mob.index);
+            m_local.writer().writeShort(bossEch.mob.x);
+            m_local.writer().writeShort(bossEch.mob.y);
+            m_local.writer().writeByte(-1);
+            for (int j = 0; j < randomMap.players.size(); j++) {
+                Player p0 = randomMap.players.get(j);
+                if (p0 != null && p0.conn != null) {
+                    p0.conn.addmsg(m_local);
+                }
+            }
+            m_local.cleanup();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void checkDualEventDespawn() {
+        if (!isDualEventActive) {
+            return;
+        }
+
+        if (System.currentTimeMillis() >= dualEventDespawnTime) {
+            isDualEventActive = false;
+            boolean despawnedAny = false;
+
+            for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+                Boss b = Boss.ENTRYS.get(i);
+                if (b.mob != null && b.mob.mob_template != null) {
+                    if (b.mob.mob_template.mob_id == 121 && !b.mob.isdie) {
+                        b.mob.isdie = true;
+                        b.mob.hp = 0;
+                        b.mob.id_target = -1;
+                        b.TopDame.clear();
+                        despawnedAny = true;
+                        
+                        try {
+                            Message m_local = new Message(1);
+                            m_local.writer().writeByte(0);
+                            m_local.writer().writeShort(b.mob.index);
+                            for (int j = 0; j < b.mob.map.players.size(); j++) {
+                                Player p0 = b.mob.map.players.get(j);
+                                if (p0 != null && p0.conn != null) {
+                                    p0.conn.addmsg(m_local);
+                                }
+                            }
+                            m_local.cleanup();
+                            if (b.mob.map != null) {
+                                b.mob.map.remove_obj(b.mob.index, 1);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+            if (despawnedAny) {
+                try {
+                    Manager.gI().chatKTG(0,
+                            "Hết 30 phút! Sự kiện kết thúc, Boss Mèo truyền thuyết đã rút lui!", 5);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

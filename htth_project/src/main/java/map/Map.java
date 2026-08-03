@@ -29,6 +29,7 @@ import template.EffTemplate;
 import template.FriendTemp;
 import template.GiftBox;
 import template.ItemFashionP2;
+import template.ItemFashion;
 import template.ItemMap;
 import template.ItemTemplate3;
 import template.ItemTemplate4;
@@ -3039,7 +3040,7 @@ public class Map implements Runnable {
                     int value1 = 0;
                     int value2 = 0;
                     int percent = 0;
-                    if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)) {
+                    if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id) && mob_target.mob_template.mob_id != 121) {
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
@@ -3348,7 +3349,7 @@ public class Map implements Runnable {
                         boss.timeDeath = System.currentTimeMillis();
                         core.BXH.updateTopBoss(boss);
                         if (boss.thegioi == 3) {
-                            boss.timeNextRespawn = boss.timeDeath + 900000; // 15 minutes
+                            boss.timeNextRespawn = boss.timeDeath + 1800000; // 30 minutes
                         } else {
                             boss.timeNextRespawn = boss.timeDeath + 300000; // 5 minutes
                         }
@@ -3460,6 +3461,19 @@ public class Map implements Runnable {
                                 giftStone.color = 0;
                                 list_gift.add(giftStone);
                                 notice += "x1 " + itemStone.name + ", ";
+                            }
+                        } else if (boss.mob.mob_template.mob_id == 121) {
+                            ItemFashion it_fashion = ItemFashion.get_item(130);
+                            if (it_fashion != null) {
+                                GiftBox giftFashion = new GiftBox();
+                                giftFashion.id = 130;
+                                giftFashion.type = 11;
+                                giftFashion.name = it_fashion.name;
+                                giftFashion.icon = it_fashion.idIcon;
+                                giftFashion.num = 1;
+                                giftFashion.color = 0;
+                                list_gift.add(giftFashion);
+                                notice += "x1 " + it_fashion.name + ", ";
                             }
                         } else {
                             // 1. Gift 1: Búa siêu cấp (tỉ lệ 5%)
@@ -3792,6 +3806,10 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 9);
                 else if (cmd.equals("resethangdong") || cmd.equals("reset_hangdong"))
                     MenuController.Menu_Admin(p, (byte) 10);
+                else if (cmd.equals("dualboss")) {
+                    map.Boss.spawnDualEventBosses();
+                    Service.send_box_ThongBao_OK(p, "Đã gọi sự kiện Boss Mèo truyền thuyết!");
+                }
                 else if (cmd.startsWith("setdanhhieu ")) {
                     String[] parts = cmd.split(" ");
                     if (parts.length >= 3) {

@@ -38,6 +38,7 @@ public class BXH {
     public static List<InfoMemList> HANGDONG = new ArrayList<>();
     public static List<InfoMemList> PHAO_HOA = new ArrayList<>();
     public static final java.util.Map<Integer, List<InfoMemList>> TOP_SIEU_TRUM_MAP = new java.util.concurrent.ConcurrentHashMap<>();
+    public static final java.util.Map<Integer, List<Integer>> claimedTopBossRewards = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static void send(Player p, int type, int page) throws IOException {
         if (page < 0) {
@@ -305,6 +306,7 @@ public class BXH {
 
     public static void resetAllTopBoss() {
         TOP_SIEU_TRUM_MAP.clear();
+        claimedTopBossRewards.clear();
     }
 
     public static void updateTopBoss(map.Boss boss) {

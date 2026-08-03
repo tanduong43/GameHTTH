@@ -357,6 +357,46 @@ public class HangDong extends Dungeon {
                 list_gift.add(gb);
             }
 
+            // Thêm phần thưởng cố định mỗi tầng: Khiên x1, Búa sơ cấp x1..3, Đá Hải Thạch 6 x1..3
+            // 1. Khiên (Type 7, ID 10, num = 1)
+            ItemTemplate7 it_khien = ItemTemplate7.get_it_by_id(10);
+            if (it_khien != null) {
+                GiftBox gb = new GiftBox();
+                gb.id = 10;
+                gb.type = 7;
+                gb.name = it_khien.name;
+                gb.icon = it_khien.icon;
+                gb.num = 1;
+                gb.color = 0;
+                list_gift.add(gb);
+            }
+
+            // 2. Búa sơ cấp (Type 4, ID 339, num = random 1..3)
+            ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(339);
+            if (it_bua != null) {
+                GiftBox gb = new GiftBox();
+                gb.id = 339;
+                gb.type = 4;
+                gb.name = it_bua.name;
+                gb.icon = it_bua.icon;
+                gb.num = core.Util.random(1, 4);
+                gb.color = 0;
+                list_gift.add(gb);
+            }
+
+            // 3. Đá Hải Thạch 6 (Type 4, ID 226, num = random 1..3)
+            ItemTemplate4 it_haithach6 = ItemTemplate4.get_it_by_id(226);
+            if (it_haithach6 != null) {
+                GiftBox gb = new GiftBox();
+                gb.id = 226;
+                gb.type = 4;
+                gb.name = it_haithach6.name;
+                gb.icon = it_haithach6.icon;
+                gb.num = core.Util.random(1, 4);
+                gb.color = 0;
+                list_gift.add(gb);
+            }
+
             if (!list_gift.isEmpty()) {
                 Service.send_gift(p, 1, "Hang Động Tầng " + floor, "Phần thưởng", list_gift, true);
                 if (p.daily_achievements[3] == 0) {

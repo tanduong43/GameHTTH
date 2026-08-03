@@ -68,6 +68,10 @@ public class ServerEventManager {
                     if (min % 5 == 0 && sec == 0) {
                         Boss.spawn_event_boss();
                     }
+                    if (min == 0 && sec == 0) {
+                        Boss.spawnDualEventBosses();
+                    }
+                    Boss.checkDualEventDespawn();
                     if ((hour == 18 || hour == 22) && sec == 0) {
                         // Kiểm tra xem Boss đã được gọi ra chưa (phòng trường hợp restart server lúc 18h)
                         boolean isMissed = true;

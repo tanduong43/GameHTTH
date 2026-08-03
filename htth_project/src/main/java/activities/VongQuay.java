@@ -1,6 +1,7 @@
 package activities;
 
 import java.io.IOException;
+
 import client.Player;
 import core.Service;
 import core.Util;
@@ -8,13 +9,14 @@ import io.Message;
 import template.ItemBag47;
 import template.ItemTemplate4;
 import template.ItemTemplate7;
+
 /**
  *
  * @author Truongbk
  */
 public class VongQuay {
-    public static short[] ID_ITEM = new short[] {174, 173, 221, 222, 223, 7, 159, 133, //
-            112, 224, 29, 225, 48, 158};
+    public static short[] ID_ITEM = new short[] { 174, 173, 221, 222, 223, 7, 159, 133, //
+            112, 224, 29, 225, 48, 158 };
 
     private static ItemBag47 get_random(Player p) {
         ItemBag47 result = null;
@@ -78,7 +80,7 @@ public class VongQuay {
             result.quant = 1;
             return result;
         } else if (random < 5000 && p.level > 19) { // DA KHAM
-            short[] rd = new short[] {48, 54, 60, 66, 72, 78};
+            short[] rd = new short[] { 48, 54, 60, 66, 72, 78 };
             result = new ItemBag47();
             result.id = rd[Util.random(rd.length)];
             result.category = 4;
@@ -119,6 +121,7 @@ public class VongQuay {
     public static void show_table(Player p) throws IOException {
         Message m = new Message(54);
         m.writer().writeByte(0);
+        m.writer().writeShort(p.item.total_item_bag_by_id(4, 232));
         p.conn.addmsg(m);
         m.cleanup();
     }
@@ -141,7 +144,7 @@ public class VongQuay {
             case 4: {
                 Service.send_box_yesno(p, 36, "Thông báo",
                         "Bạn cần mua bao nhiêu thẻ quay? Giá mỗi thẻ quay là 15 ruby",
-                        new String[] {"1 thẻ", "3 thẻ", "Hủy"}, new byte[] {-1, -1, 1});
+                        new String[] { "1 thẻ", "3 thẻ", "Hủy" }, new byte[] { -1, -1, 1 });
                 break;
             }
             case 2:

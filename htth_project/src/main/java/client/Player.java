@@ -100,6 +100,7 @@ public class Player {
     public Dungeon dungeon;
     public int id_menu_tichtieu;
     public activities.BossHunt bossHunt;
+    public int tempMobIdBoss = -1;
     public int win_dungeon_1 = 0;
     public int num_phao_hoa = 0;
     public int originalMapId = -1;
@@ -2049,7 +2050,7 @@ public class Player {
         for (int i = 0; i < this.fashion.size(); i++) {
             if (this.fashion.get(i).is_use) {
                 ItemFashion temp = ItemFashion.get_item(this.fashion.get(i).id);
-                if (temp.mWearing[6] != -1) {
+                if (temp != null && temp.mWearing != null && temp.mWearing.length > 6 && temp.mWearing[6] != -1) {
                     return temp.mWearing[6];
                 }
             }
@@ -2066,7 +2067,7 @@ public class Player {
         for (int i = 0; i < this.fashion.size(); i++) {
             if (this.fashion.get(i).is_use) {
                 ItemFashion temp = ItemFashion.get_item(this.fashion.get(i).id);
-                if (temp != null && (temp.mWearing[7] != -1)) {
+                if (temp != null && temp.mWearing != null && temp.mWearing.length > 7 && temp.mWearing[7] != -1) {
                     return temp.mWearing[7];
                 }
             }

@@ -1,1 +1,0 @@
-INSERT INTO `fashiontemplate` (`id`, `icon`, `name`, `info`, `mwear`, `op`, `price`) VALUES (400, 15, 'Thời trang Kaido', 'Thời trang Bách Thú Kaido\n+10% Tăng HP\n+10% Sát thương cuối\nHạn sử dụng vĩnh viễn', '[609,558,-1,562,-1,563,-1,-1]', '[[17,100],[46,100]]', 1);
