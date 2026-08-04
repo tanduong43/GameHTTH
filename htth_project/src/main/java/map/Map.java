@@ -3112,6 +3112,7 @@ public class Map implements Runnable {
                 if (dame2 > 1 && crit) {
                     dame2 = (dame2 * (1000L + multi_dame_skill)) / 1000L;
                 }
+
                 dame2 = (dame2 * (long) sk_temp.get_dame(p))
                         / ((long) p.skill_point.get(0).get_dame(p));
                 Dame_Msg dame_inf = new Dame_Msg();
@@ -3143,6 +3144,13 @@ public class Map implements Runnable {
                 if (dame2 > 0) {
                     dame2 -= (dame2 * Util.random(10)) / 100;
                 }
+                // Chỉ boss làng: player lệch quá ±6 cấp thì dame = 0
+                if (mob_target.boss_info != null
+                        && mob_target.boss_info.thegioi == 2
+                        && Math.abs(p.level - mob_target.level) > 6) {
+                    dame2 = 0;
+                    dame_inf.dameM = 0;
+                }
                 long dame_to_target = dame2 + dame_inf.dameM;
                 if (mob_target.boss_info != null && dame_to_target > 0) {
                     Top_Dame topdame = null;
@@ -3170,7 +3178,8 @@ public class Map implements Runnable {
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
                             && mob_target.mob_template.mob_id != 121
                             && mob_target.boss_info.thegioi != 2) {
-                        // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) chỉ nhận quà khi giết
+                        // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) chỉ nhận quà
+                        // khi giết
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
@@ -3552,13 +3561,14 @@ public class Map implements Runnable {
                                                     + (this.zone_id + 1) + "!",
                                             5);
 
-                                    Message m_local = new Message(1);
-                                    m_local.writer().writeByte(1);
-                                    m_local.writer().writeShort(boss.mob.index);
-                                    m_local.writer().writeShort(boss.mob.x);
-                                    m_local.writer().writeShort(boss.mob.y);
-                                    this.send_msg_all_p(m_local, null, true);
-                                    m_local.cleanup();
+                                    // Gửi lại Message(4) mob info để client cập nhật tên "Bậc X"
+                                    // (Message(1) chỉ là ObjectMove, không đổi LvThongThao/tên)
+                                    for (int pi = 0; pi < this.players.size(); pi++) {
+                                        Player p0 = this.players.get(pi);
+                                        if (p0 != null && p0.conn != null) {
+                                            Service.send_mob_info(p0, boss.mob);
+                                        }
+                                    }
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -3998,7 +4008,7 @@ public class Map implements Runnable {
                         "Reset Tich Luy", "Reset Tich Tieu", "Reset Hang Dong" },
                         null);
                 Service.send_box_ThongBao_OK(p,
-                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu\nadmin resethangdong");
+                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu\nadmin resethangdong\nadmin boss");
                 return;
             } else if (txt.startsWith("admin ")) {
                 String cmd = txt.substring(6);
@@ -4027,6 +4037,9 @@ public class Map implements Runnable {
                 else if (cmd.equals("dualboss")) {
                     map.Boss.spawnDualEventBosses();
                     Service.send_box_ThongBao_OK(p, "Đã gọi sự kiện Boss Mèo truyền thuyết!");
+                } else if (cmd.equals("boss") || cmd.equals("bosstg") || cmd.equals("boss_thegioi")) {
+                    int n = map.Boss.force_spawn_all_thegioi1();
+                    Service.send_box_ThongBao_OK(p, "Đã gọi " + n + " boss thế giới (thegioi=1) xuất hiện!");
                 } else if (cmd.startsWith("setdanhhieu ")) {
                     String[] parts = cmd.split(" ");
                     if (parts.length >= 3) {

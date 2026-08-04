@@ -76,6 +76,58 @@ public class Boss {
         }
     }
 
+    /**
+     * Admin: buộc tất cả boss thegioi=1 xuất hiện.
+     * Nếu boss đang sống sẽ remove rồi spawn lại.
+     * @return số boss đã spawn
+     */
+    public static int force_spawn_all_thegioi1() {
+        for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+            Boss temp = Boss.ENTRYS.get(i);
+            if (temp == null || temp.mob == null || temp.thegioi != 1) {
+                continue;
+            }
+            if (!temp.mob.isdie) {
+                temp.mob.isdie = true;
+                temp.mob.hp = 0;
+                temp.status = STATUS_DEAD;
+                try {
+                    if (temp.mob.map != null) {
+                        temp.mob.map.remove_obj(temp.mob.index, 1);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            int mobId = temp.mob.mob_template.mob_id;
+            if (mobId >= 135 && mobId <= 140) {
+                BOSS_LIVE[mobId - 135] = 0;
+            }
+        }
+        activeWorldBoss = null;
+        create_boss();
+        // Spawn thêm các thegioi=1 không thuộc mob 135-140 (nếu có)
+        int extra = 0;
+        for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+            Boss temp = Boss.ENTRYS.get(i);
+            if (temp == null || temp.mob == null || temp.thegioi != 1 || !temp.mob.isdie) {
+                continue;
+            }
+            int mobId = temp.mob.mob_template.mob_id;
+            if (mobId < 135 || mobId > 140) {
+                spawn_world_boss(temp);
+                extra++;
+            }
+        }
+        int count = 0;
+        for (int i = 0; i < BOSS_LIVE.length; i++) {
+            if (BOSS_LIVE[i] == 1) {
+                count++;
+            }
+        }
+        return count + extra;
+    }
+
     public static void spawn_world_boss_by_id(int mobId) {
         if (mobId < 135 || mobId > 140) return;
         List<Boss> list_init = new ArrayList<>();
