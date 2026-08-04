@@ -2002,8 +2002,9 @@ public class Service {
                     }
                     break;
                 }
-                case 11: {
-                    // Kiểm tra nếu đã sở hữu thời trang này rồi thì bỏ qua
+                case 11:
+                case 105: {
+                    // type 105: client load icon thời trang; type 11 giữ tương thích cũ
                     if (p.check_fashion(temp.id) == null) {
                         template.ItemFashionP2 temp2 = new template.ItemFashionP2();
                         temp2.id = temp.id;
@@ -2018,8 +2019,7 @@ public class Service {
                             }
                         }
                         Service.UpdateInfoMaincharInfo(p);
-                        // Refresh bảng thời trang để hiển thị "Đã sở hữu"
-                        template.ItemFashionP.show_table(p, 105);
+                        // Không mở bảng Thời trang khi nhận quà
                     }
                     break;
                 }

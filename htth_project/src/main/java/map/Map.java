@@ -3634,28 +3634,28 @@ public class Map implements Runnable {
                             }
                         } else if (boss.mob.mob_template.mob_id == 121) {
                             // Boss Mèo truyền thuyết - kết thúc sự kiện
+                            notice = "Tiêu diệt mèo nhận: ";
                             boss.status = Boss.STATUS_DEAD;
                             boss.mob.isdie = true;
                             this.remove_obj(mob_target.index, 1);
                             Boss.isDualEventActive = false;
 
-                            // BƯỚC 1: Sửa 130 thành ID Thời trang Mèo truyền thuyết của server bạn (VD:
-                            // 121, 131...)
+                            // ID thời trang thưởng săn mèo (Mihawk 24h)
                             int idThoiTrangMeo = 130;
                             ItemFashion it_fashion = ItemFashion.get_item(idThoiTrangMeo);
 
                             if (it_fashion != null) {
                                 if (p.check_fashion(idThoiTrangMeo) == null) {
-                                    // BƯỚC 2: Bổ sung thuộc tính và add quà vào danh sách
                                     GiftBox giftFashion = new GiftBox();
                                     giftFashion.id = (short) idThoiTrangMeo;
-                                    giftFashion.type = 11;
+                                    // type 105 = thời trang (client mới load được icon fashion)
+                                    giftFashion.type = 105;
                                     giftFashion.name = it_fashion.name;
                                     giftFashion.icon = it_fashion.idIcon;
                                     giftFashion.num = 1;
                                     giftFashion.color = 0;
 
-                                    list_gift.add(giftFashion); // Thêm dòng này để quà được gửi
+                                    list_gift.add(giftFashion);
                                     notice += "x1 " + it_fashion.name + ", ";
                                 } else {
                                     // Đã sở hữu: tặng 50000 beri thay thế
@@ -3816,9 +3816,14 @@ public class Map implements Runnable {
                         // fragment drops removed
                         p.update_money();
                         if (list_gift.size() > 0) {
-                            Service.send_gift(p, 1, "Hoạt động săn trùm",
-                                    "Tiêu diệt siêu trùm bậc " + mob_target.boss_info.levelBoss,
-                                    list_gift, false);
+                            if (mob_target.mob_template.mob_id == 121) {
+                                Service.send_gift(p, 1, "Quà Săn Mèo", "Tiêu diệt mèo nhận được",
+                                        list_gift, false);
+                            } else {
+                                Service.send_gift(p, 1, "Hoạt động săn trùm",
+                                        "Tiêu diệt siêu trùm bậc " + mob_target.boss_info.levelBoss,
+                                        list_gift, false);
+                            }
                         }
                         Manager.gI().chatKTG(0, notice.substring(0, notice.length() - 1), 5);
                         // boss up level removed
