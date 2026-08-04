@@ -48,78 +48,105 @@ public class Boss {
     public long[] time_atk;
     public List<Top_Dame> TopDame;
     public int index_mob_save;
+    public int hp_max_origin;
 
     public Boss() {
     }
 
+    public void updateHpForLevel() {
+        if (this.hp_max_origin <= 0 && this.mob != null) {
+            this.hp_max_origin = this.mob.hp_max;
+        }
+        if (this.hp_max_origin > 0 && this.mob != null) {
+            long newHpMax = (long) this.hp_max_origin * (100 + (this.levelBoss - 1) * 20) / 100;
+            if (newHpMax > Integer.MAX_VALUE) {
+                newHpMax = Integer.MAX_VALUE;
+            }
+            this.mob.hp_max = (int) newHpMax;
+            this.mob.hp = this.mob.hp_max;
+        }
+    }
+
     public static void create_boss() {
         core.BXH.resetAllTopBoss();
+        BOSS_LIVE = new byte[] { 0, 0, 0, 0, 0, 0 };
+        BOSS_AREA = new byte[] { -1, -1, -1, -1, -1, -1 };
         for (int i0 = 135; i0 < 141; i0++) {
-            List<Boss> list_init = new ArrayList<>();
-            for (int i = 0; i < Boss.ENTRYS.size(); i++) {
-                Boss temp = Boss.ENTRYS.get(i);
-                temp.TopDame.clear();
-                if (temp.mob.isdie && i0 == temp.mob.mob_template.mob_id) {
-                    list_init.add(temp);
-                }
+            spawn_world_boss_by_id(i0);
+        }
+    }
+
+    public static void spawn_world_boss_by_id(int mobId) {
+        if (mobId < 135 || mobId > 140) return;
+        List<Boss> list_init = new ArrayList<>();
+        for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+            Boss temp = Boss.ENTRYS.get(i);
+            temp.TopDame.clear();
+            if (temp.mob.isdie && mobId == temp.mob.mob_template.mob_id) {
+                list_init.add(temp);
             }
-            //
-            if (list_init.size() > 0 && BOSS_LIVE[i0 - 135] == 0) {
-                Boss temp = list_init.get(Util.random(list_init.size()));
-                if (temp.mob.isdie) {
-                    temp.mob.isdie = false;
-                    temp.mob.hp = temp.mob.hp_max;
-                    temp.mob.id_target = -1;
-                    temp.levelBoss = 1;
-                    temp.mob.index = temp.index_mob_save;
-                    try {
-                        BOSS_AREA[i0 - 135] = temp.mob.map.zone_id;
-                        temp.mob.map.can_PK = false;
-                        Manager.gI().chatKTG(0,
-                                ("Siêu trùm đã xuất hiện hãy cùng săn thôi nào. "
-                                        + temp.mob.mob_template.name + " xuất hiện tại "
-                                        + temp.mob.map.template.name + " khu "
-                                        + (temp.mob.map.zone_id + 1)),
-                                5);
-                        System.out.println("boss " + temp.mob.mob_template.name + " map "
-                                + temp.mob.map.template.name + " khu "
-                                + (temp.mob.map.zone_id + 1));
-                        //
-                        List<Player> list_p = new ArrayList<>();
-                        for (int j = 0; j < temp.mob.map.players.size(); j++) {
-                            Player p0 = temp.mob.map.players.get(j);
-                            if (p0.level / 10 != temp.mob.level / 10) {
-                                list_p.add(p0);
-                            }
+        }
+        if (list_init.size() > 0 && BOSS_LIVE[mobId - 135] == 0) {
+            Boss temp = list_init.get(Util.random(list_init.size()));
+            if (temp.mob.isdie) {
+                temp.mob.isdie = false;
+                temp.mob.hp = temp.mob.hp_max;
+                temp.mob.id_target = -1;
+                temp.levelBoss = 1;
+                temp.updateHpForLevel();
+                temp.mob.index = temp.index_mob_save;
+                try {
+                    BOSS_AREA[mobId - 135] = temp.mob.map.zone_id;
+                    temp.mob.map.can_PK = false;
+                    Manager.gI().chatKTG(0,
+                            ("Siêu trùm đã xuất hiện hãy cùng săn thôi nào. "
+                                    + temp.mob.mob_template.name + " xuất hiện tại "
+                                    + temp.mob.map.template.name + " khu "
+                                    + (temp.mob.map.zone_id + 1)),
+                            5);
+                    System.out.println("boss " + temp.mob.mob_template.name + " map "
+                            + temp.mob.map.template.name + " khu "
+                            + (temp.mob.map.zone_id + 1));
+                    //
+                    List<Player> list_p = new ArrayList<>();
+                    for (int j = 0; j < temp.mob.map.players.size(); j++) {
+                        Player p0 = temp.mob.map.players.get(j);
+                        if (p0.level / 10 != temp.mob.level / 10) {
+                            list_p.add(p0);
                         }
-                        Vgo vgo = new Vgo();
-                        vgo.map_go = Map.get_map_by_id(temp.mob.map.template.id);
-                        list_p.forEach(l -> {
-                            try {
-                                vgo.xnew = l.x;
-                                vgo.ynew = l.y;
-                                l.goto_map(vgo);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        });
-                        //
-                        Message m_local = new Message(1);
-                        m_local.writer().writeByte(1);
-                        m_local.writer().writeShort(temp.mob.index);
-                        m_local.writer().writeShort(temp.mob.x);
-                        m_local.writer().writeShort(temp.mob.y);
-                        for (int j = 0; j < temp.mob.map.players.size(); j++) {
-                            Player p0 = temp.mob.map.players.get(j);
+                    }
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = Map.get_map_by_id(temp.mob.map.template.id);
+                    list_p.forEach(l -> {
+                        try {
+                            vgo.xnew = l.x;
+                            vgo.ynew = l.y;
+                            l.goto_map(vgo);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    //
+                    Message m_local = new Message(1);
+                    m_local.writer().writeByte(1);
+                    m_local.writer().writeShort(temp.mob.index);
+                    m_local.writer().writeShort(temp.mob.x);
+                    m_local.writer().writeShort(temp.mob.y);
+                    for (int j = 0; j < temp.mob.map.players.size(); j++) {
+                        Player p0 = temp.mob.map.players.get(j);
+                        if (p0 != null && p0.conn != null) {
                             p0.conn.addmsg(m_local);
                         }
-                        m_local.cleanup();
-                        //
-                    } catch (IOException e) {
                     }
-                    BOSS_LIVE[i0 - 135] = 1;
+                    m_local.cleanup();
+                    //
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+                BOSS_LIVE[mobId - 135] = 1;
             }
+        } else {
+            System.out.println("[WARN] spawn_world_boss_by_id: Không tìm thấy Boss ID " + mobId + " trong danh sách Boss.ENTRYS hoặc Boss đã sống.");
         }
     }
 

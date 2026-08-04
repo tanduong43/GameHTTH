@@ -28,8 +28,8 @@ import template.DataTemplate;
 import template.EffTemplate;
 import template.FriendTemp;
 import template.GiftBox;
-import template.ItemFashionP2;
 import template.ItemFashion;
+import template.ItemFashionP2;
 import template.ItemMap;
 import template.ItemTemplate3;
 import template.ItemTemplate4;
@@ -850,7 +850,8 @@ public class Map implements Runnable {
                             players.get(0).pvp_win++;
                             if (players.get(0).daily_achievements[0] == 0) {
                                 players.get(0).daily_achievements[0] = 1;
-                                core.Service.send_box_ThongBao_OK(players.get(0), "Hoàn thành Thành tích hằng ngày: PVP");
+                                core.Service.send_box_ThongBao_OK(players.get(0),
+                                        "Hoàn thành Thành tích hằng ngày: PVP");
                             }
                             players.get(1).pvp_lose++;
                             //
@@ -870,7 +871,8 @@ public class Map implements Runnable {
                             players.get(1).pvp_win++;
                             if (players.get(1).daily_achievements[0] == 0) {
                                 players.get(1).daily_achievements[0] = 1;
-                                core.Service.send_box_ThongBao_OK(players.get(1), "Hoàn thành Thành tích hằng ngày: PVP");
+                                core.Service.send_box_ThongBao_OK(players.get(1),
+                                        "Hoàn thành Thành tích hằng ngày: PVP");
                             }
                             players.get(0).pvp_lose++;
                             //
@@ -1178,7 +1180,8 @@ public class Map implements Runnable {
             boolean ok_out_map = false;
             if (players.size() > 0) {
                 Player p0 = players.get(0);
-                if (p0.dungeon == null) return; // guard an toàn
+                if (p0.dungeon == null)
+                    return; // guard an toàn
                 int num_mob = 0;
                 for (int i = 0; i < p0.dungeon.mobs.size(); i++) {
                     Mob mob = p0.dungeon.mobs.get(i);
@@ -1189,7 +1192,9 @@ public class Map implements Runnable {
                 if (num_mob == 0 && p0.dungeon.time > System.currentTimeMillis()) {
                     if (this.template.id == 175) {
                         if (this.map_dungeon != null && !this.map_dungeon.checkG.contains(175)) {
-                            System.out.println("[Dungeon Debug] Map 175 cleared! Setting 10s countdown to return to village for " + p0.name);
+                            System.out.println(
+                                    "[Dungeon Debug] Map 175 cleared! Setting 10s countdown to return to village for "
+                                            + p0.name);
                             p0.dungeon.time = System.currentTimeMillis() + 10_000L;
                             Service.send_time_cool_down(p0, p0.dungeon.time, "Về Làng", 2);
                         }
@@ -1201,7 +1206,7 @@ public class Map implements Runnable {
                         List<GiftBox> list_gift = new ArrayList<>();
                         int beri_receiv = Util.random(4_000, 8_000);
                         ItemTemplate4 it_temp4;
-                        
+
                         // Add Beri
                         GiftBox gb_beri = new GiftBox();
                         it_temp4 = ItemTemplate4.get_it_by_id(0);
@@ -1259,7 +1264,8 @@ public class Map implements Runnable {
                 boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
                 if (isSingleDungeon && num_mob > 0 && p0.dungeon.time < System.currentTimeMillis()) {
                     if (this.map_dungeon != null && !this.map_dungeon.checkG.contains(-1)) {
-                        System.out.println("[Dungeon Debug] Player " + p0.name + " failed single dungeon on map " + this.template.id + ". Setting 10s countdown to return to village.");
+                        System.out.println("[Dungeon Debug] Player " + p0.name + " failed single dungeon on map "
+                                + this.template.id + ". Setting 10s countdown to return to village.");
                         this.map_dungeon.checkG.add(-1);
                         p0.dungeon.time = System.currentTimeMillis() + 10_000L;
                         Service.send_time_cool_down(p0, p0.dungeon.time, "Thất Bại", 2);
@@ -1267,7 +1273,8 @@ public class Map implements Runnable {
                     }
                 }
                 if (p0.dungeon.time < System.currentTimeMillis()) {
-                    System.out.println("[Dungeon Debug] Dungeon time expired. Teleporting player " + p0.name + " back to Syrup Village.");
+                    System.out.println("[Dungeon Debug] Dungeon time expired. Teleporting player " + p0.name
+                            + " back to Syrup Village.");
                     ok_out_map = true;
                     p_select = p0;
                 }
@@ -1625,7 +1632,8 @@ public class Map implements Runnable {
                 }
             }
         }
-        // Dungeon mob AI: chỉ chạy với dungeon thực sự (có p.dungeon), không chạy với BossHunt
+        // Dungeon mob AI: chỉ chạy với dungeon thực sự (có p.dungeon), không chạy với
+        // BossHunt
         // map (201-207) vì BossHunt có khối xử lý riêng bên dưới
         if (Map.is_map_dungeon(this.template.id) && this.map_bossHunt == null) {
             List<Mob> list_remove = new ArrayList<>();
@@ -1690,7 +1698,9 @@ public class Map implements Runnable {
                 if (!mob.isdie && !p0.wait_change_map && !p0.isdie
                         && p0.time_can_mob_atk < System.currentTimeMillis()) {
                     int dame;
-                    if (((mob.map.map_bossHunt != null) || (mob.map.map_dungeon != null && mob.map.map_dungeon instanceof activities.HangDong)) && mob.final_dame > 0) {
+                    if (((mob.map.map_bossHunt != null)
+                            || (mob.map.map_dungeon != null && mob.map.map_dungeon instanceof activities.HangDong))
+                            && mob.final_dame > 0) {
                         dame = mob.final_dame;
                     } else {
                         dame = Util.random(mob.level * 2, mob.level * 5);
@@ -1797,7 +1807,7 @@ public class Map implements Runnable {
             }
             p0.isdie = true;
             p0.update_die();
-            
+
             Message m = new Message(7);
             m.writer().writeShort(p.index_map);
             m.writer().writeByte(0);
@@ -1813,11 +1823,11 @@ public class Map implements Runnable {
             activities.BossHunt hunt = this.map_bossHunt;
             p0.isdie = true;
             p0.hp = 0;
-            
+
             boolean allDead = true;
             for (Player member : hunt.members) {
                 Player pOnline = Map.get_player_by_name_allmap(member.name);
-                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
                         && pOnline.bossHunt == hunt && pOnline.map.equals(this)) {
                     if (pOnline.name.equals(p0.name)) {
                         continue;
@@ -1834,17 +1844,18 @@ public class Map implements Runnable {
                     hunt.failTime = System.currentTimeMillis() + 10_000L;
                     for (Player member : hunt.members) {
                         Player pOnline = Map.get_player_by_name_allmap(member.name);
-                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
                                 && pOnline.bossHunt == hunt && pOnline.map.equals(this)) {
                             Service.send_time_cool_down(pOnline, hunt.failTime, "Thất Bại", 2);
-                            Service.send_box_ThongBao_OK(pOnline, "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
+                            Service.send_box_ThongBao_OK(pOnline,
+                                    "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
                         }
                     }
                 }
-                
+
                 p0.isdie = true;
                 p0.update_die();
-                
+
                 Message m = new Message(7);
                 m.writer().writeShort(p.index_map);
                 m.writer().writeByte(0);
@@ -1861,11 +1872,11 @@ public class Map implements Runnable {
             activities.TowerChallenge tc = (activities.TowerChallenge) this.map_dungeon;
             p0.isdie = true;
             p0.hp = 0;
-            
+
             boolean allDead = true;
             for (Player member : tc.partyMembers) {
                 Player pOnline = Map.get_player_by_name_allmap(member.name);
-                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
                         && pOnline.dungeon == tc && pOnline.map.equals(this)) {
                     if (pOnline.name.equals(p0.name)) {
                         continue;
@@ -1882,17 +1893,18 @@ public class Map implements Runnable {
                     tc.stageEndTime = System.currentTimeMillis() + 10_000L;
                     for (Player member : tc.partyMembers) {
                         Player pOnline = Map.get_player_by_name_allmap(member.name);
-                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
                                 && pOnline.dungeon == tc && pOnline.map.equals(this)) {
                             Service.send_time_cool_down(pOnline, tc.stageEndTime, "Thất Bại", 2);
-                            Service.send_box_ThongBao_OK(pOnline, "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
+                            Service.send_box_ThongBao_OK(pOnline,
+                                    "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
                         }
                     }
                 }
-                
+
                 p0.isdie = true;
                 p0.update_die();
-                
+
                 Message m = new Message(7);
                 m.writer().writeShort(p.index_map);
                 m.writer().writeByte(0);
@@ -1904,16 +1916,17 @@ public class Map implements Runnable {
                 return;
             }
         }
-        boolean isNamieDefense = this.map_dungeon != null && this.map_dungeon instanceof activities.NamieTreasureDefense;
+        boolean isNamieDefense = this.map_dungeon != null
+                && this.map_dungeon instanceof activities.NamieTreasureDefense;
         if (isNamieDefense) {
             activities.NamieTreasureDefense nd = (activities.NamieTreasureDefense) this.map_dungeon;
             p0.isdie = true;
             p0.hp = 0;
-            
+
             boolean allDead = true;
             for (Player member : nd.partyMembers) {
                 Player pOnline = Map.get_player_by_name_allmap(member.name);
-                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
                         && pOnline.dungeon == nd && pOnline.map.equals(this)) {
                     if (pOnline.name.equals(p0.name)) {
                         continue;
@@ -1930,17 +1943,18 @@ public class Map implements Runnable {
                     nd.dungeonEndTime = System.currentTimeMillis() + 10_000L;
                     for (Player member : nd.partyMembers) {
                         Player pOnline = Map.get_player_by_name_allmap(member.name);
-                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected 
+                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
                                 && pOnline.dungeon == nd && pOnline.map.equals(this)) {
                             Service.send_time_cool_down(pOnline, nd.dungeonEndTime, "Thất Bại", 2);
-                            Service.send_box_ThongBao_OK(pOnline, "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
+                            Service.send_box_ThongBao_OK(pOnline,
+                                    "Tổ đội đã tử trận! Tự động rời phó bản sau 10 giây.");
                         }
                     }
                 }
-                
+
                 p0.isdie = true;
                 p0.update_die();
-                
+
                 Message m = new Message(7);
                 m.writer().writeShort(p.index_map);
                 m.writer().writeByte(0);
@@ -2904,7 +2918,8 @@ public class Map implements Runnable {
                         p.daily_achievements[5] = 1;
                         try {
                             core.Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Đồ sát 1 người");
-                        } catch(Exception e){}
+                        } catch (Exception e) {
+                        }
                     }
                     // Thợ săn hải tặc (Bounty Hunter)
                     if (p_target.thosan_bounty > 0 && !p.equals(p_target)) {
@@ -3152,7 +3167,8 @@ public class Map implements Runnable {
                     int value1 = 0;
                     int value2 = 0;
                     int percent = 0;
-                    if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id) && mob_target.mob_template.mob_id != 121) {
+                    if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
+                            && mob_target.mob_template.mob_id != 121) {
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
@@ -3457,31 +3473,29 @@ public class Map implements Runnable {
                     // boss
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)) {
                         Boss boss = mob_target.boss_info;
-                        boss.status = Boss.STATUS_DEAD;
                         boss.timeDeath = System.currentTimeMillis();
                         core.BXH.updateTopBoss(boss);
                         if (boss.thegioi == 3) {
                             boss.timeNextRespawn = boss.timeDeath + 1800000; // 30 minutes
-                        } else {
+                        } else if (boss.thegioi == 2) {
                             boss.timeNextRespawn = boss.timeDeath + 300000; // 5 minutes
                         }
 
                         // Debug Log
-                        System.out.println("[DEBUG LOG] Boss Died - ID: " + boss.mob.mob_template.mob_id
+                        System.out.println("[DEBUG LOG] Boss Defeated - ID: " + boss.mob.mob_template.mob_id
                                 + " | Name: " + boss.mob.mob_template.name
-                                + " | Village/Map ID: " + this.template.id
-                                + " | Death Time: " + new java.util.Date(boss.timeDeath)
-                                + " | Next Respawn Time: " + new java.util.Date(boss.timeNextRespawn));
+                                + " | LevelBoss: " + boss.levelBoss
+                                + " | Village/Map ID: " + this.template.id);
 
                         String notice = "Tiêu diệt siêu trùm nhận: ";
-                        this.remove_obj(mob_target.index, 1);
-                        Manager.gI().chatKTG(0,
-                                p.name + " đã tiêu diệt " + mob_target.mob_template.name + " bậc "
-                                        + boss.levelBoss,
-                                5);
-                        //
                         List<GiftBox> list_gift = new ArrayList<>();
+
                         if (boss.thegioi == 1) {
+                            Manager.gI().chatKTG(0,
+                                    p.name + " đã tiêu diệt " + mob_target.mob_template.name + " bậc "
+                                            + boss.levelBoss,
+                                    5);
+
                             // 1. Rương cam cùng lv với boss
                             int level = mob_target.level;
                             if (level < 10)
@@ -3521,7 +3535,51 @@ public class Map implements Runnable {
                             p.update_ngoc(1000);
                             p.update_money();
                             notice += "1000 ruby, ";
+
+                            // Tự động thăng Bậc Boss từ Bậc 1 đến Bậc 10 tại vị trí cũ
+                            if (boss.levelBoss < 10) {
+                                boss.levelBoss++;
+                                boss.updateHpForLevel();
+                                boss.mob.isdie = false;
+                                boss.mob.id_target = -1;
+                                boss.status = Boss.STATUS_ALIVE;
+                                try {
+                                    Manager.gI().chatKTG(0,
+                                            "Siêu trùm " + mob_target.mob_template.name + " đã thăng lên Bậc "
+                                                    + boss.levelBoss + " tại " + this.template.name + " khu "
+                                                    + (this.zone_id + 1) + "!",
+                                            5);
+
+                                    Message m_local = new Message(1);
+                                    m_local.writer().writeByte(1);
+                                    m_local.writer().writeShort(boss.mob.index);
+                                    m_local.writer().writeShort(boss.mob.x);
+                                    m_local.writer().writeShort(boss.mob.y);
+                                    this.send_msg_all_p(m_local, null, true);
+                                    m_local.cleanup();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                boss.status = Boss.STATUS_DEAD;
+                                boss.mob.isdie = true;
+                                this.remove_obj(mob_target.index, 1);
+                                int currentMobId = mob_target.mob_template.mob_id;
+                                if (currentMobId >= 135 && currentMobId <= 140) {
+                                    Boss.BOSS_LIVE[currentMobId - 135] = 0;
+                                }
+                                try {
+                                    Manager.gI().chatKTG(0,
+                                            p.name + " đã tiêu diệt hoàn toàn " + mob_target.mob_template.name
+                                                    + " Bậc 10 (bậc tối đa)!",
+                                            5);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         } else if (boss.thegioi == 2) {
+                            boss.status = Boss.STATUS_DEAD;
+                            this.remove_obj(mob_target.index, 1);
                             // 1. Beri 10000
                             ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
                             if (it_beri != null) {
@@ -3575,18 +3633,49 @@ public class Map implements Runnable {
                                 notice += "x1 " + itemStone.name + ", ";
                             }
                         } else if (boss.mob.mob_template.mob_id == 121) {
-                            ItemFashion it_fashion = ItemFashion.get_item(130);
+                            // Boss Mèo truyền thuyết - kết thúc sự kiện
+                            boss.status = Boss.STATUS_DEAD;
+                            boss.mob.isdie = true;
+                            this.remove_obj(mob_target.index, 1);
+                            Boss.isDualEventActive = false;
+
+                            // BƯỚC 1: Sửa 130 thành ID Thời trang Mèo truyền thuyết của server bạn (VD:
+                            // 121, 131...)
+                            int idThoiTrangMeo = 130;
+                            ItemFashion it_fashion = ItemFashion.get_item(idThoiTrangMeo);
+
                             if (it_fashion != null) {
-                                GiftBox giftFashion = new GiftBox();
-                                giftFashion.id = 130;
-                                giftFashion.type = 11;
-                                giftFashion.name = it_fashion.name;
-                                giftFashion.icon = it_fashion.idIcon;
-                                giftFashion.num = 1;
-                                giftFashion.color = 0;
-                                list_gift.add(giftFashion);
-                                notice += "x1 " + it_fashion.name + ", ";
+                                if (p.check_fashion(idThoiTrangMeo) == null) {
+                                    // BƯỚC 2: Bổ sung thuộc tính và add quà vào danh sách
+                                    GiftBox giftFashion = new GiftBox();
+                                    giftFashion.id = (short) idThoiTrangMeo;
+                                    giftFashion.type = 11;
+                                    giftFashion.name = it_fashion.name;
+                                    giftFashion.icon = it_fashion.idIcon;
+                                    giftFashion.num = 1;
+                                    giftFashion.color = 0;
+
+                                    list_gift.add(giftFashion); // Thêm dòng này để quà được gửi
+                                    notice += "x1 " + it_fashion.name + ", ";
+                                } else {
+                                    // Đã sở hữu: tặng 50000 beri thay thế
+                                    ItemTemplate4 it_beri_alt = ItemTemplate4.get_it_by_id(0);
+                                    if (it_beri_alt != null) {
+                                        GiftBox giftBeriAlt = new GiftBox();
+                                        giftBeriAlt.id = 0;
+                                        giftBeriAlt.type = 4;
+                                        giftBeriAlt.name = it_beri_alt.name;
+                                        giftBeriAlt.icon = it_beri_alt.icon;
+                                        giftBeriAlt.num = 50000;
+                                        giftBeriAlt.color = 0;
+
+                                        list_gift.add(giftBeriAlt);
+                                        notice += "50000 beri (thay thế TT Mèo), ";
+                                    }
+                                }
                             }
+                            // BƯỚC 3: Đóng ngoặc chuẩn ở đây để tách riêng nhánh else cho các Boss Thế Giới
+                            // = 0 khác
                         } else {
                             // 1. Gift 1: Búa siêu cấp (tỉ lệ 5%)
                             if (Util.random(100) < 5) {
@@ -3800,6 +3889,16 @@ public class Map implements Runnable {
         if (eff != null) {
             exp_up[0] *= 2;
         }
+        // pet exp bonus: option 33 + 67 (Tăng xp đánh quái), 100 = +100% = x2 EXP
+        int petExpPercent = p.body.get_xp_more();
+        if (petExpPercent > 0) {
+            exp_up[0] = (exp_up[0] * (100 + petExpPercent)) / 100;
+        }
+        // pet skill exp bonus: option 68 (Tăng Exp Skill đánh quái)
+        int petSkillExpPercent = p.body.get_xp_skill_more();
+        if (petSkillExpPercent > 0) {
+            exp_up[1] = (exp_up[1] * (100 + petSkillExpPercent)) / 100;
+        }
         // update quest
         if (id_mob_die.size() > 0) {
             for (java.util.Map.Entry<Integer, Integer> en : id_mob_die.entrySet()) {
@@ -3921,8 +4020,7 @@ public class Map implements Runnable {
                 else if (cmd.equals("dualboss")) {
                     map.Boss.spawnDualEventBosses();
                     Service.send_box_ThongBao_OK(p, "Đã gọi sự kiện Boss Mèo truyền thuyết!");
-                }
-                else if (cmd.startsWith("setdanhhieu ")) {
+                } else if (cmd.startsWith("setdanhhieu ")) {
                     String[] parts = cmd.split(" ");
                     if (parts.length >= 3) {
                         String targetName = parts[1];
@@ -3930,16 +4028,19 @@ public class Map implements Runnable {
                         Player p0 = map.Map.get_player_by_name_allmap(targetName);
                         if (p0 != null) {
                             p0.idDanhHieu = (short) dhId;
-                            if (p0.listDanhHieu == null) p0.listDanhHieu = new java.util.ArrayList<>();
-                            if (!p0.listDanhHieu.contains(dhId)) p0.listDanhHieu.add(dhId);
-                            Service.send_box_ThongBao_OK(p, "Set danh hieu " + dhId + " cho " + targetName + " thanh cong!");
-                            Service.send_box_ThongBao_OK(p0, "Ban nhan duoc danh hieu moi! Hay chon no trong menu Hanh Trang.");
+                            if (p0.listDanhHieu == null)
+                                p0.listDanhHieu = new java.util.ArrayList<>();
+                            if (!p0.listDanhHieu.contains(dhId))
+                                p0.listDanhHieu.add(dhId);
+                            Service.send_box_ThongBao_OK(p,
+                                    "Set danh hieu " + dhId + " cho " + targetName + " thanh cong!");
+                            Service.send_box_ThongBao_OK(p0,
+                                    "Ban nhan duoc danh hieu moi! Hay chon no trong menu Hanh Trang.");
                         } else {
                             Service.send_box_ThongBao_OK(p, "Khong tim thay player " + targetName);
                         }
                     }
-                }
-                else
+                } else
                     Service.send_box_ThongBao_OK(p, "Lenh admin khong hop le!");
                 return;
             }
@@ -3950,10 +4051,13 @@ public class Map implements Runnable {
         } else if (txt.startsWith("adddh ") || txt.startsWith("/adddh ")) {
             try {
                 int dhId = Integer.parseInt(txt.split(" ")[1]);
-                if (p.listDanhHieu == null) p.listDanhHieu = new java.util.ArrayList<>();
-                if (!p.listDanhHieu.contains(dhId)) p.listDanhHieu.add(dhId);
+                if (p.listDanhHieu == null)
+                    p.listDanhHieu = new java.util.ArrayList<>();
+                if (!p.listDanhHieu.contains(dhId))
+                    p.listDanhHieu.add(dhId);
                 Service.send_box_ThongBao_OK(p, "Ban da nhan duoc danh hieu " + dhId + "!");
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
             return;
         }
         this.send_chat_popup(0, p.index_map, s, false);
@@ -4611,7 +4715,8 @@ public class Map implements Runnable {
             m.writer().writeInt(this.template.data[1].length);
             m.writer().write(this.template.data[1]);
             boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
-            if (this.template.id == 999 || (!isSingleDungeon && (this.map_dungeon != null || Map.is_map_dungeon(this.template.id)))) {
+            if (this.template.id == 999
+                    || (!isSingleDungeon && (this.map_dungeon != null || Map.is_map_dungeon(this.template.id)))) {
                 m.writer().writeByte(0);
             } else {
                 m.writer().writeByte(this.template.vgos.size());

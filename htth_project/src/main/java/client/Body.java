@@ -879,7 +879,9 @@ public class Body {
     }
 
     public int get_xp_more() {
-        return total_param_item(67, true);
+        // option 67: Tăng Exp đánh quái (trang phục, item)
+        // option 33: Tăng xp đánh quái (pet, trang phục đặc biệt)
+        return total_param_item(67, true) + total_param_item(33, true);
     }
 
     public int get_xp_skill_more() {

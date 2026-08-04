@@ -580,8 +580,13 @@ public class Manager {
                 JSONArray js = (JSONArray) JSONValue.parse(site);
                 short temp_x = Short.parseShort(js.get(1).toString());
                 short temp_y = Short.parseShort(js.get(2).toString());
-                Map[] map = Map.get_map_by_id(Short.parseShort(js.get(0).toString()));
+                short mapId = Short.parseShort(js.get(0).toString());
+                Map[] map = Map.get_map_by_id(mapId);
                 js.clear();
+                if (map == null) {
+                    System.err.println("[WARN] load_database: Boss id=" + id + " references unknown map_id=" + mapId + ", skipping.");
+                    continue;
+                }
                 int targetZoneIdx = map.length > 1 ? 1 : 0;
                 for (int i = 0; i < map.length; i++) {
                     if (i != targetZoneIdx) {
@@ -595,6 +600,7 @@ public class Manager {
                     boss_temp.mob.x = temp_x;
                     boss_temp.mob.y = temp_y;
                     boss_temp.mob.hp_max = hp;
+                    boss_temp.hp_max_origin = hp;
                     boss_temp.mob.hp = 0;
                     boss_temp.mob.level = level;
                     boss_temp.mob.isdie = true;

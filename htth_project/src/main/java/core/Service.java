@@ -2001,9 +2001,24 @@ public class Service {
                     break;
                 }
                 case 11: {
-                    template.ItemFashionP2 temp2 = new template.ItemFashionP2();
-                    temp2.id = temp.id;
-                    p.fashion.add(temp2);
+                    // Kiểm tra nếu đã sở hữu thời trang này rồi thì bỏ qua
+                    if (p.check_fashion(temp.id) == null) {
+                        template.ItemFashionP2 temp2 = new template.ItemFashionP2();
+                        temp2.id = temp.id;
+                        p.fashion.add(temp2);
+                        // Tự động kích hoạt thời trang
+                        p.update_fashionP2(temp2);
+                        // Cập nhật giao diện nhân vật cho tất cả player trong map
+                        if (p.map != null) {
+                            for (int pi = 0; pi < p.map.players.size(); pi++) {
+                                Player p0 = p.map.players.get(pi);
+                                Service.charWearing(p, p0, false);
+                            }
+                        }
+                        Service.UpdateInfoMaincharInfo(p);
+                        // Refresh bảng thời trang để hiển thị "Đã sở hữu"
+                        template.ItemFashionP.show_table(p, 105);
+                    }
                     break;
                 }
                 case 4: {

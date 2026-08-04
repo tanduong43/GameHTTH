@@ -44,6 +44,7 @@ import template.DanhHieuTemplate;
 import template.EffTemplate;
 import template.ItemFashion;
 import template.ItemFashionP;
+import template.ItemTemplate3;
 import template.ItemTemplate4;
 import template.ItemTemplate7;
 import template.ItemTemplate8;
@@ -419,6 +420,14 @@ public class MenuController {
           }
           break;
         }
+        case -201: {
+          send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Nói chuyện", "Đến Làng Aru" }, null);
+          break;
+        }
+        case -202: {
+          send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Nói chuyện", "Về Làng Cối Xay Gió" }, null);
+          break;
+        }
         case 120: {
           send_dynamic_menu(p, type, "Bảng Xếp Hạng",
               new String[] { "Cao thủ", "Thách đấu", "Băng hải tặc", "Truy nã", "Hang động", "Top Siêu Trùm" },
@@ -544,6 +553,10 @@ public class MenuController {
         return "Băng hải tặc nhí";
       case -1:
         return "Trưởng làng";
+      case -201:
+        return "Trưởng Làng Aru";
+      case -202:
+        return "Sứ Giả Aru";
       case -146:
         return "Paule";
       case -147:
@@ -908,48 +921,76 @@ public class MenuController {
         }
         case 987: {
           if (index == 0) {
-            Message m = new Message(-19);
-            m.writer().writeByte(118);
-            m.writer().writeUTF("Cửa hàng tích lũy nạp");
-            m.writer().writeByte(11);
-            m.writer().writeShort(ShopTichLuy.ENTRY.size());
-            for (int i = 0; i < ShopTichLuy.ENTRY.size(); i++) {
-              ShopTichLuy temp = ShopTichLuy.ENTRY.get(i);
-              m.writer().writeShort(temp.id);
-              m.writer().writeByte(temp.type);
-              switch (temp.type) {
-                case 4: {
-                  ItemTemplate4 temp4 = ItemTemplate4.get_it_by_id(temp.id);
-                  m.writer().writeUTF(temp4.name);
-                  m.writer().writeShort(temp4.icon);
-                  break;
-                }
-                case 7: {
-                  ItemTemplate7 temp7 = ItemTemplate7.get_it_by_id(temp.id);
-                  m.writer().writeUTF(temp7.name);
-                  m.writer().writeShort(temp7.icon);
-                  break;
-                }
-                case 105: { // thoi trang
-                  ItemFashion temp105 = ItemFashion.get_item(temp.id);
-                  m.writer().writeUTF(temp105.name);
-                  m.writer().writeShort(temp105.idIcon);
-                  break;
-                }
-              }
-              String info = temp.info + "\n" + temp.point + " điểm tích lũy.";
-              if (temp.limit > 0) {
-                int time = 0;
-                if (temp.limit_data.containsKey(p.name)) {
-                  time = temp.limit_data.get(p.name);
-                }
-                info += "\nĐổi tối đa: " + temp.limit + " lần.\nHiện tại đã đổi: " + time + "/"
-                    + temp.limit + ".";
-              }
-              m.writer().writeUTF(info);
+            if (ShopTichLuy.ENTRY == null || ShopTichLuy.ENTRY.isEmpty()) {
+              Service.send_box_ThongBao_OK(p, "Cửa hàng tích lũy hiện chưa có vật phẩm nào!");
+              break;
             }
-            p.conn.addmsg(m);
-            m.cleanup();
+            try {
+              Message m = new Message(-19);
+              m.writer().writeByte(118);
+              m.writer().writeUTF("Cửa hàng tích lũy nạp");
+              m.writer().writeByte(11);
+              m.writer().writeShort(ShopTichLuy.ENTRY.size());
+              for (int i = 0; i < ShopTichLuy.ENTRY.size(); i++) {
+                ShopTichLuy temp = ShopTichLuy.ENTRY.get(i);
+                m.writer().writeShort(temp.id);
+                m.writer().writeByte(temp.type);
+                String itemName = "Vật phẩm " + temp.id;
+                short itemIcon = 0;
+                switch (temp.type) {
+                  case 3: {
+                    ItemTemplate3 temp3 = ItemTemplate3.get_it_by_id(temp.id);
+                    if (temp3 != null) {
+                      itemName = temp3.name;
+                      itemIcon = temp3.icon;
+                    }
+                    break;
+                  }
+                  case 4: {
+                    ItemTemplate4 temp4 = ItemTemplate4.get_it_by_id(temp.id);
+                    if (temp4 != null) {
+                      itemName = temp4.name;
+                      itemIcon = temp4.icon;
+                    }
+                    break;
+                  }
+                  case 7: {
+                    ItemTemplate7 temp7 = ItemTemplate7.get_it_by_id(temp.id);
+                    if (temp7 != null) {
+                      itemName = temp7.name;
+                      itemIcon = temp7.icon;
+                    }
+                    break;
+                  }
+                  case 105: { // thoi trang
+                    ItemFashion temp105 = ItemFashion.get_item(temp.id);
+                    if (temp105 != null) {
+                      itemName = temp105.name;
+                      itemIcon = temp105.idIcon;
+                    }
+                    break;
+                  }
+                }
+                m.writer().writeUTF(itemName);
+                m.writer().writeShort(itemIcon);
+
+                String baseInfo = (temp.info != null && !temp.info.isEmpty()) ? temp.info : "";
+                String info = baseInfo + (baseInfo.isEmpty() ? "" : "\n") + temp.point + " điểm tích lũy.";
+                if (temp.limit > 0) {
+                  int time = 0;
+                  if (temp.limit_data != null && temp.limit_data.containsKey(p.name)) {
+                    time = temp.limit_data.get(p.name);
+                  }
+                  info += "\nĐổi tối đa: " + temp.limit + " lần.\nHiện tại đã đổi: " + time + "/" + temp.limit + ".";
+                }
+                m.writer().writeUTF(info);
+              }
+              p.conn.addmsg(m);
+              m.cleanup();
+            } catch (Exception e) {
+              e.printStackTrace();
+              Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra khi mở Cửa hàng tích lũy!");
+            }
           } else if (index == 1) {
             Service.send_box_ThongBao_OK(p, "Điểm tích lũy hiện tại của bạn là: " + p.getTichLuy() + " điểm.");
           }
@@ -1248,6 +1289,36 @@ public class MenuController {
         case -13:
         case -1: {
           Menu_TruongLang(p, idNPC, index);
+          break;
+        }
+        case -201: {
+          if (index == 0) {
+            Service.send_box_ThongBao_OK(p, "Trưởng Làng Aru: Xin chào! Ta tới Làng Cối Xay Gió giao lưu với các Hải Tặc!");
+          } else if (index == 1) {
+            Vgo vgo = new Vgo();
+            vgo.map_go = map.Map.get_map_by_id(1001);
+            if (vgo.map_go != null) {
+              vgo.xnew = 200;
+              vgo.ynew = 250;
+              p.goto_map(vgo);
+            } else {
+              Service.send_box_ThongBao_OK(p, "Chưa mở Map Làng Aru!");
+            }
+          }
+          break;
+        }
+        case -202: {
+          if (index == 0) {
+            Service.send_box_ThongBao_OK(p, "Sứ Giả Aru: Ta có thể giúp ngươi trở về Làng Cối Xay Gió an toàn!");
+          } else if (index == 1) {
+            Vgo vgo = new Vgo();
+            vgo.map_go = map.Map.get_map_by_id(1);
+            if (vgo.map_go != null) {
+              vgo.xnew = 611;
+              vgo.ynew = 250;
+              p.goto_map(vgo);
+            }
+          }
           break;
         }
         case 120: { // bhx - bảng xếp hạng

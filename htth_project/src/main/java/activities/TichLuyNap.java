@@ -78,7 +78,7 @@ public class TichLuyNap {
 
         // MỐC 2: 100k Extol
         Milestone m1 = new Milestone(100, "Tích luỹ nạp 100k Extol", 100000);
-        m1.addReward("Thời trang Chấn thiên", (byte) 105, (short) 53, (short) 53, 1);
+        m1.addReward("Trang phục Raid Suit Judge", (byte) 105, (short) 116, (short) 116, 1);
         m1.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 25);
         m1.addReward("Đá hải thạch 1", (byte) 4, (short) 221, (short) 221, 100);
         m1.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 30);
@@ -128,7 +128,6 @@ public class TichLuyNap {
         m4.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 100);
         m4.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
         m4.addReward("Trang phục Mihawk", (byte) 105, (short) 118, (short) 118, 1);
-        m4.addReward("Trang phục Raid Suit Judge", (byte) 105, (short) 116, (short) 116, 1);
         m4.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
         m4.addReward("Hổ phách - Ruby thần thoại", (byte) 4, (short) 679, (short) 679, 5);
         m4.addReward("Đá khảm ngẫu nhiên", (byte) 4, (short) 327, (short) 327, 5);
@@ -143,7 +142,6 @@ public class TichLuyNap {
         m5.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 150);
         m5.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 200);
         m5.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 200);
-        m5.addReward("Trang phục Râu đen", (byte) 105, (short) 74, (short) 74, 1);
         m5.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 5);
         m5.addReward("Tiến cấp đơn", (byte) 4, (short) 413, (short) 413, 20);
         m5.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 100);
