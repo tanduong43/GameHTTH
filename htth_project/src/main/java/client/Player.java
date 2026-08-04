@@ -2105,8 +2105,11 @@ public class Player {
     }
 
     public ItemFashionP2 check_fashion(int id) {
+        // Client nhận ID thời trang qua writeByte/sbyte nên ID > 127 bị lệch dấu
+        // (vd 130 -> -126). So khớp cả dạng byte giống ItemFashion.get_item.
         for (int i = 0; i < this.fashion.size(); i++) {
-            if (this.fashion.get(i).id == id) {
+            short fid = this.fashion.get(i).id;
+            if (fid == id || (byte) fid == (byte) id) {
                 return this.fashion.get(i);
             }
         }

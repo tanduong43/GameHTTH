@@ -44,6 +44,11 @@ public class UseItem {
                 break;
             }
             case 105: {
+                // Chuẩn hóa ID: client gửi lại ID đã bị cắt thành sbyte (ID > 127)
+                ItemFashion fashionTemp = ItemFashion.get_item(id);
+                if (fashionTemp != null) {
+                    id = fashionTemp.ID;
+                }
                 ItemFashionP2 temp = p.check_fashion(id);
                 if (temp != null) {
                     if (temp.is_use) {
