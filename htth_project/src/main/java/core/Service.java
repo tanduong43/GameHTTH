@@ -63,7 +63,9 @@ public class Service {
                 break;
             }
         }
-        m.writer().writeShort(id_f); // id fashion
+        // Client shop thời trang đọc ID bằng sbyte (writeByte), nên ID > 127 bị lệch dấu
+        // (vd 136 -> -120). Gửi dạng byte để khớp tô xanh "Đã trang bị".
+        m.writer().writeShort(id_f < 0 ? -1 : (byte) id_f);
         int par_agility = p.body.get_agility(false);
         m.writer().writeShort(par_agility); // giam cooldown skill : % giam hoi chieu
         m.writer().writeShort(p.get_percent_mana_use_skill());

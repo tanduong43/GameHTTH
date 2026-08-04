@@ -80,7 +80,8 @@ public class Upgrade_Skin {
         m.writer().writeByte(validFashions.size()); // size skin
         for (int i = 0; i < validFashions.size(); i++) {
             ItemFashion temp = ItemFashion.get_item(validFashions.get(i).id);
-            m.writer().writeShort(temp.ID);
+            // ID dạng sbyte để khớp Player.idFashion / shop thời trang
+            m.writer().writeShort((byte) temp.ID);
             m.writer().writeUTF("HTTH");
             m.writer().writeUTF("Mãi đỉnh");
             m.writer().writeShort(temp.idIcon);
@@ -151,7 +152,8 @@ public class Upgrade_Skin {
                     m3.writer().writeByte(validFashions.size()); // size skin
                     for (int i = 0; i < validFashions.size(); i++) {
                         ItemFashion temp = ItemFashion.get_item(validFashions.get(i).id);
-                        m3.writer().writeShort(temp.ID);
+                        // ID dạng sbyte để khớp Player.idFashion / shop thời trang
+                        m3.writer().writeShort((byte) temp.ID);
                         m3.writer().writeUTF("");
                         m3.writer().writeUTF("");
                         m3.writer().writeShort(temp.idIcon);
