@@ -66,9 +66,8 @@ public class ServerEventManager {
                         Clan.reset_day();
                         LittleGarden.LIST.clear();
                     }
-                    if (min % 5 == 0 && sec == 0) {
-                        Boss.spawn_event_boss();
-                    }
+                    // Boss làng (thegioi=2) tự hồi độc lập trong Boss.update_bosses() — không random 1 con/5 phút nữa
+
                     if (min == 0 && sec == 0) {
                         Boss.spawnDualEventBosses();
                     }

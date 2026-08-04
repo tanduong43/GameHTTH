@@ -600,10 +600,10 @@ public class Service {
         m.writer().writeShort(Mob.TIME_RESPAWN); // tgian hs
         m.writer().writeByte(temp.mob_template.typemonster); // type mons
         //
-        if (temp.boss_info != null) {
-            m.writer().writeByte(temp.boss_info.levelBoss); // lvthongthao
+        if (temp.boss_info != null && temp.boss_info.thegioi != 2) {
+            m.writer().writeByte(temp.boss_info.levelBoss); // lvthongthao → client hiện "Bậc X"
         } else {
-            m.writer().writeByte(0); // lvthongthao
+            m.writer().writeByte(0); // boss làng / mob thường: không gắn "Bậc" vào tên
         }
         p.conn.addmsg(m);
         m.cleanup();

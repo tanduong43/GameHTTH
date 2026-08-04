@@ -3489,7 +3489,7 @@ public class Map implements Runnable {
                         if (boss.thegioi == 3) {
                             boss.timeNextRespawn = boss.timeDeath + 1800000; // 30 minutes
                         } else if (boss.thegioi == 2) {
-                            boss.timeNextRespawn = boss.timeDeath + 300000; // 5 minutes
+                            boss.timeNextRespawn = boss.timeDeath + Boss.RESPAWN_LANG_MS; // 10 phút, độc lập từng boss
                         }
 
                         // Debug Log
