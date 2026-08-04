@@ -3168,7 +3168,9 @@ public class Map implements Runnable {
                     int value2 = 0;
                     int percent = 0;
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
-                            && mob_target.mob_template.mob_id != 121) {
+                            && mob_target.mob_template.mob_id != 121
+                            && mob_target.boss_info.thegioi != 2) {
+                        // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) chỉ nhận quà khi giết
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
