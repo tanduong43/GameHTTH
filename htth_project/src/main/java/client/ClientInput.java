@@ -235,8 +235,8 @@ public class ClientInput {
                         Service.send_box_ThongBao_OK(p, "Tên băng nên nhiều hơn 3 ký tự");
                         return;
                     }
-                    if (p.get_ngoc() < 2000) {
-                        Service.send_box_ThongBao_OK(p, "Không đủ 2000 ruby");
+                    if (p.get_ngoc() < 10000) {
+                        Service.send_box_ThongBao_OK(p, "Không đủ 10000 ruby");
                         return;
                     }
                     if (Clan.get_clan_by_name(name[0]) != null) {
@@ -280,7 +280,7 @@ public class ClientInput {
                     clan.members.add(mem);
                     //
                     if (Clan.create_new_clan(clan)) {
-                        p.update_ngoc(-2000);
+                        p.update_ngoc(-10000);
                         p.update_money();
                         //
                         p.clan = clan;

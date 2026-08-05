@@ -25,8 +25,6 @@ import activities.Upgrade_Skin;
 import activities.VongQuay;
 import client.Clazz;
 import client.Player;
-import client.Pet;
-import client.MyPet;
 import database.SQL;
 import event.Doriki;
 import event.EventSpecial;
@@ -35,7 +33,6 @@ import event.SucManhVatLy;
 import io.Message;
 import io.SessionManager;
 import map.Map;
-import map.MapCanGoTo;
 import map.Npc;
 import map.Vgo;
 import template.Clan_member;
@@ -129,7 +126,7 @@ public class MenuController {
             }
           } else {
             send_dynamic_menu(p, type, "Băng hải tặc",
-                new String[] { "Đăng ký băng hải tặc (2000 Ruby)", "Hướng dẫn" }, null);
+                new String[] { "Đăng ký băng hải tặc (10.000 Ruby)", "Hướng dẫn" }, null);
           }
           break;
         }
@@ -409,12 +406,14 @@ public class MenuController {
           if (p.conn.status != 1) {
             send_dynamic_menu(
                 p, type, get_name_npc(type), new String[] { "Kích Hoạt Tài Khoản", "Thách đấu",
-                    "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình", /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip,
+                    "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình",
+                    /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip,
                     "Vị trí Boss", "Top Siêu Trùm" },
                 null);
           } else {
             send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Thách đấu", "Cao thủ",
-                "Băng hải tặc", "Truy nã", "Đá hành trình", /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip, "Vị trí Boss",
+                "Băng hải tặc", "Truy nã", "Đá hành trình", /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip,
+                "Vị trí Boss",
                 "Top Siêu Trùm" },
                 null);
           }
@@ -1074,7 +1073,7 @@ public class MenuController {
             Menu_Clan(p, index);
           } else {
             if (index == 0) {
-              Service.input_text(p, 10, "Đăng ký băng (2000 Ruby)", new String[] { "Tên băng" });
+              Service.input_text(p, 10, "Đăng ký băng (10.000 Ruby)", new String[] { "Tên băng" });
             } else if (index == 1) {
               String txt = "Băng Hải Tặc\n"
                   + " Giờ đây bạn có thể tập trung các người bạn của mình lại để tạo thành 1 nhóm cùng nhau luyện tập "
@@ -1293,7 +1292,8 @@ public class MenuController {
         }
         case -201: {
           if (index == 0) {
-            Service.send_box_ThongBao_OK(p, "Trưởng Làng Aru: Xin chào! Ta tới Làng Cối Xay Gió giao lưu với các Hải Tặc!");
+            Service.send_box_ThongBao_OK(p,
+                "Trưởng Làng Aru: Xin chào! Ta tới Làng Cối Xay Gió giao lưu với các Hải Tặc!");
           } else if (index == 1) {
             Vgo vgo = new Vgo();
             vgo.map_go = map.Map.get_map_by_id(1001);
@@ -1366,7 +1366,8 @@ public class MenuController {
             p.tempMobIdBoss = mobId;
             template.MobTemplate mobT = template.MobTemplate.ENTRYS.get(mobId);
             String bossName = (mobT != null) ? mobT.name : ("Boss " + mobId);
-            send_dynamic_menu(p, 971, "Lựa chọn - " + bossName, new String[]{"Xem Bảng Xếp Hạng", "Nhận Thưởng"}, null);
+            send_dynamic_menu(p, 971, "Lựa chọn - " + bossName, new String[] { "Xem Bảng Xếp Hạng", "Nhận Thưởng" },
+                null);
           }
           break;
         }
@@ -1391,22 +1392,24 @@ public class MenuController {
                 Service.send_box_ThongBao_OK(p, "Bạn không nằm trong Top 3 Siêu Trùm này nên không thể nhận thưởng!");
                 break;
               }
-              List<Integer> claimedList = BXH.claimedTopBossRewards.computeIfAbsent(p.tempMobIdBoss, k -> new ArrayList<>());
+              List<Integer> claimedList = BXH.claimedTopBossRewards.computeIfAbsent(p.tempMobIdBoss,
+                  k -> new ArrayList<>());
               if (claimedList.contains(p.id)) {
                 Service.send_box_ThongBao_OK(p, "Bạn đã nhận phần thưởng Top Siêu Trùm này rồi!");
                 break;
               }
-              
+
               int khienAmount = (myRank == 0) ? 3 : (myRank == 1) ? 2 : 1;
               int rubyAmount = (myRank == 0) ? 300 : (myRank == 1) ? 200 : 100;
-              
+
               if (p.item.add_item_bag47(7, 10, khienAmount)) {
-                  p.update_ngoc(rubyAmount);
-                  p.item.update_Inventory(-1, false);
-                  claimedList.add(p.id);
-                  Service.send_box_ThongBao_OK(p, "Bạn đã nhận thành công thưởng Top " + (myRank + 1) + " Siêu Trùm:\n" + khienAmount + " Khiên, " + rubyAmount + " Ruby!");
+                p.update_ngoc(rubyAmount);
+                p.item.update_Inventory(-1, false);
+                claimedList.add(p.id);
+                Service.send_box_ThongBao_OK(p, "Bạn đã nhận thành công thưởng Top " + (myRank + 1) + " Siêu Trùm:\n"
+                    + khienAmount + " Khiên, " + rubyAmount + " Ruby!");
               } else {
-                  Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống để nhận quà!");
+                Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống để nhận quà!");
               }
             }
           }
@@ -2420,21 +2423,22 @@ public class MenuController {
         break;
       }
       /*
-      case 6: {
-        if (p.diemdanh == 0) {
-          p.diemdanh = 1;
-          int ruby = Util.random(1, 200);
-          int beri = Util.random(1, 10000);
-          p.update_ngoc(ruby);
-          p.update_vang(beri);
-          p.update_money();
-          Service.send_box_ThongBao_OK(p, "Siêng nen dữ trời, quà cho bạn nè : " + ruby + " ruby " + beri + " Beri");
-        } else {
-          Service.send_box_ThongBao_OK(p, "Ngáo à mày điểm danh rồi mà!");
-        }
-        break;
-      }
-      */
+       * case 6: {
+       * if (p.diemdanh == 0) {
+       * p.diemdanh = 1;
+       * int ruby = Util.random(1, 200);
+       * int beri = Util.random(1, 10000);
+       * p.update_ngoc(ruby);
+       * p.update_vang(beri);
+       * p.update_money();
+       * Service.send_box_ThongBao_OK(p, "Siêng nen dữ trời, quà cho bạn nè : " + ruby
+       * + " ruby " + beri + " Beri");
+       * } else {
+       * Service.send_box_ThongBao_OK(p, "Ngáo à mày điểm danh rồi mà!");
+       * }
+       * break;
+       * }
+       */
       case 6: { // Điểm danh VIP
         if (p.diemdanhvip == 0) {
           p.diemdanhvip = 1;
