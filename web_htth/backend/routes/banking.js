@@ -228,7 +228,10 @@ router.post('/banking/deposit', jwtRequired, async (req, res) => {
                 code: code,
                 transferContent: transferContent,
                 payosUrl: payosUrl,
-                vietqrUrl: vietqrUrl
+                vietqrUrl: vietqrUrl,
+                status: 0,
+                created_at: new Date().toISOString(),
+                expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString()
             }
         });
     } catch (err) {
@@ -254,7 +257,7 @@ router.get('/banking/active', jwtRequired, async (req, res) => {
         };
 
         const [rows] = await db.execute(
-            'SELECT id, amount, code, request_id, status, description, created_at FROM recharge_history WHERE username = ? AND type = "bank" AND status = 0 ORDER BY id DESC LIMIT 1',
+            'SELECT id, amount, code, request_id, status, description, created_at, TIMESTAMPDIFF(SECOND, created_at, NOW()) as age_seconds FROM recharge_history WHERE username = ? AND type = "bank" AND status = 0 ORDER BY id DESC LIMIT 1',
             [username]
         );
 
@@ -263,11 +266,10 @@ router.get('/banking/active', jwtRequired, async (req, res) => {
         }
 
         const deposit = rows[0];
-        const createdAtTime = new Date(deposit.created_at).getTime();
-        const now = Date.now();
-        const expiryDuration = 15 * 60 * 1000; // 15 minutes
+        const ageSeconds = deposit.age_seconds;
+        const expiryDuration = 15 * 60; // 15 minutes in seconds
 
-        if (now - createdAtTime > expiryDuration) {
+        if (ageSeconds > expiryDuration) {
             // It has expired. Update status to 3 (Failed/Expired) in the database.
             await db.execute(
                 'UPDATE recharge_history SET status = 3, description = "Đơn nạp đã hết thời gian thanh toán (15 phút)" WHERE id = ?',
@@ -305,7 +307,7 @@ router.get('/banking/active', jwtRequired, async (req, res) => {
                 payosUrl: payosUrl,
                 vietqrUrl: vietqrUrl,
                 created_at: deposit.created_at,
-                expires_at: new Date(createdAtTime + expiryDuration).toISOString(),
+                expires_at: new Date(Date.now() + (expiryDuration - ageSeconds) * 1000).toISOString(),
                 status: deposit.status
             }
         });
