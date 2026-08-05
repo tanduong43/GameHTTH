@@ -580,10 +580,69 @@ router.get('/ranking', async (req, res) => {
             clazz: row.clazz !== null ? parseInt(row.clazz, 10) : 0
         }));
 
+        // 3. Fetch top 10 donators (Top Nạp)
+        const napSql = `
+            SELECT user, \`char\`, sumamount 
+            FROM accounts 
+            ORDER BY sumamount DESC 
+            LIMIT 10
+        `;
+        const [napRows] = await db.execute(napSql);
+        const topNap = napRows.map(row => {
+            let charName = null;
+            try {
+                const charArr = JSON.parse(row.char);
+                if (Array.isArray(charArr) && charArr.length > 0) {
+                    charName = charArr[0];
+                }
+            } catch (e) {
+                // Ignore
+            }
+            
+            let displayName = charName;
+            if (!displayName) {
+                const userStr = row.user || 'Unknown';
+                displayName = userStr.length > 3 ? userStr.substring(0, 3) + '***' : userStr + '***';
+            }
+
+            return {
+                name: displayName,
+                sumamount: parseInt(row.sumamount || 0, 10)
+            };
+        });
+
+        // 4. Fetch top 10 clans (Top Clan)
+        const clanSql = `
+            SELECT name, member, xp 
+            FROM clan 
+            ORDER BY xp DESC 
+            LIMIT 10
+        `;
+        const [clanRows] = await db.execute(clanSql);
+        const topClan = clanRows.map(row => {
+            let memberCount = 0;
+            try {
+                const memberArr = JSON.parse(row.member);
+                if (Array.isArray(memberArr)) {
+                    memberCount = memberArr.length;
+                }
+            } catch (e) {
+                // Ignore
+            }
+
+            return {
+                name: row.name || 'Chưa Đặt Tên',
+                xp: parseInt(row.xp || 0, 10),
+                members: memberCount
+            };
+        });
+
         return res.json({
             success: true,
             topLevel,
-            topPvp
+            topPvp,
+            topNap,
+            topClan
         });
     } catch (err) {
         console.error('Fetch ranking error:', err);

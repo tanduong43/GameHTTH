@@ -123,7 +123,7 @@ function LandingPage() {
   const [activeClassIdx, setActiveClassIdx] = useState(0);
 
   // Ranking State
-  const [rankings, setRankings] = useState({ topLevel: [], topPvp: [] });
+  const [rankings, setRankings] = useState({ topLevel: [], topPvp: [], topNap: [], topClan: [] });
   const [loadingRank, setLoadingRank] = useState(true);
   const [errorRank, setErrorRank] = useState(null);
 
@@ -166,7 +166,9 @@ function LandingPage() {
       if (res.data && res.data.success) {
         setRankings({
           topLevel: res.data.topLevel || [],
-          topPvp: res.data.topPvp || []
+          topPvp: res.data.topPvp || [],
+          topNap: res.data.topNap || [],
+          topClan: res.data.topClan || []
         });
       } else {
         setErrorRank(res.data?.message || 'Không thể tải dữ liệu bảng xếp hạng.');
@@ -267,7 +269,7 @@ function LandingPage() {
 
   return (
     <div className="landing-page modern-light">
-      
+
       {/* 1. Banner Slider Section */}
       <section className="banner-slider-container">
         <div className="slider-wrapper">
@@ -287,17 +289,17 @@ function LandingPage() {
                 <h1 className="slide-title">{BANNERS[currentSlide].title}</h1>
                 <p className="slide-desc">{BANNERS[currentSlide].description}</p>
                 <div className="slide-actions">
-                  <button 
-                    onClick={() => handleSlideAction(BANNERS[currentSlide].action)} 
+                  <button
+                    onClick={() => handleSlideAction(BANNERS[currentSlide].action)}
                     className="btn btn-primary btn-slide-action"
                   >
                     {BANNERS[currentSlide].buttonText}
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       const el = document.getElementById('download');
                       if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }} 
+                    }}
                     className="btn btn-secondary-outline btn-slide-action"
                   >
                     TẢI GAME NGAY
@@ -375,7 +377,7 @@ function LandingPage() {
 
             <div className="detail-stats-group">
               <h4 className="stats-header">Chỉ Số Thuộc Tính</h4>
-              
+
               <div className="stat-row">
                 <span className="stat-label">❤️ Sinh Mệnh (HP)</span>
                 <div className="stat-bar-container">
@@ -446,8 +448,8 @@ function LandingPage() {
                   <thead>
                     <tr>
                       <th style={{ width: '60px', textAlign: 'center' }}>Hạng</th>
-                      <th>Nhân vật</th>
-                      <th style={{ width: '120px' }}>Hệ phái</th>
+                      <th style={{ textAlign: 'center' }}>Nhân vật</th>
+                      <th style={{ width: '120px', textAlign: 'center' }}>Hệ phái</th>
                       <th style={{ width: '100px', textAlign: 'right' }}>Cấp độ</th>
                     </tr>
                   </thead>
@@ -460,24 +462,16 @@ function LandingPage() {
                           {idx === 2 && <span className="rank-medal bronze">🥉</span>}
                           {idx > 2 && <span className="rank-number">{idx + 1}</span>}
                         </td>
-                        <td>
-                          <div className="char-info-cell">
-                            <span 
-                              className="char-avatar-mini" 
-                              style={{ backgroundColor: `${getClassColor(player.clazz)}15`, color: getClassColor(player.clazz) }}
-                            >
-                              {getClassIcon(player.clazz)}
-                            </span>
-                            <span className="char-name">{player.name}</span>
-                          </div>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className="char-name" style={{ marginLeft: 0 }}>{player.name}</span>
                         </td>
-                        <td>
+                        <td style={{ textAlign: 'center' }}>
                           <span style={{ color: getClassColor(player.clazz), fontWeight: 600, fontSize: '13px' }}>
                             {getClassName(player.clazz)}
                           </span>
                         </td>
                         <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                          <span className="level-text">{player.level} Cấp</span>
+                          <span className="level-text">{player.level}</span>
                         </td>
                       </tr>
                     ))}
@@ -492,7 +486,7 @@ function LandingPage() {
             <div className="board-header pvp-arena-board">
               <span className="board-icon">⚔️</span>
               <div>
-                <h3>TOP ĐẤU TRƯỜNG</h3>
+                <h3>TOP PVP</h3>
                 <span>Anh hùng PK xuất sắc nhất</span>
               </div>
             </div>
@@ -512,8 +506,8 @@ function LandingPage() {
                   <thead>
                     <tr>
                       <th style={{ width: '60px', textAlign: 'center' }}>Hạng</th>
-                      <th>Nhân vật</th>
-                      <th style={{ width: '120px' }}>Hệ phái</th>
+                      <th style={{ textAlign: 'center' }}>Nhân vật</th>
+                      <th style={{ width: '120px', textAlign: 'center' }}>Hệ phái</th>
                       <th style={{ width: '100px', textAlign: 'right' }}>Điểm PVP</th>
                     </tr>
                   </thead>
@@ -526,24 +520,128 @@ function LandingPage() {
                           {idx === 2 && <span className="rank-medal bronze">🥉</span>}
                           {idx > 2 && <span className="rank-number">{idx + 1}</span>}
                         </td>
-                        <td>
-                          <div className="char-info-cell">
-                            <span 
-                              className="char-avatar-mini" 
-                              style={{ backgroundColor: `${getClassColor(player.clazz)}15`, color: getClassColor(player.clazz) }}
-                            >
-                              {getClassIcon(player.clazz)}
-                            </span>
-                            <span className="char-name">{player.name}</span>
-                          </div>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className="char-name" style={{ marginLeft: 0 }}>{player.name}</span>
                         </td>
-                        <td>
+                        <td style={{ textAlign: 'center' }}>
                           <span style={{ color: getClassColor(player.clazz), fontWeight: 600, fontSize: '13px' }}>
                             {getClassName(player.clazz)}
                           </span>
                         </td>
                         <td style={{ textAlign: 'right', fontWeight: 'bold' }} className="pvp-points-text">
                           {player.pvppoint.toLocaleString()} Điểm
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="leaderboards-grid" style={{ marginTop: '2rem' }}>
+          {/* Column 3: Top Nạp */}
+          <div className="leaderboard-card card-panel">
+            <div className="board-header pvp-arena-board">
+              <span className="board-icon">💎</span>
+              <div>
+                <h3>TOP NẠP</h3>
+                <span>Các nhà tài trợ vĩ đại nhất</span>
+              </div>
+            </div>
+
+            {loadingRank ? (
+              <div className="board-loading">
+                <span className="spinner-icon">🔄</span> Đang tải bảng xếp hạng...
+              </div>
+            ) : errorRank ? (
+              <div className="board-error-container">
+                <p className="board-error-msg">⚠️ {errorRank}</p>
+                <button className="btn-retry" onClick={fetchRankings}>Thử Lại</button>
+              </div>
+            ) : (
+              <div className="board-table-container">
+                <table className="board-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px', textAlign: 'center' }}>Hạng</th>
+                      <th style={{ textAlign: 'center' }}>Nhân vật</th>
+                      <th style={{ textAlign: 'right' }}>Tổng Nạp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankings.topNap.map((player, idx) => (
+                      <tr key={idx} className="board-row">
+                        <td className="rank-col">
+                          {idx === 0 && <span className="rank-medal gold">🥇</span>}
+                          {idx === 1 && <span className="rank-medal silver">🥈</span>}
+                          {idx === 2 && <span className="rank-medal bronze">🥉</span>}
+                          {idx > 2 && <span className="rank-number">{idx + 1}</span>}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className="char-name" style={{ marginLeft: 0 }}>{player.name}</span>
+                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold' }} className="pvp-points-text">
+                          {player.sumamount.toLocaleString()} VNĐ
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Column 4: Top Clan */}
+          <div className="leaderboard-card card-panel">
+            <div className="board-header level-board">
+              <span className="board-icon">🛡️</span>
+              <div>
+                <h3>TOP CLAN</h3>
+                <span>Băng hải tặc hùng mạnh nhất</span>
+              </div>
+            </div>
+
+            {loadingRank ? (
+              <div className="board-loading">
+                <span className="spinner-icon">🔄</span> Đang tải bảng xếp hạng...
+              </div>
+            ) : errorRank ? (
+              <div className="board-error-container">
+                <p className="board-error-msg">⚠️ {errorRank}</p>
+                <button className="btn-retry" onClick={fetchRankings}>Thử Lại</button>
+              </div>
+            ) : (
+              <div className="board-table-container">
+                <table className="board-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px', textAlign: 'center' }}>Hạng</th>
+                      <th style={{ textAlign: 'center' }}>Tên Băng Nhóm</th>
+                      <th style={{ width: '80px', textAlign: 'center' }}>Thành viên</th>
+                      <th style={{ width: '100px', textAlign: 'right' }}>Kinh Nghiệm</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankings.topClan.map((clan, idx) => (
+                      <tr key={idx} className="board-row">
+                        <td className="rank-col">
+                          {idx === 0 && <span className="rank-medal gold">🥇</span>}
+                          {idx === 1 && <span className="rank-medal silver">🥈</span>}
+                          {idx === 2 && <span className="rank-medal bronze">🥉</span>}
+                          {idx > 2 && <span className="rank-number">{idx + 1}</span>}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className="char-name" style={{ marginLeft: 0 }}>{clan.name}</span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span style={{ fontWeight: 600, fontSize: '13px' }}>
+                            {clan.members}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                          <span className="level-text">{clan.xp.toLocaleString()} XP</span>
                         </td>
                       </tr>
                     ))}
@@ -575,8 +673,8 @@ function LandingPage() {
                   <span className={`news-tag tag-${tag.toLowerCase().replace(' ', '-')}`}>{tag}</span>
                   <span className="news-date">📅 {dateStr}</span>
                 </div>
-                <h3 
-                  className="news-card-title" 
+                <h3
+                  className="news-card-title"
                   onClick={() => navigate(targetUrl)}
                   style={{ cursor: 'pointer' }}
                 >
@@ -597,7 +695,7 @@ function LandingPage() {
             <h2 className="download-title">TẢI GAME MIỄN PHÍ</h2>
             <p className="download-subtitle">Game hỗ trợ đa nền tảng. Luyện cấp cực mượt trên PC, linh hoạt PK mọi lúc mọi nơi trên điện thoại di động Android và iOS!</p>
           </div>
-          
+
           <div className="download-buttons-grid">
             <button className="dl-button android-dl">
               <span className="dl-btn-icon">📱</span>
