@@ -396,6 +396,13 @@ public class Trade {
                     m.cleanup();
                     //
                     p.is_lock_trade = true;
+                    if (p.money_trade > 0 || !p.list_item_trade3.isEmpty()
+                            || !p.list_item_trade47.isEmpty()) {
+                        p.fee_trade = 100_000;
+                    } else {
+                        p.fee_trade = 0;
+                    }
+                    /*
                     if (p.money_trade > 0) {
                         p.fee_trade += (10 + (p.money_trade / 2_000));
                     }
@@ -421,10 +428,11 @@ public class Trade {
                         fee_item4 /= 5;
                     }
                     p.fee_trade += fee_item4;
+                    */
                     //
                     Service.send_box_ThongBao_OK(p.trade_target,
                             p.name + " đã khóa giao dịch, mức phí giao dịch hiện tại là "
-                                    + p.trade_target.fee_trade + " Ruby");
+                                    + p.fee_trade + " Ruby");
                     Service.send_box_ThongBao_OK(p,
                             p.name + " đã khóa giao dịch, mức phí giao dịch hiện tại là "
                                     + p.fee_trade + " Ruby");
@@ -436,6 +444,16 @@ public class Trade {
                         && p.trade_target.is_lock_trade && !p.is_accept_trade) {
                     p.is_accept_trade = true;
                     if (p.trade_target.is_accept_trade) {
+                        if (p.get_ngoc() < p.fee_trade) {
+                            end_trade_by_disconnect(p.trade_target, p, 2, p.name);
+                            end_trade_by_disconnect(p, p.trade_target, 2, p.name);
+                            return;
+                        }
+                        if (p.trade_target.get_ngoc() < p.trade_target.fee_trade) {
+                            end_trade_by_disconnect(p.trade_target, p, 2, p.trade_target.name);
+                            end_trade_by_disconnect(p, p.trade_target, 2, p.trade_target.name);
+                            return;
+                        }
                         // fee
                         p.trade_target.update_ngoc(-p.trade_target.fee_trade);
                         p.update_ngoc(-p.fee_trade);
