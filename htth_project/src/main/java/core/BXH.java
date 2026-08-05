@@ -381,7 +381,7 @@ public class BXH {
             page = 0;
         }
         Message m = new Message(-30);
-        m.writer().writeByte(11);
+        m.writer().writeByte(4);
         template.MobTemplate mobT = template.MobTemplate.ENTRYS.get(mobId);
         String bossName = (mobT != null) ? mobT.name : ("Boss " + mobId);
         m.writer().writeUTF("Top " + bossName);

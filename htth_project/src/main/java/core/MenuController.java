@@ -1376,6 +1376,14 @@ public class MenuController {
             if (index == 0) {
               BXH.sendTopBoss(p, p.tempMobIdBoss, 0);
             } else if (index == 1) {
+              java.util.Calendar cal = java.util.Calendar.getInstance();
+              int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
+              int minute = cal.get(java.util.Calendar.MINUTE);
+              if ((hour == 18) || (hour == 19 && minute == 0) || (hour == 22) || (hour == 23 && minute == 0)) {
+                Service.send_box_ThongBao_OK(p, "Chưa đến thời gian nhận quà!\nPhần thưởng chỉ có thể nhận sau khi sự kiện kết thúc (từ 19h01 hoặc 23h01).");
+                break;
+              }
+
               List<template.InfoMemList> topPlayers = BXH.TOP_SIEU_TRUM_MAP.get(p.tempMobIdBoss);
               if (topPlayers == null || topPlayers.isEmpty()) {
                 Service.send_box_ThongBao_OK(p, "Chưa có dữ liệu Top cho Siêu Trùm này!");
