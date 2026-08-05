@@ -3206,13 +3206,13 @@ public class Map implements Runnable {
                         value2 = (mob_target.hp - 1) / percent;
                     }
                     if (isBossMapFixed && percent > 0 && value1 > value2) {
-                        // Boss thegioi=4: mỗi mốc 10% máu, tất cả người trong map nhận 1-20 ruby
+                        // Boss thegioi=4: mỗi mốc 10% máu, tất cả người trong map nhận 100-200 ruby
                         for (int j = value1 - 1; j >= value2; j--) {
                             int hpPercent = (10 - j) * 10;
                             for (int pi = 0; pi < players.size(); pi++) {
                                 Player p0 = players.get(pi);
                                 if (p0.conn != null && !p0.isdie) {
-                                    int ruby = Util.random(1, 21);
+                                    int ruby = Util.random(100, 201);
                                     p0.update_ngoc(ruby);
                                     p0.update_money();
                                     Service.send_box_ThongBao_OK(p0,

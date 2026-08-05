@@ -19,10 +19,14 @@ public class VongQuayPet {
     }
 
     private static java.util.List<Pet> getRollablePets() {
+        Pet.checkDefaultPets();
         java.util.List<Pet> list = new java.util.ArrayList<>();
         for (Pet pTemplate : Pet.ENTRY) {
             String name = pTemplate.name.toLowerCase();
-            if (!name.contains("thần hoả") && !name.contains("thần hỏa") && !name.contains("zeus")) {
+            if (!name.contains("thần hoả") && !name.contains("thần hỏa")
+                    && !name.contains("zeus") && !name.contains("trâu")
+                    && !name.contains("trau") && !name.contains("hồn ma")
+                    && !name.contains("hon ma")) {
                 list.add(pTemplate);
             }
         }
@@ -40,8 +44,8 @@ public class VongQuayPet {
                 java.util.List<Pet> rollablePets = getRollablePets();
                 for (int i = 0; i < numSlots; i++) {
                     if (!rollablePets.isEmpty()) {
-                        m.writer().writeByte(110); // Thử type 110
-                        m.writer().writeShort(rollablePets.get(Util.random(rollablePets.size())).icon);
+                        m.writer().writeByte(110);
+                        m.writer().writeShort(rollablePets.get(i % rollablePets.size()).icon);
                     } else {
                         m.writer().writeByte(110); // Dự phòng type 4
                         m.writer().writeShort(110); // Dùng icon dự phòng nếu chưa có Pet

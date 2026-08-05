@@ -1302,7 +1302,7 @@ public class MenuController {
               vgo.ynew = 250;
               p.goto_map(vgo);
             } else {
-              Service.send_box_ThongBao_OK(p, "Chưa mở Map Làng Aru!");
+              Service.send_box_ThongBao_OK(p, "Chưa mở Map Đảo Ruby!");
             }
           }
           break;
@@ -1380,7 +1380,8 @@ public class MenuController {
               int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
               int minute = cal.get(java.util.Calendar.MINUTE);
               if ((hour == 18) || (hour == 19 && minute == 0) || (hour == 22) || (hour == 23 && minute == 0)) {
-                Service.send_box_ThongBao_OK(p, "Chưa đến thời gian nhận quà!\nPhần thưởng chỉ có thể nhận sau khi sự kiện kết thúc (từ 19h01 hoặc 23h01).");
+                Service.send_box_ThongBao_OK(p,
+                    "Chưa đến thời gian nhận quà!\nPhần thưởng chỉ có thể nhận sau khi sự kiện kết thúc (từ 19h01 hoặc 23h01).");
                 break;
               }
 

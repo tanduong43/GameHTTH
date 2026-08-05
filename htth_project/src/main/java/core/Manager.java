@@ -834,6 +834,7 @@ public class Manager {
                 Pet.ENTRY.add(tempPet);
             }
             rs.close();
+            Pet.checkDefaultPets();
             System.out.println("load pet ok");
             query = "SELECT * FROM `market`;";
             rs = ps.executeQuery(query);

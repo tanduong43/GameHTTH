@@ -178,4 +178,28 @@ public class Pet {
         }
         return null;
     }
+
+    public static void checkDefaultPets() {
+        if (getTemplate(204) == null) {
+            Pet p204 = new Pet();
+            p204.id = 204;
+            p204.name = "Pet Trâu";
+            p204.frame = 619;
+            p204.type = 2;
+            p204.icon = 982;
+            p204.op.add(new Option(68, 100));
+            ENTRY.add(p204);
+        }
+        if (getTemplate(206) == null) {
+            Pet p206 = new Pet();
+            p206.id = 206;
+            p206.name = "Pet Hồn ma";
+            p206.frame = 618;
+            p206.type = 3;
+            p206.icon = 66;
+            p206.op.add(new Option(5, 10));
+            p206.op.add(new Option(4, 5));
+            ENTRY.add(p206);
+        }
+    }
 }
