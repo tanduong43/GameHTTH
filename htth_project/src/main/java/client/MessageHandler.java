@@ -503,6 +503,16 @@ public class MessageHandler {
                 }
                 break;
             }
+            case -96: {
+                if (conn.p != null) {
+                    byte type = m.reader().readByte();
+                    byte id = m.reader().readByte();
+                    if (type == 1) {
+                        activities.TichLuyTieu.claimReward(conn.p, id);
+                    }
+                }
+                break;
+            }
             case -89: { // Thợ săn hải tặc (Truy nã)
                 if (conn.p != null) {
                     byte type = m.reader().readByte();

@@ -7,6 +7,7 @@ import java.util.List;
 import client.Player;
 import core.Service;
 import core.Util;
+import io.Message;
 import template.ItemFashionP2;
 import template.ItemTemplate3;
 import template.ItemTemplate4;
@@ -63,15 +64,15 @@ public class TichLuyTieu {
         MILESTONES.clear();
 
         // MOC 1: 500 Ruby
-        Milestone m1 = new Milestone(500, "Tich tieu 500 Ruby", 500);
-        m1.addReward("Item 4", (byte) 7, (short) 4, (short) 6504, 100);
-        m1.addReward("Item 5", (byte) 7, (short) 5, (short) 6505, 50);
-        m1.addReward("Item 6", (byte) 7, (short) 6, (short) 6506, 10);
-        m1.addReward("Item 9", (byte) 7, (short) 9, (short) 2108, 100);
+        Milestone m1 = new Milestone(500, "Tích tiêu 500 Ruby", 500);
+        m1.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 100);
+        m1.addReward("Bột bạc", (byte) 7, (short) 5, (short) 6505, 50);
+        m1.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 10);
+        m1.addReward("Đá ác quỷ", (byte) 7, (short) 9, (short) 2108, 100);
         MILESTONES.add(m1);
 
         // MOC 2: 1000 Ruby
-        Milestone m2 = new Milestone(1000, "Tich tieu 1000 Ruby", 1000);
+        Milestone m2 = new Milestone(1000, "Tích tiêu 1000 Ruby", 1000);
         m2.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 200);
         m2.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
         m2.addReward("Đá ác quỷ", (byte) 7, (short) 9, (short) 2108, 200);
@@ -80,7 +81,7 @@ public class TichLuyTieu {
         MILESTONES.add(m2);
 
         // MOC 3: 3000 Ruby
-        Milestone m3 = new Milestone(3000, "Tich tieu 3000 Ruby", 3000);
+        Milestone m3 = new Milestone(3000, "Tích tiêu 3000 Ruby", 3000);
         m3.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 200);
         m3.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
         m3.addReward("Đá ác quỷ", (byte) 7, (short) 9, (short) 2108, 200);
@@ -91,7 +92,7 @@ public class TichLuyTieu {
         MILESTONES.add(m3);
 
         // MOC 4: 5000 Ruby
-        Milestone m4 = new Milestone(5000, "Tich tieu 5000 Ruby", 5000);
+        Milestone m4 = new Milestone(5000, "Tích tiêu 5000 Ruby", 5000);
         m4.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 200);
         m4.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
         m4.addReward("Đá ác quỷ", (byte) 7, (short) 9, (short) 2108, 200);
@@ -102,7 +103,7 @@ public class TichLuyTieu {
         MILESTONES.add(m4);
 
         // MOC 5: 10000 Ruby
-        Milestone m5 = new Milestone(10000, "Tich tieu 10000 Ruby", 10000);
+        Milestone m5 = new Milestone(10000, "Tích tiêu 10000 Ruby", 10000);
         m5.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 200);
         m5.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
         m5.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
@@ -113,7 +114,8 @@ public class TichLuyTieu {
         MILESTONES.add(m5);
 
         // MOC 6: 30000 Ruby
-        Milestone m6 = new Milestone(30000, "Tich tieu 30000 Ruby", 30000);
+        Milestone m6 = new Milestone(30000, "Tích tiêu 30000 Ruby", 30000);
+        m6.addReward("Chuột thần tài", (byte) 105, (short) 77, (short) 74, 1);
         m6.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
         m6.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
         m6.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
@@ -124,7 +126,7 @@ public class TichLuyTieu {
         MILESTONES.add(m6);
 
         // MOC 7: 50000 Ruby
-        Milestone m7 = new Milestone(50000, "Tich tieu 50000 Ruby", 50000);
+        Milestone m7 = new Milestone(50000, "Tích tiêu 50000 Ruby", 50000);
         m7.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
         m7.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
         m7.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
@@ -137,7 +139,8 @@ public class TichLuyTieu {
         MILESTONES.add(m7);
 
         // MOC 8: 100000 Ruby
-        Milestone m8 = new Milestone(100000, "Tich tieu 100000 Ruby", 100000);
+        Milestone m8 = new Milestone(100000, "Tích tiêu 100000 Ruby", 100000);
+        m8.addReward("Trang phục Raid Suit iChiji", (byte) 105, (short) 112, (short) 108, 1);
         m8.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
         m8.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
         m8.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
@@ -151,6 +154,36 @@ public class TichLuyTieu {
         m8.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 1);
         m8.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
         MILESTONES.add(m8);
+
+        // MOC 9: 500000 Ruby
+        Milestone m9 = new Milestone(500000, "Tích tiêu 500000 Ruby", 500000);
+        m9.addReward("Trang phục Raid Suit Judge", (byte) 105, (short) 116, (short) 116, 1);
+        m9.addReward("Bột vàng", (byte) 7, (short) 4, (short) 6504, 500);
+        m9.addReward("Mai rùa", (byte) 7, (short) 6, (short) 6506, 20);
+        m9.addReward("Búa sơ cấp", (byte) 4, (short) 339, (short) 339, 5);
+        m9.addReward("Khiên", (byte) 7, (short) 10, (short) 10, 3);
+        m9.addReward("XP skill", (byte) 4, (short) 159, (short) 159, 20);
+        m9.addReward("Túi beri", (byte) 4, (short) 349, (short) 349, 10);
+        m9.addReward("Rương cam cùng hệ lv100", (byte) 4, (short) 131, (short) 131, 50);
+        m9.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 10);
+        m9.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 1);
+        m9.addReward("Đá khảm ngẫu nhiên", (byte) 4, (short) 327, (short) 327, 20);
+        m9.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 1);
+        m9.addReward("Đá Hổ phách 6", (byte) 4, (short) 367, (short) 367, 10);
+        MILESTONES.add(m9);
+    }
+
+    public static short getIcon(byte type, int id) {
+        if (type == 4) {
+            ItemTemplate4 it = ItemTemplate4.get_it_by_id(id);
+            if (it != null)
+                return it.icon;
+        } else if (type == 105) {
+            template.ItemFashion it = template.ItemFashion.get_item(id);
+            if (it != null)
+                return it.idIcon;
+        }
+        return (short) id;
     }
 
     private static String getRewardName(RewardItem reward) {
@@ -179,7 +212,6 @@ public class TichLuyTieu {
     }
 
     private static short getRewardIcon(RewardItem reward) {
-        // Sử dụng reward.icon đã được cấu hình trực tiếp từ milestones
         return reward.icon;
     }
 
@@ -208,19 +240,36 @@ public class TichLuyTieu {
     }
 
     public static void sendUI(Player p) throws IOException {
-        String[] menu = new String[MILESTONES.size()];
+        Message m = new Message(-96);
+        m.writer().writeByte(0); // type = 0: Open UI Panel
+        m.writer().writeInt(p.tichtieu_ruby); // Tong ruby da tieu
+        m.writer().writeByte(MILESTONES.size()); // so moc
+
         for (int i = 0; i < MILESTONES.size(); i++) {
             Milestone milestone = MILESTONES.get(i);
-            String statusStr = "(Chua dat)";
+
+            byte status = 0;
             if (p.claimedTichtieuRuby.contains(milestone.id)) {
-                statusStr = "(Da nhan)";
+                status = 2;
             } else if (p.tichtieu_ruby >= milestone.rubyReq) {
-                statusStr = "(Du dieu kien)";
+                status = 1;
             }
-            menu[i] = "Moc " + Util.number_format(milestone.rubyReq) + " Ruby\n" + statusStr;
+
+            m.writer().writeByte(i); // index/ID moc dang byte
+            m.writer().writeInt(milestone.rubyReq); // rubyReq (so ruby yeu cau)
+            m.writer().writeByte(status); // status (trang thai nhan: 0=chua, 1=du, 2=da nhan)
+            m.writer().writeShort(milestone.rewards.size()); // so phan thuong
+
+            for (RewardItem reward : milestone.rewards) {
+                m.writer().writeUTF(getRewardName(reward)); // ten item
+                m.writer().writeByte(reward.type); // loai item
+                m.writer().writeShort(getIcon(reward.type, reward.id)); // icon
+                m.writer().writeShort(reward.quantity); // so luong
+                m.writer().writeByte(isRubyReward(reward) ? 5 : 0);
+            }
         }
-        core.MenuController.send_dynamic_menu(p, 983,
-                "Tich Tieu Ruby\n(Da tieu: " + Util.number_format(p.tichtieu_ruby) + " Ruby)", menu, null);
+        p.conn.addmsg(m);
+        m.cleanup();
     }
 
     public static Milestone getMilestoneByIndex(int index) {
@@ -246,16 +295,11 @@ public class TichLuyTieu {
             return;
 
         String[] menuItems = new String[milestone.rewards.size()];
-        // short[] icons = new short[milestone.rewards.size()];
-
         for (int i = 0; i < milestone.rewards.size(); i++) {
             RewardItem reward = milestone.rewards.get(i);
             menuItems[i] = getRewardName(reward) + " x" + Util.number_format(reward.quantity);
-            // icons[i] = getRewardIcon(reward); // Lấy trực tiếp icon chuẩn từ ItemTemplate
         }
 
-        // Hiện danh sách quà dưới dạng menu để có kèm icon (dùng mảng sẽ ra flag byte 5
-        // = item)
         core.MenuController.send_dynamic_menu(p, 9086,
                 "Phần thưởng mốc " + Util.number_format(milestone.rubyReq) + " Ruby", menuItems, null);
     }
@@ -266,37 +310,36 @@ public class TichLuyTieu {
             return;
 
         if (p.tichtieu_ruby < milestone.rubyReq) {
-            Service.send_box_ThongBao_OK(p, "Ban chua du dieu kien de nhan phan thuong nay!");
+            Service.send_box_ThongBao_OK(p, "Bạn chưa đủ điều kiện để nhận phần thưởng này!");
             return;
         }
 
         if (p.claimedTichtieuRuby.contains(milestone.id)) {
-            Service.send_box_ThongBao_OK(p, "Ban da nhan qua moc nay roi!");
+            Service.send_box_ThongBao_OK(p, "Bạn đã nhận quà mốc này rồi!");
             return;
         }
 
         int requiredSpace = countRequiredBagSlots(p, milestone);
         if (requiredSpace == Integer.MAX_VALUE) {
-            Service.send_box_ThongBao_OK(p, "So luong vat pham trong hanh trang vuot qua gioi han!");
+            Service.send_box_ThongBao_OK(p, "Số lượng vật phẩm trong hành trang vượt quá giới hạn!");
             return;
         }
         if (requiredSpace > p.item.able_bag()) {
-            Service.send_box_ThongBao_OK(p, "Hanh trang cua ban khong du cho trong! Can it nhat "
-                    + requiredSpace + " o trong.");
+            Service.send_box_ThongBao_OK(p, "Hành trang của bạn không đủ chỗ trống! Cần ít nhất "
+                    + requiredSpace + " ô trống.");
             return;
         }
 
         for (RewardItem reward : milestone.rewards) {
             if (isRubyReward(reward)) {
-                // Cong ngoc the ruong, khong tinh vao tich tieu (update_ngoc duong)
                 p.update_ngoc(reward.quantity);
             } else if (reward.type == 105) {
                 ItemFashionP2 temp2 = new ItemFashionP2();
                 temp2.id = reward.id;
                 p.fashion.add(temp2);
             } else if (!p.item.add_item_bag47(reward.type, reward.id, reward.quantity)) {
-                Service.send_box_ThongBao_OK(p, "Khong the them "
-                        + getRewardName(reward) + " vao hanh trang!");
+                Service.send_box_ThongBao_OK(p, "Không thể thêm "
+                        + getRewardName(reward) + " vào hành trang!");
                 return;
             }
         }
@@ -307,9 +350,17 @@ public class TichLuyTieu {
         p.item.update_Inventory(-1, false);
 
         Service.send_box_ThongBao_OK(p,
-                "Nhan qua moc " + Util.number_format(milestone.rubyReq) + " Ruby thanh cong!");
+                "Nhận quà mốc " + Util.number_format(milestone.rubyReq) + " Ruby thành công!");
 
-        // Refresh toan bo UI Menu Text
+        // Gửi type=2 để client gọi setCmdDaNhanIndex(index) cập nhật trạng thái đã nhận
+        // trong UI
+        Message m = new Message(-96);
+        m.writer().writeByte(2);
+        m.writer().writeByte(index);
+        p.conn.addmsg(m);
+        m.cleanup();
+
+        // Refresh toàn bộ UI
         sendUI(p);
     }
 }
