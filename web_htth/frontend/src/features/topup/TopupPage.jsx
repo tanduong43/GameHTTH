@@ -623,8 +623,18 @@ function TopupPage() {
                     </button>
 
                     <div className="topup-tip topup-tip--success" style={{ marginTop: '20px' }}>
-                      <p style={{ margin: 0, fontSize: '12px', color: '#52c41a' }}>
-                        💡 <strong>Tỷ lệ nạp:</strong> 1.000 VNĐ = 1 Coin. (Ví dụ: 10.000đ = 10 Coin)
+                      <p style={{ margin: 0, fontSize: '12px', color: '#52c41a', lineHeight: '1.5' }}>
+                        💡 <strong>Tỷ lệ:</strong> 1.000 VNĐ = 1 Coin = 100 Ruby = 1.000 Extol.
+                        <br />
+                        {transferAmount && !isNaN(parseInt(transferAmount, 10)) && parseInt(transferAmount, 10) >= 10000 ? (
+                          <span style={{ display: 'inline-block', marginTop: '4px', padding: '4px 8px', background: 'rgba(82,196,26,0.1)', borderRadius: '4px' }}>
+                            👉 <strong>Thực nhận:</strong> {(parseInt(transferAmount, 10) / 1000).toLocaleString()} Coin = {((parseInt(transferAmount, 10) / 1000) * 100).toLocaleString()} Ruby = {((parseInt(transferAmount, 10) / 1000) * 1000).toLocaleString()} Extol
+                          </span>
+                        ) : (
+                          <span style={{ display: 'inline-block', marginTop: '4px' }}>
+                            (Ví dụ: 10.000đ = 10 Coin = 1.000 Ruby = 10.000 Extol)
+                          </span>
+                        )}
                       </p>
                       <p style={{ margin: '5px 0 0 0', fontSize: '11px', color: '#666', lineHeight: '1.4' }}>
                         Ngay sau khi bạn chuyển khoản đúng số tiền và nội dung, Coin sẽ được cộng vào ví của bạn trong vòng vài giây mà không cần tải lại trang.

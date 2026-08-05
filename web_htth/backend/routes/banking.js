@@ -214,23 +214,12 @@ router.post('/banking/deposit', jwtRequired, async (req, res) => {
         // Flow 2: Sinh link VietQR động
         const vietqrUrl = `https://img.vietqr.io/image/${bankConfig.bankId}-${bankConfig.accountNo}-compact2.png?amount=${depositAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(bankConfig.accountName)}`;
 
-        // Auto-send notification to admin if no user confirmation within 1 minute
-        setTimeout(async () => {
-            try {
-                // Check if still pending (status = 0) and not yet notified
-                const [checkRows] = await db.execute(
-                    'SELECT status FROM recharge_history WHERE code = ? LIMIT 1',
-                    [code]
-                );
-                if (checkRows.length > 0 && checkRows[0].status === 0 && !notifiedCodes.has(code)) {
-                    notifiedCodes.add(code);
-                    sendAdminDepositNotification(username, depositAmount, transferContent, code);
-                    console.log(`[Timer] Auto-sent admin notification for code ${code} after 1 minute.`);
-                }
-            } catch (timerErr) {
-                console.error(`[Timer Error] Error in auto-notification timer for code ${code}:`, timerErr.message);
-            }
-        }, 60000);
+        // Auto-send notification to admin immediately upon creation
+        if (!notifiedCodes.has(code)) {
+            notifiedCodes.add(code);
+            sendAdminDepositNotification(username, depositAmount, transferContent, code);
+            console.log(`[Auto-Notify] Sent admin notification immediately for code ${code}.`);
+        }
 
         return res.json({
             success: true,
