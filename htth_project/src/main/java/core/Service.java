@@ -2322,13 +2322,14 @@ public class Service {
         Message m = new Message(37);
         m.writer().writeByte(0);
         m.writer().writeUTF("Thành tích hằng ngày");
-        m.writer().writeByte(6);
+        m.writer().writeByte(8);
         String[] names = { "Tham gia PVP", "Đi Liên Tầng", "Bảo vệ Namie", "Phó bản Hang Động", "Lập nhóm 5 người",
-                "Đồ sát 1 người" };
+                "Đồ sát 1 người", "Vận buôn", "Cướp hàng" };
         String[] infos = { "Tham gia trận đấu PVP", "Vượt 1 tầng Liên Tầng", "Bảo vệ thành công Namie",
-                "Đi phó bản Hang Động", "Lập một nhóm gồm 5 người", "Tiêu diệt 1 người chơi khác" };
-        short[] icons = { 132, 161, 128, 127, 162, 140 };
-        for (int i = 0; i < 6; i++) {
+                "Đi phó bản Hang Động", "Lập một nhóm gồm 5 người", "Tiêu diệt 1 người chơi khác",
+                "Hoàn thành 1 chuyến vận buôn", "Cướp thành công 1 chuyến hàng" };
+        short[] icons = { 132, 161, 128, 127, 162, 140, 107, 110 };
+        for (int i = 0; i < 8; i++) {
             m.writer().writeUTF(names[i]);
             m.writer().writeUTF(infos[i]);
             m.writer().writeInt(p.daily_achievements[i]); // valueCur

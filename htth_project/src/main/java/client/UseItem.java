@@ -163,7 +163,7 @@ public class UseItem {
                     }
 
                     // Tặng quà pháo hoa ngẫu nhiên từ danh sách quy định
-                    int rewardType = Util.random(8);
+                    int rewardType = Util.random(10);
                     int catReward = 4;
                     short idReward = 86;
                     int quantReward = 1;
@@ -227,6 +227,21 @@ public class UseItem {
                             rewardName = ItemTemplate4.get_item_name(idReward);
                             break;
                         }
+                        case 8: { // Hổ phách cấp 1, 2, 3 (cat 4, id 362, 363, 364)
+                            short[] hoPhach = new short[] { 362, 363, 364 };
+                            catReward = 4;
+                            idReward = hoPhach[Util.random(hoPhach.length)];
+                            quantReward = 1;
+                            rewardName = ItemTemplate4.get_item_name(idReward);
+                            break;
+                        }
+                        case 9: { // Kinh nghiệm X2 (cat 4, id 80)
+                            catReward = 4;
+                            idReward = 80;
+                            quantReward = 1;
+                            rewardName = ItemTemplate4.get_item_name(idReward);
+                            break;
+                        }
                     }
 
                     if (p.item.add_item_bag47(catReward, idReward, quantReward)) {
@@ -259,7 +274,7 @@ public class UseItem {
                         for (int i = 0; i < p.map.players.size(); i++) {
                             Player p0 = p.map.players.get(i);
                             if (p0 != null && p0 != p) {
-                                int rewardType0 = Util.random(8);
+                                int rewardType0 = Util.random(10);
                                 int catReward0 = 4;
                                 short idReward0 = 86;
                                 int quantReward0 = 1;
@@ -310,6 +325,19 @@ public class UseItem {
                                         short[] gemLvl3 = new short[] { 44, 50, 56, 62, 68, 74 };
                                         catReward0 = 4;
                                         idReward0 = gemLvl3[Util.random(gemLvl3.length)];
+                                        quantReward0 = 1;
+                                        break;
+                                    }
+                                    case 8: {
+                                        short[] hoPhach = new short[] { 362, 363, 364 };
+                                        catReward0 = 4;
+                                        idReward0 = hoPhach[Util.random(hoPhach.length)];
+                                        quantReward0 = 1;
+                                        break;
+                                    }
+                                    case 9: {
+                                        catReward0 = 4;
+                                        idReward0 = 80;
                                         quantReward0 = 1;
                                         break;
                                     }

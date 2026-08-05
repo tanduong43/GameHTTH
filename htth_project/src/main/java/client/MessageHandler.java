@@ -105,11 +105,11 @@ public class MessageHandler {
                     byte type = m.reader().readByte();
                     byte index = m.reader().readByte();
                     if (type == 1) { // Request reward
-                        if (index >= 0 && index < 6) {
+                        if (index >= 0 && index < 8) {
                             if (conn.p.daily_achievements[index] == 1 && !conn.p.daily_achievements_claimed[index]) {
                                 conn.p.daily_achievements_claimed[index] = true;
                                 conn.p.update_ngoc(100);
-                                conn.p.update_vang(100000);
+                                conn.p.update_vang(1000000);
                                 conn.p.update_money();
                                 
                                 io.Message m2 = new io.Message(37);
@@ -119,7 +119,7 @@ public class MessageHandler {
                                 conn.addmsg(m2);
                                 m2.cleanup();
                                 
-                                core.Service.send_box_ThongBao_OK(conn.p, "Nhận thưởng thành công 100 Ruby và 100,000 Beri!");
+                                core.Service.send_box_ThongBao_OK(conn.p, "Nhận thưởng thành công 100 Ruby và 1,000,000 Beri!");
                             } else if (conn.p.daily_achievements_claimed[index]) {
                                 core.Service.send_box_ThongBao_OK(conn.p, "Bạn đã nhận thưởng rồi!");
                             } else {

@@ -2475,6 +2475,13 @@ public class Map implements Runnable {
                 p.ship_pet.time_start = spet.time_start;
                 p.ship_pet.mainBaoVe = "";
                 Ship_pet.add(p.ship_pet);
+                if (p.daily_achievements[7] == 0) {
+                    p.daily_achievements[7] = 1;
+                    try {
+                        core.Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Cướp hàng");
+                    } catch (Exception e) {
+                    }
+                }
                 //
                 Message m_local = new Message(1);
                 m_local.writer().writeByte(0);

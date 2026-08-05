@@ -121,8 +121,8 @@ public class Player {
     public byte time_tower;
     public byte time_single_dungeon;
     public byte time_hangdong;
-    public int[] daily_achievements = new int[6];
-    public boolean[] daily_achievements_claimed = new boolean[6];
+    public int[] daily_achievements = new int[8];
+    public boolean[] daily_achievements_claimed = new boolean[8];
     public byte time_can_hs;
     public List<FriendTemp> enemy_list;
     public TableTickOption tableTickOption;
@@ -2197,8 +2197,8 @@ public class Player {
             time_tower = 0;
             time_single_dungeon = 0;
             time_hangdong = 0;
-            daily_achievements = new int[6];
-            daily_achievements_claimed = new boolean[6];
+            daily_achievements = new int[8];
+            daily_achievements_claimed = new boolean[8];
         }
     }
 

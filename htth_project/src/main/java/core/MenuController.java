@@ -1713,6 +1713,13 @@ public class MenuController {
             if (p.typePirate == 0) {
               p.time_ship++;
             }
+            if (p.daily_achievements[6] == 0) {
+              p.daily_achievements[6] = 1;
+              try {
+                Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Vận buôn");
+              } catch (Exception e) {
+              }
+            }
             p.name_ThoSanHaiTac = null;
             p.update_money();
           } else {
