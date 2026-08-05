@@ -2112,6 +2112,12 @@ public class Map implements Runnable {
         return null;
     }
 
+    public static boolean isRubyIslandOpen() {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
+        return (hour == 7) || (hour >= 17 && hour < 19);
+    }
+
     public static Player get_player_by_name_allmap(String name) {
         try {
             for (int i = 0; i < Map.ENTRYS.size(); i++) {

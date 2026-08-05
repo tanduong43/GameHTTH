@@ -158,6 +158,32 @@ public class ServerEventManager {
                         }
                         Manager.gI().TaiXiu().upTime();
                         Boss.update_bosses();
+
+                        if (!Map.isRubyIslandOpen()) {
+                            Map[] rubyMaps = Map.get_map_by_id(1001);
+                            if (rubyMaps != null) {
+                                for (Map mRuby : rubyMaps) {
+                                    for (int i = mRuby.players.size() - 1; i >= 0; i--) {
+                                        Player p0 = mRuby.players.get(i);
+                                        if (p0 != null && p0.conn != null) {
+                                            Vgo vgo = new Vgo();
+                                            vgo.map_go = Map.get_map_by_id(1);
+                                            if (vgo.map_go != null) {
+                                                vgo.xnew = 611;
+                                                vgo.ynew = 250;
+                                                try {
+                                                    p0.goto_map(vgo);
+                                                    Service.send_box_ThongBao_OK(p0,
+                                                            "Đảo Ruby đã hết thời gian mở cửa! Hẹn gặp lại bạn từ 7h-8h sáng và 17h-19h tối.");
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     if (sec % 5 == 0) { // fine clan little garden
                         if ((Util.is_DayofWeek(2) || Util.is_DayofWeek(4) || Util.is_DayofWeek(6))

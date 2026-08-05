@@ -1295,6 +1295,10 @@ public class MenuController {
             Service.send_box_ThongBao_OK(p,
                 "Trưởng Làng Aru: Xin chào! Ta tới Làng Cối Xay Gió giao lưu với các Hải Tặc!");
           } else if (index == 1) {
+            if (!map.Map.isRubyIslandOpen()) {
+              Service.send_box_ThongBao_OK(p, "Đảo Ruby chỉ mở cửa từ 7h-8h sáng và 17h-19h tối hàng ngày!");
+              break;
+            }
             Vgo vgo = new Vgo();
             vgo.map_go = map.Map.get_map_by_id(1001);
             if (vgo.map_go != null) {
