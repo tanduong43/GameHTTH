@@ -174,7 +174,7 @@ public class TichLuyNap {
         m7.addReward("Kỹ năng đơn", (byte) 4, (short) 414, (short) 414, 15);
         m7.addReward("Búa siêu cấp", (byte) 4, (short) 323, (short) 323, 40);
         m7.addReward("Đá hải thạch 6", (byte) 4, (short) 226, (short) 226, 800);
-        m7.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 40);
+        m7.addReward("Đá khảm siêu cấp S", (byte) 4, (short) 325, (short) 325, 10);
         m7.addReward("Ruby - Saphia thần thoại", (byte) 4, (short) 660, (short) 660, 10);
         m7.addReward("Hổ phách - Saphia thần thoại", (byte) 4, (short) 681, (short) 681, 10);
         m7.addReward("Búa đục dial", (byte) 4, (short) 457, (short) 457, 100);

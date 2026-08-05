@@ -1,17 +1,31 @@
 package client;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
+
+import activities.Fight;
 import core.Manager;
 import core.Service;
 import core.Util;
 import database.SQL;
 import io.Message;
 import map.Map;
-import template.*;
-import activities.Fight;
+import template.Clan_member;
+import template.GiftBox;
+import template.GiftTemplate;
+import template.ItemTemplate3;
+import template.ItemTemplate4;
+import template.ItemTemplate7;
+import template.Item_wear;
+import template.Level;
+
 /**
  *
  * @author Truongbk
@@ -63,7 +77,8 @@ public class ClientInput {
                     newName = newName.toLowerCase();
                     Pattern pat = Pattern.compile("^[a-zA-Z0-9]{6,10}$");
                     if (!pat.matcher(newName).matches()) {
-                        Service.send_box_ThongBao_OK(p, "Tên không hợp lệ, nhập lại đi (6-10 ký tự, không ký tự đặc biệt)!");
+                        Service.send_box_ThongBao_OK(p,
+                                "Tên không hợp lệ, nhập lại đi (6-10 ký tự, không ký tự đặc biệt)!");
                         return;
                     }
                     if (p.item.total_item_bag_by_id(4, 271) <= 0) {
@@ -123,12 +138,13 @@ public class ClientInput {
 
                         // Remove item
                         p.item.remove_item47(4, 271, 1);
-                        
+
                         // Save player data first
                         client.Player.flush(p, true);
-                        
+
                         // Notify success
-                        Service.send_box_ThongBao_OK(p, "Đổi tên thành công! Hệ thống sẽ tự động đăng xuất sau 3 giây để tải lại dữ liệu mới.");
+                        Service.send_box_ThongBao_OK(p,
+                                "Đổi tên thành công! Hệ thống sẽ tự động đăng xuất sau 3 giây để tải lại dữ liệu mới.");
 
                         // Disconnect session after 3 seconds to force relog and reload cleanly
                         io.Session ss = p.conn;
@@ -145,10 +161,14 @@ public class ClientInput {
                         Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra khi đổi tên, vui lòng thử lại sau!");
                     } finally {
                         try {
-                            if (rs != null) rs.close();
-                            if (psCheck != null) psCheck.close();
-                            if (psUpdate != null) psUpdate.close();
-                            if (conn != null) conn.close();
+                            if (rs != null)
+                                rs.close();
+                            if (psCheck != null)
+                                psCheck.close();
+                            if (psUpdate != null)
+                                psUpdate.close();
+                            if (conn != null)
+                                conn.close();
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
@@ -187,9 +207,12 @@ public class ClientInput {
                     p0.last_bounty_announce_time = System.currentTimeMillis();
                     client.Player.flush(p0, false); // Save to database immediately
                     core.BXH.updateThoSanBounty(); // Refresh ranking
-                    Service.send_box_ThongBao_OK(p, "Đã đăng truy nã " + Util.number_format(value) + " beri cho " + p0.name);
-                    Service.send_box_ThongBao_OK(p0, p.name + " đã treo thưởng " + Util.number_format(value) + " beri cho cái đầu của bạn. Lệnh có hiệu lực sau 10 phút.");
-                    Manager.gI().chatKTG(0, "Thông báo: " + p.name + " đã treo thưởng " + Util.number_format(value) + " beri cho cái đầu của " + p0.name, 5);
+                    Service.send_box_ThongBao_OK(p,
+                            "Đã đăng truy nã " + Util.number_format(value) + " beri cho " + p0.name);
+                    Service.send_box_ThongBao_OK(p0, p.name + " đã treo thưởng " + Util.number_format(value)
+                            + " beri cho cái đầu của bạn. Lệnh có hiệu lực sau 10 phút.");
+                    Manager.gI().chatKTG(0, "Thông báo: " + p.name + " đã treo thưởng " + Util.number_format(value)
+                            + " beri cho cái đầu của " + p0.name, 5);
                 }
                 break;
             }
@@ -248,7 +271,7 @@ public class ClientInput {
                     Clan clan = new Clan();
                     clan.id = (short) Clan.get_clan_id();
                     clan.name = name[0];
-                    clan.opAttri = new short[] {0, 0, 0, 0, 0};
+                    clan.opAttri = new short[] { 0, 0, 0, 0, 0 };
                     clan.pointAttri = 2;
                     clan.maxAttri = 20;
                     clan.icon = 0;
@@ -327,21 +350,21 @@ public class ClientInput {
                     int type = p.data_yesno[0];
                     int id_ = p.data_yesno[1];
                     int value_ = p.data_yesno[2];
-                    p.data_yesno = new int[] {type, id_, value_, value};
+                    p.data_yesno = new int[] { type, id_, value_, value };
                     if (type == 4) {
                         Service.send_box_yesno(p, 22, "Thông báo",
                                 ("Bạn có muốn bán " + value_ + " "
                                         + ItemTemplate4.get_item_name(id_) + " với giá "
                                         + Util.number_format(value)
                                         + " Extol? Phí để đăng bán là 2.000 Extol"),
-                                new String[] {"2.000 Extol", "Không"}, new byte[] {-1, -1});
+                                new String[] { "2.000 Extol", "Không" }, new byte[] { -1, -1 });
                     } else if (type == 7) {
                         Service.send_box_yesno(p, 22, "Thông báo",
                                 ("Bạn có muốn bán " + value_ + " "
                                         + ItemTemplate7.get_item_name(id_) + " với giá "
                                         + Util.number_format(value)
                                         + " Extol? Phí để đăng bán là 2.000 Extol"),
-                                new String[] {"2.000 Extol", "Không"}, new byte[] {-1, -1});
+                                new String[] { "2.000 Extol", "Không" }, new byte[] { -1, -1 });
                     }
                 }
                 break;
@@ -359,12 +382,12 @@ public class ClientInput {
                         return;
                     }
                     int price = p.data_yesno[0];
-                    p.data_yesno = new int[] {price, value};
+                    p.data_yesno = new int[] { price, value };
                     Service.send_box_yesno(p, 18, "Thông báo",
                             ("Bạn có muốn bán " + price + " triệu beri với giá "
                                     + Util.number_format(value)
                                     + " Extol? Phí để đăng bán là 2.000 Extol"),
-                            new String[] {"2.000 Extol", "Không"}, new byte[] {-1, -1});
+                            new String[] { "2.000 Extol", "Không" }, new byte[] { -1, -1 });
                 }
                 break;
             }
@@ -382,12 +405,12 @@ public class ClientInput {
                     }
                     Item_wear it_select = p.item.bag3[p.data_yesno[0]];
                     if (it_select != null) {
-                        p.data_yesno = new int[] {it_select.index, value};
+                        p.data_yesno = new int[] { it_select.index, value };
                         Service.send_box_yesno(p, 17, "Thông báo",
                                 ("Bạn có muốn bán vật phẩm " + it_select.template.name + " với giá "
                                         + Util.number_format(value)
                                         + " Extol? Phí để đăng bán là 2.000 Extol"),
-                                new String[] {"2.000 Extol", "Không"}, new byte[] {-1, -1});
+                                new String[] { "2.000 Extol", "Không" }, new byte[] { -1, -1 });
                     }
                 }
                 break;
@@ -409,11 +432,11 @@ public class ClientInput {
                         return;
                     }
                     int ruby = (int) ((long) value / 1000);
-                    p.data_yesno = new int[] {ruby};
+                    p.data_yesno = new int[] { ruby };
                     Service.send_box_yesno(p, 9, "Thông báo",
                             "Bạn có thật sự muốn đổi " + Util.number_format(value) + " Extol để"
                                     + " đổi lấy " + Util.number_format(ruby) + " Ruby không?",
-                            new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                            new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                     break;
                 }
                 break;
@@ -424,8 +447,8 @@ public class ClientInput {
                         Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
                         return;
                     }
-                    long value = Long.parseLong(name[0])*5 ;
-                    if (value <= 0 ) {
+                    long value = Long.parseLong(name[0]) * 5;
+                    if (value <= 0) {
                         Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
                         return;
                     }
@@ -435,11 +458,11 @@ public class ClientInput {
                         return;
                     }
                     int ruby = (int) ((long) value / 5);
-                    p.data_yesno = new int[] {ruby};
+                    p.data_yesno = new int[] { ruby };
                     Service.send_box_yesno(p, 60, "Thông báo",
                             "Bạn có thật sự muốn đổi " + Util.number_format(value) + " Coin để"
                                     + " đổi lấy " + Util.number_format(ruby) + " Ruby không?",
-                            new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                            new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                     break;
                 }
                 break;
@@ -450,8 +473,8 @@ public class ClientInput {
                         Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
                         return;
                     }
-                    long value = Long.parseLong(name[0])/5000;
-                    if (value <= 0 ) {
+                    long value = Long.parseLong(name[0]) / 5000;
+                    if (value <= 0) {
                         Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
                         return;
                     }
@@ -461,11 +484,11 @@ public class ClientInput {
                         return;
                     }
                     int beri = (int) ((long) value * 5000);
-                    p.data_yesno = new int[] {beri};
+                    p.data_yesno = new int[] { beri };
                     Service.send_box_yesno(p, 61, "Thông báo",
                             "Bạn có thật sự muốn đổi " + Util.number_format(value) + " Coin để"
                                     + " đổi lấy " + Util.number_format(beri) + " Beri không?",
-                            new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                            new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                     break;
                 }
                 break;
@@ -487,12 +510,12 @@ public class ClientInput {
                         return;
                     }
                     int coin = (int) value;
-                    p.data_yesno = new int[] {coin};
+                    p.data_yesno = new int[] { coin };
                     Service.send_box_yesno(p, 62, "Thông báo",
                             "Bạn có thật sự muốn đổi " + Util.number_format(coin) + " Coin để"
                                     + " đổi lấy " + Util.number_format(coin * 100L) + " Ruby và "
                                     + Util.number_format(coin * 1000L) + " Extol không?",
-                            new String[] {"Đồng ý", "Hủy"}, new byte[] {2, 1});
+                            new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                     break;
                 }
                 break;
@@ -551,7 +574,7 @@ public class ClientInput {
             }
             case 1: {
                 if (name.length == 1) {
-                    
+
                     Pattern pattern = Pattern.compile("^[a-zA-Z0-9]{1,20}$");
                     if (!pattern.matcher(name[0]).matches()) {
                         Service.send_box_ThongBao_OK(p, "Ký tự không hợp lệ");
@@ -685,42 +708,134 @@ public class ClientInput {
                                         }
                                         break;
                                     }
+                                    case 11: {
+                                        template.ItemFashionP2 checkF = p.check_fashion(temp.id[i]);
+                                        if (checkF == null) {
+                                            template.ItemFashionP2 temp2 = new template.ItemFashionP2();
+                                            temp2.id = temp.id[i];
+                                            temp2.is_use = false;
+                                            p.fashion.add(temp2);
+                                        }
+                                        break;
+                                    }
                                 }
                             }
                             p.item.update_Inventory(-1, false);
                         }
-                        String notice = "Bạn nhận được:" + "\nBeri : " + temp.beri + "\nRuby : "
-                                + temp.ruby + "\nItem :\n";
+                        List<GiftBox> listGift = new ArrayList<>();
+                        if (temp.beri > 0) {
+                            ItemTemplate4 itemBeri = ItemTemplate4.get_it_by_id(0);
+                            if (itemBeri != null) {
+                                GiftBox gb = new GiftBox();
+                                gb.id = 0;
+                                gb.type = 4;
+                                gb.name = itemBeri.name;
+                                gb.icon = itemBeri.icon;
+                                gb.num = temp.beri;
+                                gb.color = 0;
+                                listGift.add(gb);
+                            }
+                        }
+                        if (temp.ruby > 0) {
+                            ItemTemplate4 itemRuby = ItemTemplate4.get_it_by_id(1);
+                            if (itemRuby != null) {
+                                GiftBox gb = new GiftBox();
+                                gb.id = 1;
+                                gb.type = 4;
+                                gb.name = "Ruby";
+                                gb.icon = itemRuby.icon;
+                                gb.num = temp.ruby;
+                                gb.color = 0;
+                                listGift.add(gb);
+                            }
+                        }
                         if (temp.type != null) {
                             for (int i = 0; i < temp.type.length; i++) {
+                                GiftBox gb = new GiftBox();
+                                gb.num = temp.quant[i];
+                                gb.type = (byte) temp.type[i];
+                                gb.color = 0;
                                 switch (temp.type[i]) {
                                     case 3: {
-                                        notice += ItemTemplate3.get_it_by_id(temp.id[i]).name + " x"
-                                                + temp.quant[i] + "\n";
+                                        ItemTemplate3 it = ItemTemplate3.get_it_by_id(temp.id[i]);
+                                        if (it != null) {
+                                            gb.id = it.id;
+                                            gb.name = it.name;
+                                            gb.icon = it.icon;
+                                            gb.color = it.color;
+                                            listGift.add(gb);
+                                        }
                                         break;
                                     }
                                     case 4: {
-                                        notice += ItemTemplate4.get_it_by_id(temp.id[i]).name + " x"
-                                                + temp.quant[i] + "\n";
+                                        ItemTemplate4 it = ItemTemplate4.get_it_by_id(temp.id[i]);
+                                        if (it != null) {
+                                            gb.id = it.id;
+                                            gb.name = it.name;
+                                            gb.icon = it.icon;
+                                            listGift.add(gb);
+                                        }
                                         break;
                                     }
                                     case 7: {
-                                        notice += ItemTemplate7.get_it_by_id(temp.id[i]).name + " x"
-                                                + temp.quant[i] + "\n";
+                                        ItemTemplate7 it = ItemTemplate7.get_it_by_id(temp.id[i]);
+                                        if (it != null) {
+                                            gb.id = it.id;
+                                            gb.name = it.name;
+                                            gb.icon = it.icon;
+                                            listGift.add(gb);
+                                        }
                                         break;
                                     }
                                     case 8: {
                                         Pet petTemplate = Pet.getTemplate(temp.id[i]);
                                         if (petTemplate != null) {
-                                            notice += "Pet: " + petTemplate.name + " x" + temp.quant[i] + "\n";
+                                            gb.id = petTemplate.id;
+                                            gb.name = petTemplate.name;
+                                            gb.icon = petTemplate.icon;
+                                            gb.type = 110; // Trong bộ sưu tập Pet đang dùng byte 110, thử dùng 110 xem
+                                                           // Client có load icon Pet không
+                                            listGift.add(gb);
+                                        }
+                                        break;
+                                    }
+                                    case 11: {
+                                        template.ItemFashion it = template.ItemFashion.get_item(temp.id[i]);
+                                        if (it != null) {
+                                            gb.id = it.ID;
+                                            gb.name = it.name;
+                                            gb.icon = it.idIcon;
+                                            gb.type = 105; // Type 105 để client load icon thời trang
+                                            listGift.add(gb);
                                         }
                                         break;
                                     }
                                 }
                             }
                         }
-                        notice += "\n" + temp.notice;
-                        Service.send_box_ThongBao_OK(p, notice);
+
+                        String notice = "Bạn nhận được các vật phẩm từ giftcode";
+                        if (temp.notice != null && !temp.notice.isEmpty()) {
+                            notice += "\n" + temp.notice;
+                        }
+
+                        // Gửi thẳng message hiển thị quà để tránh bị Service.send_gift add thêm item
+                        // lần 2
+                        Message m = new Message(-34);
+                        m.writer().writeByte(1); // type = 1
+                        m.writer().writeUTF("Quà giftcode");
+                        m.writer().writeUTF(notice);
+                        m.writer().writeByte(listGift.size());
+                        for (int i = 0; i < listGift.size(); i++) {
+                            GiftBox gb = listGift.get(i);
+                            m.writer().writeByte(gb.type);
+                            m.writer().writeUTF(gb.name);
+                            m.writer().writeShort(gb.icon);
+                            m.writer().writeInt(gb.num);
+                            m.writer().writeByte(gb.color);
+                        }
+                        p.conn.addmsg(m);
+                        m.cleanup();
                     }
                 }
                 break;
@@ -821,9 +936,11 @@ public class ClientInput {
                 if (p.conn.user.equals("admin")) {
                     if (name.length == 8) {
                         String giftName = name[0];
-                        if (!Util.isnumber(name[1]) || !Util.isnumber(name[2]) || !Util.isnumber(name[3]) 
-                                || !Util.isnumber(name[4]) || !Util.isnumber(name[5]) || !Util.isnumber(name[6]) || !Util.isnumber(name[7])) {
-                            Service.send_box_ThongBao_OK(p, "Beri, Ruby, Giới hạn, Loại Item, ID Item, Số lượng và MTV phải là số!");
+                        if (!Util.isnumber(name[1]) || !Util.isnumber(name[2]) || !Util.isnumber(name[3])
+                                || !Util.isnumber(name[4]) || !Util.isnumber(name[5]) || !Util.isnumber(name[6])
+                                || !Util.isnumber(name[7])) {
+                            Service.send_box_ThongBao_OK(p,
+                                    "Beri, Ruby, Giới hạn, Loại Item, ID Item, Số lượng và MTV phải là số!");
                             return;
                         }
                         int beri = Integer.parseInt(name[1]);
@@ -833,14 +950,15 @@ public class ClientInput {
                         int id_item = Integer.parseInt(name[5]);
                         int so_luong = Integer.parseInt(name[6]);
                         int is_member = Integer.parseInt(name[7]);
-                        
+
                         String itemJson = "[]";
                         if (type_item >= 0 && id_item >= 0 && so_luong > 0) {
                             itemJson = "[[" + type_item + "," + id_item + "," + so_luong + "]]";
                         }
-                        
+
                         try (Connection conn = SQL.gI().getCon();
-                             PreparedStatement ps = conn.prepareStatement("INSERT INTO `giftcode` (`giftname`, `beri`, `ruby`, `item`, `thongbao`, `luotnhap`, `gioihan`, `used`, `special`, `is_member`) VALUES (?, ?, ?, ?, '', 0, ?, '[]', '', ?)")) {
+                                PreparedStatement ps = conn.prepareStatement(
+                                        "INSERT INTO `giftcode` (`giftname`, `beri`, `ruby`, `item`, `thongbao`, `luotnhap`, `gioihan`, `used`, `special`, `is_member`) VALUES (?, ?, ?, ?, '', 0, ?, '[]', '', ?)")) {
                             ps.setString(1, giftName);
                             ps.setInt(2, beri);
                             ps.setInt(3, ruby);
@@ -848,7 +966,11 @@ public class ClientInput {
                             ps.setInt(5, gioihan);
                             ps.setInt(6, is_member);
                             ps.executeUpdate();
-                            Service.send_box_ThongBao_OK(p, "Tạo Giftcode thành công!\nMã: " + giftName + "\nBeri: " + beri + "\nRuby: " + ruby + "\nItem: " + (type_item >= 0 ? "Loại " + type_item + ", ID " + id_item + " (x" + so_luong + ")" : "Không có") + "\nGiới hạn: " + gioihan + "\nChỉ MTV: " + (is_member == 1 ? "Có" : "Không"));
+                            Service.send_box_ThongBao_OK(p, "Tạo Giftcode thành công!\nMã: " + giftName + "\nBeri: "
+                                    + beri + "\nRuby: " + ruby + "\nItem: "
+                                    + (type_item >= 0 ? "Loại " + type_item + ", ID " + id_item + " (x" + so_luong + ")"
+                                            : "Không có")
+                                    + "\nGiới hạn: " + gioihan + "\nChỉ MTV: " + (is_member == 1 ? "Có" : "Không"));
                         } catch (SQLException e) {
                             e.printStackTrace();
                             Service.send_box_ThongBao_OK(p, "Lỗi: Giftcode này có thể đã tồn tại trong CSDL!");

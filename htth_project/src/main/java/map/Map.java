@@ -3175,6 +3175,8 @@ public class Map implements Runnable {
                     int value1 = 0;
                     int value2 = 0;
                     int percent = 0;
+                    boolean isBossMapFixed = mob_target.boss_info != null
+                            && mob_target.boss_info.thegioi == 4;
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
                             && mob_target.mob_template.mob_id != 121
                             && mob_target.boss_info.thegioi != 2) {
@@ -3191,146 +3193,164 @@ public class Map implements Runnable {
                         mob_target.hp -= dame_to_target;
                     }
                     //
-                    if (mob_target.boss_info != null && percent > 0) { // boss hp 10% 50% reward
+                    if (mob_target.boss_info != null && percent > 0) { // boss hp 10% reward
                         value2 = (mob_target.hp - 1) / percent;
+                    }
+                    if (isBossMapFixed && percent > 0 && value1 > value2) {
+                        // Boss thegioi=4: mỗi mốc 10% máu, tất cả người trong map nhận 1-20 ruby
+                        for (int j = value1 - 1; j >= value2; j--) {
+                            int hpPercent = (10 - j) * 10;
+                            for (int pi = 0; pi < players.size(); pi++) {
+                                Player p0 = players.get(pi);
+                                if (p0.conn != null && !p0.isdie) {
+                                    int ruby = Util.random(1, 21);
+                                    p0.update_ngoc(ruby);
+                                    p0.update_money();
+                                    Service.send_box_ThongBao_OK(p0,
+                                            "Boss mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
+                                }
+                            }
+                        }
                     }
                     boolean ch = false;
                     List<GiftBox> list_gift = new ArrayList<>();
-                    for (int j = value1 - 1; j >= value2; j--) { // 10%
-                        //
-                        int beri_receiv = (mob_target.mob_template.mob_id - 130) * 1000;
-                        beri_receiv = (beri_receiv / 100) * (100 + mob_target.boss_info.levelBoss * 10);
-                        GiftBox gb_beri = new GiftBox();
-                        ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
-                        if (it_temp4 != null) {
-                            gb_beri.id = it_temp4.id;
-                            gb_beri.type = 4;
-                            gb_beri.name = it_temp4.name;
-                            gb_beri.icon = it_temp4.icon;
-                            gb_beri.num = beri_receiv;
-                            gb_beri.color = 0;
-                            list_gift.add(gb_beri);
-                        }
-                        //
-                        if (15 > Util.random(120)) {
-                            GiftBox gb_rcam = new GiftBox();
-                            ItemTemplate4 it_temp4_in = ItemTemplate4
-                                    .get_it_by_id((((p.level < 11 ? 11 : p.level) / 10) + 111));
-                            if (it_temp4_in != null) {
-                                gb_rcam.id = it_temp4_in.id;
-                                gb_rcam.type = 4;
-                                gb_rcam.name = it_temp4_in.name;
-                                gb_rcam.icon = it_temp4_in.icon;
-                                gb_rcam.num = 1;
-                                gb_rcam.color = 0;
-                                list_gift.add(gb_rcam);
+                    if (!isBossMapFixed) {
+                        for (int j = value1 - 1; j >= value2; j--) { // 10%
+                            //
+                            int beri_receiv = (mob_target.mob_template.mob_id - 130) * 1000;
+                            beri_receiv = (beri_receiv / 100) * (100 + mob_target.boss_info.levelBoss * 10);
+                            GiftBox gb_beri = new GiftBox();
+                            ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
+                            if (it_temp4 != null) {
+                                gb_beri.id = it_temp4.id;
+                                gb_beri.type = 4;
+                                gb_beri.name = it_temp4.name;
+                                gb_beri.icon = it_temp4.icon;
+                                gb_beri.num = beri_receiv;
+                                gb_beri.color = 0;
+                                list_gift.add(gb_beri);
                             }
-                        }
-                        switch (mob_target.mob_template.mob_id) {
-                            case 137:
-                            case 138: {
-                                if (15 > Util.random(120)) {
-                                    int id_add = (70 > Util.random(120)) ? 310
-                                            : (70 > Util.random(120)) ? 311 : 312;
-                                    GiftBox gb_manh = new GiftBox();
-                                    ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
-                                    if (it_temp4_in != null) {
-                                        gb_manh.id = it_temp4_in.id;
-                                        gb_manh.type = 4;
-                                        gb_manh.name = it_temp4_in.name;
-                                        gb_manh.icon = it_temp4_in.icon;
-                                        gb_manh.num = 1;
-                                        gb_manh.color = 0;
-                                        list_gift.add(gb_manh);
-                                    }
+                            //
+                            if (15 > Util.random(120)) {
+                                GiftBox gb_rcam = new GiftBox();
+                                ItemTemplate4 it_temp4_in = ItemTemplate4
+                                        .get_it_by_id((((p.level < 11 ? 11 : p.level) / 10) + 111));
+                                if (it_temp4_in != null) {
+                                    gb_rcam.id = it_temp4_in.id;
+                                    gb_rcam.type = 4;
+                                    gb_rcam.name = it_temp4_in.name;
+                                    gb_rcam.icon = it_temp4_in.icon;
+                                    gb_rcam.num = 1;
+                                    gb_rcam.color = 0;
+                                    list_gift.add(gb_rcam);
                                 }
-                                break;
                             }
-                            case 139:
-                            case 140: {
-                                if (15 > Util.random(120)) {
-                                    int id_add = (70 > Util.random(120)) ? 310
-                                            : (70 > Util.random(120)) ? 311 : 312;
-                                    GiftBox gb_manh = new GiftBox();
-                                    ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
-                                    if (it_temp4_in != null) {
-                                        gb_manh.id = it_temp4_in.id;
-                                        gb_manh.type = 4;
-                                        gb_manh.name = it_temp4_in.name;
-                                        gb_manh.icon = it_temp4_in.icon;
-                                        gb_manh.num = 1;
-                                        gb_manh.color = 0;
-                                        list_gift.add(gb_manh);
+                            switch (mob_target.mob_template.mob_id) {
+                                case 137:
+                                case 138: {
+                                    if (15 > Util.random(120)) {
+                                        int id_add = (70 > Util.random(120)) ? 310
+                                                : (70 > Util.random(120)) ? 311 : 312;
+                                        GiftBox gb_manh = new GiftBox();
+                                        ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
+                                        if (it_temp4_in != null) {
+                                            gb_manh.id = it_temp4_in.id;
+                                            gb_manh.type = 4;
+                                            gb_manh.name = it_temp4_in.name;
+                                            gb_manh.icon = it_temp4_in.icon;
+                                            gb_manh.num = 1;
+                                            gb_manh.color = 0;
+                                            list_gift.add(gb_manh);
+                                        }
                                     }
+                                    break;
                                 }
-                                if (10 > Util.random(120)) {
-                                    int id_add = (70 > Util.random(120)) ? 313
-                                            : (70 > Util.random(120)) ? 314 : 315;
-                                    GiftBox gb_manh = new GiftBox();
-                                    ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
-                                    if (it_temp4_in != null) {
-                                        gb_manh.id = it_temp4_in.id;
-                                        gb_manh.type = 4;
-                                        gb_manh.name = it_temp4_in.name;
-                                        gb_manh.icon = it_temp4_in.icon;
-                                        gb_manh.num = 1;
-                                        gb_manh.color = 0;
-                                        list_gift.add(gb_manh);
+                                case 139:
+                                case 140: {
+                                    if (15 > Util.random(120)) {
+                                        int id_add = (70 > Util.random(120)) ? 310
+                                                : (70 > Util.random(120)) ? 311 : 312;
+                                        GiftBox gb_manh = new GiftBox();
+                                        ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
+                                        if (it_temp4_in != null) {
+                                            gb_manh.id = it_temp4_in.id;
+                                            gb_manh.type = 4;
+                                            gb_manh.name = it_temp4_in.name;
+                                            gb_manh.icon = it_temp4_in.icon;
+                                            gb_manh.num = 1;
+                                            gb_manh.color = 0;
+                                            list_gift.add(gb_manh);
+                                        }
                                     }
+                                    if (10 > Util.random(120)) {
+                                        int id_add = (70 > Util.random(120)) ? 313
+                                                : (70 > Util.random(120)) ? 314 : 315;
+                                        GiftBox gb_manh = new GiftBox();
+                                        ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
+                                        if (it_temp4_in != null) {
+                                            gb_manh.id = it_temp4_in.id;
+                                            gb_manh.type = 4;
+                                            gb_manh.name = it_temp4_in.name;
+                                            gb_manh.icon = it_temp4_in.icon;
+                                            gb_manh.num = 1;
+                                            gb_manh.color = 0;
+                                            list_gift.add(gb_manh);
+                                        }
+                                    }
+                                    break;
                                 }
-                                break;
                             }
+                            ch = true;
                         }
-                        ch = true;
-                    }
-                    if (ch) {
-                        // Manager.gI().chatKTG(0, notice.substring(0, notice.length() - 1), 5);
-                        if (list_gift.size() > 0) {
-                            Service.send_gift(p, 1, "Hoạt động săn trùm", "Gây sát thương 10% Hp",
-                                    list_gift, false);
-                            // qua other in map
-                            try {
-                                List<GiftBox> list_gift_other = new ArrayList<>();
-                                int beri_receiv_other = Util.random(6_000, 15_000);
-                                GiftBox gb_beri_other = new GiftBox();
-                                ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
-                                if (it_temp4 != null) {
-                                    gb_beri_other.id = it_temp4.id;
-                                    gb_beri_other.type = 4;
-                                    gb_beri_other.name = it_temp4.name;
-                                    gb_beri_other.icon = it_temp4.icon;
-                                    gb_beri_other.num = beri_receiv_other;
-                                    gb_beri_other.color = 0;
-                                    list_gift_other.add(gb_beri_other);
-                                }
-                                //
-                                if (30 > Util.random(120)) {
-                                    GiftBox gb_RHB = new GiftBox();
-                                    it_temp4 = ItemTemplate4.get_it_by_id((18 + (p.level / 10)));
+                        if (ch) {
+                            // Manager.gI().chatKTG(0, notice.substring(0, notice.length() - 1), 5);
+                            if (list_gift.size() > 0) {
+                                Service.send_gift(p, 1, "Hoạt động săn trùm", "Gây sát thương 10% Hp",
+                                        list_gift, false);
+                                // qua other in map
+                                try {
+                                    List<GiftBox> list_gift_other = new ArrayList<>();
+                                    int beri_receiv_other = Util.random(6_000, 15_000);
+                                    GiftBox gb_beri_other = new GiftBox();
+                                    ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
                                     if (it_temp4 != null) {
-                                        gb_RHB.id = it_temp4.id;
-                                        gb_RHB.type = 4;
-                                        gb_RHB.name = it_temp4.name;
-                                        gb_RHB.icon = it_temp4.icon;
-                                        gb_RHB.num = Util.random(1, 3);
-                                        gb_RHB.color = 0;
-                                        list_gift_other.add(gb_RHB);
+                                        gb_beri_other.id = it_temp4.id;
+                                        gb_beri_other.type = 4;
+                                        gb_beri_other.name = it_temp4.name;
+                                        gb_beri_other.icon = it_temp4.icon;
+                                        gb_beri_other.num = beri_receiv_other;
+                                        gb_beri_other.color = 0;
+                                        list_gift_other.add(gb_beri_other);
                                     }
-                                }
-                                //
-                                for (int j = 0; j < players.size(); j++) {
-                                    Player p0 = players.get(j);
-                                    if (p0.conn != null && !p0.equals(p) && !p0.isdie) {
-                                        Service.send_gift(p0, 1, "Hoạt động săn trùm",
-                                                "Tham gia hoạt động săn trùm", list_gift_other,
-                                                false);
+                                    //
+                                    if (30 > Util.random(120)) {
+                                        GiftBox gb_RHB = new GiftBox();
+                                        it_temp4 = ItemTemplate4.get_it_by_id((18 + (p.level / 10)));
+                                        if (it_temp4 != null) {
+                                            gb_RHB.id = it_temp4.id;
+                                            gb_RHB.type = 4;
+                                            gb_RHB.name = it_temp4.name;
+                                            gb_RHB.icon = it_temp4.icon;
+                                            gb_RHB.num = Util.random(1, 3);
+                                            gb_RHB.color = 0;
+                                            list_gift_other.add(gb_RHB);
+                                        }
                                     }
+                                    //
+                                    for (int j = 0; j < players.size(); j++) {
+                                        Player p0 = players.get(j);
+                                        if (p0.conn != null && !p0.equals(p) && !p0.isdie) {
+                                            Service.send_gift(p0, 1, "Hoạt động săn trùm",
+                                                    "Tham gia hoạt động săn trùm", list_gift_other,
+                                                    false);
+                                        }
+                                    }
+                                } catch (Exception e) {
                                 }
-                            } catch (Exception e) {
                             }
                         }
                     }
-                    if (value1 > 4 && value2 <= 4) { // 50%
+                    if (!isBossMapFixed && value1 > 4 && value2 <= 4) { // 50%
                         //
                         list_gift.clear();
                         //
@@ -3488,6 +3508,8 @@ public class Map implements Runnable {
                         core.BXH.updateTopBoss(boss);
                         if (boss.thegioi == 3) {
                             boss.timeNextRespawn = boss.timeDeath + 1800000; // 30 minutes
+                        } else if (boss.thegioi == 4) {
+                            boss.timeNextRespawn = boss.timeDeath + Boss.RESPAWN_TG4_MS;
                         } else if (boss.thegioi == 2) {
                             boss.timeNextRespawn = boss.timeDeath + Boss.RESPAWN_LANG_MS; // 10 phút, độc lập từng boss
                         }
@@ -3643,6 +3665,17 @@ public class Map implements Runnable {
                                 giftStone.color = 0;
                                 list_gift.add(giftStone);
                                 notice += "x1 " + itemStone.name + ", ";
+                            }
+                        } else if (boss.thegioi == 4) {
+                            boss.status = Boss.STATUS_DEAD;
+                            this.remove_obj(mob_target.index, 1);
+                            try {
+                                Manager.gI().chatKTG(0,
+                                        p.name + " đã tiêu diệt " + mob_target.mob_template.name
+                                                + " tại " + this.template.name + "!",
+                                        5);
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
                         } else if (boss.mob.mob_template.mob_id == 121) {
                             // Boss Mèo truyền thuyết - kết thúc sự kiện

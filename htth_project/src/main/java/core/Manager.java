@@ -335,7 +335,12 @@ public class Manager {
                     for (int i = 0; i < js.size(); i++) {
                         JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
                         Mob temp = new Mob();
-                        temp.mob_template = MobTemplate.ENTRYS.get(Integer.parseInt(js2.get(0).toString()));
+                        int mobId = Integer.parseInt(js2.get(0).toString());
+                        if (mobId < 0 || mobId >= MobTemplate.ENTRYS.size()) {
+                            System.err.println("Warning: Mob template id " + mobId + " out of bounds for map " + map_temp.id + ", falling back to 0");
+                            mobId = 0;
+                        }
+                        temp.mob_template = MobTemplate.ENTRYS.get(mobId);
                         temp.x = Short.parseShort(js2.get(1).toString());
                         temp.y = Short.parseShort(js2.get(2).toString());
                         temp.hp_max = temp.mob_template.hp_max;
@@ -585,6 +590,10 @@ public class Manager {
                 js.clear();
                 if (map == null) {
                     System.err.println("[WARN] load_database: Boss id=" + id + " references unknown map_id=" + mapId + ", skipping.");
+                    continue;
+                }
+                if (mob_id < 0 || mob_id >= MobTemplate.ENTRYS.size()) {
+                    System.err.println("[WARN] load_database: Boss id=" + id + " references unknown mob_id=" + mob_id + ", skipping.");
                     continue;
                 }
                 int targetZoneIdx = map.length > 1 ? 1 : 0;

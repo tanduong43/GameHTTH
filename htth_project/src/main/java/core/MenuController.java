@@ -420,7 +420,7 @@ public class MenuController {
           break;
         }
         case -201: {
-          send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Nói chuyện", "Đến Làng Aru" }, null);
+          send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Nói chuyện", "Đến Đảo Ruby" }, null);
           break;
         }
         case -202: {

@@ -16,7 +16,6 @@ import map.Boss;
 import map.Map;
 import map.Mob;
 import template.DataTemplate;
-import template.DanhHieuTemplate;
 import template.EffTemplate;
 import template.GiftBox;
 import template.ItemBag47;
@@ -63,7 +62,8 @@ public class Service {
                 break;
             }
         }
-        // Client shop thời trang đọc ID bằng sbyte (writeByte), nên ID > 127 bị lệch dấu
+        // Client shop thời trang đọc ID bằng sbyte (writeByte), nên ID > 127 bị lệch
+        // dấu
         // (vd 136 -> -120). Gửi dạng byte để khớp tô xanh "Đã trang bị".
         m.writer().writeShort(id_f < 0 ? -1 : (byte) id_f);
         int par_agility = p.body.get_agility(false);
@@ -257,15 +257,17 @@ public class Service {
         m.cleanup();
     }
 
-        /**
+    /**
      * G?i/Xóa effect danh hi?u cho player.
-     * @param p0        Player s? h?u danh hi?u
-     * @param p         Player nh?n gói tin (null = g?i toàn map)
-     * @param effectId  ID effect c?n g?i/xóa
-     * @param isRemove  true = xóa effect, false = thêm effect
+     * 
+     * @param p0       Player s? h?u danh hi?u
+     * @param p        Player nh?n gói tin (null = g?i toàn map)
+     * @param effectId ID effect c?n g?i/xóa
+     * @param isRemove true = xóa effect, false = thêm effect
      */
     public static void send_danhieu_effect(Player p0, Player p, int effectId, boolean isRemove) throws IOException {
-        if (effectId < 0) return;
+        if (effectId < 0)
+            return;
         Message m = new Message(74);
         if (isRemove) {
             m.writer().writeByte(2);
@@ -431,7 +433,8 @@ public class Service {
                 m.writer().writeShort(-1);
             }
         }
-        // Không ghi effId vào slot weaponBay nữa — danh hiệu sẽ được gửi qua packet 65 (getThanhTich)
+        // Không ghi effId vào slot weaponBay nữa — danh hiệu sẽ được gửi qua packet 65
+        // (getThanhTich)
         m.writer().writeShort(-1); // bodyBay
         m.writer().writeShort(-1); // legBay
         m.writer().writeShort(-1); // weaponBay
@@ -992,10 +995,12 @@ public class Service {
                         return;
                     }
                     p.data_yesno = new int[] { 2281, itf.ID, chestId };
-                    Service.send_box_yesno(p, 2281, "Thông báo", "Bạn có chắc muốn nhận thời trang " + itf.name + " không?", new String[]{"Xác nhận", "Đóng"}, new byte[]{-1, -1});
+                    Service.send_box_yesno(p, 2281, "Thông báo",
+                            "Bạn có chắc muốn nhận thời trang " + itf.name + " không?",
+                            new String[] { "Xác nhận", "Đóng" }, new byte[] { -1, -1 });
                     return;
                 }
-                
+
                 if (itf.price == -1) {
                     Service.send_box_ThongBao_OK(p,
                             "Đồ thời trang " + itf.name + " hiện tại chưa được bán");
@@ -1693,12 +1698,12 @@ public class Service {
         for (int i = 0; i < list.size(); i++) {
             template.ItemFashion temp = list.get(i);
             m.writer().writeByte(temp.ID);
-            
+
             String name = temp.name.replace("Trang phục ", "").replace("Thời trang ", "");
             if (name.length() > 15) {
                 name = name.substring(0, 14) + "...";
             }
-            
+
             m.writer().writeUTF(name);
             m.writer().writeUTF(temp.info);
             m.writer().writeShort(temp.idIcon);
@@ -1713,14 +1718,14 @@ public class Service {
                 m.writer().writeInt(0);
                 m.writer().writeShort(temp.price == -1 ? 1 : temp.price);
             }
-            
+
             if (ver_ >= 115) {
                 m.writer().writeByte(0);
             }
         }
         p.conn.addmsg(m);
         m.cleanup();
-        
+
         p.data_yesno = new int[] { 110, id_chest };
     }
 
@@ -2318,8 +2323,10 @@ public class Service {
         m.writer().writeByte(0);
         m.writer().writeUTF("Thành tích hằng ngày");
         m.writer().writeByte(6);
-        String[] names = { "Tham gia PVP", "Đi Liên Tầng", "Bảo vệ Namie", "Phó bản Hang Động", "Lập nhóm 5 người", "Đồ sát 1 người" };
-        String[] infos = { "Tham gia trận đấu PVP", "Vượt 1 tầng Liên Tầng", "Bảo vệ thành công Namie", "Đi phó bản Hang Động", "Lập một nhóm gồm 5 người", "Tiêu diệt 1 người chơi khác" };
+        String[] names = { "Tham gia PVP", "Đi Liên Tầng", "Bảo vệ Namie", "Phó bản Hang Động", "Lập nhóm 5 người",
+                "Đồ sát 1 người" };
+        String[] infos = { "Tham gia trận đấu PVP", "Vượt 1 tầng Liên Tầng", "Bảo vệ thành công Namie",
+                "Đi phó bản Hang Động", "Lập một nhóm gồm 5 người", "Tiêu diệt 1 người chơi khác" };
         short[] icons = { 132, 161, 128, 127, 162, 140 };
         for (int i = 0; i < 6; i++) {
             m.writer().writeUTF(names[i]);
