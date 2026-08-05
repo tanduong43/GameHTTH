@@ -18,8 +18,9 @@ import template.Top_Dame;
  */
 public class Boss {
     public static final Set<Integer> ALLOWED_MAP_IDS = Set.of(
-        0, 2, 3, 4, 7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 20, 23, 24, 26, 27, 28, 31, 32, 34, 35, 36, 39, 40, 42, 43, 44, 47, 48, 50, 51, 52, 63, 65, 68, 70, 71, 72, 82, 84, 85, 86, 94, 95, 96, 97, 98, 99, 100, 101, 112, 115, 116, 117, 118, 124, 125, 126, 192, 193, 194, 195, 196, 197, 1001
-    );
+            0, 2, 3, 4, 7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 20, 23, 24, 26, 27, 28, 31, 32, 34, 35, 36, 39, 40, 42,
+            43, 44, 47, 48, 50, 51, 52, 63, 65, 68, 70, 71, 72, 82, 84, 85, 86, 94, 95, 96, 97, 98, 99, 100, 101, 112,
+            115, 116, 117, 118, 124, 125, 126, 192, 193, 194, 195, 196, 197, 1001);
     public static List<Boss> ENTRYS;
     public static byte[] BOSS_LIVE = new byte[] { 0, 0, 0, 0, 0, 0 };
     public static byte[] BOSS_AREA = new byte[] { -1, -1, -1, -1, -1, -1 };
@@ -79,6 +80,7 @@ public class Boss {
     /**
      * Admin: buộc tất cả boss thegioi=1 xuất hiện.
      * Nếu boss đang sống sẽ remove rồi spawn lại.
+     * 
      * @return số boss đã spawn
      */
     public static int force_spawn_all_thegioi1() {
@@ -129,7 +131,8 @@ public class Boss {
     }
 
     public static void spawn_world_boss_by_id(int mobId) {
-        if (mobId < 135 || mobId > 140) return;
+        if (mobId < 135 || mobId > 140)
+            return;
         List<Boss> list_init = new ArrayList<>();
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
             Boss temp = Boss.ENTRYS.get(i);
@@ -198,35 +201,49 @@ public class Boss {
                 BOSS_LIVE[mobId - 135] = 1;
             }
         } else {
-            System.out.println("[WARN] spawn_world_boss_by_id: Không tìm thấy Boss ID " + mobId + " trong danh sách Boss.ENTRYS hoặc Boss đã sống.");
+            System.out.println("[WARN] spawn_world_boss_by_id: Không tìm thấy Boss ID " + mobId
+                    + " trong danh sách Boss.ENTRYS hoặc Boss đã sống.");
         }
     }
 
     /**
-     * Lấy danh sách ID các bản đồ (map) mà Boss tương ứng với mobId có thể xuất hiện (spawn).
+     * Lấy danh sách ID các bản đồ (map) mà Boss tương ứng với mobId có thể xuất
+     * hiện (spawn).
      *
      * @param mobId ID của quái/Boss (mob template ID)
-     * @return Danh sách ID các bản đồ Boss có thể xuất hiện, hoặc null nếu không cấu hình
+     * @return Danh sách ID các bản đồ Boss có thể xuất hiện, hoặc null nếu không
+     *         cấu hình
      */
     public static List<Integer> getMapIdsForMob(int mobId) {
         switch (mobId) {
-            case 4: return List.of(0, 2, 3, 4);
-            case 10: return List.of(8, 10, 11, 12);
-            case 16: return List.of(16, 18, 19, 20);
-            case 23: return List.of(24, 26, 27, 28);
-            case 29: return List.of(32, 34, 35, 36);
-            case 36: return List.of(40, 42, 43, 44);
-            case 43: return List.of(48, 50, 51, 52);
-            case 68: return List.of(68, 70, 71, 72);
-            case 78: return List.of(82, 84, 85, 86);
-            case 92: return List.of(92, 94, 95, 96, 97, 98, 99, 100, 101);
-            case 112: return List.of(112, 114, 115, 116, 117, 118, 124, 125, 126);
-            case 121: return List.of(32, 34, 35, 36);
-            case 163: return List.of(192, 193, 194, 195, 196, 197);
-            case 173: return List.of(92, 94, 95, 96, 97, 98, 99, 100, 101);
-            case 174: return List.of(112, 114, 115, 116, 117, 118, 124, 125, 126);
-            case 100: return List.of(1001);
-            default: return null;
+            case 4:
+                return List.of(0, 2, 3, 4);
+            case 10:
+                return List.of(8, 10, 11, 12);
+            case 16:
+                return List.of(16, 18, 19, 20);
+            case 23:
+                return List.of(24, 26, 27, 28);
+            case 29:
+                return List.of(32, 34, 35, 36);
+            case 36:
+                return List.of(40, 42, 43, 44);
+            case 43:
+                return List.of(48, 50, 51, 52);
+            case 68:
+                return List.of(68, 70, 71, 72);
+            case 78:
+                return List.of(82, 84, 85, 86);
+            case 92:
+                return List.of(92, 94, 95, 96, 97, 98, 99, 100, 101);
+            case 112:
+                return List.of(112, 114, 115, 116, 117, 118, 124, 125, 126);
+            case 121:
+                return List.of(32, 34, 35, 36);
+            case 163:
+                return List.of(192, 193, 194, 195, 196, 197);
+            default:
+                return null;
         }
     }
 
@@ -234,26 +251,43 @@ public class Boss {
      * Lấy thời gian xuất hiện ban đầu (giờ, phút) của Boss tương ứng với mobId.
      *
      * @param mobId ID của quái/Boss (mob template ID)
-     * @return Mảng gồm 2 phần tử [giờ, phút] biểu thị thời gian spawn đầu tiên, mặc định là [0, 0] (xuất hiện ngay lập tức)
+     * @return Mảng gồm 2 phần tử [giờ, phút] biểu thị thời gian spawn đầu tiên, mặc
+     *         định là [0, 0] (xuất hiện ngay lập tức)
      */
     public static int[] getInitialSpawnTime(int mobId) {
         switch (mobId) {
-            case 4: return new int[]{9, 0};
-            case 10: return new int[]{9, 10};
-            case 16: return new int[]{9, 20};
-            case 23: return new int[]{9, 30};
-            case 29: return new int[]{9, 40};
-            case 36: return new int[]{9, 50};
-            case 43: return new int[]{10, 0};
-            case 68: return new int[]{10, 10};
-            case 78: return new int[]{10, 20};
-            case 92: return new int[]{10, 30};
-            case 112: return new int[]{10, 40};
-            case 121: return new int[]{10, 45};
-            case 163: return new int[]{10, 50};
-            case 172: return new int[]{11, 0};
-            case 173: return new int[]{0, 0};
-            default: return new int[]{0, 0}; // mặc định xuất hiện ngay lúc 00:00
+            case 4:
+                return new int[] { 9, 0 };
+            case 10:
+                return new int[] { 9, 10 };
+            case 16:
+                return new int[] { 9, 20 };
+            case 23:
+                return new int[] { 9, 30 };
+            case 29:
+                return new int[] { 9, 40 };
+            case 36:
+                return new int[] { 9, 50 };
+            case 43:
+                return new int[] { 10, 0 };
+            case 68:
+                return new int[] { 10, 10 };
+            case 78:
+                return new int[] { 10, 20 };
+            case 92:
+                return new int[] { 10, 30 };
+            case 112:
+                return new int[] { 10, 40 };
+            case 121:
+                return new int[] { 10, 45 };
+            case 163:
+                return new int[] { 10, 50 };
+            case 172:
+                return new int[] { 11, 0 };
+            case 173:
+                return new int[] { 0, 0 };
+            default:
+                return new int[] { 0, 0 }; // mặc định xuất hiện ngay lúc 00:00
         }
     }
 
@@ -382,16 +416,16 @@ public class Boss {
         boss.levelBoss = 1;
         boss.mob.index = boss.index_mob_save;
         boss.TopDame.clear();
-        
+
         // Chọn ngẫu nhiên 1 map ID từ ALLOWED_MAP_IDS
         List<Integer> allowedMapList = new ArrayList<>(ALLOWED_MAP_IDS);
         int randomMapId = allowedMapList.get(Util.random(allowedMapList.size()));
-        
+
         Map[] zones = Map.get_map_by_id(randomMapId);
         if (zones != null && zones.length > 0) {
             Map randomMap = zones[Util.random(zones.length)];
             boss.mob.map = randomMap;
-            
+
             short temp_x = 300;
             short temp_y = 300;
             if (randomMap.template.npcs.size() > 0) {
@@ -401,7 +435,7 @@ public class Boss {
             }
             boss.mob.x = temp_x;
             boss.mob.y = temp_y;
-            
+
             try {
                 boss.mob.map.can_PK = false;
                 Manager.gI().chatKTG(0,
@@ -413,7 +447,7 @@ public class Boss {
                         + " | Name: " + boss.mob.mob_template.name
                         + " | Village/Map ID: " + boss.mob.map.template.id
                         + " | Spawn Time: " + new java.util.Date(now));
-                
+
                 Message m_local = new Message(1);
                 m_local.writer().writeByte(1);
                 m_local.writer().writeShort(boss.mob.index);
@@ -431,20 +465,20 @@ public class Boss {
 
     public static void update_world_bosses() {
         long now = System.currentTimeMillis();
-        
+
         // 1. Kiểm tra nếu đang có Boss thế giới hoạt động
         if (activeWorldBoss != null) {
             if (activeWorldBoss.mob.isdie || activeWorldBoss.mob.hp <= 0) {
-                System.out.println("[DEBUG LOG] World Boss Died - ID: " + activeWorldBoss.mob.mob_template.mob_id 
+                System.out.println("[DEBUG LOG] World Boss Died - ID: " + activeWorldBoss.mob.mob_template.mob_id
                         + " | Name: " + activeWorldBoss.mob.mob_template.name);
-                
+
                 // Hồi sinh con tiếp theo sau 10 phút (600.000 ms)
                 nextWorldBossSpawnTime = now + 600000;
                 activeWorldBoss = null;
             }
             return;
         }
-        
+
         // 2. Sinh Boss thế giới mới nếu đến thời gian hồi sinh
         if (now >= nextWorldBossSpawnTime) {
             List<Boss> worldBosses = new ArrayList<>();
@@ -454,7 +488,7 @@ public class Boss {
                     worldBosses.add(b);
                 }
             }
-            
+
             if (worldBosses.size() > 0) {
                 Boss bossToSpawn = worldBosses.get(Util.random(worldBosses.size()));
                 spawn_world_boss(bossToSpawn);
@@ -509,8 +543,9 @@ public class Boss {
     }
 
     /**
-     * @deprecated Boss làng (thegioi=2) đã chuyển sang hồi sinh độc lập trong {@link #update_bosses()}.
-     * Giữ method rỗng để không lỗi chỗ còn gọi cũ.
+     * @deprecated Boss làng (thegioi=2) đã chuyển sang hồi sinh độc lập trong
+     *             {@link #update_bosses()}.
+     *             Giữ method rỗng để không lỗi chỗ còn gọi cũ.
      */
     public static void spawn_event_boss() {
         // no-op: mỗi boss làng tự hồi 10 phút sau khi chết, không random chung pool
@@ -691,7 +726,7 @@ public class Boss {
                         b.mob.id_target = -1;
                         b.TopDame.clear();
                         despawnedAny = true;
-                        
+
                         try {
                             Message m_local = new Message(1);
                             m_local.writer().writeByte(0);

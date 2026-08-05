@@ -3177,6 +3177,8 @@ public class Map implements Runnable {
                     int percent = 0;
                     boolean isBossMapFixed = mob_target.boss_info != null
                             && mob_target.boss_info.thegioi == 4;
+                    boolean isQuaiMap1001 = mob_target.boss_info == null && this.template.id == 1001;
+
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
                             && mob_target.mob_template.mob_id != 121
                             && mob_target.boss_info.thegioi != 2) {
@@ -3185,6 +3187,13 @@ public class Map implements Runnable {
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
+                    } else if (isQuaiMap1001) {
+                        // Tính mốc 10% máu cho quái thường ở map 1001
+                        int max_hp = mob_target.hp_max;
+                        percent = max_hp / 10;
+                        if (percent > 0) {
+                            value1 = (mob_target.hp - 1) / percent;
+                        }
                     }
                     //
                     if (this.clan_resource != null) {
@@ -3193,7 +3202,7 @@ public class Map implements Runnable {
                         mob_target.hp -= dame_to_target;
                     }
                     //
-                    if (mob_target.boss_info != null && percent > 0) { // boss hp 10% reward
+                    if ((mob_target.boss_info != null || isQuaiMap1001) && percent > 0) { // hp 10% reward
                         value2 = (mob_target.hp - 1) / percent;
                     }
                     if (isBossMapFixed && percent > 0 && value1 > value2) {
@@ -3210,6 +3219,18 @@ public class Map implements Runnable {
                                             "Boss mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
                                 }
                             }
+                        }
+                    }
+
+                    if (isQuaiMap1001 && percent > 0 && value1 > value2) {
+                        // Quái thường map 1001: mỗi mốc 10% máu, người đánh nhận 1-5 ruby
+                        for (int j = value1 - 1; j >= value2; j--) {
+                            int hpPercent = (10 - j) * 10;
+                            int ruby = Util.random(1, 6);
+                            p.update_ngoc(ruby);
+                            p.update_money();
+                            Service.send_box_ThongBao_OK(p,
+                                    "Quái mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
                         }
                     }
                     boolean ch = false;
