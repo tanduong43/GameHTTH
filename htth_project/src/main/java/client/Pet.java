@@ -17,6 +17,7 @@ public class Pet {
     public short id, icon, frame;
     public String name;
     public byte type;
+    public byte isShow = 0;
     public List<Option> op = new ArrayList<>();
 
     public static void process(Player p, Message m2) throws IOException {

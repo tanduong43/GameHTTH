@@ -821,6 +821,11 @@ public class Manager {
                 tempPet.type = rs.getByte("type");
                 tempPet.icon = rs.getShort("icon");
                 tempPet.frame = rs.getShort("frame");
+                try {
+                    tempPet.isShow = rs.getByte("show");
+                } catch (java.sql.SQLException e) {
+                    tempPet.isShow = 0;
+                }
                 String opStr = rs.getString("op");
                 if (opStr != null && !opStr.isEmpty()) {
                     JSONArray js = (JSONArray) JSONValue.parse(opStr);

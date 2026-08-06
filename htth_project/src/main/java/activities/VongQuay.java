@@ -119,6 +119,7 @@ public class VongQuay {
     }
 
     public static void show_table(Player p) throws IOException {
+        p.type_vongquay = 0;
         Message m = new Message(54);
         m.writer().writeByte(0);
         m.writer().writeShort(p.item.total_item_bag_by_id(4, 232));

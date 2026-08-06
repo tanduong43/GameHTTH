@@ -2547,6 +2547,7 @@ public class MenuController {
   private static void Menu_Buggi(Player p, byte index) throws IOException {
     switch (index) {
       case 0: {
+        p.type_vongquay = 0;
         VongQuay.show_table(p);
         break;
       }

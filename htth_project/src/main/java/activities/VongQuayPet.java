@@ -12,6 +12,7 @@ import io.Message;
 public class VongQuayPet {
 
     public static void show_table(Player p) throws IOException {
+        p.type_vongquay = 1;
         Message m = new Message(54);
         m.writer().writeByte(0);
         p.conn.addmsg(m);
@@ -22,11 +23,7 @@ public class VongQuayPet {
         Pet.checkDefaultPets();
         java.util.List<Pet> list = new java.util.ArrayList<>();
         for (Pet pTemplate : Pet.ENTRY) {
-            String name = pTemplate.name.toLowerCase();
-            if (!name.contains("thần hoả") && !name.contains("thần hỏa")
-                    && !name.contains("zeus") && !name.contains("trâu")
-                    && !name.contains("trau") && !name.contains("hồn ma")
-                    && !name.contains("hon ma")) {
+            if (pTemplate.isShow == 1) {
                 list.add(pTemplate);
             }
         }
