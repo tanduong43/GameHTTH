@@ -697,29 +697,44 @@ function LandingPage() {
           </div>
 
           <div className="download-buttons-grid">
-            <button className="dl-button android-dl">
+            <a 
+              href="https://drive.google.com/drive/folders/1Q6ZlksXz8NX_ejBytDQFcR6RyuTukaS3?usp=sharing" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="dl-button android-dl"
+            >
               <span className="dl-btn-icon">📱</span>
               <div className="dl-btn-text">
                 <span className="dl-btn-os">Android (APK)</span>
-                <span className="dl-btn-sub">Tải bản cài đặt trực tiếp</span>
+                <span className="dl-btn-sub">Tải qua Google Drive</span>
               </div>
-            </button>
+            </a>
 
-            <button className="dl-button ios-dl">
+            <a 
+              href="https://drive.google.com/drive/folders/1Q6ZlksXz8NX_ejBytDQFcR6RyuTukaS3?usp=sharing" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="dl-button ios-dl"
+            >
               <span className="dl-btn-icon">🍎</span>
               <div className="dl-btn-text">
                 <span className="dl-btn-os">iOS (iPhone)</span>
-                <span className="dl-btn-sub">Cài đặt qua TestFlight</span>
+                <span className="dl-btn-sub">Tải qua Google Drive</span>
               </div>
-            </button>
+            </a>
 
-            <button className="dl-button pc-dl">
+            <a 
+              href="https://drive.google.com/drive/folders/1Q6ZlksXz8NX_ejBytDQFcR6RyuTukaS3?usp=sharing" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="dl-button pc-dl"
+            >
               <span className="dl-btn-icon">💻</span>
               <div className="dl-btn-text">
                 <span className="dl-btn-os">PC (Windows)</span>
-                <span className="dl-btn-sub">Bản giả lập tối ưu mượt mà</span>
+                <span className="dl-btn-sub">Tải qua Google Drive</span>
               </div>
-            </button>
+            </a>
           </div>
         </div>
       </section>

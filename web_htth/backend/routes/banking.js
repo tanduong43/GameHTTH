@@ -514,9 +514,33 @@ router.post('/webhook/sepay-casso', async (req, res) => {
 router.get('/admin/banking/orders', jwtRequired, isAdmin, async (req, res) => {
     try {
         const [rows] = await db.execute(
-            'SELECT id, username, amount, real_amount, code, request_id, status, description, created_at FROM recharge_history WHERE type = "bank" ORDER BY id DESC LIMIT 100'
+            'SELECT r.id, r.username, r.amount, r.real_amount, r.code, r.request_id, r.status, r.description, r.created_at, a.char FROM recharge_history r LEFT JOIN accounts a ON r.username = a.user WHERE r.type = "bank" ORDER BY r.id DESC LIMIT 100'
         );
-        return res.json({ success: true, orders: rows });
+        const orders = rows.map(order => {
+            let charName = "Chưa tạo";
+            try {
+                if (order.char) {
+                    const chars = JSON.parse(order.char);
+                    if (Array.isArray(chars) && chars.length > 0) {
+                        charName = chars[0];
+                    }
+                }
+            } catch (e) {}
+            return {
+                id: order.id,
+                username: order.username,
+                name: charName,
+                charName: charName,
+                amount: order.amount,
+                real_amount: order.real_amount,
+                code: order.code,
+                request_id: order.request_id,
+                status: order.status,
+                description: order.description,
+                created_at: order.created_at
+            };
+        });
+        return res.json({ success: true, orders });
     } catch (err) {
         console.error('Admin get banking orders error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
@@ -527,9 +551,31 @@ router.get('/admin/banking/orders', jwtRequired, isAdmin, async (req, res) => {
 router.get('/admin/banking/pending', jwtRequired, isAdmin, async (req, res) => {
     try {
         const [rows] = await db.execute(
-            'SELECT id, username, amount, code, request_id, description, created_at FROM recharge_history WHERE type = "bank" AND status = 0 ORDER BY id DESC'
+            'SELECT r.id, r.username, r.amount, r.code, r.request_id, r.description, r.created_at, a.char FROM recharge_history r LEFT JOIN accounts a ON r.username = a.user WHERE r.type = "bank" AND r.status = 0 ORDER BY r.id DESC'
         );
-        return res.json({ success: true, pending: rows });
+        const pending = rows.map(order => {
+            let charName = "Chưa tạo";
+            try {
+                if (order.char) {
+                    const chars = JSON.parse(order.char);
+                    if (Array.isArray(chars) && chars.length > 0) {
+                        charName = chars[0];
+                    }
+                }
+            } catch (e) {}
+            return {
+                id: order.id,
+                username: order.username,
+                name: charName,
+                charName: charName,
+                amount: order.amount,
+                code: order.code,
+                request_id: order.request_id,
+                description: order.description,
+                created_at: order.created_at
+            };
+        });
+        return res.json({ success: true, pending });
     } catch (err) {
         console.error('Admin get pending deposits error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });

@@ -160,16 +160,17 @@ export default function AdminBanking() {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', color: '#ccc' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', color: '#ccc', textAlign: 'center' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.1)', color: '#888', textAlign: 'left' }}>
-                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600' }}>ID</th>
-                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600' }}>Tài khoản</th>
-                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600' }}>Mã đơn</th>
-                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'right' }}>Số tiền</th>
-                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'right' }}>Thực nhận</th>
+                <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.1)', color: '#888', textAlign: 'center' }}>
+                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>ID</th>
+                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>Tài khoản</th>
+                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>Tên NV</th>
+                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>Mã đơn</th>
+                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>Số tiền</th>
+                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>Thực nhận</th>
                   <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>Trạng thái</th>
-                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600' }}>Thời gian</th>
+                  <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>Thời gian</th>
                   <th style={{ padding: '12px 8px', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600', textAlign: 'center' }}>Hành động</th>
                 </tr>
               </thead>
@@ -181,9 +182,10 @@ export default function AdminBanking() {
 
                   return (
                     <tr key={order.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', verticalAlign: 'middle' }}>
-                      <td style={{ padding: '12px 8px', color: '#666', fontSize: '12px' }}>#{order.id}</td>
-                      <td style={{ padding: '12px 8px', color: '#ffac30', fontWeight: 'bold' }}>{order.username}</td>
-                      <td style={{ padding: '12px 8px' }}>
+                      <td style={{ padding: '12px 8px', color: '#666', fontSize: '12px', textAlign: 'center' }}>#{order.id}</td>
+                      <td style={{ padding: '12px 8px', color: '#ffac30', fontWeight: 'bold', textAlign: 'center' }}>{order.username}</td>
+                      <td style={{ padding: '12px 8px', color: '#ff8a00', fontWeight: '600', textAlign: 'center' }}>{order.name || order.charName || "Chưa tạo"}</td>
+                      <td style={{ padding: '12px 8px', textAlign: 'center' }}>
                         <span style={{
                           background: 'rgba(255, 172, 48, 0.1)',
                           color: '#ffac30',
@@ -196,10 +198,10 @@ export default function AdminBanking() {
                           {order.code}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 8px', fontWeight: 'bold', fontSize: '14px', textAlign: 'right' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
                         {Number(order.amount).toLocaleString()}đ
                       </td>
-                      <td style={{ padding: '12px 8px', fontWeight: 'bold', textAlign: 'right', color: '#52c41a' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: 'bold', textAlign: 'center', color: '#52c41a' }}>
                         {Number(order.real_amount || 0).toLocaleString()}đ
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'center' }}>
@@ -215,7 +217,7 @@ export default function AdminBanking() {
                           {statusInfo.text}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 8px', fontSize: '12px', color: '#888' }}>
+                      <td style={{ padding: '12px 8px', fontSize: '12px', color: '#888', textAlign: 'center' }}>
                         {new Date(order.created_at).toLocaleString('vi-VN', {
                           day: '2-digit',
                           month: '2-digit',

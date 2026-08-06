@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import api from '../../../api/api';
 
@@ -6,25 +6,83 @@ function AdminAccount() {
   const { showMessage } = useOutletContext();
   const [accounts, setAccounts] = useState([]);
   
-  // Search & Filter states
+  // Stats
+  const [totalAccounts, setTotalAccounts] = useState(0);
+  const [totalOnline, setTotalOnline] = useState(0);
+  const [totalMembers, setTotalMembers] = useState(0);
+  const [filteredCount, setFilteredCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Pagination & Filter states
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [lockFilter, setLockFilter] = useState('all');
+  const [loading, setLoading] = useState(false);
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async (targetPage = page, targetLimit = limit) => {
+    setLoading(true);
     try {
-      const res = await api.get('admin/accounts');
+      const res = await api.get('admin/accounts', {
+        params: {
+          page: targetPage,
+          limit: targetLimit,
+          search: searchQuery,
+          status: statusFilter,
+          lock: lockFilter
+        }
+      });
       if (res.data.success) {
-        setAccounts(res.data.accounts);
+        setAccounts(res.data.accounts || []);
+        setTotalAccounts(res.data.totalAccounts || 0);
+        setTotalOnline(res.data.totalOnline || 0);
+        setTotalMembers(res.data.totalMembers || 0);
+        setFilteredCount(res.data.filteredCount || 0);
+        setTotalPages(res.data.totalPages || 1);
+        setPage(res.data.currentPage || targetPage);
       }
     } catch {
       console.error("Lỗi lấy danh sách tài khoản");
+    } finally {
+      setLoading(false);
     }
+  }, [searchQuery, statusFilter, lockFilter, limit, page]);
+
+  // Fetch when page changes or when search/filters change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchAccounts(page, limit);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [page, limit, searchQuery, statusFilter, lockFilter]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setPage(1);
   };
 
-  useEffect(() => {
-    fetchAccounts();
-  }, []);
+  const handleStatusChange = (e) => {
+    setStatusFilter(e.target.value);
+    setPage(1);
+  };
+
+  const handleLockChange = (e) => {
+    setLockFilter(e.target.value);
+    setPage(1);
+  };
+
+  const handleLimitChange = (e) => {
+    const newLimit = parseInt(e.target.value) || 10;
+    setLimit(newLimit);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== page) {
+      setPage(newPage);
+    }
+  };
 
   const handleUpdateUser = async (action, targetUsername) => {
     if (!targetUsername) return;
@@ -35,34 +93,32 @@ function AdminAccount() {
       const res = await api.post('admin/update_user/', payload);
       showMessage(res.data.success ? 'success' : 'error', res.data.message);
       if (res.data.success) {
-        fetchAccounts();
+        fetchAccounts(page, limit);
       }
     } catch {
       showMessage('error', 'Lỗi kết nối máy chủ!');
     }
   };
 
-  const totalAccounts = accounts.length;
-  const totalOnline = accounts.filter(acc => acc.onl === 1).length;
-  const totalMembers = accounts.filter(acc => acc.status === 1).length;
+  // Generate page numbers for pagination bar
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(1, page - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
 
-  // Filter accounts
-  const filteredAccounts = accounts.filter(acc => {
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const matchUser = acc.user && acc.user.toLowerCase().includes(q);
-      const matchId = String(acc.id) === q;
-      const matchChar = acc.charName && acc.charName.toLowerCase().includes(q);
-      if (!matchUser && !matchId && !matchChar) return false;
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
     }
-    if (statusFilter === 'active' && acc.status !== 1) return false;
-    if (statusFilter === 'inactive' && acc.status === 1) return false;
-    
-    if (lockFilter === 'banned' && acc.lock !== 1) return false;
-    if (lockFilter === 'normal' && acc.lock === 1) return false;
-    
-    return true;
-  });
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  const startRecord = filteredCount > 0 ? (page - 1) * limit + 1 : 0;
+  const endRecord = Math.min(filteredCount, page * limit);
 
   return (
     <div style={{ 
@@ -210,13 +266,13 @@ function AdminAccount() {
         padding: '20px',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
       }}>
-        <div style={{ flex: '2 1 250px' }}>
+        <div style={{ flex: '2 1 220px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#aaa', fontWeight: '600' }}>Tìm kiếm:</label>
           <input
             type="text"
             placeholder="Tìm theo tài khoản, ID hoặc tên nhân vật..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             style={{
               width: '100%',
               padding: '11px 14px',
@@ -231,11 +287,11 @@ function AdminAccount() {
             }}
           />
         </div>
-        <div style={{ flex: '1 1 150px' }}>
+        <div style={{ flex: '1 1 140px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#aaa', fontWeight: '600' }}>Kích hoạt:</label>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={handleStatusChange}
             style={{
               width: '100%',
               padding: '11px 14px',
@@ -254,11 +310,11 @@ function AdminAccount() {
             <option value="inactive">Chưa kích hoạt</option>
           </select>
         </div>
-        <div style={{ flex: '1 1 150px' }}>
+        <div style={{ flex: '1 1 140px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#aaa', fontWeight: '600' }}>Trạng thái khóa:</label>
           <select
             value={lockFilter}
-            onChange={(e) => setLockFilter(e.target.value)}
+            onChange={handleLockChange}
             style={{
               width: '100%',
               padding: '11px 14px',
@@ -277,6 +333,31 @@ function AdminAccount() {
             <option value="banned">Bị Banned</option>
           </select>
         </div>
+        <div style={{ flex: '0 1 120px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#aaa', fontWeight: '600' }}>Hiển thị:</label>
+          <select
+            value={limit}
+            onChange={handleLimitChange}
+            style={{
+              width: '100%',
+              padding: '11px 14px',
+              borderRadius: '8px',
+              border: '1px solid rgba(255, 215, 0, 0.3)',
+              backgroundColor: 'rgba(0, 0, 0, 0.45)',
+              color: '#ffd700',
+              outline: 'none',
+              boxSizing: 'border-box',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            <option value={10}>10 / trang</option>
+            <option value={20}>20 / trang</option>
+            <option value={50}>50 / trang</option>
+            <option value={100}>100 / trang</option>
+          </select>
+        </div>
       </div>
 
       <div style={{
@@ -287,17 +368,32 @@ function AdminAccount() {
         padding: '24px',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
       }}>
-        <h4 style={{ 
-          color: '#fff', 
-          marginBottom: '20px', 
-          textAlign: 'left', 
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           paddingBottom: '12px',
-          fontWeight: '700',
-          fontSize: '16px'
+          flexWrap: 'wrap',
+          gap: '10px'
         }}>
-          📋 DANH SÁCH TÀI KHOẢN ({filteredAccounts.length} / {accounts.length})
-        </h4>
+          <h4 style={{ 
+            color: '#fff', 
+            margin: 0,
+            fontWeight: '700',
+            fontSize: '16px'
+          }}>
+            📋 DANH SÁCH TÀI KHOẢN ({filteredCount} / {totalAccounts})
+          </h4>
+          <div style={{ fontSize: '13px', color: '#aaa' }}>
+            {filteredCount > 0 ? (
+              <span>Hiển thị <strong style={{ color: '#ffd700' }}>{startRecord} - {endRecord}</strong> trên tổng <strong style={{ color: '#fff' }}>{filteredCount}</strong> kết quả</span>
+            ) : (
+              <span>Không có kết quả</span>
+            )}
+          </div>
+        </div>
         
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', color: '#eee' }}>
@@ -313,87 +409,94 @@ function AdminAccount() {
               </tr>
             </thead>
             <tbody>
-              {filteredAccounts.map(acc => (
-                <tr key={acc.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={{ padding: '14px 10px', color: '#888' }}>{acc.id}</td>
-                  <td style={{ padding: '14px 10px', fontWeight: 'bold', color: '#00e5ff' }}>{acc.user}</td>
-                  <td style={{ padding: '14px 10px', color: '#ff8a00', fontWeight: '600' }}>{acc.charName || "Chưa tạo"}</td>
-                  <td style={{ padding: '14px 10px', color: '#faad14', fontWeight: '500' }}>💰 {acc.coin.toLocaleString()}</td>
-                  <td style={{ padding: '14px 10px' }}>
-                    <span style={{ 
-                      padding: '3px 8px', 
-                      borderRadius: '6px', 
-                      fontSize: '12px', 
-                      background: acc.status === 1 ? 'rgba(82,196,26,0.15)' : 'rgba(255,255,255,0.05)', 
-                      color: acc.status === 1 ? '#52c41a' : '#aaa',
-                      border: acc.status === 1 ? '1px solid rgba(82,196,26,0.3)' : '1px solid rgba(255,255,255,0.1)',
-                      fontWeight: '600'
-                    }}>
-                      {acc.status === 1 ? 'Đã kích hoạt' : 'Chưa'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 10px' }}>
-                    <span style={{ 
-                      padding: '3px 8px', 
-                      borderRadius: '6px', 
-                      fontSize: '12px', 
-                      background: acc.lock === 1 ? 'rgba(255,77,79,0.15)' : 'rgba(82,196,26,0.15)', 
-                      color: acc.lock === 1 ? '#ff4d4f' : '#52c41a',
-                      border: acc.lock === 1 ? '1px solid rgba(255,77,79,0.3)' : '1px solid rgba(82,196,26,0.3)',
-                      fontWeight: '600'
-                    }}>
-                      {acc.lock === 1 ? 'BANNED' : 'Bình thường'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 10px', display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
-                    <button
-                      onClick={() => handleUpdateUser('activate', acc.user)}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        border: `1px solid ${acc.status === 1 ? 'rgba(255,172,48,0.4)' : 'rgba(82,196,26,0.4)'}`,
-                        background: 'transparent',
-                        color: acc.status === 1 ? '#ffac30' : '#52c41a',
-                        cursor: 'pointer',
-                        fontSize: '12.5px',
-                        fontWeight: 'bold',
-                        transition: 'all 0.2s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.background = acc.status === 1 ? 'rgba(255,172,48,0.1)' : 'rgba(82,196,26,0.1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background = 'transparent';
-                      }}
-                    >
-                      {acc.status === 1 ? '👑 Hủy MTV' : '⚡ Mở MTV'}
-                    </button>
-                    <button
-                      onClick={() => handleUpdateUser('lock', acc.user)}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        border: `1px solid ${acc.lock === 1 ? 'rgba(82,196,26,0.4)' : 'rgba(255,77,79,0.4)'}`,
-                        background: 'transparent',
-                        color: acc.lock === 1 ? '#52c41a' : '#ff4d4f',
-                        cursor: 'pointer',
-                        fontSize: '12.5px',
-                        fontWeight: 'bold',
-                        transition: 'all 0.2s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.background = acc.lock === 1 ? 'rgba(82,196,26,0.1)' : 'rgba(255,77,79,0.1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background = 'transparent';
-                      }}
-                    >
-                      {acc.lock === 1 ? '🔓 Mở Khóa' : '🔒 Khóa Nick'}
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan="7" style={{ padding: '30px', textAlign: 'center', color: '#aaa' }}>
+                    🔄 Đang tải dữ liệu từ máy chủ...
                   </td>
                 </tr>
-              ))}
-              {filteredAccounts.length === 0 && (
+              ) : accounts.length > 0 ? (
+                accounts.map(acc => (
+                  <tr key={acc.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ padding: '14px 10px', color: '#888' }}>{acc.id}</td>
+                    <td style={{ padding: '14px 10px', fontWeight: 'bold', color: '#00e5ff' }}>{acc.user}</td>
+                    <td style={{ padding: '14px 10px', color: '#ff8a00', fontWeight: '600' }}>{acc.charName || "Chưa tạo"}</td>
+                    <td style={{ padding: '14px 10px', color: '#faad14', fontWeight: '500' }}>💰 {acc.coin.toLocaleString()}</td>
+                    <td style={{ padding: '14px 10px' }}>
+                      <span style={{ 
+                        padding: '3px 8px', 
+                        borderRadius: '6px', 
+                        fontSize: '12px', 
+                        background: acc.status === 1 ? 'rgba(82,196,26,0.15)' : 'rgba(255,255,255,0.05)', 
+                        color: acc.status === 1 ? '#52c41a' : '#aaa',
+                        border: acc.status === 1 ? '1px solid rgba(82,196,26,0.3)' : '1px solid rgba(255,255,255,0.1)',
+                        fontWeight: '600'
+                      }}>
+                        {acc.status === 1 ? 'Đã kích hoạt' : 'Chưa'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 10px' }}>
+                      <span style={{ 
+                        padding: '3px 8px', 
+                        borderRadius: '6px', 
+                        fontSize: '12px', 
+                        background: acc.lock === 1 ? 'rgba(255,77,79,0.15)' : 'rgba(82,196,26,0.15)', 
+                        color: acc.lock === 1 ? '#ff4d4f' : '#52c41a',
+                        border: acc.lock === 1 ? '1px solid rgba(255,77,79,0.3)' : '1px solid rgba(82,196,26,0.3)',
+                        fontWeight: '600'
+                      }}>
+                        {acc.lock === 1 ? 'BANNED' : 'Bình thường'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 10px', display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                      <button
+                        onClick={() => handleUpdateUser('activate', acc.user)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: `1px solid ${acc.status === 1 ? 'rgba(255,172,48,0.4)' : 'rgba(82,196,26,0.4)'}`,
+                          background: 'transparent',
+                          color: acc.status === 1 ? '#ffac30' : '#52c41a',
+                          cursor: 'pointer',
+                          fontSize: '12.5px',
+                          fontWeight: 'bold',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = acc.status === 1 ? 'rgba(255,172,48,0.1)' : 'rgba(82,196,26,0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = 'transparent';
+                        }}
+                      >
+                        {acc.status === 1 ? '👑 Hủy MTV' : '⚡ Mở MTV'}
+                      </button>
+                      <button
+                        onClick={() => handleUpdateUser('lock', acc.user)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: `1px solid ${acc.lock === 1 ? 'rgba(82,196,26,0.4)' : 'rgba(255,77,79,0.4)'}`,
+                          background: 'transparent',
+                          color: acc.lock === 1 ? '#52c41a' : '#ff4d4f',
+                          cursor: 'pointer',
+                          fontSize: '12.5px',
+                          fontWeight: 'bold',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = acc.lock === 1 ? 'rgba(82,196,26,0.1)' : 'rgba(255,77,79,0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = 'transparent';
+                        }}
+                      >
+                        {acc.lock === 1 ? '🔓 Mở Khóa' : '🔒 Khóa Nick'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan="7" style={{ padding: '30px', textAlign: 'center', color: '#888' }}>
                     Không tìm thấy tài khoản phù hợp
@@ -403,6 +506,124 @@ function AdminAccount() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {totalPages > 1 && (
+          <div style={{
+            display: 'flex',
+            justify: 'space-between',
+            alignItems: 'center',
+            marginTop: '24px',
+            paddingTop: '16px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}>
+            <div style={{ fontSize: '13px', color: '#aaa' }}>
+              Trang <strong style={{ color: '#ffd700' }}>{page}</strong> / <strong>{totalPages}</strong>
+            </div>
+
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              {/* First Page */}
+              <button
+                onClick={() => handlePageChange(1)}
+                disabled={page === 1}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: page === 1 ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.4)',
+                  color: page === 1 ? '#555' : '#eee',
+                  cursor: page === 1 ? 'not-allowed' : 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                « Đầu
+              </button>
+
+              {/* Previous Page */}
+              <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: page === 1 ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.4)',
+                  color: page === 1 ? '#555' : '#eee',
+                  cursor: page === 1 ? 'not-allowed' : 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                ‹ Trước
+              </button>
+
+              {/* Page Numbers */}
+              {getPageNumbers().map(pNum => (
+                <button
+                  key={pNum}
+                  onClick={() => handlePageChange(pNum)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: pNum === page ? '1px solid #ffd700' : '1px solid rgba(255, 255, 255, 0.1)',
+                    background: pNum === page ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 140, 0, 0.25) 100%)' : 'rgba(0, 0, 0, 0.4)',
+                    color: pNum === page ? '#ffd700' : '#eee',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: pNum === page ? '700' : '600',
+                    boxShadow: pNum === page ? '0 0 10px rgba(255, 215, 0, 0.2)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {pNum}
+                </button>
+              ))}
+
+              {/* Next Page */}
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: page === totalPages ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.4)',
+                  color: page === totalPages ? '#555' : '#eee',
+                  cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Sau ›
+              </button>
+
+              {/* Last Page */}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={page === totalPages}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: page === totalPages ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.4)',
+                  color: page === totalPages ? '#555' : '#eee',
+                  cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Cuối »
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

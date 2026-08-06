@@ -306,7 +306,51 @@ router.post('/admin/reset_hangdong', jwtRequired, isAdmin, async (req, res) => {
 // GET /api/admin/accounts/
 router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
     try {
-        const [rows] = await db.execute('SELECT id, user, coin, status, `lock`, onl, `char` FROM accounts ORDER BY id DESC');
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = (req.query.search || '').trim();
+        const status = req.query.status || 'all';
+        const lock = req.query.lock || 'all';
+
+        // Overall statistics
+        const [[{ totalAccounts }]] = await db.execute('SELECT COUNT(*) as totalAccounts FROM accounts');
+        const [[{ totalOnline }]] = await db.execute('SELECT COUNT(*) as totalOnline FROM accounts WHERE onl = 1');
+        const [[{ totalMembers }]] = await db.execute('SELECT COUNT(*) as totalMembers FROM accounts WHERE status = 1');
+
+        // Build SQL WHERE clause for filtering
+        let whereConditions = [];
+        let params = [];
+
+        if (search) {
+            whereConditions.push('(user LIKE ? OR id = ? OR `char` LIKE ?)');
+            params.push(`%${search}%`, search, `%${search}%`);
+        }
+        if (status === 'active') {
+            whereConditions.push('status = 1');
+        } else if (status === 'inactive') {
+            whereConditions.push('status != 1');
+        }
+        if (lock === 'banned') {
+            whereConditions.push('`lock` = 1');
+        } else if (lock === 'normal') {
+            whereConditions.push('`lock` != 1');
+        }
+
+        const whereSql = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+
+        // Filtered count
+        const [[{ filteredCount }]] = await db.execute(`SELECT COUNT(*) as filteredCount FROM accounts ${whereSql}`, params);
+
+        const totalPages = Math.max(1, Math.ceil(filteredCount / limit));
+        const currentPage = Math.min(Math.max(1, page), totalPages);
+        const offset = (currentPage - 1) * limit;
+
+        // Query paginated accounts with string interpolation for numeric limit & offset to prevent mysql driver param binding issues with LIMIT
+        const [rows] = await db.execute(
+            `SELECT id, user, coin, status, \`lock\`, onl, \`char\` FROM accounts ${whereSql} ORDER BY id DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`,
+            params
+        );
+
         const accounts = rows.map(acc => {
             let charName = "Chưa tạo nhân vật";
             try {
@@ -327,7 +371,18 @@ router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
                 charName: charName
             };
         });
-        return res.json({ success: true, accounts });
+
+        return res.json({ 
+            success: true, 
+            accounts,
+            totalAccounts,
+            totalOnline,
+            totalMembers,
+            filteredCount,
+            totalPages,
+            currentPage,
+            limit
+        });
     } catch (err) {
         console.error('Admin get accounts error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
