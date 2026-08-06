@@ -778,7 +778,6 @@ public class MessageHandler {
                                             2);
                                 }
                             } else {
-                                conn.p.dungeon.time = System.currentTimeMillis() + 120_000L;
                                 int floorNum = conn.p.map.template.id - 167 + 1;
                                 Service.send_time_cool_down(conn.p, conn.p.dungeon.time, "Thời gian ", 2);
                             }

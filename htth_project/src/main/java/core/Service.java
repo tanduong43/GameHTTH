@@ -772,9 +772,6 @@ public class Service {
         byte TypeShop = m2.reader().readByte();
         short id = m2.reader().readShort();
         short value = m2.reader().readShort();
-        if (TypeShop == 20 && value == 20) {
-            value = 1000;
-        }
         byte cat = -1;
         if (TypeShop == 116 || TypeShop == 118) {
             cat = m2.reader().readByte();

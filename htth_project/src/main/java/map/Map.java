@@ -1249,6 +1249,45 @@ public class Map implements Runnable {
                             list_gift.add(gb_haithach);
                         }
 
+                        // Add Hổ phách (Hổ phách cấp 3: ID 364, Hổ phách cấp 4: ID 365, Hổ phách cấp 5: ID 366)
+                        int amberRoll = Util.random(100);
+                        int amberId = 364; // Mặc định Cấp 3
+                        if (mode_dungeon >= 7) { // Cấp độ 10..14
+                            if (amberRoll < 25) { // 25% Cấp 5
+                                amberId = 366;
+                            } else if (amberRoll < 65) { // 40% Cấp 4
+                                amberId = 365;
+                            } else { // 35% Cấp 3
+                                amberId = 364;
+                            }
+                        } else if (mode_dungeon >= 3) { // Cấp độ 6..9
+                            if (amberRoll < 10) { // 10% Cấp 5
+                                amberId = 366;
+                            } else if (amberRoll < 45) { // 35% Cấp 4
+                                amberId = 365;
+                            } else { // 55% Cấp 3
+                                amberId = 364;
+                            }
+                        } else { // Cấp độ 3..5
+                            if (amberRoll < 20) { // 20% Cấp 4
+                                amberId = 365;
+                            } else { // 80% Cấp 3
+                                amberId = 364;
+                            }
+                        }
+
+                        ItemTemplate4 it_hophach = ItemTemplate4.get_it_by_id(amberId);
+                        if (it_hophach != null) {
+                            GiftBox gb_hophach = new GiftBox();
+                            gb_hophach.id = (short) amberId;
+                            gb_hophach.type = 4;
+                            gb_hophach.name = it_hophach.name;
+                            gb_hophach.icon = it_hophach.icon;
+                            gb_hophach.num = 1;
+                            gb_hophach.color = 0;
+                            list_gift.add(gb_hophach);
+                        }
+
                         // Add EXP level and EXP skill directly to player
                         long exp_lv_gain = 50000L * (mode_dungeon + 1);
                         long exp_skill_gain = 5000L * (mode_dungeon + 1);
