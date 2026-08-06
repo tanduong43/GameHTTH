@@ -3,19 +3,20 @@ package client;
 import event.LucThuc;
 import template.*;
 import java.util.List;
+
 /**
  *
  * @author Truongbk
  */
 public class Body {
-    public static String[] NameAttribute =
-            new String[] {"Sức mạnh", "Phòng thủ", "Thể lực", "Tinh thần", "Nhanh nhẹn"};
+    public static String[] NameAttribute = new String[] { "Sức mạnh", "Phòng thủ", "Thể lực", "Tinh thần",
+            "Nhanh nhẹn" };
     public static byte[][] Id = new byte[][] { //
-            new byte[] {1, 13, 10}, // 1
-            new byte[] {4, 26, 27}, // 2
-            new byte[] {15, 23}, // 3
-            new byte[] {16, 11, 14}, // 4
-            new byte[] {25, 12}}; // 5
+            new byte[] { 1, 13, 10 }, // 1
+            new byte[] { 4, 26, 27 }, // 2
+            new byte[] { 15, 23 }, // 3
+            new byte[] { 16, 11, 14 }, // 4
+            new byte[] { 25, 12 } }; // 5
     // point 1
     public static int[] Point1_Template_atk;
     public static int[] Point1_Template_crit;
@@ -377,7 +378,8 @@ public class Body {
         EffTemplate effZombie = p.get_eff(21);
         if (par > 1 && effZombie != null && effZombie.param == id) {
             par /= 2;
-        }for (int i = 0; i < p.lucthuc[0]; i++) {
+        }
+        for (int i = 0; i < p.lucthuc[0]; i++) {
             for (int j = 0; j < LucThuc.op[i].length; j++) {
                 if (LucThuc.op[i][j] == id) {
                     par += LucThuc.par[i][j];
@@ -394,7 +396,6 @@ public class Body {
         }
         return par;
     }
-        
 
     public int get_total_point(int type) {
         int param = 0;
@@ -437,7 +438,7 @@ public class Body {
         //
         dame = (dame * percent) / 1000;
         dame += sk_temp.get_dame(p);
-        
+
         return dame;
     }
 
@@ -460,7 +461,7 @@ public class Body {
         int par = total_param_item(4, have_eff);
         par += Body.Point2_Template_def[this.get_total_point(2) - 1];
         int percent = total_param_item(80, have_eff);
-        par += ((p.doriki[0] - 1) * 5 + p.doriki[1]) * 100; //cap doriki
+        par += ((p.doriki[0] - 1) * 5 + p.doriki[1]) * 100; // cap doriki
         par = (par * (1000 + percent)) / 1000;
         return par;
     }
@@ -468,7 +469,7 @@ public class Body {
     public int get_hp_max(boolean have_eff) {
         long hp = Body.Point3_Template_hp[this.get_total_point(3) - 1];
         hp += total_param_item(15, have_eff);
-        
+
         int percent = total_param_item(17, have_eff);
         EffTemplate eff = p.get_eff(4);
         if (eff != null) {
@@ -486,7 +487,7 @@ public class Body {
 
     public int get_mp_max(boolean have_eff) {
         int mp = Body.Point4_Template_mp[this.get_total_point(4) - 1];
-        
+
         mp += total_param_item(16, have_eff);
         mp += ((p.doriki[0] - 1) * 50 + p.doriki[1]) * 100;
         mp = (mp * (1000 + total_param_item(18, have_eff))) / 1000;
@@ -643,7 +644,7 @@ public class Body {
         int par = total_param_item(13, have_eff);
         par += Body.Point1_Template_pierce[this.get_total_point(1) - 1];
         par += (p.sucmanhvatly * 20);
-        
+
         if (par > 750) {
             int save = par - 750;
             par = 750 + (save * 2) / 10;
@@ -729,8 +730,8 @@ public class Body {
         if (p.clan != null) {
             par += p.clan.opAttri[type - 1] + Clan.get_point_trungsinh_plus(p.clan);
         }
-        if (par > 60) {
-            par = 60;
+        if (par > 80) {
+            par = 80;
         }
         return par;
     }
@@ -1440,11 +1441,11 @@ public class Body {
         Point2_Template_resist_physical[80] = 315;
         for (int i = 80; i < 200; i++) {
             Point2_Template_def[i] = Point2_Template_def[i - 1]
-                    + (Point2_Template_def[i - 1] -Point2_Template_def[i - 2]);
+                    + (Point2_Template_def[i - 1] - Point2_Template_def[i - 2]);
             Point2_Template_resist_magic[i] = Point2_Template_resist_magic[i - 1]
                     + (Point2_Template_resist_magic[i - 1] - Point2_Template_resist_magic[i - 2]);
-            Point2_Template_resist_physical[i] =
-                    Point2_Template_resist_physical[i - 1] + (Point2_Template_resist_physical[i - 1]
+            Point2_Template_resist_physical[i] = Point2_Template_resist_physical[i - 1]
+                    + (Point2_Template_resist_physical[i - 1]
                             - Point2_Template_resist_physical[i - 2]);
         }
     }

@@ -3686,6 +3686,7 @@ public class Map implements Runnable {
                             }
                         } else if (boss.thegioi == 2) {
                             boss.status = Boss.STATUS_DEAD;
+                            boss.mob.isdie = true;
                             this.remove_obj(mob_target.index, 1);
                             // 1. Beri 10000
                             ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
@@ -3741,6 +3742,7 @@ public class Map implements Runnable {
                             }
                         } else if (boss.thegioi == 4) {
                             boss.status = Boss.STATUS_DEAD;
+                            boss.mob.isdie = true;
                             this.remove_obj(mob_target.index, 1);
                             try {
                                 Manager.gI().chatKTG(0,
@@ -3795,6 +3797,9 @@ public class Map implements Runnable {
                             // BƯỚC 3: Đóng ngoặc chuẩn ở đây để tách riêng nhánh else cho các Boss Thế Giới
                             // = 0 khác
                         } else {
+                            boss.status = Boss.STATUS_DEAD;
+                            boss.mob.isdie = true;
+                            this.remove_obj(mob_target.index, 1);
                             // 1. Gift 1: Búa siêu cấp (tỉ lệ 5%)
                             if (Util.random(100) < 5) {
                                 ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);

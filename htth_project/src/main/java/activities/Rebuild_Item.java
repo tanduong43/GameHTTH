@@ -16,7 +16,7 @@ import template.Option;
  */
 public class Rebuild_Item {
     public static short[] ID_SELL = new short[] { 74, 68, 62, 56, 50, 44, 272, 273, 274, 275, 276, 277 };
-    public static byte[] PERCENT_HOP_NGOC = new byte[] { 120, 85, 70, 55, 40, 0 };
+    public static byte[] PERCENT_HOP_NGOC = new byte[] { 100, 65, 50, 35, 20, 0 };// tỉ lệ ghép đá
     public static int[] PRICE_THAO_NGOC = new int[] { 2, 6, 18, 54, 162, 300 };
     public static short[][] ITEM_NGOC_SIEU_CAP;
     static {
@@ -137,7 +137,7 @@ public class Rebuild_Item {
             }
             if ((idItem >= 44 && idItem <= 78 && idItem != 73 && idItem != 67 && idItem != 61
                     && idItem != 55 && idItem != 49) || (idItem >= 221 && idItem <= 224)
-                    || (idItem >= 362 && idItem <= 363)) {
+                    || (idItem >= 362 && idItem <= 366)) {
                 Message m = new Message(-67);
                 m.writer().writeByte(1);
                 m.writer().writeShort(idItem);
@@ -151,7 +151,7 @@ public class Rebuild_Item {
         } else if (cat == 4 && num > 0 && type == 4 && action == 5) { // hop da kham
             if ((idItem >= 44 && idItem <= 78 && idItem != 73 && idItem != 67 && idItem != 61
                     && idItem != 55 && idItem != 49) || (idItem >= 221 && idItem <= 224)
-                    || (idItem >= 362 && idItem <= 363)) {
+                    || (idItem >= 362 && idItem <= 366)) {
                 if (p.item.total_item_bag_by_id(4, idItem) < num) {
                     Service.send_box_ThongBao_OK(p, "Không đủ vật phẩm trong hành trang!");
                     return;
@@ -652,12 +652,14 @@ public class Rebuild_Item {
             return 1;
         } else if (idItem == 223) {
             return 2;
-        } else if (idItem == 224 || idItem == 362) {
+        } else if (idItem == 224) {
             return 3;
-        } else if (idItem == 225 || idItem == 363) {
+        } else if (idItem == 225) {
             return 4;
         } else if (idItem == 226) {
             return 6; // 5
+        } else if (idItem >= 362 && idItem <= 367) {
+            return idItem - 362; // Hổ phách: 362=cấp1(tier0), 363=cấp2(tier1), ..., 367=cấp6(tier5)
         } else {
             int index = idItem - 44;
             while (index >= 6) {
