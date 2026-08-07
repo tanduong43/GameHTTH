@@ -23,7 +23,7 @@ import core.MenuController;
 import core.Service;
 import core.Util;
 import io.Message;
-import template.DanhHieuTemplate;
+import activities.DanhHieu;
 import template.DataTemplate;
 import template.EffTemplate;
 import template.FriendTemp;
@@ -1249,7 +1249,8 @@ public class Map implements Runnable {
                             list_gift.add(gb_haithach);
                         }
 
-                        // Add Hổ phách (Hổ phách cấp 3: ID 364, Hổ phách cấp 4: ID 365, Hổ phách cấp 5: ID 366)
+                        // Add Hổ phách (Hổ phách cấp 3: ID 364, Hổ phách cấp 4: ID 365, Hổ phách cấp 5:
+                        // ID 366)
                         int amberRoll = Util.random(100);
                         int amberId = 364; // Mặc định Cấp 3
                         if (mode_dungeon >= 7) { // Cấp độ 10..14
@@ -4158,15 +4159,15 @@ public class Map implements Runnable {
                         int dhId = Integer.parseInt(parts[2]);
                         Player p0 = map.Map.get_player_by_name_allmap(targetName);
                         if (p0 != null) {
+                            p0.add_danh_hieu(dhId);
                             p0.idDanhHieu = (short) dhId;
-                            if (p0.listDanhHieu == null)
-                                p0.listDanhHieu = new java.util.ArrayList<>();
-                            if (!p0.listDanhHieu.contains(dhId))
-                                p0.listDanhHieu.add(dhId);
+                            p0.id_danh_hieu_su_dung = dhId;
+                            p0.danhhieu = (byte) dhId;
                             Service.send_box_ThongBao_OK(p,
                                     "Set danh hieu " + dhId + " cho " + targetName + " thanh cong!");
                             Service.send_box_ThongBao_OK(p0,
-                                    "Ban nhan duoc danh hieu moi! Hay chon no trong menu Hanh Trang.");
+                                    "Ban nhan duoc danh hieu moi!");
+                            p0.update_info_to_all();
                         } else {
                             Service.send_box_ThongBao_OK(p, "Khong tim thay player " + targetName);
                         }
@@ -4179,14 +4180,20 @@ public class Map implements Runnable {
         if (txt.equals("danhhieu") || txt.equals("/danhhieu")) {
             MenuController.Menu_DanhHieu(p, (byte) 0);
             return;
-        } else if (txt.startsWith("adddh ") || txt.startsWith("/adddh ")) {
+        } else if (txt.startsWith("adddanhhieu ") || txt.startsWith("/adddanhhieu ")) {
             try {
                 int dhId = Integer.parseInt(txt.split(" ")[1]);
-                if (p.listDanhHieu == null)
-                    p.listDanhHieu = new java.util.ArrayList<>();
-                if (!p.listDanhHieu.contains(dhId))
-                    p.listDanhHieu.add(dhId);
+                p.add_danh_hieu(dhId);
                 Service.send_box_ThongBao_OK(p, "Ban da nhan duoc danh hieu " + dhId + "!");
+            } catch (Exception e) {
+            }
+            return;
+        } else if (txt.equals("adddanhhieu") || txt.equals("/adddanhhieu")) {
+            try {
+                for (activities.DanhHieu dh : activities.DanhHieu.ENY) {
+                    p.add_danh_hieu(dh.id);
+                }
+                Service.send_box_ThongBao_OK(p, "Ban da nhan duoc TAT CA danh hieu!");
             } catch (Exception e) {
             }
             return;
@@ -4431,18 +4438,27 @@ public class Map implements Runnable {
             Service.Weapon_fashion(p0, p, false);
             Service.getThanhTich(p0, p);
             Service.charWearing(p0, p, false);
-            // Gửi danh hiệu effect
-            if (p0.idDanhHieu >= 0) {
-                DanhHieuTemplate dhP0 = DanhHieuTemplate.get(p0.idDanhHieu);
-                if (dhP0 != null && dhP0.getEffectId() >= 0) {
-                    Service.send_danhieu_effect(p0, p, dhP0.getEffectId(), false);
-                }
+            // Gửi danh hiệu đang dùng của p0 cho p thấy
+            if (DanhHieu.get_Id(p0.id_danh_hieu_su_dung) != null) {
+                Message msgDH = new Message(-102);
+                msgDH.writer().writeByte(1);
+                msgDH.writer().writeByte(0);
+                msgDH.writer().writeInt(p0.id);
+                msgDH.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).idicon);
+                msgDH.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).nframe);
+                p.conn.addmsg(msgDH);
+                msgDH.cleanup();
             }
-            if (p.idDanhHieu >= 0) {
-                DanhHieuTemplate dhP = DanhHieuTemplate.get(p.idDanhHieu);
-                if (dhP != null && dhP.getEffectId() >= 0) {
-                    Service.send_danhieu_effect(p, p0, dhP.getEffectId(), false);
-                }
+            // Gửi danh hiệu đang dùng của p cho p0 thấy
+            if (DanhHieu.get_Id(p.id_danh_hieu_su_dung) != null) {
+                Message msgDH2 = new Message(-102);
+                msgDH2.writer().writeByte(1);
+                msgDH2.writer().writeByte(0);
+                msgDH2.writer().writeInt(p.id);
+                msgDH2.writer().writeInt(DanhHieu.get_Id(p.id_danh_hieu_su_dung).idicon);
+                msgDH2.writer().writeInt(DanhHieu.get_Id(p.id_danh_hieu_su_dung).nframe);
+                p0.conn.addmsg(msgDH2);
+                msgDH2.cleanup();
             }
             //
             this.update_boat(p0, p, false);
@@ -5045,4 +5061,7 @@ public class Map implements Runnable {
         }
         return null;
     }
+
+    public template.VuonCam vuonCam;
+
 }

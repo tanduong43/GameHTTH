@@ -205,9 +205,15 @@ public class Manager {
                 map_temp.max_player = rs.getByte("maxplayer");
                 // npc
                 String npcsStr = rs.getString("npcs");
-                JSONArray js_npc = (npcsStr != null && !npcsStr.trim().isEmpty() && !npcsStr.equals("null"))
-                        ? (JSONArray) JSONValue.parse(npcsStr)
-                        : new JSONArray();
+                JSONArray js_npc = null;
+                if (npcsStr != null && !npcsStr.trim().isEmpty() && !npcsStr.equals("null")) {
+                    try {
+                        js_npc = (JSONArray) JSONValue.parse(npcsStr);
+                    } catch (Exception e) {}
+                }
+                if (js_npc == null) {
+                    js_npc = new JSONArray();
+                }
                 map_temp.npcs = new ArrayList<>();
                 for (int i = 0; i < js_npc.size(); i++) {
                     JSONArray js_npc_temp = (JSONArray) JSONValue.parse(js_npc.get(i).toString());
@@ -877,6 +883,7 @@ public class Manager {
             query = "SELECT * FROM `danhhieu`;";
             rs = ps.executeQuery(query);
             template.DanhHieuTemplate.ENTRYS.clear();
+            activities.DanhHieu.ENY.clear();
             while (rs.next()) {
                 template.DanhHieuTemplate temp = new template.DanhHieuTemplate();
                 temp.id = rs.getInt("id");
@@ -895,15 +902,24 @@ public class Manager {
                         }
                     }
                 }
-                temp.description = rs.getString("description");
-                temp.color = rs.getString("color");
-                temp.rarity = rs.getByte("rarity");
-                temp.effect_id = rs.getInt("effect_id");
-                temp.duration = rs.getLong("duration");
                 template.DanhHieuTemplate.ENTRYS.add(temp);
+                // load vào DanhHieu.ENY (protocol Message -102)
+                activities.DanhHieu dh = new activities.DanhHieu();
+                dh.id = temp.id;
+                dh.Name = temp.name;
+                dh.idicon = temp.idicon;
+                dh.nframe = temp.nframe;
+                dh.coint = rs.getInt("vnd");
+                if (temp.op != null) {
+                    for (template.Option op : temp.op) {
+                        dh.op.add(op);
+                    }
+                }
+                activities.DanhHieu.ENY.add(dh);
             }
             rs.close();
             System.out.println("load danhhieu template ok, size: " + template.DanhHieuTemplate.ENTRYS.size());
+            System.out.println("load DanhHieu.ENY ok, size: " + activities.DanhHieu.ENY.size());
         } catch (SQLException e) {
             e.printStackTrace();
             System.exit(0);

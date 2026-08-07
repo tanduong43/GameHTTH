@@ -243,23 +243,18 @@ public class Player {
             }
             id = rs.getInt("id");
             hangdong_stage = rs.getInt("hangdong_stage");
+            // Đọc danh hiệu đang dùng theo CodeTemp: column "danh_hieu"
             try {
-                idDanhHieu = rs.getShort("danhhieu");
-                String listDhStr = rs.getString("list_danhhieu");
-                listDanhHieu = new ArrayList<>();
-                if (listDhStr != null && !listDhStr.isEmpty()) {
-                    JSONArray jsDh = (JSONArray) JSONValue.parse(listDhStr);
-                    if (jsDh != null) {
-                        for (int i = 0; i < jsDh.size(); i++) {
-                            listDanhHieu.add(Integer.parseInt(jsDh.get(i).toString()));
-                        }
-                    }
-                }
+                danhhieu = rs.getByte("danh_hieu");
+                idDanhHieu = danhhieu;
+                id_danh_hieu_su_dung = danhhieu;
             } catch (Exception e) {
-                // Ignore if columns don't exist yet
+                danhhieu = -1;
                 idDanhHieu = -1;
-                listDanhHieu = new ArrayList<>();
+                id_danh_hieu_su_dung = -1;
             }
+            id_danh_hieu_da_so_huu = new ArrayList<>();
+            listDanhHieu = new ArrayList<>();
             index_map = (short) id;
             clazz = rs.getByte("clazz");
             pvppoint = rs.getInt("pvppoint");
@@ -306,28 +301,41 @@ public class Player {
             time_nvl = Integer.parseInt(js.get(9).toString());
             time_ttvt = Byte.parseByte(js.get(10).toString());
             wanted_price = Integer.parseInt(js.get(11).toString());
+            // point_inven[12]: list danh hiệu đã sở hữu (theo CodeTemp)
             if (js.size() > 12) {
-                time_namie = Byte.parseByte(js.get(12).toString());
-            } else {
-                time_namie = 0;
+                try {
+                    JSONArray js1 = (JSONArray) JSONValue.parse(js.get(12).toString());
+                    if (js1 != null) {
+                        for (int i = 0; i < js1.size(); i++) {
+                            id_danh_hieu_da_so_huu.add(Integer.parseInt(js1.get(i).toString()));
+                        }
+                    }
+                } catch (Exception e) {
+                    // Dữ liệu cũ có thể là scalar, bỏ qua
+                }
             }
+            // Đảm bảo danh hiệu đang dùng có trong list
+            if (idDanhHieu >= 0 && !id_danh_hieu_da_so_huu.contains((int) idDanhHieu)) {
+                id_danh_hieu_da_so_huu.add((int) idDanhHieu);
+            }
+            listDanhHieu = new ArrayList<>(id_danh_hieu_da_so_huu);
             if (js.size() > 13) {
-                time_bosshunt = Byte.parseByte(js.get(13).toString());
+                time_bosshunt = safeByteFromJson(js.get(13));
             } else {
                 time_bosshunt = 0;
             }
             if (js.size() > 14) {
-                time_tower = Byte.parseByte(js.get(14).toString());
+                time_tower = safeByteFromJson(js.get(14));
             } else {
                 time_tower = 0;
             }
             if (js.size() > 16) {
-                time_single_dungeon = Byte.parseByte(js.get(16).toString());
+                time_single_dungeon = safeByteFromJson(js.get(16));
             } else {
                 time_single_dungeon = 0;
             }
             if (js.size() > 17) {
-                time_hangdong = Byte.parseByte(js.get(17).toString());
+                time_hangdong = safeByteFromJson(js.get(17));
             } else {
                 time_hangdong = 0;
             }
@@ -416,19 +424,44 @@ public class Player {
             } catch (Exception e) {
                 this.num_phao_hoa = 0;
             }
-            idDanhHieu = rs.getShort("danhhieu");
-            listDanhHieu = new ArrayList<>();
-            String dbListDH = rs.getString("list_danhhieu");
-            if (dbListDH != null && !dbListDH.isEmpty()) {
-                JSONArray js_dh = (JSONArray) JSONValue.parse(dbListDH);
-                if (js_dh != null) {
-                    for (int i = 0; i < js_dh.size(); i++) {
-                        listDanhHieu.add(Integer.parseInt(js_dh.get(i).toString()));
+            // Load CodeTemp fields từ cột thật (không dùng codetemp_data)
+            try {
+                this.num1 = rs.getInt("num1");
+                this.num2 = rs.getInt("num2");
+                this.num3 = rs.getInt("num3");
+                this.num4 = rs.getInt("num4");
+                this.num5 = rs.getInt("num5");
+                this.tieu_ruby = rs.getInt("tieu_ruby");
+            } catch (Exception e) {
+            }
+            try {
+                JSONArray jsMiss = (JSONArray) JSONValue.parse(rs.getString("missonCheck"));
+                if (jsMiss != null) {
+                    for (int i = 0; i < jsMiss.size() && i < this.MissionCheck.length; i++) {
+                        this.MissionCheck[i] = Byte.parseByte(jsMiss.get(i).toString());
                     }
                 }
+            } catch (Exception e) {
             }
-            System.out.println("[DanhHieu Log] Loaded player " + this.name + " idDanhHieu = " + idDanhHieu
-                    + ", list size = " + listDanhHieu.size());
+            try {
+                JSONArray jsTich = (JSONArray) JSONValue.parse(rs.getString("tichluycheck"));
+                if (jsTich != null) {
+                    for (int i = 0; i < jsTich.size() && i < this.tichTieuCheck.length; i++) {
+                        this.tichTieuCheck[i] = Byte.parseByte(jsTich.get(i).toString());
+                    }
+                }
+            } catch (Exception e) {
+            }
+            try {
+                JSONArray jsTieu = (JSONArray) JSONValue.parse(rs.getString("tich_tieu_check"));
+                if (jsTieu != null) {
+                    for (int i = 0; i < jsTieu.size() && i < this.tichTieuRubyCheck.length; i++) {
+                        this.tichTieuRubyCheck[i] = Byte.parseByte(jsTieu.get(i).toString());
+                    }
+                }
+            } catch (Exception e) {
+            }
+            // Danh hiệu đã được load đầy đủ ở trên từ "danh_hieu" và point_inven[12]
             js = (JSONArray) JSONValue.parse(rs.getString("site"));
             //
             int savedMapId = Integer.parseInt(js.get(0).toString());
@@ -847,6 +880,25 @@ public class Player {
         }
     }
 
+    /**
+     * Safely parse a byte from a JSON element that may be a scalar or a JSONArray.
+     * If the element is a JSONArray (e.g., "[]" or "[2]"), returns the first element
+     * as a byte, or 0 if the array is empty.
+     */
+    private static byte safeByteFromJson(Object obj) {
+        if (obj == null) return 0;
+        if (obj instanceof org.json.simple.JSONArray) {
+            org.json.simple.JSONArray arr = (org.json.simple.JSONArray) obj;
+            if (arr.isEmpty()) return 0;
+            return Byte.parseByte(arr.get(0).toString());
+        }
+        try {
+            return Byte.parseByte(obj.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public static int flush(Player p, boolean print) {
         int result = 0;
@@ -855,7 +907,7 @@ public class Player {
                 + "`rms` = ?, `skill` = ?, `friend` = ?, `enemy` = ?, `fashion` = ?, `eff` = ?, `box47` = ?, `box3` = ?, `quest` = ?, "
                 + "`exp` = ?, `pvppoint` = ?, `save_it3` = ?, `save_it47` = ?, "
                 + "`hanhtrinh` = ?, `wanted_point` = ?, `wanted_chest` = ?, `mypet` = ?, `diemdanh` = ?, `diemdanhvip` = ?, `lucthuc` = ?, "
-                + "`danhhieu` = ?, `list_danhhieu` = ?, `hangdong_stage` = ?, `num_phao_hoa` = ? WHERE `id` = "
+                + "`danh_hieu` = ?, `hangdong_stage` = ?, `num_phao_hoa` = ? WHERE `id` = "
                 + p.id + ";";
         Connection connection = null;
         PreparedStatement ps = null;
@@ -938,7 +990,16 @@ public class Player {
             js.add(p.time_nvl);
             js.add(p.time_ttvt);
             js.add(p.wanted_price);
-            js.add(p.time_namie);
+            // point_inven[12]: list danh hiệu đã sở hữu (theo CodeTemp)
+            if (p.id_danh_hieu_da_so_huu != null && p.id_danh_hieu_da_so_huu.size() > 0) {
+                JSONArray js1 = new JSONArray();
+                for (int id : p.id_danh_hieu_da_so_huu) {
+                    js1.add(id);
+                }
+                js.add(js1);
+            } else {
+                js.add(new JSONArray());
+            }
             js.add(p.time_bosshunt);
             js.add(p.time_tower);
             js.add("");
@@ -1204,34 +1265,52 @@ public class Player {
             js.add(p.lucthuc[2]);
             ps.setNString(28, js.toJSONString());
             js.clear();
-            ps.setInt(29, p.idDanhHieu);
-            JSONArray js_dh = new JSONArray();
-            if (p.listDanhHieu != null) {
-                for (int idDH : p.listDanhHieu) {
-                    js_dh.add(idDH);
-                }
-            }
-            ps.setNString(30, js_dh.toJSONString());
-            ps.setInt(31, p.hangdong_stage);
-            ps.setInt(32, p.num_phao_hoa);
+            // Đồng bộ danh hiệu trước khi save
+            p.sync_danh_hieu_before_save();
+            ps.setInt(29, p.danhhieu); // column "danh_hieu"
+            ps.setInt(30, p.hangdong_stage);
+            ps.setInt(31, p.num_phao_hoa);
+
             //
             result = ps.executeUpdate();
 
-            // Lưu tích tiêu ruby riêng biệt (tránh lệch chỉ số tham số trong câu lệnh
-            // chính)
+            // Lưu tích tiêu ruby + field CodeTemp vào cột thật
             StringBuilder sbTichTieu = new StringBuilder();
             for (int i = 0; i < p.claimedTichtieuRuby.size(); i++) {
                 sbTichTieu.append(p.claimedTichtieuRuby.get(i));
                 if (i < p.claimedTichtieuRuby.size() - 1)
                     sbTichTieu.append(",");
             }
+            JSONArray jsMiss = new JSONArray();
+            for (byte b : p.MissionCheck) {
+                jsMiss.add(b);
+            }
+            JSONArray jsTich = new JSONArray();
+            for (byte b : p.tichTieuCheck) {
+                jsTich.add(b);
+            }
+            JSONArray jsTieuCheck = new JSONArray();
+            for (byte b : p.tichTieuRubyCheck) {
+                jsTieuCheck.add(b);
+            }
             java.sql.PreparedStatement psTieu = connection.prepareStatement(
-                    "UPDATE `players` SET `tichtieu_ruby` = ?, `claimed_tichtieu_ruby` = ?, `thosan_bounty` = ?, `time_bounty_posted` = ? WHERE `id` = ?");
+                    "UPDATE `players` SET `tichtieu_ruby` = ?, `claimed_tichtieu_ruby` = ?, `thosan_bounty` = ?, `time_bounty_posted` = ?, "
+                            + "`num1` = ?, `num2` = ?, `num3` = ?, `num4` = ?, `num5` = ?, `tieu_ruby` = ?, "
+                            + "`missonCheck` = ?, `tichluycheck` = ?, `tich_tieu_check` = ? WHERE `id` = ?");
             psTieu.setInt(1, p.tichtieu_ruby);
             psTieu.setString(2, sbTichTieu.toString());
             psTieu.setInt(3, p.thosan_bounty);
             psTieu.setLong(4, p.time_bounty_posted);
-            psTieu.setInt(5, p.id);
+            psTieu.setInt(5, p.num1);
+            psTieu.setInt(6, p.num2);
+            psTieu.setInt(7, p.num3);
+            psTieu.setInt(8, p.num4);
+            psTieu.setInt(9, p.num5);
+            psTieu.setInt(10, p.tieu_ruby);
+            psTieu.setNString(11, jsMiss.toJSONString());
+            psTieu.setNString(12, jsTich.toJSONString());
+            psTieu.setNString(13, jsTieuCheck.toJSONString());
+            psTieu.setInt(14, p.id);
             psTieu.executeUpdate();
             psTieu.close();
         } catch (SQLException e) {
@@ -2490,11 +2569,17 @@ public class Player {
                 Service.pet(this, p0, false);
             }
         }
-        if (this.idDanhHieu >= 0) {
-            template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(this.idDanhHieu);
-            if (dh != null && dh.getEffectId() >= 0) {
-                Service.send_danhieu_effect(this, null, dh.getEffectId(), false);
-            }
+        // Gửi danh hiệu đang dùng cho toàn map thấy (protocol -102)
+        if (activities.DanhHieu.get_Id(this.id_danh_hieu_su_dung) != null) {
+            activities.DanhHieu dh = activities.DanhHieu.get_Id(this.id_danh_hieu_su_dung);
+            Message msgDH = new Message(-102);
+            msgDH.writer().writeByte(1);
+            msgDH.writer().writeByte(0);
+            msgDH.writer().writeInt(this.id);
+            msgDH.writer().writeInt(dh.idicon);
+            msgDH.writer().writeInt(dh.nframe);
+            this.map.send_msg_all_p(msgDH, null, true);
+            msgDH.cleanup();
         }
     }
 
@@ -2924,4 +3009,83 @@ public class Player {
         return null;
     }
 
+
+
+
+    public byte[] MissionCheck = new byte[10];
+    public int num1;
+    public int num2;
+    public int num3;
+    public int num4;
+    public int num5;
+    public int tieu_ruby;
+    public byte[] tichTieuRubyCheck = new byte[10];
+    public byte[] tichTieuCheck = new byte[10];
+    public byte danhhieu = -1;
+    public int id_danh_hieu_su_dung = -1;
+    public java.util.List<Integer> id_danh_hieu_da_so_huu = new java.util.ArrayList<>();
+
+    /** Đồng bộ listDanhHieu ↔ id_danh_hieu_da_so_huu và id đang đeo trước khi save. */
+    public void sync_danh_hieu_before_save() {
+        if (listDanhHieu == null) {
+            listDanhHieu = new ArrayList<>();
+        }
+        if (id_danh_hieu_da_so_huu == null) {
+            id_danh_hieu_da_so_huu = new ArrayList<>();
+        }
+        for (Integer idh : id_danh_hieu_da_so_huu) {
+            if (!listDanhHieu.contains(idh)) {
+                listDanhHieu.add(idh);
+            }
+        }
+        for (Integer idh : listDanhHieu) {
+            if (!id_danh_hieu_da_so_huu.contains(idh)) {
+                id_danh_hieu_da_so_huu.add(idh);
+            }
+        }
+        if (id_danh_hieu_su_dung >= 0) {
+            idDanhHieu = (short) id_danh_hieu_su_dung;
+            danhhieu = (byte) id_danh_hieu_su_dung;
+        } else if (idDanhHieu >= 0) {
+            id_danh_hieu_su_dung = idDanhHieu;
+            danhhieu = (byte) idDanhHieu;
+        } else {
+            idDanhHieu = -1;
+            id_danh_hieu_su_dung = -1;
+            danhhieu = -1;
+        }
+    }
+
+    public void add_danh_hieu(int id) {
+        if (listDanhHieu == null) {
+            listDanhHieu = new ArrayList<>();
+        }
+        if (id_danh_hieu_da_so_huu == null) {
+            id_danh_hieu_da_so_huu = new ArrayList<>();
+        }
+        if (!listDanhHieu.contains(id)) {
+            listDanhHieu.add(id);
+        }
+        if (!id_danh_hieu_da_so_huu.contains(id)) {
+            id_danh_hieu_da_so_huu.add(id);
+        }
+    }
+
+    public boolean check_id_danhhieu(int ids) {
+        if (id_danh_hieu_da_so_huu != null) {
+            for (int idd : id_danh_hieu_da_so_huu) {
+                if (idd == ids) {
+                    return true;
+                }
+            }
+        }
+        if (listDanhHieu != null) {
+            for (Integer idd : listDanhHieu) {
+                if (idd != null && idd.intValue() == ids) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

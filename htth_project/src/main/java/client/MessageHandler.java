@@ -3,6 +3,7 @@ package client;
 import java.io.IOException;
 
 import activities.Chat;
+import activities.DanhHieu;
 import activities.ChuyenHoa;
 import activities.Fight;
 import activities.Friend;
@@ -52,6 +53,12 @@ public class MessageHandler {
 
     public void process_msg(Message m) throws IOException {
         switch (m.cmd) {
+            case -102: {
+                if (conn.p != null) {
+                    DanhHieu.process(m, conn.p);
+                }
+                break;
+            }
             case -86: {
                 if (conn.p != null) {
                     Wanted_Chest.process(conn.p, m);
@@ -717,11 +724,16 @@ public class MessageHandler {
                             e.printStackTrace();
                         }
                     }
-                    if (conn.p.idDanhHieu >= 0) {
-                        template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(conn.p.idDanhHieu);
-                        if (dh != null && dh.getEffectId() >= 0) {
-                            Service.send_danhieu_effect(conn.p, conn.p, dh.getEffectId(), false);
-                        }
+                    if (DanhHieu.get_Id(conn.p.id_danh_hieu_su_dung) != null) {
+                        Player p0 = conn.p;
+                        Message msg = new Message(-102);
+                        msg.writer().writeByte(1);
+                        msg.writer().writeByte(0);
+                        msg.writer().writeInt(p0.id);
+                        msg.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).idicon);
+                        msg.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).nframe);
+                        p0.conn.addmsg(msg);
+                        msg.cleanup();
                     }
                     Service.getThanhTich(conn.p, conn.p);
                     conn.p.map.send_in4_obj_inmap(conn.p);

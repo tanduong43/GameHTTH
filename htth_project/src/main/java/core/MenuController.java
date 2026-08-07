@@ -37,7 +37,6 @@ import map.Npc;
 import map.Vgo;
 import template.Clan_member;
 import template.DaThanThoai;
-import template.DanhHieuTemplate;
 import template.EffTemplate;
 import template.ItemFashion;
 import template.ItemFashionP;
@@ -191,12 +190,12 @@ public class MenuController {
             send_dynamic_menu(p, type, "Nami",
                 new String[] { "Đổi Ruby", "Thành tích hằng ngày", "Tích lũy nạp thẻ", "Đấu giá",
                     "Điểm nạp tích lũy", "Chợ mua bán", "Danh Hiệu" },
-                new short[] { 132, 134, 110, 169, 170, 170, 152, -1 });
+                new short[] { 132, 134, 110, 169, 170, 152, 170 });
           } else {
             send_dynamic_menu(
                 p, type, "Nami", new String[] { "Đổi Ruby", "Thành tích hằng ngày",
                     "Tích lũy nạp thẻ", "Đấu giá", "Điểm nạp tích lũy", "Danh Hiệu" },
-                new short[] { 132, 134, 110, 169, 170, 170, -1 });
+                new short[] { 132, 134, 110, 169, 170, 170 });
           }
           break;
         }
@@ -635,36 +634,23 @@ public class MenuController {
           Menu_LucThuc(p, index);
           break;
         }
-        case 9090: { // Danh hieu selection
+        case 9090: { // Danh hieu selection (fallback menu text)
           if (index == 0) { // Bo danh hieu
-            if (p.idDanhHieu >= 0) {
-              DanhHieuTemplate oldDh = DanhHieuTemplate.get(p.idDanhHieu);
-              if (oldDh != null && oldDh.getEffectId() >= 0) {
-                Service.send_danhieu_effect(p, null, oldDh.getEffectId(), true); // remove effect trước
-              }
-            }
+            p.id_danh_hieu_su_dung = -1;
             p.idDanhHieu = -1;
-            p.update_info_to_all();
+            p.danhhieu = -1;
             Service.send_box_ThongBao_OK(p, "Đã cất danh hiệu thành công!");
           } else {
             int dhIndex = index - 1;
-            if (p.listDanhHieu != null && dhIndex >= 0 && dhIndex < p.listDanhHieu.size()) {
-              // Xóa effect cũ nếu có
-              if (p.idDanhHieu >= 0) {
-                DanhHieuTemplate oldDh = DanhHieuTemplate.get(p.idDanhHieu);
-                if (oldDh != null && oldDh.getEffectId() >= 0) {
-                  Service.send_danhieu_effect(p, null, oldDh.getEffectId(), true);
-                }
-              }
-              // Set danh hiệu mới
-              p.idDanhHieu = p.listDanhHieu.get(dhIndex).shortValue();
-              DanhHieuTemplate dh = DanhHieuTemplate.get(p.idDanhHieu);
-              if (dh != null) {
-                Service.send_box_ThongBao_OK(p, "Đã đổi danh hiệu thành: " + dh.name);
-                if (dh.getEffectId() >= 0) {
-                  // Service.send_danhieu_effect(p, null, dh.getEffectId(), false); // thêm effect
-                  // mới (bỏ vì update_info_to_all đã gọi)
-                }
+            if (dhIndex >= 0 && dhIndex < activities.DanhHieu.ENY.size()) {
+              activities.DanhHieu dh = activities.DanhHieu.ENY.get(dhIndex);
+              if (p.check_id_danhhieu(dh.id)) {
+                  p.id_danh_hieu_su_dung = dh.id;
+                  p.idDanhHieu = (short) dh.id;
+                  p.danhhieu = (byte) dh.id;
+                  Service.send_box_ThongBao_OK(p, "Đã đổi danh hiệu thành: " + dh.Name);
+              } else {
+                  Service.send_box_ThongBao_OK(p, "Không có danh hiệu này!");
               }
             }
           }
@@ -1983,21 +1969,8 @@ public class MenuController {
         }
         case 5:
         case 6: {
-          if (p.listDanhHieu == null || p.listDanhHieu.isEmpty()) {
-            Service.send_box_ThongBao_OK(p, "Bạn chưa có danh hiệu nào.");
-            return;
-          }
-          String[] menu = new String[p.listDanhHieu.size() + 1];
-          menu[0] = "Bỏ danh hiệu";
-          for (int i = 0; i < p.listDanhHieu.size(); i++) {
-            DanhHieuTemplate dh = DanhHieuTemplate.get(p.listDanhHieu.get(i).shortValue());
-            if (dh != null) {
-              menu[i + 1] = dh.name + (p.idDanhHieu == dh.id ? " (Đang dùng)" : "");
-            } else {
-              menu[i + 1] = "Lỗi";
-            }
-          }
-          send_dynamic_menu(p, 9090, "Danh Hiệu", menu, null);
+          // UI danh hiệu chuẩn CodeTemp (Message -102) — hiện tất cả từ bảng danhhieu
+          activities.DanhHieu.show(p);
           break;
         }
 
@@ -3191,16 +3164,7 @@ public class MenuController {
   }
 
   public static void Menu_DanhHieu(Player p, byte type) throws IOException {
-    if (p.listDanhHieu == null) {
-      p.listDanhHieu = new java.util.ArrayList<>();
-    }
-    String[] name = new String[p.listDanhHieu.size() + 1];
-    name[0] = "Bỏ danh hiệu";
-    for (int i = 0; i < p.listDanhHieu.size(); i++) {
-      template.DanhHieuTemplate dh = template.DanhHieuTemplate.get(p.listDanhHieu.get(i).shortValue());
-      name[i + 1] = (dh != null) ? dh.name : "Danh hiệu " + p.listDanhHieu.get(i);
-    }
-    send_dynamic_menu(p, 9090, "Danh Hiệu", name, null);
+    activities.DanhHieu.show(p);
   }
 
 }
