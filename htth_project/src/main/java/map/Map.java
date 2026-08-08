@@ -4439,26 +4439,40 @@ public class Map implements Runnable {
             Service.getThanhTich(p0, p);
             Service.charWearing(p0, p, false);
             // Gửi danh hiệu đang dùng của p0 cho p thấy
-            if (DanhHieu.get_Id(p0.id_danh_hieu_su_dung) != null) {
-                Message msgDH = new Message(-102);
-                msgDH.writer().writeByte(1);
-                msgDH.writer().writeByte(0);
-                msgDH.writer().writeInt(p0.id);
-                msgDH.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).idicon);
-                msgDH.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).nframe);
-                p.conn.addmsg(msgDH);
-                msgDH.cleanup();
+            try {
+                if (DanhHieu.get_Id(p0.id_danh_hieu_su_dung) != null) {
+                    System.out.println("[DanhHieu Debug] Map send title of " + p0.name + " to " + p.name + " start");
+                    Message msgDH = new Message(-102);
+                    msgDH.writer().writeByte(1);
+                    msgDH.writer().writeByte(0);
+                    msgDH.writer().writeInt(p0.id);
+                    msgDH.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).idicon);
+                    msgDH.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).nframe);
+                    p.conn.addmsg(msgDH);
+                    msgDH.cleanup();
+                    System.out.println("[DanhHieu Debug] Map send title of " + p0.name + " to " + p.name + " successful");
+                }
+            } catch (Exception e) {
+                System.err.println("[DanhHieu Error] Error map send title 1: " + e.getMessage());
+                e.printStackTrace();
             }
             // Gửi danh hiệu đang dùng của p cho p0 thấy
-            if (DanhHieu.get_Id(p.id_danh_hieu_su_dung) != null) {
-                Message msgDH2 = new Message(-102);
-                msgDH2.writer().writeByte(1);
-                msgDH2.writer().writeByte(0);
-                msgDH2.writer().writeInt(p.id);
-                msgDH2.writer().writeInt(DanhHieu.get_Id(p.id_danh_hieu_su_dung).idicon);
-                msgDH2.writer().writeInt(DanhHieu.get_Id(p.id_danh_hieu_su_dung).nframe);
-                p0.conn.addmsg(msgDH2);
-                msgDH2.cleanup();
+            try {
+                if (DanhHieu.get_Id(p.id_danh_hieu_su_dung) != null) {
+                    System.out.println("[DanhHieu Debug] Map send title of " + p.name + " to " + p0.name + " start");
+                    Message msgDH2 = new Message(-102);
+                    msgDH2.writer().writeByte(1);
+                    msgDH2.writer().writeByte(0);
+                    msgDH2.writer().writeInt(p.id);
+                    msgDH2.writer().writeInt(DanhHieu.get_Id(p.id_danh_hieu_su_dung).idicon);
+                    msgDH2.writer().writeInt(DanhHieu.get_Id(p.id_danh_hieu_su_dung).nframe);
+                    p0.conn.addmsg(msgDH2);
+                    msgDH2.cleanup();
+                    System.out.println("[DanhHieu Debug] Map send title of " + p.name + " to " + p0.name + " successful");
+                }
+            } catch (Exception e) {
+                System.err.println("[DanhHieu Error] Error map send title 2: " + e.getMessage());
+                e.printStackTrace();
             }
             //
             this.update_boat(p0, p, false);

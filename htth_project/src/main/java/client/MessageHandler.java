@@ -724,16 +724,23 @@ public class MessageHandler {
                             e.printStackTrace();
                         }
                     }
-                    if (DanhHieu.get_Id(conn.p.id_danh_hieu_su_dung) != null) {
-                        Player p0 = conn.p;
-                        Message msg = new Message(-102);
-                        msg.writer().writeByte(1);
-                        msg.writer().writeByte(0);
-                        msg.writer().writeInt(p0.id);
-                        msg.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).idicon);
-                        msg.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).nframe);
-                        p0.conn.addmsg(msg);
-                        msg.cleanup();
+                    try {
+                        if (DanhHieu.get_Id(conn.p.id_danh_hieu_su_dung) != null) {
+                            System.out.println("[DanhHieu Debug] MessageHandler send title for: " + conn.p.name + " start");
+                            Player p0 = conn.p;
+                            Message msg = new Message(-102);
+                            msg.writer().writeByte(1);
+                            msg.writer().writeByte(0);
+                            msg.writer().writeInt(p0.id);
+                            msg.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).idicon);
+                            msg.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).nframe);
+                            p0.conn.addmsg(msg);
+                            msg.cleanup();
+                            System.out.println("[DanhHieu Debug] MessageHandler send title for: " + conn.p.name + " successful");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[DanhHieu Error] Error MessageHandler send title: " + e.getMessage());
+                        e.printStackTrace();
                     }
                     Service.getThanhTich(conn.p, conn.p);
                     conn.p.map.send_in4_obj_inmap(conn.p);

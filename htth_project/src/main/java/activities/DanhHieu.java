@@ -22,12 +22,15 @@ public class DanhHieu {
     public int coint;
     public ArrayList<Option> op = new ArrayList<>();
 
-    /** Mở UI danh hiệu (Message -102 type 0) — hiện tất cả title trong bảng danhhieu. */
+    /**
+     * Mở UI danh hiệu (Message -102 type 0) — hiện tất cả title trong bảng
+     * danhhieu.
+     */
     public static void show(Player p) {
         try {
             Message msg = new Message(-102);
             msg.writer().writeByte(0);
-            msg.writer().writeByte(ENY.size());         // byte, không phải short
+            msg.writer().writeByte(ENY.size()); // byte, không phải short
             for (DanhHieu danhHieu : ENY) {
                 msg.writer().writeInt(danhHieu.id);
                 msg.writer().writeUTF(danhHieu.Name);

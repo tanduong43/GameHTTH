@@ -159,6 +159,14 @@ public class Session implements Runnable {
 
     private void send_msg(Message msg) throws IOException {
         byte[] data = msg.getData();
+        // Debug log cho packet -102 (Danh Hiệu)
+        if (msg.cmd == -102) {
+            int dataLen = (data != null) ? data.length : 0;
+            System.out.println("[DanhHieu Packet] send_msg cmd=-102, dataSize=" + dataLen
+                    + ", sendKeyComplete=" + sendKeyComplete
+                    + ", connected=" + connected
+                    + ", player=" + (p != null ? p.name : "null"));
+        }
         if (sendKeyComplete) {
             byte b = writeKey(msg.cmd);
             dos.writeByte(b);
@@ -168,7 +176,7 @@ public class Session implements Runnable {
         if (data != null) {
             int size = data.length;
             if (sendKeyComplete) {
-                if ((msg.cmd == -39) || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || msg.cmd == -102) {
+                if ((msg.cmd == -39) || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || (msg.cmd == -102 && this.zoomlv > 1)) {
                     dos.writeByte(writeKey((byte) (size >> 24)));
                     dos.writeByte(writeKey((byte) (size >> 16)));
                     dos.writeByte(writeKey((byte) (size >> 8)));
@@ -179,7 +187,7 @@ public class Session implements Runnable {
                     int byte2 = writeKey((byte) (size));
                     dos.writeByte(byte2);
                 }
-            } else if (msg.cmd == -39 || msg.cmd == -102) {
+            } else if (msg.cmd == -39 || (msg.cmd == -102 && this.zoomlv > 1)) {
                 dos.writeInt(size);
             } else {
                 final int byte1 = (byte) (size >> 8);

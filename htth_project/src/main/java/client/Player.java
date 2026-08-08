@@ -2570,16 +2570,23 @@ public class Player {
             }
         }
         // Gửi danh hiệu đang dùng cho toàn map thấy (protocol -102)
-        if (activities.DanhHieu.get_Id(this.id_danh_hieu_su_dung) != null) {
-            activities.DanhHieu dh = activities.DanhHieu.get_Id(this.id_danh_hieu_su_dung);
-            Message msgDH = new Message(-102);
-            msgDH.writer().writeByte(1);
-            msgDH.writer().writeByte(0);
-            msgDH.writer().writeInt(this.id);
-            msgDH.writer().writeInt(dh.idicon);
-            msgDH.writer().writeInt(dh.nframe);
-            this.map.send_msg_all_p(msgDH, null, true);
-            msgDH.cleanup();
+        try {
+            if (activities.DanhHieu.get_Id(this.id_danh_hieu_su_dung) != null) {
+                System.out.println("[DanhHieu Debug] update_info_to_all start for: " + this.name + ", title=" + this.id_danh_hieu_su_dung);
+                activities.DanhHieu dh = activities.DanhHieu.get_Id(this.id_danh_hieu_su_dung);
+                Message msgDH = new Message(-102);
+                msgDH.writer().writeByte(1);
+                msgDH.writer().writeByte(0);
+                msgDH.writer().writeInt(this.id);
+                msgDH.writer().writeInt(dh.idicon);
+                msgDH.writer().writeInt(dh.nframe);
+                this.map.send_msg_all_p(msgDH, null, true);
+                msgDH.cleanup();
+                System.out.println("[DanhHieu Debug] update_info_to_all successful for: " + this.name);
+            }
+        } catch (Exception e) {
+            System.err.println("[DanhHieu Error] update_info_to_all exception: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
