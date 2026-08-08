@@ -321,6 +321,11 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
+                                    if (Math.abs(member.x - p.x) > 100 || Math.abs(member.y - p.y) > 100) {
+                                        Service.send_box_ThongBao_OK(p,
+                                                "Thành viên " + member.name + " đứng quá xa bạn!");
+                                        return;
+                                    }
                                     // if (member.time_namie >= 10) {
                                     //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
                                     //             + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 10 lần)!");

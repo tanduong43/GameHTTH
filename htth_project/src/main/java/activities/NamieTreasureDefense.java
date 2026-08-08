@@ -48,71 +48,30 @@ public class NamieTreasureDefense extends Dungeon {
      * ID bản đồ instance dùng riêng cho phó bản này (clone từ map 45 - Đại bản
      * doanh).
      */
-    public static final int MAP_ID = 513;
+    public static final int MAP_ID = 62;
 
     /** Map gốc để clone. */
-    public static final int TEMPLATE_MAP_ID = 45;
+    // public static final int TEMPLATE_MAP_ID = 45;
 
     /** Toạ độ đặt rương kho báu (điểm mà quân địch nhắm tới). */
-    public static final short TREASURE_X = 350;
+    public static final short TREASURE_X = 540;
     public static final short TREASURE_Y = 260;
 
     /** Tổng số đợt tấn công. */
     public static final int TOTAL_WAVES = 20;
 
     /** Máu tối đa của rương kho báu. */
-    public static final int TREASURE_HP_MAX = 100_000;
+    public static final int TREASURE_HP_MAX = 1000;
 
-
-    /**
-     * Sát thương rương phải chịu mỗi khi 1 quái "áp sát" thành công (không bị giết
-     * kịp).
-     */
-    public static final int BREACH_DAMAGE = 4_000;
-
-    /**
-     * Thời gian (ms) 1 quái cần để áp sát rương nếu không bị tiêu diệt, giảm dần
-     * theo đợt.
-     */
-    public static final long BASE_TRAVEL_MS = 25_000L;
-    public static final long MIN_TRAVEL_MS = 12_000L;
-
-    /** Thời gian nghỉ giữa 2 đợt (ms). */
-    public static final long WAVE_GAP_MS = 4_000L;
+    /** Thời gian nghỉ giữa đợt đầu tiên (ms). */
+    public static final long WAVE_GAP_MS_FIRST = 11_000L;
+    /** Thời gian nghỉ giữa các đợt tiếp theo (ms). */
+    public static final long WAVE_GAP_MS = 120_000L;
 
     /**
      * Giới hạn tổng thời gian toàn bộ phó bản (an toàn, tránh treo vô thời hạn).
      */
-    public static final long TOTAL_TIME_LIMIT_MS = 20 * 60_000L;
-
-    /**
-     * ID mob_template (MobTemplate.ENTRYS) dùng cho từng đợt.
-     * TODO(Dylan): thay các ID placeholder này bằng ID lính hải quân/hải tặc
-     * thật trong danh sách MobTemplate của server (giống cách Boss.java dùng
-     * mob_id 135-140 cho các boss).
-     */
-    public static final int[][] WAVE_MOB_TEMPLATE_IDS = {
-            { 21, 21, 21, 22 }, // wave 1 (dễ)
-            { 21, 22, 22, 23 }, // wave 2
-            { 22, 23, 23, 24, 24 }, // wave 3
-            { 23, 24, 24, 25, 25, 25 }, // wave 4
-            { 25, 25, 26, 26, 26, 26, 27 }, // wave 5 - boss lính chỉ huy
-            { 21, 21, 21, 22, 22 }, // wave 6
-            { 22, 22, 22, 23, 23 }, // wave 7
-            { 22, 23, 23, 24, 24, 24 }, // wave 8
-            { 23, 24, 24, 25, 25, 25 }, // wave 9
-            { 25, 25, 26, 26, 26, 26, 27, 27 }, // wave 10 - mid-boss
-            { 23, 23, 24, 24, 24, 25 }, // wave 11
-            { 24, 24, 25, 25, 25, 26 }, // wave 12
-            { 24, 25, 25, 26, 26, 26, 27 }, // wave 13
-            { 25, 26, 26, 27, 27, 27, 27 }, // wave 14
-            { 26, 26, 27, 27, 27, 27, 27, 27 }, // wave 15 - mid-boss
-            { 25, 25, 26, 26, 27, 27, 27, 27 }, // wave 16
-            { 26, 26, 26, 27, 27, 27, 27, 27 }, // wave 17
-            { 26, 27, 27, 27, 27, 27, 27, 27 }, // wave 18
-            { 27, 27, 27, 27, 27, 27, 27, 27, 27 }, // wave 19
-            { 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27 } // wave 20 - final boss wave
-    };
+    public static final long TOTAL_TIME_LIMIT_MS = 60 * 60_000L;
 
     // ================== TRẠNG THÁI RUNTIME ==================
 
@@ -139,6 +98,10 @@ public class NamieTreasureDefense extends Dungeon {
     private final AtomicBoolean waveCleared = new AtomicBoolean(false);
     private volatile ScheduledFuture<?> currentWaveFuture = null;
 
+    public long lastTreasureDamageTime = 0;
+    public int partyMaxLevel = 1;
+    public int partyMaxDamage = 10;
+
     /** Thời điểm 1 quái sẽ áp sát rương nếu chưa bị giết (key = mob.index). */
     private final java.util.Map<Integer, Long> mobBreachTime = new java.util.HashMap<>();
     /**
@@ -151,9 +114,23 @@ public class NamieTreasureDefense extends Dungeon {
         this.partyMembers.addAll(members);
         this.leader = leader;
         this.mode = 0;
+        
+        for (Player p : members) {
+            Player pOnline = Map.get_player_by_name_allmap(p.name);
+            if (pOnline != null) {
+                if (pOnline.level > this.partyMaxLevel) {
+                    this.partyMaxLevel = pOnline.level;
+                }
+                int pDame = pOnline.body.get_dame(true);
+                if (pDame > this.partyMaxDamage) {
+                    this.partyMaxDamage = pDame;
+                }
+            }
+        }
+        
         ACTIVE_DEFENSES.add(this);
         System.out.println("[NamieDefense] Created for leader " + leader.name
-                + ", party size=" + members.size());
+                + ", party size=" + members.size() + ", maxLv=" + this.partyMaxLevel + ", maxDame=" + this.partyMaxDamage);
     }
 
     public static boolean isDefenseMap(int mapId) {
@@ -247,8 +224,19 @@ public class NamieTreasureDefense extends Dungeon {
         }
 
         this.active = true;
-        sendLocalNotice("Hải quân đang tiến đến! Hãy bảo vệ kho báu của Namie!");
-        spawnWave(0);
+        sendLocalNotice("Hải quân đang tiến đến! Đợt 1 sẽ bắt đầu sau 11 giây.");
+        
+        this.isTransitioning = true;
+        this.transitionEndTime = System.currentTimeMillis() + WAVE_GAP_MS_FIRST;
+        this.currentWaveFuture = WAVE_SCHEDULER.schedule(() -> {
+            try {
+                if (!this.finished && this.isTransitioning) {
+                    completeWaveTransition();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, WAVE_GAP_MS_FIRST, TimeUnit.MILLISECONDS);
     }
 
     private synchronized void spawnWave(int waveIndex) {
@@ -265,32 +253,42 @@ public class NamieTreasureDefense extends Dungeon {
             this.currentWaveFuture = null;
         }
 
-        long travelMs = Math.max(MIN_TRAVEL_MS, BASE_TRAVEL_MS - waveIndex * 3_000L);
         long now = System.currentTimeMillis();
-
         int mobIndex = -2 - (waveIndex * 100); // tách biệt index giữa các đợt để tránh trùng
         List<Mob> waveMobs = new ArrayList<>();
 
-        if (waveIndex == 19) {
-            // Đợt 20: Chỉ xuất hiện 3 boss Along với 5M HP
-            for (int i = 0; i < 3; i++) {
-                MobTemplate mt = MobTemplate.ENTRYS.get(36); // Along
-                if (mt == null)
-                    continue;
+        // Select a random lane
+        int[][] lanes = {
+            {60, 205},
+            {60, 335},
+            {1050, 205},
+            {1050, 335}
+        };
+        int laneIndex = Util.random(lanes.length);
+        int spawnX = lanes[laneIndex][0];
+        int spawnY = lanes[laneIndex][1];
+        String[] laneNames = {
+            "Đường trên bên trái",
+            "Đường dưới bên trái",
+            "Đường trên bên phải",
+            "Đường dưới bên phải"
+        };
+        String laneName = laneNames[laneIndex];
 
+        int templateId = (waveIndex == 19) ? 36 : 5; 
+        MobTemplate mt = MobTemplate.ENTRYS.get(templateId);
+
+        if (mt != null) {
+            for (int i = 0; i < 5; i++) {
                 Mob mob = new Mob();
                 mob.mob_template = mt;
-                double angle = Util.random(360) * Math.PI / 180.0;
-                int radius = 180 + Util.random(60);
-                int spawnX = TREASURE_X + (int) (Math.cos(angle) * radius);
-                int spawnY = TREASURE_Y + (int) (Math.sin(angle) * radius);
-                spawnX = Math.max(20, Math.min(mapTemplateSafeMaxW(), spawnX));
-                spawnY = Math.max(20, Math.min(mapTemplateSafeMaxH(), spawnY));
-                mob.x = (short) spawnX;
-                mob.y = (short) spawnY;
-                mob.hp_max = 5_000_000;
+                mob.x = (short) (spawnX + Util.random(-20, 20));
+                mob.y = (short) (spawnY + Util.random(-20, 20));
+                
+                int baseHp = this.partyMaxDamage * 6;
+                mob.hp_max = (int)(baseHp + baseHp * 0.2 * waveIndex);
                 mob.hp = mob.hp_max;
-                mob.level = 100;
+                mob.level = (short) this.partyMaxLevel;
                 mob.isdie = false;
                 mob.id_target = -1;
                 mob.index = mobIndex--;
@@ -298,78 +296,12 @@ public class NamieTreasureDefense extends Dungeon {
                 mob.boss_info = null;
                 this.mobs.add(mob);
                 waveMobs.add(mob);
-                mobBreachTime.put(mob.index, now + travelMs);
-            }
-        } else {
-            // Các đợt từ 1 đến 19: Số lượng quái cố định là 30
-            int[] templateIds = WAVE_MOB_TEMPLATE_IDS[Math.min(waveIndex, WAVE_MOB_TEMPLATE_IDS.length - 1)];
-
-            // Xác định xem đợt này có boss không (Đợt 5, 10, 15 tương ứng waveIndex 4, 9,
-            // 14)
-            int bossTemplateId = -1;
-            int bossHp = 0;
-            if (waveIndex == 4) {
-                bossTemplateId = 16; // Buggi (Đợt 5)
-                bossHp = 100_000;
-            } else if (waveIndex == 9) {
-                bossTemplateId = 23; // Kurol (Đợt 10)
-                bossHp = 250_000;
-            } else if (waveIndex == 14) {
-                bossTemplateId = 29; // Don Crey (Đợt 15)
-                bossHp = 500_000;
-            }
-
-            int spawnCount = 30;
-            for (int i = 0; i < spawnCount; i++) {
-                int templateId;
-                boolean isBoss = false;
-
-                if (bossTemplateId != -1 && i == 0) {
-                    // Spawn boss ở vị trí đầu tiên
-                    templateId = bossTemplateId;
-                    isBoss = true;
-                } else {
-                    // Spawn quái thường ngẫu nhiên từ template của đợt
-                    templateId = templateIds[Util.random(templateIds.length)];
-                }
-
-                MobTemplate mt = MobTemplate.ENTRYS.get(templateId);
-                if (mt == null)
-                    continue;
-
-                Mob mob = new Mob();
-                mob.mob_template = mt;
-                double angle = Util.random(360) * Math.PI / 180.0;
-                int radius = 180 + Util.random(60);
-                int spawnX = TREASURE_X + (int) (Math.cos(angle) * radius);
-                int spawnY = TREASURE_Y + (int) (Math.sin(angle) * radius);
-                spawnX = Math.max(20, Math.min(mapTemplateSafeMaxW(), spawnX));
-                spawnY = Math.max(20, Math.min(mapTemplateSafeMaxH(), spawnY));
-                mob.x = (short) spawnX;
-                mob.y = (short) spawnY;
-
-                if (isBoss) {
-                    mob.hp_max = bossHp;
-                    mob.level = (short) Math.min(100, mt.level + waveIndex * 2 + 5);
-                } else {
-                    mob.hp_max = mt.hp_max + waveIndex * 3_000;
-                    mob.level = (short) Math.min(100, mt.level + waveIndex * 2);
-                }
-                mob.hp = mob.hp_max;
-                mob.isdie = false;
-                mob.id_target = -1;
-                mob.index = mobIndex--;
-                mob.map = this.currentMap;
-                mob.boss_info = null;
-                this.mobs.add(mob);
-                waveMobs.add(mob);
-                mobBreachTime.put(mob.index, now + travelMs);
             }
         }
 
         System.out.println("[NamieDefense] Wave " + (waveIndex + 1) + "/" + TOTAL_WAVES
-                + " spawned " + waveMobs.size() + " mobs, travelMs=" + travelMs);
-        sendLocalNotice("Đợt tấn công " + (waveIndex + 1) + "/" + TOTAL_WAVES + " đã xuất hiện!");
+                + " spawned 5 mobs at " + laneName);
+        sendLocalNotice("Quái vật đang tiến đến từ " + laneName + "!");
 
         // Cập nhật bộ đếm thời gian hiển thị Tầng hiện tại cho tất cả người chơi
         for (Player member : this.partyMembers) {
@@ -443,95 +375,95 @@ public class NamieTreasureDefense extends Dungeon {
             }
         }
 
-        // 3. Xử lý các mob "áp sát" rương (chưa bị giết kịp thời)
         long now = System.currentTimeMillis();
-        List<Integer> resolved = new ArrayList<>();
-        for (java.util.Map.Entry<Integer, Long> entry : mobBreachTime.entrySet()) {
-            int idx = entry.getKey();
-            Mob mob = findMobByIndex(idx);
-            if (mob == null || mob.isdie) {
-                resolved.add(idx);
-                continue;
-            }
-            if (now >= entry.getValue()) {
-                // Quân địch áp sát thành công -> gây sát thương rương, biến mất khỏi bản đồ
-                this.treasureHp = Math.max(0, this.treasureHp - BREACH_DAMAGE);
-                mob.isdie = true;
-                try {
-                    map.remove_obj(mob.index, 1);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                resolved.add(idx);
-                sendLocalNotice("Kho báu bị tập kích! Rương mất " + BREACH_DAMAGE
-                        + " máu (còn " + treasurePercent() + "%)");
-                if (this.treasureHp <= 0) {
-                    failDefense("Kho báu Namie đã bị cướp mất!");
-                    return;
-                }
-            }
-        }
-        for (int idx : resolved) {
-            mobBreachTime.remove(idx);
-        }
 
-        // 4. Chuyển đợt nếu đang trong thời gian chờ
+        // 3. Chuyển đợt nếu đang trong thời gian chờ (hồi sinh và hồi máu)
         if (this.isTransitioning) {
+            for (Player member : this.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                        && pOnline.map.equals(this.currentMap)) {
+                    if (pOnline.isdie) {
+                        pOnline.isdie = false;
+                        pOnline.hp = pOnline.body.get_hp_max(true);
+                        pOnline.mp = pOnline.body.get_mp_max(true);
+                        try {
+                            Service.use_potion(pOnline, 0, pOnline.hp);
+                            Service.use_potion(pOnline, 1, pOnline.mp);
+                        } catch (Exception ignored) { }
+                    } else if (pOnline.hp < pOnline.body.get_hp_max(true) || pOnline.mp < pOnline.body.get_mp_max(true)) {
+                        pOnline.hp = pOnline.body.get_hp_max(true);
+                        pOnline.mp = pOnline.body.get_mp_max(true);
+                        try {
+                            Service.use_potion(pOnline, 0, pOnline.hp);
+                            Service.use_potion(pOnline, 1, pOnline.mp);
+                        } catch (Exception ignored) { }
+                    }
+                }
+            }
+
             if (now >= this.transitionEndTime) {
                 completeWaveTransition();
             }
             return;
         }
 
-        // 5. Kiểm tra đợt hiện tại đã sạch quái chưa (chết hết hoặc áp sát hết)
+        // 4. Kiểm tra đợt hiện tại đã sạch quái chưa
         int aliveMobs = 0;
+        int mobsAtTreasure = 0;
         for (Mob mob : this.mobs) {
             if (mob.map.equals(map) && !mob.isdie) {
                 aliveMobs++;
+                if (Math.abs(mob.x - 540) <= 60 && Math.abs(mob.y - 260) <= 60) {
+                    mobsAtTreasure++;
+                }
             }
         }
+
+        // 5. Trừ máu nhà nếu có quái đến gần
+        if (mobsAtTreasure > 0 && now - this.lastTreasureDamageTime >= 2500L) {
+            this.lastTreasureDamageTime = now;
+            this.treasureHp = Math.max(0, this.treasureHp - mobsAtTreasure);
+            sendLocalNotice("Kho báu đang bị tấn công! Bị trừ " + mobsAtTreasure + " HP (Còn " + this.treasureHp + " HP)");
+            if (this.treasureHp <= 0) {
+                failDefense("Kho báu Namie đã bị cướp mất!");
+                return;
+            }
+        }
+
+        // 6. Xong wave nếu quái chết hết
         if (aliveMobs == 0) {
-            // không còn quái sống VÀ không còn quái đang chờ áp sát của đợt hiện tại
-            boolean stillWaitingBreach = false;
-            for (Integer idx : mobBreachTime.keySet()) {
-                Mob m = findMobByIndex(idx);
-                if (m != null && !m.isdie) {
-                    stillWaitingBreach = true;
-                    break;
-                }
+            if (!waveCleared.compareAndSet(false, true)) {
+                return;
             }
-            if (!stillWaitingBreach) {
-                if (!waveCleared.compareAndSet(false, true)) {
-                    return;
-                }
-                this.isTransitioning = true;
-                this.transitionEndTime = now + WAVE_GAP_MS;
-                int waveNum = currentWaveIndex + 1;
-                sendLocalNotice("Đã đẩy lui đợt " + waveNum + "/" + TOTAL_WAVES + "!");
-                if (waveNum == 5 || waveNum == 10 || waveNum == 15 || waveNum == 20) {
-                    giveWaveReward(waveNum);
-                }
-                for (Player member : this.partyMembers) {
-                    Player pOnline = Map.get_player_by_name_allmap(member.name);
-                    if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
-                            && pOnline.map.equals(this.currentMap)) {
-                        try {
-                            Service.send_eff(pOnline, 23, 0);
-                        } catch (Exception e) {
-                            // ignore
-                        }
-                    }
-                }
-                this.currentWaveFuture = WAVE_SCHEDULER.schedule(() -> {
+            this.isTransitioning = true;
+            this.transitionEndTime = now + WAVE_GAP_MS;
+            int waveNum = currentWaveIndex + 1;
+            sendLocalNotice("Đã đẩy lui đợt " + waveNum + "/" + TOTAL_WAVES + "!");
+            if (waveNum == 5 || waveNum == 10 || waveNum == 15 || waveNum == 20) {
+                giveWaveReward(waveNum);
+            }
+            for (Player member : this.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                        && pOnline.map.equals(this.currentMap)) {
                     try {
-                        if (!this.finished && this.isTransitioning) {
-                            completeWaveTransition();
-                        }
+                        Service.send_eff(pOnline, 23, 0);
+                        Service.send_time_cool_down(pOnline, this.transitionEndTime, "Đợt tiếp theo", 2);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        // ignore
                     }
-                }, WAVE_GAP_MS, TimeUnit.MILLISECONDS);
+                }
             }
+            this.currentWaveFuture = WAVE_SCHEDULER.schedule(() -> {
+                try {
+                    if (!this.finished && this.isTransitioning) {
+                        completeWaveTransition();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, WAVE_GAP_MS, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -582,28 +514,31 @@ public class NamieTreasureDefense extends Dungeon {
         this.finished = true;
         this.active = false;
 
-        int stars = treasureHp >= TREASURE_HP_MAX * 0.8 ? 3
-                : treasureHp >= TREASURE_HP_MAX * 0.4 ? 2
-                        : 1;
-
         System.out.println("[NamieDefense] Completed! treasureHp=" + treasureHp
-                + "/" + TREASURE_HP_MAX + " (" + stars + " sao)");
+                + "/" + TREASURE_HP_MAX);
 
         for (Player member : this.partyMembers) {
             Player pOnline = Map.get_player_by_name_allmap(member.name);
             if (pOnline != null) {
                 try {
                     Service.send_box_ThongBao_OK(pOnline,
-                            "Xin chúc mừng! Bạn đã bảo vệ thành công kho báu Namie (" + stars
-                                    + " sao, còn " + treasurePercent() + "% máu rương)!");
+                            "Xin chúc mừng! Bạn đã bảo vệ thành công kho báu Namie (còn " + treasurePercent() + "% máu rương)! Sẽ tự động thoát sau 10 giây.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                giveRewards(pOnline, stars);
-                teleportBack(pOnline);
+                giveRewards(pOnline, 3);
             }
         }
-        cleanup();
+        
+        WAVE_SCHEDULER.schedule(() -> {
+            for (Player member : this.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.dungeon == this) {
+                    teleportBack(pOnline);
+                }
+            }
+            cleanup();
+        }, 10, TimeUnit.SECONDS);
     }
 
     public synchronized void failDefense(String reason) {
@@ -620,22 +555,30 @@ public class NamieTreasureDefense extends Dungeon {
             if (pOnline != null) {
                 if (reason != null && !reason.isEmpty()) {
                     try {
-                        Service.send_box_ThongBao_OK(pOnline, reason);
+                        Service.send_box_ThongBao_OK(pOnline, reason + "\nSẽ tự động thoát sau 10 giây.");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-                teleportBack(pOnline);
             }
         }
-        cleanup();
+        
+        WAVE_SCHEDULER.schedule(() -> {
+            for (Player member : this.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.dungeon == this) {
+                    teleportBack(pOnline);
+                }
+            }
+            cleanup();
+        }, 10, TimeUnit.SECONDS);
     }
 
     private void giveRewards(Player p, int stars) {
         try {
             List<GiftBox> list_gift = new ArrayList<>();
 
-            int beri = stars == 3 ? 50_000 : stars == 2 ? 30_000 : 15_000;
+            int beri = 100_000 + Util.random(200_000);
             ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
             if (it_beri != null) {
                 GiftBox gb = new GiftBox();
@@ -648,28 +591,26 @@ public class NamieTreasureDefense extends Dungeon {
                 list_gift.add(gb);
             }
 
-            int qty = stars == 3 ? 10 : stars == 2 ? 5 : 2;
-            int[][] items7 = {
-                    { 4, qty }, // Bột vàng
-                    { 3, qty }, // Bột tím
-                    { 1, qty * 2 }, // Bột cường hoá
-            };
-            for (int[] item : items7) {
-                ItemTemplate7 it7 = ItemTemplate7.get_it_by_id(item[0]);
+            if (Util.random(100) < 30) {
+                ItemTemplate7 it7 = ItemTemplate7.get_it_by_id(158);
                 if (it7 != null) {
                     GiftBox gb = new GiftBox();
                     gb.id = it7.id;
                     gb.type = 7;
                     gb.name = it7.name;
                     gb.icon = it7.icon;
-                    gb.num = item[1];
+                    gb.num = 1;
                     gb.color = 0;
                     list_gift.add(gb);
                 }
             }
 
             if (!list_gift.isEmpty()) {
-                Service.send_gift(p, 1, "Bảo vệ kho báu Namie", "Phần thưởng (" + stars + " sao)", list_gift, true);
+                Service.send_gift(p, 1, "Bảo vệ kho báu Namie", "Phần thưởng chiến thắng", list_gift, true);
+                if (p.daily_achievements[2] == 0) {
+                    p.daily_achievements[2] = 1;
+                    Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Bảo vệ Namie");
+                }
             }
         } catch (Exception e) {
             System.out.println("[NamieDefense] ERROR giving rewards to " + p.name + ": " + e.getMessage());
@@ -743,10 +684,6 @@ public class NamieTreasureDefense extends Dungeon {
                 try {
                     Service.send_gift(pOnline, 1, "Bảo vệ kho báu Namie",
                             "Thưởng đợt " + waveNum, list_gift, true);
-                    if (pOnline.daily_achievements[2] == 0) {
-                        pOnline.daily_achievements[2] = 1;
-                        Service.send_box_ThongBao_OK(pOnline, "Hoàn thành Thành tích hằng ngày: Bảo vệ Namie");
-                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
