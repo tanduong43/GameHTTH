@@ -44,14 +44,8 @@ public class NamieTreasureDefense extends Dungeon {
     // ================== CẤU HÌNH (Dylan chỉnh lại theo dữ liệu thật)
     // ==================
 
-    /**
-     * ID bản đồ instance dùng riêng cho phó bản này (clone từ map 45 - Đại bản
-     * doanh).
-     */
+    /** ID bản đồ instance dùng riêng cho phó bản này (clone từ map 45 - Đại bản doanh). */
     public static final int MAP_ID = 62;
-
-    /** Map gốc để clone. */
-    // public static final int TEMPLATE_MAP_ID = 45;
 
     /** Toạ độ đặt rương kho báu (điểm mà quân địch nhắm tới). */
     public static final short TREASURE_X = 540;
@@ -66,12 +60,12 @@ public class NamieTreasureDefense extends Dungeon {
     /** Thời gian nghỉ giữa đợt đầu tiên (ms). */
     public static final long WAVE_GAP_MS_FIRST = 11_000L;
     /** Thời gian nghỉ giữa các đợt tiếp theo (ms). */
-    public static final long WAVE_GAP_MS = 120_000L;
+    public static final long WAVE_GAP_MS = 5_000L;
 
     /**
      * Giới hạn tổng thời gian toàn bộ phó bản (an toàn, tránh treo vô thời hạn).
      */
-    public static final long TOTAL_TIME_LIMIT_MS = 60 * 60_000L;
+    public static final long TOTAL_TIME_LIMIT_MS = 20 * 60_000L;
 
     // ================== TRẠNG THÁI RUNTIME ==================
 
@@ -279,7 +273,7 @@ public class NamieTreasureDefense extends Dungeon {
         MobTemplate mt = MobTemplate.ENTRYS.get(templateId);
 
         if (mt != null) {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 10; i++) {
                 Mob mob = new Mob();
                 mob.mob_template = mt;
                 mob.x = (short) (spawnX + Util.random(-20, 20));
@@ -300,7 +294,7 @@ public class NamieTreasureDefense extends Dungeon {
         }
 
         System.out.println("[NamieDefense] Wave " + (waveIndex + 1) + "/" + TOTAL_WAVES
-                + " spawned 5 mobs at " + laneName);
+                + " spawned 10 mobs at " + laneName);
         sendLocalNotice("Quái vật đang tiến đến từ " + laneName + "!");
 
         // Cập nhật bộ đếm thời gian hiển thị Tầng hiện tại cho tất cả người chơi
@@ -317,21 +311,7 @@ public class NamieTreasureDefense extends Dungeon {
         }
     }
 
-    private int mapTemplateSafeMaxW() {
-        try {
-            return this.currentMap.template.maxW - 20;
-        } catch (Exception e) {
-            return 600;
-        }
-    }
 
-    private int mapTemplateSafeMaxH() {
-        try {
-            return this.currentMap.template.maxH - 20;
-        } catch (Exception e) {
-            return 400;
-        }
-    }
 
     // ================== VÒNG LẶP CHÍNH (gọi từ Map.update_map_dungeon)
     // ==================
@@ -480,14 +460,7 @@ public class NamieTreasureDefense extends Dungeon {
         spawnWave(this.currentWaveIndex + 1);
     }
 
-    private Mob findMobByIndex(int index) {
-        for (Mob mob : this.mobs) {
-            if (mob.index == index) {
-                return mob;
-            }
-        }
-        return null;
-    }
+
 
     public int treasurePercent() {
         return (int) Math.round(100.0 * treasureHp / TREASURE_HP_MAX);
@@ -705,17 +678,17 @@ public class NamieTreasureDefense extends Dungeon {
             short targetY = p.originalY;
 
             if (targetMapId <= 0 || !p.canGoToMap(targetMapId)) {
-                targetMapId = 1;
+                targetMapId = p.id_map_save > 0 ? p.id_map_save : 41;
                 targetX = 300;
                 targetY = 250;
             }
 
             Map[] targetMaps = Map.get_map_by_id(targetMapId);
             if (targetMaps == null || targetMaps.length == 0 || targetMaps[0] == null) {
-                targetMapId = 1;
+                targetMapId = 41;
                 targetX = 300;
                 targetY = 250;
-                targetMaps = Map.get_map_by_id(1);
+                targetMaps = Map.get_map_by_id(41);
             }
 
             Vgo vgo = new Vgo();

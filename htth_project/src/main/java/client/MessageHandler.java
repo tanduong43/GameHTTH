@@ -118,15 +118,16 @@ public class MessageHandler {
                                 conn.p.update_ngoc(100);
                                 conn.p.update_vang(1000000);
                                 conn.p.update_money();
-                                
+
                                 io.Message m2 = new io.Message(37);
                                 m2.writer().writeByte(1); // update reward status
                                 m2.writer().writeByte(index);
                                 m2.writer().writeByte(2); // REWARD_GOT
                                 conn.addmsg(m2);
                                 m2.cleanup();
-                                
-                                core.Service.send_box_ThongBao_OK(conn.p, "Nhận thưởng thành công 100 Ruby và 1,000,000 Beri!");
+
+                                core.Service.send_box_ThongBao_OK(conn.p,
+                                        "Nhận thưởng thành công 100 Ruby và 1,000,000 Beri!");
                             } else if (conn.p.daily_achievements_claimed[index]) {
                                 core.Service.send_box_ThongBao_OK(conn.p, "Bạn đã nhận thưởng rồi!");
                             } else {
@@ -495,7 +496,7 @@ public class MessageHandler {
                     byte type = m.reader().readByte();
                     short id = m.reader().readShort();
                     if (type == 1) {
-                        activities.TichLuyNap.claimReward(conn.p, id);
+                        activities.ListTichNap.claimReward(conn.p, id);
                     }
                 }
                 break;
@@ -505,7 +506,7 @@ public class MessageHandler {
                     byte type = m.reader().readByte();
                     byte id = m.reader().readByte();
                     if (type == 1) {
-                        activities.TichLuyNap.claimReward(conn.p, id);
+                        activities.ListTichNap.claimReward(conn.p, id);
                     }
                 }
                 break;
@@ -515,7 +516,7 @@ public class MessageHandler {
                     byte type = m.reader().readByte();
                     byte id = m.reader().readByte();
                     if (type == 1) {
-                        activities.TichLuyTieu.claimReward(conn.p, id);
+                        activities.List_tich_tieu.claimReward(conn.p, id);
                     }
                 }
                 break;
@@ -726,7 +727,8 @@ public class MessageHandler {
                     }
                     try {
                         if (DanhHieu.get_Id(conn.p.id_danh_hieu_su_dung) != null) {
-                            System.out.println("[DanhHieu Debug] MessageHandler send title for: " + conn.p.name + " start");
+                            System.out.println(
+                                    "[DanhHieu Debug] MessageHandler send title for: " + conn.p.name + " start");
                             Player p0 = conn.p;
                             Message msg = new Message(-102);
                             msg.writer().writeByte(1);
@@ -736,7 +738,8 @@ public class MessageHandler {
                             msg.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).nframe);
                             p0.conn.addmsg(msg);
                             msg.cleanup();
-                            System.out.println("[DanhHieu Debug] MessageHandler send title for: " + conn.p.name + " successful");
+                            System.out.println(
+                                    "[DanhHieu Debug] MessageHandler send title for: " + conn.p.name + " successful");
                         }
                     } catch (Exception e) {
                         System.err.println("[DanhHieu Error] Error MessageHandler send title: " + e.getMessage());
@@ -1041,7 +1044,9 @@ public class MessageHandler {
             activities.NamieTreasureDefense activeDefense = activities.NamieTreasureDefense
                     .findActiveDefense(conn.p.name);
             // Safety fallback: nếu vẫn đang trong map Namie nhưng no active dungeon
-            if (conn.p.map != null && conn.p.map.template.id == 513 && conn.p.dungeon == null) {
+            if (conn.p.map != null
+                    && activities.NamieTreasureDefense.isDefenseMap(conn.p.map.template.id)
+                    && conn.p.dungeon == null) {
                 int targetMapId = conn.p.originalMapId;
                 if (targetMapId <= 0) {
                     targetMapId = conn.p.id_map_save;
@@ -1050,13 +1055,15 @@ public class MessageHandler {
                     targetMapId = 1;
                 }
                 System.out.println("[NamieDefense] Login safety: player " + conn.p.name
-                        + " still in Namie map but no active dungeon, redirecting to map " + targetMapId);
+                        + " still in Namie map (" + conn.p.map.template.id
+                        + ") but no active dungeon, redirecting to map " + targetMapId);
                 map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
                     conn.p.x = 300;
                     conn.p.y = 250;
                 }
+                conn.p.dungeon = null;
             }
             // === hết khối check ===
 

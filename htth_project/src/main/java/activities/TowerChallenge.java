@@ -582,7 +582,7 @@ public class TowerChallenge extends Dungeon {
             short targetY = p.originalY;
 
             if (targetMapId <= 0 || !p.canGoToMap(targetMapId)) {
-                targetMapId = 1;
+                targetMapId = p.id_map_save > 0 ? p.id_map_save : 1;
                 targetX = 300;
                 targetY = 250;
             }

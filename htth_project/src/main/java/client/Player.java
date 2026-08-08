@@ -466,10 +466,16 @@ public class Player {
             //
             int savedMapId = Integer.parseInt(js.get(0).toString());
             boolean wasBossHuntMap = activities.BossHunt.isBossHuntMap(savedMapId);
+            boolean wasNamieMap = activities.NamieTreasureDefense.isDefenseMap(savedMapId);
             if (wasBossHuntMap) {
                 System.out.println("[BossHunt] Player " + this.name + " saved map was BossHunt map (" + savedMapId
                         + "). Redirecting to map 1 (Village).");
                 savedMapId = 1;
+            }
+            if (wasNamieMap) {
+                System.out.println("[NamieDefense] Player " + this.name + " saved map was Namie defense map (" + savedMapId
+                        + "). Redirecting to id_map_save or map 1.");
+                savedMapId = this.id_map_save > 0 ? this.id_map_save : 1;
             }
             Map[] map = Map.get_map_by_id(savedMapId);
             byte zone_id = Byte.parseByte(js.get(1).toString());
@@ -483,7 +489,7 @@ public class Player {
             this.map = map[zone_goto];
             this.hp = Integer.parseInt(js.get(2).toString());
             this.mp = Integer.parseInt(js.get(3).toString());
-            if (wasBossHuntMap) {
+            if (wasBossHuntMap || wasNamieMap) {
                 x = 300;
                 y = 250;
             } else {
@@ -1679,6 +1685,7 @@ public class Player {
             // Cộng dồn tích tiêu khi người chơi tiêu ngọc (par âm = tiêu ngọc)
             if (par < 0) {
                 this.tichtieu_ruby += (int) (-par);
+                this.tieu_ruby += (int) (-par);
             }
         }
     }

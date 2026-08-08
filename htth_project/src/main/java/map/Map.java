@@ -85,10 +85,10 @@ public class Map implements Runnable {
     }
 
     public static boolean is_map_dungeon(int id) {
-        // HangDong: 167-176 | TowerChallenge: 500-512 | NamieTreasureDefense: 513
+        // HangDong: 167-176 | TowerChallenge: 500-512 | NamieTreasureDefense: 62
         // BossHunt: 201-207 | ClanResource: 999
         return (id >= 167 && id <= 176) || (id >= 201 && id <= 207)
-                || (id >= 500 && id <= 512) || id == 513 || id == 999;
+                || (id >= 500 && id <= 512) || id == 62 || id == 999;
     }
 
     public static void add_map_plus(Map map_boss) {

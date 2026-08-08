@@ -54,8 +54,8 @@ public class TableTickOption {
                     case 0: { // pho ban khong lo
                         if (type == 1) { // accept
                             if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
-                                for (int i = 0; i < p.tableTickOption.list_check.length; i++) {
-                                    if (p.tableTickOption.list_check[i] == 0) {
+                                for (int i = 1; i < p.tableTickOption.list_check.length; i++) {
+                                    if (p.tableTickOption.list_check[i] != 1) {
                                         Service.send_box_ThongBao_OK(p,
                                                 p.tableTickOption.listP.get(i).name
                                                         + " chưa tick chọn");
@@ -113,8 +113,8 @@ public class TableTickOption {
                     case 4: { // pho ban pvp bang
                         if (type == 1) { // accept
                             if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
-                                for (int i = 0; i < p.tableTickOption.list_check.length; i++) {
-                                    if (p.tableTickOption.list_check[i] == 0) {
+                                for (int i = 1; i < p.tableTickOption.list_check.length; i++) {
+                                    if (p.tableTickOption.list_check[i] != 1) {
                                         Service.send_box_ThongBao_OK(p,
                                                 p.tableTickOption.listP.get(i).name
                                                         + " chưa tick chọn");
@@ -176,8 +176,8 @@ public class TableTickOption {
                             if (lobby.listP.get(0).name.equals(p.name)) {
                                 // Leader clicked "Bắt đầu"
                                 // Check if all members are ready (ticked)
-                                for (int i = 0; i < lobby.list_check.length; i++) {
-                                    if (lobby.list_check[i] == 0) {
+                                for (int i = 1; i < lobby.list_check.length; i++) {
+                                    if (lobby.list_check[i] != 1) {
                                         Service.send_box_ThongBao_OK(p,
                                                 lobby.listP.get(i).name
                                                         + " chưa sẵn sàng!");
@@ -200,9 +200,9 @@ public class TableTickOption {
                                         return;
                                     }
                                     // if (member.time_tower >= 10) {
-                                    //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                    //             + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 10 lần)!");
-                                    //     return;
+                                    // Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                    // + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 10 lần)!");
+                                    // return;
                                     // }
                                     if (member.get_key_boss() < 2) {
                                         Service.send_box_ThongBao_OK(p,
@@ -298,8 +298,8 @@ public class TableTickOption {
                             if (lobby.listP.get(0).name.equals(p.name)) {
                                 // Leader clicked "Bắt đầu"
                                 // Check if all members are ready (ticked)
-                                for (int i = 0; i < lobby.list_check.length; i++) {
-                                    if (lobby.list_check[i] == 0) {
+                                for (int i = 1; i < lobby.list_check.length; i++) {
+                                    if (lobby.list_check[i] != 1) {
                                         Service.send_box_ThongBao_OK(p,
                                                 lobby.listP.get(i).name
                                                         + " chưa sẵn sàng!");
@@ -321,15 +321,15 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
-                                    if (Math.abs(member.x - p.x) > 100 || Math.abs(member.y - p.y) > 100) {
+                                    if (Math.abs(member.x - p.x) > 500 || Math.abs(member.y - p.y) > 500) {
                                         Service.send_box_ThongBao_OK(p,
                                                 "Thành viên " + member.name + " đứng quá xa bạn!");
                                         return;
                                     }
                                     // if (member.time_namie >= 10) {
-                                    //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                    //             + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 10 lần)!");
-                                    //     return;
+                                    // Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                    // + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 10 lần)!");
+                                    // return;
                                     // }
                                     if (member.get_key_boss() < 2) {
                                         Service.send_box_ThongBao_OK(p,
@@ -427,8 +427,8 @@ public class TableTickOption {
                                 return;
                             if (lobby.listP.get(0).name.equals(p.name)) {
                                 // Leader clicked "Bắt đầu"
-                                for (int i = 0; i < lobby.list_check.length; i++) {
-                                    if (lobby.list_check[i] == 0) {
+                                for (int i = 1; i < lobby.list_check.length; i++) {
+                                    if (lobby.list_check[i] != 1) {
                                         Service.send_box_ThongBao_OK(p, lobby.listP.get(i).name + " chưa sẵn sàng!");
                                         return;
                                     }
@@ -449,9 +449,9 @@ public class TableTickOption {
                                         return;
                                     }
                                     // if (member.time_hangdong >= 5) {
-                                    //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                    //             + " đã vượt giới hạn Hang Động hôm nay (tối đa 5 lần)!");
-                                    //     return;
+                                    // Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                    // + " đã vượt giới hạn Hang Động hôm nay (tối đa 5 lần)!");
+                                    // return;
                                     // }
                                 }
 

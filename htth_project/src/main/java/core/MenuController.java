@@ -110,13 +110,13 @@ public class MenuController {
               if (p.clan.allowRequest == 1) {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
-                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Khóa xin vào băng" },
-                    new short[] { 141, 171, 146, 143, 144, 118 });
+                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Khóa xin vào băng", "Giải tán băng" },
+                    new short[] { 141, 171, 146, 143, 144, 118, 128 });
               } else {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
-                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Mở xin vào băng" },
-                    new short[] { 141, 171, 146, 143, 144, 118 });
+                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Mở xin vào băng", "Giải tán băng" },
+                    new short[] { 141, 171, 146, 143, 144, 118, 128 });
               }
             } else {
               send_dynamic_menu(p, type, "Băng hải tặc",
@@ -645,12 +645,12 @@ public class MenuController {
             if (dhIndex >= 0 && dhIndex < activities.DanhHieu.ENY.size()) {
               activities.DanhHieu dh = activities.DanhHieu.ENY.get(dhIndex);
               if (p.check_id_danhhieu(dh.id)) {
-                  p.id_danh_hieu_su_dung = dh.id;
-                  p.idDanhHieu = (short) dh.id;
-                  p.danhhieu = (byte) dh.id;
-                  Service.send_box_ThongBao_OK(p, "Đã đổi danh hiệu thành: " + dh.Name);
+                p.id_danh_hieu_su_dung = dh.id;
+                p.idDanhHieu = (short) dh.id;
+                p.danhhieu = (byte) dh.id;
+                Service.send_box_ThongBao_OK(p, "Đã đổi danh hiệu thành: " + dh.Name);
               } else {
-                  Service.send_box_ThongBao_OK(p, "Không có danh hiệu này!");
+                Service.send_box_ThongBao_OK(p, "Không có danh hiệu này!");
               }
             }
           }
@@ -757,19 +757,31 @@ public class MenuController {
           break;
         }
         case 983: { // Tich Tieu Menu Npc Text
-          activities.TichLuyTieu.showSubMenu(p, index);
+          activities.List_tich_tieu.showSubMenu(p, index);
           break;
         }
         case 9085: {
           if (index == 0) {
-            activities.TichLuyTieu.claimReward(p, p.id_menu_tichtieu);
+            activities.List_tich_tieu.claimReward(p, p.id_menu_tichtieu);
           } else if (index == 1) {
-            activities.TichLuyTieu.showReward(p, p.id_menu_tichtieu);
+            activities.List_tich_tieu.showReward(p, p.id_menu_tichtieu);
           }
           break;
         }
         case 9086: {
           // Menu xem phần thưởng có icon (không có action nào khi bấm vào)
+          break;
+        }
+        case 9087: {
+          if (index == 0) {
+            activities.ListTichNap.claimReward(p, p.id_menu_tichtieu);
+          } else if (index == 1) {
+            activities.ListTichNap.showReward(p, p.id_menu_tichtieu);
+          }
+          break;
+        }
+        case 9088: {
+          // Menu xem phần thưởng tích nạp
           break;
         }
         case 984: {
@@ -1956,7 +1968,7 @@ public class MenuController {
           break;
         }
         case 2: {
-          activities.TichLuyNap.sendUI(p);
+          activities.ListTichNap.sendUI(p);
           break;
         }
         case 3: {
@@ -2255,7 +2267,7 @@ public class MenuController {
           Service.send_box_ThongBao_OK(p, "Chua kich hoat khong the tham gia");
           return;
         }
-        activities.TichLuyTieu.sendUI(p);
+        activities.List_tich_tieu.sendUI(p);
         break;
       }
       case 5: { // Hang dong
@@ -2720,7 +2732,7 @@ public class MenuController {
                 sess.claimed_milestones = "";
                 sess.p.claimedMilestones.clear();
                 try {
-                  activities.TichLuyNap.sendUI(sess.p);
+                  activities.ListTichNap.sendUI(sess.p);
                 } catch (Exception e) {
                   // ignore UI update error for specific offline/disconnecting players
                 }
@@ -2758,9 +2770,11 @@ public class MenuController {
               io.Session sess = SessionManager.CLIENT_ENTRYS.get(i);
               if (sess != null && sess.p != null) {
                 sess.p.tichtieu_ruby = 0;
+                sess.p.tieu_ruby = 0;
                 sess.p.claimedTichtieuRuby.clear();
+                sess.p.tichTieuRubyCheck = new byte[10];
                 try {
-                  activities.TichLuyTieu.sendUI(sess.p);
+                  activities.List_tich_tieu.sendUI(sess.p);
                 } catch (Exception e) {
                   // ignore UI update error for disconnecting players
                 }
