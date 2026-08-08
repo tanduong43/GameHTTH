@@ -146,8 +146,12 @@ public class Session implements Runnable {
                     m.cleanup();
                 }
             }
+        } catch (java.net.SocketException | java.io.EOFException e) {
+            // Normal disconnects, no need to print stack trace
         } catch (IOException e) {
-            // Client disconnect bình thường (EOFException, SocketException...) — không cần log
+            e.printStackTrace(); // Added for debugging Jar client disconnects
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             disconnect();
         }
@@ -178,7 +182,7 @@ public class Session implements Runnable {
             } else if (msg.cmd == -39 || msg.cmd == -102) {
                 dos.writeInt(size);
             } else {
-                final int byte1 = (byte) (size & 0xFF00);
+                final int byte1 = (byte) (size >> 8);
                 this.dos.writeByte(byte1);
                 final int byte2 = (byte) (size & 0xFF);
                 this.dos.writeByte(byte2);
@@ -711,10 +715,19 @@ public class Session implements Runnable {
             }
         }
         //
-        zoomlv = m.reader().readByte();
-        this.version = m.reader().readUTF();
-        m.reader().readByte();
-        byte IndexCharSelected = m.reader().readByte();
+        if (m.reader().available() > 0) {
+            zoomlv = m.reader().readByte();
+        }
+        if (m.reader().available() > 0) {
+            this.version = m.reader().readUTF();
+        }
+        if (m.reader().available() > 0) {
+            m.reader().readByte();
+        }
+        byte IndexCharSelected = 0;
+        if (m.reader().available() > 0) {
+            IndexCharSelected = m.reader().readByte();
+        }
         this.user = user_;
         this.pass = pass_;
         if (!this.check_onl()) {
@@ -1204,8 +1217,6 @@ public class Session implements Runnable {
         addmsg(m);
         m.cleanup();
     }
-
-
 
     public int tongnap;
 
