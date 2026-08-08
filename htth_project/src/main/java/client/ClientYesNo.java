@@ -19,6 +19,7 @@ import activities.TableTickOption;
 import activities.UpgradeItem;
 import core.Service;
 import core.Util;
+import database.SQL;
 import io.Message;
 import map.Map;
 import map.MapCanGoTo;
@@ -523,6 +524,40 @@ public class ClientYesNo {
         }
         if (value == 0) { // ok
             switch (id) {
+                case 63: {
+                    if (p.clan == null) {
+                        return;
+                    }
+                    if (p.clan.members.isEmpty() || !p.clan.members.get(0).name.equals(p.name)) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không phải thuyền trưởng!");
+                        return;
+                    }
+                    if (p.clan.members.size() > 1) {
+                        Service.send_box_ThongBao_OK(p, "Chỉ khi còn 1 thành viên mới có thể giải tán!");
+                        return;
+                    }
+                    Clan clan = p.clan;
+                    Clan.delete_clan(clan);
+                    if (Clan.BXH != null) {
+                        Clan.BXH.remove(clan.name);
+                    }
+                    try (java.sql.Connection conn = SQL.gI().getCon();
+                         java.sql.PreparedStatement ps = conn.prepareStatement("DELETE FROM `clan` WHERE `id` = ?")) {
+                        ps.setInt(1, clan.id);
+                        ps.executeUpdate();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    p.clan = null;
+                    p.update_info_to_all();
+                    Message msg = new Message(-52);
+                    msg.writer().writeByte(10);
+                    msg.writer().writeShort(p.index_map);
+                    p.map.send_msg_all_p(msg, p, true);
+                    msg.cleanup();
+                    Service.send_box_ThongBao_OK(p, "Bạn đã giải tán băng thành công!");
+                    break;
+                }
                 case 62: {
                     if (p.data_yesno != null && p.data_yesno.length == 1) {
                         int coin = p.data_yesno[0];

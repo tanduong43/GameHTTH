@@ -1916,6 +1916,12 @@ public class MenuController {
         }
         break;
       }
+      case 6: {
+        Service.send_box_yesno(p, 63, "Thông báo",
+            "Bạn có chắc chắn muốn giải tán băng hải tặc không?",
+            new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
+        break;
+      }
     }
   }
 
