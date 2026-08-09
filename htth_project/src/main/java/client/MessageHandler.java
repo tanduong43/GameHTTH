@@ -151,19 +151,41 @@ public class MessageHandler {
                                 .loadfile("data/template/skill/x" + conn.zoomlv + "/data/" + id);
                         byte[] data2 = Util.loadfile(
                                 "data/template/skill/x" + conn.zoomlv + "/img/" + id + ".png");
-                        m2.writer().writeShort(data1.length);
-                        m2.writer().write(data1);
-                        m2.writer().write(data2);
-                        conn.addmsg(m2);
-                        m2.cleanup();
+                        if (data1 == null) {
+                            data1 = Util.loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
+                            data2 = Util.loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
+                        }
+                        if (data1 == null) {
+                            data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + id);
+                            data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + id + ".png");
+                        }
+                        if (data1 == null) {
+                            data1 = Util.loadfile("data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
+                            data2 = Util.loadfile("data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
+                        }
+                        if (data1 != null && data2 != null) {
+                            m2.writer().writeShort(data1.length);
+                            m2.writer().write(data1);
+                            m2.writer().write(data2);
+                            conn.addmsg(m2);
+                            m2.cleanup();
+                        }
                     } catch (Exception e) {
                     }
                 } else if (conn.p != null && type == 1) {
                     System.out.println("[DanhHieu Log] Client " + conn.p.name + " requested title effect id=" + id
                             + ", zoom=x" + conn.zoomlv);
                     try {
-                        String dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id;
-                        String imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png";
+                        String dataPath = "data/danhhieu/effect/x" + conn.zoomlv + "/data/DataEffect_" + id;
+                        String imgPath = "data/danhhieu/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png";
+                        if (!new java.io.File(dataPath).exists()) {
+                            dataPath = "data/danhhieu/effect/x4/data/DataEffect_" + id;
+                            imgPath = "data/danhhieu/effect/x4/img/ImgEffect_" + id + ".png";
+                        }
+                        if (!new java.io.File(dataPath).exists()) {
+                            dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id;
+                            imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png";
+                        }
                         if (!new java.io.File(dataPath).exists() && id >= 3000) {
                             dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + (id - 3000);
                             imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + (id - 3000) + ".png";
@@ -172,7 +194,7 @@ public class MessageHandler {
                         byte[] data2 = Util.loadfile(imgPath);
                         if (data2 == null) {
                             data2 = Util.loadfile(
-                                    "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
+                                     "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
                         }
                         if (data1 != null && data2 != null) {
                             Message m2 = new Message(74);

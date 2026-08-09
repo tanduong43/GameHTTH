@@ -1420,11 +1420,16 @@ public class Map implements Runnable {
                     }
                 }
                 boolean allLevelUp16 = true;
+                boolean allLevelUp20 = true;
                 for (int j = 0; j < 6; j++) {
                     Item_wear it = p0.item.it_body[j];
                     if (it == null || it.levelup < 16) {
                         allLevelUp16 = false;
+                        allLevelUp20 = false;
                         break;
+                    }
+                    if (it.levelup < 20) {
+                        allLevelUp20 = false;
                     }
                 }
                 if (allLevelUp16) {
@@ -1446,6 +1451,17 @@ public class Map implements Runnable {
                     m4.writer().writeByte(20); // loop
                     this.send_msg_all_p(m4, null, true);
                     m4.cleanup();
+                }
+                if (allLevelUp20) {
+                    Message m5 = new Message(74);
+                    m5.writer().writeByte(1);
+                    m5.writer().writeShort(p0.index_map);
+                    m5.writer().writeShort(4); // id Eff 4: Vòng xoáy lốc ma pháp dưới chân
+                    m5.writer().writeInt(5_000); // time
+                    m5.writer().writeByte(0); // type move
+                    m5.writer().writeByte(20); // loop
+                    this.send_msg_all_p(m5, null, true);
+                    m5.cleanup();
                 }
                 // up hp pet ship
                 if (p0.ship_pet != null && p0.ship_pet.time_buff_hp < System.currentTimeMillis()
@@ -4230,6 +4246,40 @@ public class Map implements Runnable {
                     } catch (Exception e) {
                         Service.send_box_ThongBao_OK(p, "Cú pháp sai. VD: admin setdo 16");
                     }
+                } else if (cmd.startsWith("eff ")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        short effId = Short.parseShort(parts[1]);
+                        Message mTest = new Message(74);
+                        mTest.writer().writeByte(1);
+                        mTest.writer().writeShort(p.index_map);
+                        mTest.writer().writeShort(effId);
+                        mTest.writer().writeInt(10_000); // 10 giây
+                        mTest.writer().writeByte(0);
+                        mTest.writer().writeByte(20);
+                        this.send_msg_all_p(mTest, null, true);
+                        mTest.cleanup();
+                        Service.send_box_ThongBao_OK(p, "Đang hiển thị Effect ID: " + effId + " (10 giây)");
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin eff <id>. VD: admin eff 37");
+                    }
+                } else if (cmd.startsWith("dh ")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        short dhId = Short.parseShort(parts[1]);
+                        Message mTest = new Message(74);
+                        mTest.writer().writeByte(1);
+                        mTest.writer().writeShort(p.index_map);
+                        mTest.writer().writeShort(dhId);
+                        mTest.writer().writeInt(15_000); // 15 giây
+                        mTest.writer().writeByte(4); // typemove 4 = trên đầu (danh hiệu)
+                        mTest.writer().writeByte(-1); // lặp vô hạn
+                        this.send_msg_all_p(mTest, null, true);
+                        mTest.cleanup();
+                        Service.send_box_ThongBao_OK(p, "Đang hiển thị Danh Hiệu / Effect ID: " + dhId + " (15 giây)");
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin dh <id>. VD: admin dh 73");
+                    }
                 } else if (cmd.startsWith("setdanhhieu ")) {
                     String[] parts = cmd.split(" ");
                     if (parts.length >= 3) {
@@ -4272,6 +4322,31 @@ public class Map implements Runnable {
                     p.add_danh_hieu(dh.id);
                 }
                 Service.send_box_ThongBao_OK(p, "Ban da nhan duoc TAT CA danh hieu!");
+            } catch (Exception e) {
+            }
+            return;
+        } else if (txt.equals("addpet") || txt.equals("/addpet") || txt.equals("fullpet")) {
+            try {
+                int count = 0;
+                for (client.Pet tempPet : client.Pet.ENTRY) {
+                    boolean has = false;
+                    for (client.MyPet mp : p.my_pet) {
+                        if (mp.template != null && mp.template.id == tempPet.id) {
+                            has = true;
+                            break;
+                        }
+                    }
+                    if (!has) {
+                        client.MyPet newPet = new client.MyPet();
+                        newPet.id = (short) (p.my_pet.size() + 1);
+                        newPet.template = tempPet;
+                        newPet.isUse = false;
+                        newPet.expiryTime = -1;
+                        p.my_pet.add(newPet);
+                        count++;
+                    }
+                }
+                Service.send_box_ThongBao_OK(p, "Đã thêm " + count + " Pet vào rương Pet của bạn!");
             } catch (Exception e) {
             }
             return;
