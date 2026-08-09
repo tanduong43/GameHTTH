@@ -22,50 +22,69 @@ public class ListTichNap {
 
     static {
         ENTRY = new ArrayList<>();
+
+        // MỐC 1: 50k Extol
         ListTichNap t = new ListTichNap();
-        t.num = 100_000;
-        t.cat = new byte[]{4, 4, 4, 4};
-        t.id = new short[]{0, 158, 222, 366};
-        t.quant = new short[]{10, 5, 50, 10};
+        t.num = 50_000;
+        t.cat = new byte[]{105, 4, 7, 4, 4, 4, 4};
+        t.id = new short[]{127, 339, 10, 159, 349, 367, 455};
+        t.quant = new short[]{1, 10, 10, 20, 20, 1, 5};
         ENTRY.add(t);
-        //
+
+        // MỐC 2: 100k Extol
+        t = new ListTichNap();
+        t.num = 100_000;
+        t.cat = new byte[]{105, 4, 4, 4, 4, 4, 7, 4, 7, 4};
+        t.id = new short[]{116, 339, 221, 159, 349, 367, 13, 455, 10, 323};
+        t.quant = new short[]{1, 25, 100, 30, 30, 3, 200, 5, 20, 1};
+        ENTRY.add(t);
+
+        // MỐC 3: 200k Extol
         t = new ListTichNap();
         t.num = 200_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4};
-        t.id = new short[]{0, 158, 222, 364, 464};
-        t.quant = new short[]{60, 10, 100, 20, 1};
+        t.cat = new byte[]{4, 7, 4, 4, 4, 4, 4, 4, 4, 4, 105, 4};
+        t.id = new short[]{339, 10, 159, 349, 131, 457, 323, 327, 414, 367, 55, 413};
+        t.quant = new short[]{50, 30, 50, 50, 50, 10, 1, 20, 1, 10, 1, 5};
         ENTRY.add(t);
-        //
+
+        // MỐC 4: 300k Extol
+        t = new ListTichNap();
+        t.num = 300_000;
+        t.cat = new byte[]{4, 4, 4, 4, 4, 4, 4, 105, 7, 4, 4};
+        t.id = new short[]{226, 159, 349, 367, 457, 655, 324, 95, 10, 414, 323};
+        t.quant = new short[]{50, 60, 60, 5, 10, 5, 5, 1, 20, 1, 3};
+        ENTRY.add(t);
+
+        // MỐC 5: 500k Extol
         t = new ListTichNap();
         t.num = 500_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 4};
-        t.id = new short[]{0, 158, 222, 364, -10, 339};
-        // -10 ruong cam theo lv
-        t.quant = new short[]{150, 20, 30, 30, 20, 10};
+        t.cat = new byte[]{4, 4, 4, 4, 105, 4, 4, 4, 4, 7, 4, 4};
+        t.id = new short[]{226, 159, 349, 367, 118, 457, 679, 327, 325, 10, 414, 323};
+        t.quant = new short[]{100, 100, 100, 10, 1, 10, 5, 5, 5, 50, 1, 5};
         ENTRY.add(t);
-        //
+
+        // MỐC 6: 1M Extol
         t = new ListTichNap();
         t.num = 1_000_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 4, 4};
-        t.id = new short[]{0, 158, 226, 323, -10, 464, 455};
-        // -10 ruong cam theo lv
-        t.quant = new short[]{300, 40, 100, 5, 50, 1, 5};
+        t.cat = new byte[]{4, 4, 4, 4, 4, 7, 4, 4, 4, 105};
+        t.id = new short[]{226, 159, 349, 325, 413, 10, 457, 323, 455, 119};
+        t.quant = new short[]{150, 200, 200, 5, 20, 100, 20, 6, 50, 1};
         ENTRY.add(t);
-        //
+
+        // MỐC 7: 2M Extol
         t = new ListTichNap();
         t.num = 2_000_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 4};
-        t.id = new short[]{0,  226, 323, -10, 54, 455};
-        // -10 ruong cam theo lv
-        t.quant = new short[]{600, 100, 10, 100, 2, 20};
+        t.cat = new byte[]{105, 4, 4, 4, 4, 4, 4, 4, 7, 4, 4};
+        t.id = new short[]{128, 413, 414, 323, 226, 325, 457, 455, 10, 159, 349};
+        t.quant = new short[]{1, 50, 5, 15, 200, 15, 50, 60, 200, 500, 500};
         ENTRY.add(t);
-        //
+
+        // MỐC 8: 5M Extol
         t = new ListTichNap();
         t.num = 5_000_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 4, 4, 4};
-        t.id = new short[]{0, 427, 323, -10, 454, 455, 455, 325};
-        // -10 ruong cam theo lv
-        t.quant = new short[]{1_000, 1, 30, 100, 5, 40, 10, 10};
+        t.cat = new byte[]{105, 105, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 4, 4};
+        t.id = new short[]{125, 123, 413, 414, 323, 226, 325, 660, 681, 457, 455, 10, 159, 349};
+        t.quant = new short[]{1, 1, 150, 15, 40, 800, 40, 10, 10, 100, 100, 500, 1000, 1000};
         ENTRY.add(t);
     }
 

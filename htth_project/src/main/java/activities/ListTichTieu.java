@@ -12,55 +12,74 @@ import template.ItemFashion;
 import template.ItemTemplate4;
 import template.ItemTemplate7;
 
-public class List_tich_tieu {
-    public final static List<List_tich_tieu> ENTRY;
+public class ListTichTieu {
+    public final static List<ListTichTieu> ENTRY;
 
     static {
         ENTRY = new ArrayList<>();
-        List_tich_tieu t = new List_tich_tieu();
+
+        // MỐC 1: 500 Ruby
+        ListTichTieu t = new ListTichTieu();
+        t.num = 500;
+        t.cat = new byte[] { 7, 7, 7, 7 };
+        t.id = new short[] { 4, 5, 6, 9 };
+        t.quant = new short[] { 100, 50, 10, 100 };
+        ENTRY.add(t);
+
+        // MỐC 2: 1000 Ruby
+        t = new ListTichTieu();
+        t.num = 1_000;
+        t.cat = new byte[] { 7, 7, 7, 7, 4 };
+        t.id = new short[] { 4, 6, 9, 10, 225 };
+        t.quant = new short[] { 200, 20, 200, 1, 5 };
+        ENTRY.add(t);
+
+        // MỐC 3: 3000 Ruby
+        t = new ListTichTieu();
+        t.num = 3_000;
+        t.cat = new byte[] { 7, 7, 7, 4, 7, 4, 4 };
+        t.id = new short[] { 4, 6, 9, 225, 10, 159, 232 };
+        t.quant = new short[] { 200, 20, 200, 5, 1, 20, 20 };
+        ENTRY.add(t);
+
+        // MỐC 4: 5000 Ruby
+        t = new ListTichTieu();
+        t.num = 5_000;
+        t.cat = new byte[] { 7, 7, 7, 4, 7, 4, 4 };
+        t.id = new short[] { 4, 6, 9, 339, 10, 159, 232 };
+        t.quant = new short[] { 200, 20, 200, 5, 2, 20, 20 };
+        ENTRY.add(t);
+
+        // MỐC 5: 10000 Ruby
+        t = new ListTichTieu();
+        t.num = 10_000;
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 232 };
+        t.quant = new short[] { 200, 20, 5, 3, 20, 10, 20 };
+        ENTRY.add(t);
+
+        // MỐC 6: 30000 Ruby
+        t = new ListTichTieu();
+        t.num = 30_000;
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131 };
+        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50 };
+        ENTRY.add(t);
+
+        // MỐC 7: 50000 Ruby
+        t = new ListTichTieu();
+        t.num = 50_000;
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 327 };
+        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 10, 20 };
+        ENTRY.add(t);
+
+        // MỐC 8: 100000 Ruby
+        t = new ListTichTieu();
         t.num = 100_000;
-        t.cat = new byte[]{4, 4, 4, 4};
-        t.id = new short[]{0, 158, 222, 366};
-        t.quant = new short[]{10, 5, 50, 10};
-        ENTRY.add(t);
-        //
-        t = new List_tich_tieu();
-        t.num = 200_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4};
-        t.id = new short[]{0, 158, 222, 364, 464};
-        t.quant = new short[]{60, 10, 100, 20, 1};
-        ENTRY.add(t);
-        //
-        t = new List_tich_tieu();
-        t.num = 500_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 4};
-        t.id = new short[]{0, 158, 222, 364, -10, 339};
-        // -10 ruong cam theo lv
-        t.quant = new short[]{150, 20, 30, 30, 20, 10};
-        ENTRY.add(t);
-        //
-        t = new List_tich_tieu();
-        t.num = 1_000_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 4, 4};
-        t.id = new short[]{0, 158, 226, 323, -10, 464, 455};
-        // -10 ruong cam theo lv
-        t.quant = new short[]{300, 40, 100, 5, 50, 1, 5};
-        ENTRY.add(t);
-        //
-        t = new List_tich_tieu();
-        t.num = 2_000_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 4};
-        t.id = new short[]{0,  226, 323, -10, 54, 455};
-        // -10 ruong cam theo lv
-        t.quant = new short[]{600, 100, 10, 100, 2, 20};
-        ENTRY.add(t);
-        //
-        t = new List_tich_tieu();
-        t.num = 5_000_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 4, 4, 4};
-        t.id = new short[]{0, 427, 323, -10, 454, 455, 455, 325};
-        // -10 ruong cam theo lv
-        t.quant = new short[]{1_000, 1, 30, 100, 5, 40, 10, 10};
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 414, 367 };
+        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 10, 1, 20, 1, 10 };
         ENTRY.add(t);
     }
 
@@ -83,7 +102,7 @@ public class List_tich_tieu {
         m.writer().writeInt(tongnap);
         m.writer().writeByte(ENTRY.size());
         for (int i = 0; i < ENTRY.size(); i++) {
-            List_tich_tieu t = ENTRY.get(i);
+            ListTichTieu t = ENTRY.get(i);
             byte status = 0;
             if ((i < p.tichTieuRubyCheck.length && p.tichTieuRubyCheck[i] == 1) || p.claimedTichtieuRuby.contains(i)) {
                 status = 2;
@@ -155,7 +174,7 @@ public class List_tich_tieu {
         int tongnap = Math.max(p.tieu_ruby, p.tichtieu_ruby);
         p.tieu_ruby = tongnap;
         p.tichtieu_ruby = tongnap;
-        List_tich_tieu t = ENTRY.get(id);
+        ListTichTieu t = ENTRY.get(id);
 
         if (tongnap < t.num) {
             Service.send_box_ThongBao_OK(p, "Bạn chưa đủ điều kiện để nhận phần thưởng này!");
@@ -177,7 +196,8 @@ public class List_tich_tieu {
                 short realId = t.id[j];
                 if (realId == -10) {
                     int level = p.level / 10;
-                    if (level == 0) level = 1;
+                    if (level == 0)
+                        level = 1;
                     realId = (short) (level + 121);
                 }
                 if (p.item.total_item_bag_by_id(4, realId) == 0) {
@@ -198,7 +218,8 @@ public class List_tich_tieu {
             }
         }
         if (countBagItems > p.item.able_bag()) {
-            Service.send_box_ThongBao_OK(p, "Hành trang của bạn không đủ chỗ trống! Cần ít nhất " + countBagItems + " ô trống.");
+            Service.send_box_ThongBao_OK(p,
+                    "Hành trang của bạn không đủ chỗ trống! Cần ít nhất " + countBagItems + " ô trống.");
             return;
         }
 
@@ -208,7 +229,8 @@ public class List_tich_tieu {
                 short realId = t.id[i];
                 if (realId == -10) {
                     int level = p.level / 10;
-                    if (level == 0) level = 1;
+                    if (level == 0)
+                        level = 1;
                     realId = (short) (level + 121);
                 }
                 ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(realId);
@@ -287,7 +309,7 @@ public class List_tich_tieu {
         if (index < 0 || index >= ENTRY.size()) {
             return;
         }
-        List_tich_tieu t = ENTRY.get(index);
+        ListTichTieu t = ENTRY.get(index);
         p.id_menu_tichtieu = index;
         core.MenuController.send_dynamic_menu(p, 9085, "Mốc " + Util.number_format(t.num) + " Ruby",
                 new String[] { "Nhận quà", "Xem phần thưởng" }, null);
@@ -297,14 +319,15 @@ public class List_tich_tieu {
         if (index < 0 || index >= ENTRY.size()) {
             return;
         }
-        List_tich_tieu t = ENTRY.get(index);
+        ListTichTieu t = ENTRY.get(index);
         List<String> menuItems = new ArrayList<>();
         for (int j = 0; j < t.cat.length; j++) {
             if (t.cat[j] == 4) {
                 ItemTemplate4 itTemp4Select = ItemTemplate4.get_it_by_id(t.id[j]);
                 if (t.id[j] == -10) {
                     int level = p.level / 10;
-                    if (level == 0) level = 1;
+                    if (level == 0)
+                        level = 1;
                     itTemp4Select = ItemTemplate4.get_it_by_id(level + 121);
                 }
                 if (itTemp4Select != null) {

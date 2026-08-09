@@ -153,7 +153,8 @@ public class MessageHandler {
                                 "data/template/skill/x" + conn.zoomlv + "/img/" + id + ".png");
                         if (data1 == null) {
                             data1 = Util.loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
-                            data2 = Util.loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
+                            data2 = Util
+                                    .loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
                         }
                         if (data1 == null) {
                             data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + id);
@@ -161,7 +162,8 @@ public class MessageHandler {
                         }
                         if (data1 == null) {
                             data1 = Util.loadfile("data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
-                            data2 = Util.loadfile("data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
+                            data2 = Util
+                                    .loadfile("data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
                         }
                         if (data1 != null && data2 != null) {
                             m2.writer().writeShort(data1.length);
@@ -194,7 +196,7 @@ public class MessageHandler {
                         byte[] data2 = Util.loadfile(imgPath);
                         if (data2 == null) {
                             data2 = Util.loadfile(
-                                     "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
+                                    "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
                         }
                         if (data1 != null && data2 != null) {
                             Message m2 = new Message(74);
@@ -538,7 +540,7 @@ public class MessageHandler {
                     byte type = m.reader().readByte();
                     byte id = m.reader().readByte();
                     if (type == 1) {
-                        activities.List_tich_tieu.claimReward(conn.p, id);
+                        activities.ListTichTieu.claimReward(conn.p, id);
                     }
                 }
                 break;

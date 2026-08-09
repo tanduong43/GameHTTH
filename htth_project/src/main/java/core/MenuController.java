@@ -757,14 +757,14 @@ public class MenuController {
           break;
         }
         case 983: { // Tich Tieu Menu Npc Text
-          activities.List_tich_tieu.showSubMenu(p, index);
+          activities.ListTichTieu.showSubMenu(p, index);
           break;
         }
         case 9085: {
           if (index == 0) {
-            activities.List_tich_tieu.claimReward(p, p.id_menu_tichtieu);
+            activities.ListTichTieu.claimReward(p, p.id_menu_tichtieu);
           } else if (index == 1) {
-            activities.List_tich_tieu.showReward(p, p.id_menu_tichtieu);
+            activities.ListTichTieu.showReward(p, p.id_menu_tichtieu);
           }
           break;
         }
@@ -2273,7 +2273,7 @@ public class MenuController {
           Service.send_box_ThongBao_OK(p, "Chua kich hoat khong the tham gia");
           return;
         }
-        activities.List_tich_tieu.sendUI(p);
+        activities.ListTichTieu.sendUI(p);
         break;
       }
       case 5: { // Hang dong
@@ -2780,7 +2780,7 @@ public class MenuController {
                 sess.p.claimedTichtieuRuby.clear();
                 sess.p.tichTieuRubyCheck = new byte[10];
                 try {
-                  activities.List_tich_tieu.sendUI(sess.p);
+                  activities.ListTichTieu.sendUI(sess.p);
                 } catch (Exception e) {
                   // ignore UI update error for disconnecting players
                 }
