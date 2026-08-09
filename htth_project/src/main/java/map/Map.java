@@ -1419,6 +1419,34 @@ public class Map implements Runnable {
                         Service.use_potion(p0, 0, -hp_decrease);
                     }
                 }
+                boolean allLevelUp16 = true;
+                for (int j = 0; j < 6; j++) {
+                    Item_wear it = p0.item.it_body[j];
+                    if (it == null || it.levelup < 16) {
+                        allLevelUp16 = false;
+                        break;
+                    }
+                }
+                if (allLevelUp16) {
+                    Message m3 = new Message(74);
+                    m3.writer().writeByte(1);
+                    m3.writer().writeShort(p0.index_map);
+                    m3.writer().writeShort(23); // id Eff
+                    m3.writer().writeInt(5_000); // time
+                    m3.writer().writeByte(0); // type move
+                    m3.writer().writeByte(20); // loop
+                    this.send_msg_all_p(m3, null, true);
+                    m3.cleanup();
+                    Message m4 = new Message(74);
+                    m4.writer().writeByte(1);
+                    m4.writer().writeShort(p0.index_map);
+                    m4.writer().writeShort(20); // id Eff
+                    m4.writer().writeInt(5_000); // time
+                    m4.writer().writeByte(0); // type move
+                    m4.writer().writeByte(20); // loop
+                    this.send_msg_all_p(m4, null, true);
+                    m4.cleanup();
+                }
                 // up hp pet ship
                 if (p0.ship_pet != null && p0.ship_pet.time_buff_hp < System.currentTimeMillis()
                         && (Map.isMapLang(this.template.id))) {
@@ -4152,6 +4180,56 @@ public class Map implements Runnable {
                 } else if (cmd.equals("boss") || cmd.equals("bosstg") || cmd.equals("boss_thegioi")) {
                     int n = map.Boss.force_spawn_all_thegioi1();
                     Service.send_box_ThongBao_OK(p, "Đã gọi " + n + " boss thế giới (thegioi=1) xuất hiện!");
+                } else if (cmd.startsWith("setdo ")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        byte lvl = Byte.parseByte(parts[1]);
+                        int emptyCount = 0;
+                        for (int i = 0; i < p.item.bag3.length; i++) {
+                            if (p.item.bag3[i] == null) {
+                                emptyCount++;
+                            }
+                        }
+                        if (emptyCount < 6) {
+                            Service.send_box_ThongBao_OK(p, "Hành trang cần ít nhất 6 ô trống để nhận set đồ!");
+                            return;
+                        }
+                        // Xác định level trang bị dựa theo level nhân vật
+                        short itLevel = 10;
+                        if (p.level >= 70) itLevel = 70;
+                        else if (p.level >= 60) itLevel = 60;
+                        else if (p.level >= 50) itLevel = 50;
+                        else if (p.level >= 40) itLevel = 40;
+                        else if (p.level >= 30) itLevel = 30;
+                        else if (p.level >= 20) itLevel = 20;
+                        else itLevel = 10;
+                        int created = 0;
+                        // 6 slot: 0=vũ khí, 1=áo, 2=giáp, 3=nón, 4=giày, 5=trang sức
+                        for (byte slot = 0; slot < 6; slot++) {
+                            ItemTemplate3 it_temp = null;
+                            for (int k = 0; k < ItemTemplate3.ENTRYS.size(); k++) {
+                                ItemTemplate3 entry = ItemTemplate3.ENTRYS.get(k);
+                                if (entry.typeEquip == slot
+                                        && (entry.clazz == 0 || entry.clazz == p.clazz)
+                                        && entry.level == itLevel) {
+                                    it_temp = entry;
+                                    break;
+                                }
+                            }
+                            if (it_temp != null) {
+                                Item_wear it = new Item_wear();
+                                it.setup_template_by_id(it_temp);
+                                it.levelup = lvl;
+                                it.isHoanMy = 1;
+                                p.item.add_item_bag3(it);
+                                created++;
+                            }
+                        }
+                        p.item.update_Inventory(4, false);
+                        Service.send_box_ThongBao_OK(p, "Đã tạo " + created + "/6 món đồ hoàn mỹ cấp +" + lvl + " (đồ level " + itLevel + ") vào hành trang!");
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp sai. VD: admin setdo 16");
+                    }
                 } else if (cmd.startsWith("setdanhhieu ")) {
                     String[] parts = cmd.split(" ");
                     if (parts.length >= 3) {

@@ -5,8 +5,7 @@ package template;
  * @author Truongbk
  */
 public class Option {
-    public static int[] PAR_PER_LEVELUP = new int[] { 100, 110, 120, 130, 140, 150, 170, 190, 210,
-            230, 250, 250, 250, 250, 250, 250, 250 };
+    public static int[] PAR_PER_LEVELUP = { 100, 110, 120, 130, 140, 150, 170, 190, 210, 230, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 305, 310, 315, 320, 325, 330, 335, 340, 345, 350 };
     public static int[] PAR_PER_DIAL = new int[] { 100, 160, 180, 210, 250, 300 };
     public int id;
     private int param;

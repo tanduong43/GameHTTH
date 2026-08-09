@@ -126,7 +126,7 @@ public class UpgradeSuperItem {
                 if (!UpgradeSuperItem.check_it_can_upgrade_super(p, it_select)) {
                     return;
                 }
-                if (it_select.levelup >= 15) {
+                if (it_select.levelup >= 20) {
                     Service.send_box_ThongBao_OK(p, "Trang bị đã Cường hóa cấp tối đa!");
                     return;
                 }
@@ -241,9 +241,9 @@ public class UpgradeSuperItem {
 
     private static boolean check_it_can_upgrade_super(Player p, Item_wear it_select)
             throws IOException {
-        if (it_select.template.color != 2 && it_select.template.color != 3) {
+        if (it_select.template.color != 2 && it_select.template.color != 3 && it_select.template.color != 7 && it_select.template.color != 8) {
             Service.send_box_ThongBao_OK(p,
-                    "Phẩm chất trang bị Tím hoặc Cam mới có thể tiến hành Siêu Cường Hóa!");
+                    "Phẩm chất trang bị Tím, Đỏ hoặc Cam mới có thể tiến hành Siêu Cường Hóa!");
             return false;
         }
         if (it_select.levelup < 10) {

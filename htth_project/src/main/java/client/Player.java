@@ -2669,7 +2669,7 @@ public class Player {
                 result = 0;
             }
         }
-        return result;
+        return 5;
     }
 
     public short get_percent_mana_use_skill() {
