@@ -2562,6 +2562,57 @@ public class Player {
         this.update_info_to_all();
     }
 
+    public void get_skill_haki_new(int id) throws IOException {
+        id += 4000;
+        List<Skill_info> list_remove = new ArrayList<>();
+        this.skill_point.removeAll(list_remove);
+        list_remove.clear();
+        switch (id) {
+            case 4800: {
+                int[] id_ = new int[] { 667 };// id index
+                for (int i = 0; i < id_.length; i++) {
+                    Skill_info sk_add = new Skill_info();
+                    sk_add.exp = 0;
+                    sk_add.temp = Skill_Template.get_temp(id_[i], sk_add.exp);
+                    if (sk_add.temp != null) {
+                        list_remove.add(sk_add);
+                    }
+                }
+                break;
+            }
+
+            case 4801: {
+                int[] id_ = new int[] { 672 };// id index
+                for (int i = 0; i < id_.length; i++) {
+                    Skill_info sk_add = new Skill_info();
+                    sk_add.exp = 0;
+                    sk_add.temp = Skill_Template.get_temp(id_[i], sk_add.exp);
+                    if (sk_add.temp != null) {
+                        list_remove.add(sk_add);
+                    }
+                }
+                break;
+            }
+            case 4802: {
+                int[] id_ = new int[] { 677 };// id index
+                for (int i = 0; i < id_.length; i++) {
+                    Skill_info sk_add = new Skill_info();
+                    sk_add.exp = 0;
+                    sk_add.temp = Skill_Template.get_temp(id_[i], sk_add.exp);
+                    if (sk_add.temp != null) {
+                        list_remove.add(sk_add);
+                    }
+                }
+                break;
+            }
+        }
+
+        this.skill_point.addAll(list_remove);
+        list_remove.clear();
+        this.send_skill();
+        this.update_info_to_all();
+    }
+
     public void update_info_to_all() throws IOException {
         Service.Main_char_Info(this);
         Service.getThanhTich(this, this);

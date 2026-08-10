@@ -3328,17 +3328,75 @@ public class ClientYesNo {
                                     return;
                                 } else if (temp.temp.Lv_RQ != -1) {
                                     if (temp.temp.Lv_RQ >= 5) {
-                                        Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra");
+                                        Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra hoặc Không đủ sách haki ");
                                         p.data_yesno = null;
                                         p.map_tele = null;
                                         return;
                                     } else {
-                                        int index_new = temp.temp.indexSkillInServer + 1;
-                                        temp = new Skill_info();
-                                        temp.temp = Skill_Template.get_temp(index_new, 0);
-                                        temp.exp = 0;
-                                        temp.lvdevil = 0;
-                                        temp.devilpercent = 0;
+                                        if (temp.temp.indexSkillInServer == 667
+                                                || temp.temp.indexSkillInServer == 668
+                                                || temp.temp.indexSkillInServer == 669
+                                                || temp.temp.indexSkillInServer == 670) {
+                                            if (p.item.total_item_bag_by_id(4, 800) > 0) {
+                                                p.item.remove_item47(4, 800, 1);
+                                                p.update_ngoc(-500);
+                                                p.tieu_ruby += 500;
+                                                p.item.update_Inventory(-1, false);
+                                                int index_new = temp.temp.indexSkillInServer + 1;
+                                                temp = new Skill_info();
+                                                temp.temp = Skill_Template.get_temp(index_new, 0);
+                                                temp.exp = 0;
+                                                temp.lvdevil = 0;
+                                                temp.devilpercent = 0;
+                                            } else {
+                                                Service.send_box_ThongBao_OK(p, "Không đủ sách haki quan sát");
+                                            }
+
+                                        } else if (temp.temp.indexSkillInServer == 673
+                                                || temp.temp.indexSkillInServer == 674
+                                                || temp.temp.indexSkillInServer == 675
+                                                || temp.temp.indexSkillInServer == 672) {
+                                            if (p.item.total_item_bag_by_id(4, 801) > 0) {
+                                                p.item.remove_item47(4, 801, 1);
+                                                p.item.update_Inventory(-1, false);
+                                                p.update_ngoc(-500);
+                                                p.tieu_ruby += 500;
+                                                int index_new = temp.temp.indexSkillInServer + 1;
+                                                temp = new Skill_info();
+                                                temp.temp = Skill_Template.get_temp(index_new, 0);
+                                                temp.exp = 0;
+                                                temp.lvdevil = 0;
+                                                temp.devilpercent = 0;
+                                            } else {
+                                                Service.send_box_ThongBao_OK(p, "Không đủ sách haki bá vương");
+                                            }
+
+                                        } else if (temp.temp.indexSkillInServer == 678
+                                                || temp.temp.indexSkillInServer == 679
+                                                || temp.temp.indexSkillInServer == 680
+                                                || temp.temp.indexSkillInServer == 677) {
+                                            if (p.item.total_item_bag_by_id(4, 802) > 0) {
+                                                p.item.remove_item47(4, 802, 1);
+                                                p.update_ngoc(-500);
+                                                p.tieu_ruby += 500;
+                                                p.item.update_Inventory(-1, false);
+                                                int index_new = temp.temp.indexSkillInServer + 1;
+                                                temp = new Skill_info();
+                                                temp.temp = Skill_Template.get_temp(index_new, 0);
+                                                temp.exp = 0;
+                                                temp.lvdevil = 0;
+                                                temp.devilpercent = 0;
+                                            } else {
+                                                Service.send_box_ThongBao_OK(p, "Không đủ sách haki vũ trang");
+                                            }
+                                        } else {
+                                            int index_new = temp.temp.indexSkillInServer + 1;
+                                            temp = new Skill_info();
+                                            temp.temp = Skill_Template.get_temp(index_new, 0);
+                                            temp.exp = 0;
+                                            temp.lvdevil = 0;
+                                            temp.devilpercent = 0;
+                                        }
                                     }
                                 }
                             }
@@ -3550,6 +3608,87 @@ public class ClientYesNo {
                         p.item.remove_item47(4, 427, 1);
                         p.item.update_Inventory(-1, false);
                     }
+                    break;
+                }
+                case 4800: {
+                    boolean hasHakiQuanSat = false;
+
+                    for (int i = 0; i < p.skill_point.size(); i++) {
+                        Skill_info temp = p.skill_point.get(i);
+                        if (temp.temp.indexSkillInServer == 671 ||
+                                temp.temp.indexSkillInServer == 667 ||
+                                temp.temp.indexSkillInServer == 668 ||
+                                temp.temp.indexSkillInServer == 669 ||
+                                temp.temp.indexSkillInServer == 670) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã có haki quan sát rồi");
+                            hasHakiQuanSat = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasHakiQuanSat && p.item.total_item_bag_by_id(4, 800) > 0) {
+                        String[] name_ = new String[] { "Haki quan sát" };
+                        int[] icon_ = new int[] { 49 };
+                        Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
+                        p.get_skill_haki_new(id - 4000);
+                        p.item.remove_item47(4, 800, 1);
+                        p.item.update_Inventory(-1, false);
+                    }
+                    break;
+                }
+                // ba vuong
+                case 4801: {
+                    boolean hasHakiQuanSat = false;
+
+                    for (int i = 0; i < p.skill_point.size(); i++) {
+                        Skill_info temp = p.skill_point.get(i);
+                        if (temp.temp.indexSkillInServer == 672 ||
+                                temp.temp.indexSkillInServer == 673 ||
+                                temp.temp.indexSkillInServer == 674 ||
+                                temp.temp.indexSkillInServer == 675 ||
+                                temp.temp.indexSkillInServer == 676) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã có haki bá vương rồi");
+                            hasHakiQuanSat = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasHakiQuanSat && p.item.total_item_bag_by_id(4, 801) > 0) {
+                        String[] name_ = new String[] { "Haki bá vương" };
+                        int[] icon_ = new int[] { 50 };
+                        Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
+                        p.get_skill_haki_new(id - 4000);
+                        p.item.remove_item47(4, 801, 1);
+                        p.item.update_Inventory(-1, false);
+                    }
+
+                    break;
+                }
+                case 4802: {
+                    boolean hasHakiQuanSat = false;
+
+                    for (int i = 0; i < p.skill_point.size(); i++) {
+                        Skill_info temp = p.skill_point.get(i);
+                        if (temp.temp.indexSkillInServer == 677 ||
+                                temp.temp.indexSkillInServer == 678 ||
+                                temp.temp.indexSkillInServer == 679 ||
+                                temp.temp.indexSkillInServer == 680 ||
+                                temp.temp.indexSkillInServer == 681) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã có haki vũ trang rồi");
+                            hasHakiQuanSat = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasHakiQuanSat && p.item.total_item_bag_by_id(4, 802) > 0) {
+                        String[] name_ = new String[] { "Haki vũ trang" };
+                        int[] icon_ = new int[] { 51 };
+                        Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
+                        p.get_skill_haki_new(id - 4000);
+                        p.item.remove_item47(4, 802, 1);
+                        p.item.update_Inventory(-1, false);
+                    }
+
                     break;
                 }
                 case 1: {
