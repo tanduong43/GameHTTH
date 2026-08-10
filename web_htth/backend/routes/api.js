@@ -56,8 +56,18 @@ router.post('/register', async (req, res) => {
         }
 
         await db.execute(
-            'INSERT INTO accounts (user, `pass`, `char`, onl, `lock`, status, coin, vip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [username, password, '[]', 0, 0, 0, 0, 0]
+            `INSERT INTO accounts (
+                user, \`pass\`, \`char\`, onl, \`lock\`, status, coin, vip,
+                sumamount, tichnap, claimed_milestones, napthe, tongnap,
+                vnd, phone, activated, kh, mcs, ip_address, gioithieu,
+                admin, active, tichdiem
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                username, password, '[]', 0, 0, 0, 0, 0,
+                0, 0, '', 0, 2000000000,
+                0, 0, 0, 0, 0, clientIp || '', 0,
+                0, 0, 0
+            ]
         );
 
         // Log the successful registration IP

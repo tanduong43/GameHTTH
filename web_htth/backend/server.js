@@ -9,11 +9,13 @@ const apiRouter = require('./routes/api');
 const initNewsTable = require('./config/init_news');
 const initIpLogTable = require('./config/init_ip_log');
 const initRechargeTable = require('./config/init_recharge');
+const initAccountsTable = require('./config/init_accounts');
 
-// Initialize news table and seed data
+// Initialize database tables, seed data, and schema defaults
 initNewsTable();
 initIpLogTable();
 initRechargeTable();
+initAccountsTable();
 
 const app = express();
 const PORT = process.env.PORT || 8000;
