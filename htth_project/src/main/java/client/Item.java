@@ -518,6 +518,7 @@ public class Item {
     public int total_item_bag_by_id(int type, int id) {
         int par = 0;
         switch (type) {
+            case 1:
             case 4:
             case 5:
             case 7: {

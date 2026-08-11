@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import template.GiftBox;
+import template.ItemFashion;
+import template.ItemFashionP;
+import template.ItemFashionP2;
 import template.ItemTemplate3;
 import template.ItemTemplate4;
 
@@ -117,6 +120,182 @@ public class Qua_tu_hop {
                 gb_.color = 0;
                 listGift.add(gb_);
                 Service.send_gift(p, 1, ItemTemplate4.get_item_name(1013), "Phần thưởng", listGift, true);
+            }
+        }
+        if (idItem == 691 && cat == 105) { // Thời trang sơ cấp (menuId từ UseItem)
+           
+                short[] listId = new short[]{49, 50};
+                if (select >= 0 && select < listId.length) {
+                    ItemFashion fashion = ItemFashion.get_item(listId[select]);
+                    if (fashion != null) {
+                        if (p.check_fashion(fashion.ID) != null) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã có thời trang " + fashion.name + " rồi!");
+                            return;
+                        }
+                        p.item.remove_item47(1, 1001, 1);
+                        Service.UpdateInfoMaincharInfo(p);
+                        
+                        ItemFashionP2 temp2 = new ItemFashionP2();
+                        temp2.id = fashion.ID;
+                        p.fashion.add(temp2);
+                        p.update_fashionP2(temp2);
+                        
+                        for (int i = 0; i < p.map.players.size(); i++) {
+                            Player p0 = p.map.players.get(i);
+                            Service.Weapon_fashion(p0, p, false);
+                        }
+                        ItemFashionP.show_table(p, 105);
+                        Service.send_box_ThongBao_OK(p, "Bạn đã nhận thời trang: " + fashion.name);
+                    }
+                }
+            
+        }
+        if (idItem == 692 && cat == 105) { // Thời trang cao cấp (menuId từ UseItem)
+            
+                short[] listId = new short[]{53, 54, 55, 59};
+                if (select >= 0 && select < listId.length) {
+                    ItemFashion fashion = ItemFashion.get_item(listId[select]);
+                    if (fashion != null) {
+                        if (p.check_fashion(fashion.ID) != null) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã có thời trang " + fashion.name + " rồi!");
+                            return;
+                        }
+                        p.item.remove_item47(1, 1002, 1);
+                        Service.UpdateInfoMaincharInfo(p);
+                        
+                        ItemFashionP2 temp2 = new ItemFashionP2();
+                        temp2.id = fashion.ID;
+                        p.fashion.add(temp2);
+                        p.update_fashionP2(temp2);
+                        
+                        for (int i = 0; i < p.map.players.size(); i++) {
+                            Player p0 = p.map.players.get(i);
+                            Service.Weapon_fashion(p0, p, false);
+                        }
+                        ItemFashionP.show_table(p, 105);
+                        Service.send_box_ThongBao_OK(p, "Bạn đã nhận thời trang: " + fashion.name);
+                    }
+                }
+            
+        }
+        if (idItem == 1001 && cat == 105) { // Thời trang sơ cấp
+            if (p.item.total_item_bag_by_id(1, 1001) > 0) {
+                short[] listId = new short[]{49, 50};
+                if (select >= 0 && select < listId.length) {
+                    ItemFashion fashion = ItemFashion.get_item(listId[select]);
+                    if (fashion != null) {
+                        if (p.check_fashion(fashion.ID) != null) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã có thời trang " + fashion.name + " rồi!");
+                            return;
+                        }
+                        p.item.remove_item47(1, 1001, 1);
+                        Service.UpdateInfoMaincharInfo(p);
+                        
+                        ItemFashionP2 temp2 = new ItemFashionP2();
+                        temp2.id = fashion.ID;
+                        p.fashion.add(temp2);
+                        p.update_fashionP2(temp2);
+                        
+                        for (int i = 0; i < p.map.players.size(); i++) {
+                            Player p0 = p.map.players.get(i);
+                            Service.Weapon_fashion(p0, p, false);
+                        }
+                        ItemFashionP.show_table(p, 105);
+                        Service.send_box_ThongBao_OK(p, "Bạn đã nhận thời trang: " + fashion.name);
+                    }
+                }
+            } else {
+                Service.send_box_ThongBao_OK(p, "Bạn không có Thời trang sơ cấp!");
+            }
+        }
+        if (idItem == 9910 && cat == 105) { // Thời trang sơ cấp (id cũ)
+            if (p.item.total_item_bag_by_id(1, 1001) > 0) {
+                short[] listId = new short[]{49, 50};
+                if (select >= 0 && select < listId.length) {
+                    ItemFashion fashion = ItemFashion.get_item(listId[select]);
+                    if (fashion != null) {
+                        if (p.check_fashion(fashion.ID) != null) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã sở hữu thời trang này rồi!");
+                            return;
+                        }
+                        p.item.remove_item47(1, 1001, 1);
+                        Service.UpdateInfoMaincharInfo(p);
+                        
+                        ItemFashionP2 temp2 = new ItemFashionP2();
+                        temp2.id = fashion.ID;
+                        p.fashion.add(temp2);
+                        p.update_fashionP2(temp2);
+                        
+                        for (int i = 0; i < p.map.players.size(); i++) {
+                            Player p0 = p.map.players.get(i);
+                            Service.Weapon_fashion(p0, p, false);
+                        }
+                        ItemFashionP.show_table(p, 105);
+                        Service.send_box_ThongBao_OK(p, "Bạn đã nhận được thời trang: " + fashion.name);
+                    }
+                }
+            } else {
+                Service.send_box_ThongBao_OK(p, "Bạn không có Thời trang sơ cấp!");
+            }
+        }
+        if (idItem == 1002 && cat == 105) { // Thời trang cao cấp
+            if (p.item.total_item_bag_by_id(1, 1002) > 0) {
+                short[] listId = new short[]{53, 54, 55, 59};
+                if (select >= 0 && select < listId.length) {
+                    ItemFashion fashion = ItemFashion.get_item(listId[select]);
+                    if (fashion != null) {
+                        if (p.check_fashion(fashion.ID) != null) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã có thời trang " + fashion.name + " rồi!");
+                            return;
+                        }
+                        p.item.remove_item47(1, 1002, 1);
+                        Service.UpdateInfoMaincharInfo(p);
+                        
+                        ItemFashionP2 temp2 = new ItemFashionP2();
+                        temp2.id = fashion.ID;
+                        p.fashion.add(temp2);
+                        p.update_fashionP2(temp2);
+                        
+                        for (int i = 0; i < p.map.players.size(); i++) {
+                            Player p0 = p.map.players.get(i);
+                            Service.Weapon_fashion(p0, p, false);
+                        }
+                        ItemFashionP.show_table(p, 105);
+                        Service.send_box_ThongBao_OK(p, "Bạn đã nhận thời trang: " + fashion.name);
+                    }
+                }
+            } else {
+                Service.send_box_ThongBao_OK(p, "Bạn không có Thời trang cao cấp!");
+            }
+        }
+        if (idItem == 9911 && cat == 105) { // Thời trang cao cấp (id cũ)
+            if (p.item.total_item_bag_by_id(1, 1002) > 0) {
+                short[] listId = new short[]{53, 54, 55, 59};
+                if (select >= 0 && select < listId.length) {
+                    ItemFashion fashion = ItemFashion.get_item(listId[select]);
+                    if (fashion != null) {
+                        if (p.check_fashion(fashion.ID) != null) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã sở hữu thời trang này rồi!");
+                            return;
+                        }
+                        p.item.remove_item47(1, 1002, 1);
+                        Service.UpdateInfoMaincharInfo(p);
+                        
+                        ItemFashionP2 temp2 = new ItemFashionP2();
+                        temp2.id = fashion.ID;
+                        p.fashion.add(temp2);
+                        p.update_fashionP2(temp2);
+                        
+                        for (int i = 0; i < p.map.players.size(); i++) {
+                            Player p0 = p.map.players.get(i);
+                            Service.Weapon_fashion(p0, p, false);
+                        }
+                        ItemFashionP.show_table(p, 105);
+                        Service.send_box_ThongBao_OK(p, "Bạn đã nhận được thời trang: " + fashion.name);
+                    }
+                }
+            } else {
+                Service.send_box_ThongBao_OK(p, "Bạn không có Thời trang cao cấp!");
             }
         }
     }

@@ -966,20 +966,63 @@ public class UseItem {
                         return false;
                     }
                     case 1001: {
-                        send_dynamic_menu(p, 9910, "Thời trang sơ cấp",
-                                new String[]{"Tết Nam", "Tết Nữ"}, (short[]) null);
-                        break;
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Thời Trang Sơ");
+                        m.writer().writeUTF("Đổi");
+
+                        short[] ids = new short[] { 49, 50 };
+                        m.writer().writeByte(ids.length);
+
+                        for (short fashionId : ids) {
+                            ItemFashion fashion = ItemFashion.get_item(fashionId);
+                            if (fashion != null) {
+                                m.writer().writeByte(105);
+                                m.writer().writeUTF(fashion.name);
+                                m.writer().writeShort(fashion.idIcon);
+                                m.writer().writeByte(0);
+                                m.writer().writeShort(1);
+                                m.writer().writeByte(0);
+                            }
+                        }
+
+                        m.writer().writeShort(691); // id menu xử lý khi chọn
+                        m.writer().writeByte(105);
+
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
                     }
                     case 1002: {
-                        send_dynamic_menu(p, 9911, "Thời trang cao cấp",
-                                new String[]{"chấn Thiên", "Bão Tố", "Đấng"}, (short[]) null);
-                        break;
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Thời Trang Cao");
+                        m.writer().writeUTF("Đổi");
+
+                        short[] ids = new short[] {54, 55, 59 };
+                        m.writer().writeByte(ids.length);
+
+                        for (short fashionId : ids) {
+                            ItemFashion fashion = ItemFashion.get_item(fashionId);
+                            if (fashion != null) {
+                                m.writer().writeByte(105);
+                                m.writer().writeUTF(fashion.name);
+                                m.writer().writeShort(fashion.idIcon);
+                                m.writer().writeByte(0);
+                                m.writer().writeShort(1);
+                                m.writer().writeByte(0);
+                            }
+                        }
+
+                        m.writer().writeShort(692);
+                        m.writer().writeByte(105);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
                     }
                     case 1003: {
                         Message m = new Message(69);
                         m.writer().writeUTF("Rương Trái ác quỷ tự chọn");
                         m.writer().writeUTF("Đổi");
-                        short[] ids = new short[] {160, 161, 240};
+                        short[] ids = new short[] { 160, 161, 240 };
                         m.writer().writeByte(ids.length);
                         for (int i = 0; i < ids.length; i++) {
                             ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
@@ -1076,7 +1119,7 @@ public class UseItem {
                                 data[i + 2] = listIdDa[i];
                             }
                             p.data_yesno = data;
-                            
+
                             send_dynamic_menu(p, 9915, "Rương Đá Thần Thoại", listTenDa, (short[]) null);
                         } else {
                             Service.send_box_ThongBao_OK(p, "Không tìm thấy đá thần thoại trong hệ thống!");
@@ -1087,12 +1130,13 @@ public class UseItem {
                     case 1009: {
                         // Rương Đỏ VIP Tự Chọn - hiển thị 6 item đỏ để chọn
                         // Lưu data để xử lý khi người chơi chọn item
-                        p.data_yesno = new int[]{10041, 1009};
-                        String[] classNames = {"Sư", "Xạ", "Tri", "Y", "Đao", "Khí"};
+                        p.data_yesno = new int[] { 10041, 1009 };
+                        String[] classNames = { "Sư", "Xạ", "Tri", "Y", "Đao", "Khí" };
                         String clazzName = classNames[p.clazz];
                         send_dynamic_menu(p, 9914, "Rương Đồ Tự Chọn",
-                                new String[]{"Kiếm " + clazzName, "Áo " + clazzName, "Quần " + clazzName,
-                                    "Kính " + clazzName, "Nhẫn " + clazzName, "Dây " + clazzName}, (short[]) null);
+                                new String[] { "Kiếm " + clazzName, "Áo " + clazzName, "Quần " + clazzName,
+                                        "Kính " + clazzName, "Nhẫn " + clazzName, "Dây " + clazzName },
+                                (short[]) null);
                         used = false;
                         break;
                     }
@@ -1383,7 +1427,7 @@ public class UseItem {
                         open_box2(p, ItemTemplate4.get_it_by_id(id).type, 100);
                         break;
                     }
-                                        case 133: {
+                    case 133: {
                         EffTemplate eff = p.get_eff(17);
                         if (eff != null && (eff.time > (System.currentTimeMillis() + 3000L))) {
                             if ((eff.time - System.currentTimeMillis()) < (1000L * 60 * 60 * 24
@@ -1815,7 +1859,6 @@ public class UseItem {
         }
     }
 
-    
     private static void use_item_3(Player p, int id) throws IOException {
         if (p.use_item_3 == -1) {
             if (p.item.able_bag() < 1) {
@@ -1889,7 +1932,7 @@ public class UseItem {
             }
         }
     }
-    
+
     private static void qua_cau_poke(Player p, int ti_le, int type) throws IOException {
         for (int i = 0; i < p.map.players.size(); i++) {
             Player p0 = p.map.players.get(i);
