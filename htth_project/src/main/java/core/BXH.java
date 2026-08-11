@@ -481,7 +481,9 @@ public class BXH {
                     JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
                     Item_wear temp2 = new Item_wear();
                     Item.readUpdateItem(js2.toString(), temp2);
-                    it[temp2.index] = temp2;
+                    if (temp2.template != null) {
+                        it[temp2.index] = temp2;
+                    }
                 }
                 js.clear();
                 js = (JSONArray) JSONValue.parse(rs.getString("site"));
@@ -643,7 +645,9 @@ public class BXH {
                     JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
                     Item_wear temp2 = new Item_wear();
                     Item.readUpdateItem(js2.toString(), temp2);
-                    it[temp2.index] = temp2;
+                    if (temp2.template != null) {
+                        it[temp2.index] = temp2;
+                    }
                 }
                 js.clear();
                 js = (JSONArray) JSONValue.parse(rs.getString("site"));
@@ -766,7 +770,9 @@ public class BXH {
                     JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
                     Item_wear temp2 = new Item_wear();
                     Item.readUpdateItem(js2.toString(), temp2);
-                    it[temp2.index] = temp2;
+                    if (temp2.template != null) {
+                        it[temp2.index] = temp2;
+                    }
                 }
                 js.clear();
                 js = (JSONArray) JSONValue.parse(rs.getString("site"));
@@ -890,7 +896,9 @@ public class BXH {
                     JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
                     Item_wear temp2 = new Item_wear();
                     Item.readUpdateItem(js2.toString(), temp2);
-                    it[temp2.index] = temp2;
+                    if (temp2.template != null) {
+                        it[temp2.index] = temp2;
+                    }
                 }
                 js.clear();
                 js = (JSONArray) JSONValue.parse(rs.getString("site"));
@@ -1019,7 +1027,9 @@ public class BXH {
                     JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
                     Item_wear temp2 = new Item_wear();
                     Item.readUpdateItem(js2.toString(), temp2);
-                    it[temp2.index] = temp2;
+                    if (temp2.template != null) {
+                        it[temp2.index] = temp2;
+                    }
                 }
                 js.clear();
                 js = (JSONArray) JSONValue.parse(rs.getString("site"));
@@ -1200,7 +1210,9 @@ public class BXH {
                     JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
                     Item_wear temp2 = new Item_wear();
                     Item.readUpdateItem(js2.toString(), temp2);
-                    it[temp2.index] = temp2;
+                    if (temp2.template != null) {
+                        it[temp2.index] = temp2;
+                    }
                 }
                 js.clear();
                 js = (JSONArray) JSONValue.parse(rs.getString("site"));

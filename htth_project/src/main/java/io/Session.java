@@ -913,7 +913,9 @@ public class Session implements Runnable {
                         JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
                         Item_wear temp = new Item_wear();
                         Item.readUpdateItem(js2.toString(), temp);
-                        it[temp.index] = temp;
+                        if (temp.template != null) {
+                            it[temp.index] = temp;
+                        }
                     }
                     js.clear();
                     js = (JSONArray) JSONValue.parse(rs.getString("site"));

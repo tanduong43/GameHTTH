@@ -40,7 +40,10 @@ import template.DaThanThoai;
 import template.EffTemplate;
 import template.ItemFashion;
 import template.ItemFashionP;
+import template.ItemFashionP2;
 import template.ItemTemplate3;
+import template.GiftBox;
+import map.Boss;
 import template.ItemTemplate4;
 import template.ItemTemplate7;
 import template.ItemTemplate8;
@@ -85,6 +88,16 @@ public class MenuController {
         }
       }
       switch (type) {
+        case -403: {
+          send_dynamic_menu(p, type, "Hô Hô Hô", new String[]{"Danh Hiệu", "Tích Tiêu Noel", "Shop Noel", "Nhận Quà", "Map Noel"},
+                  null);
+          break;
+        }
+        case -404: {
+          send_dynamic_menu(p, type, "Ta Giết Ngươi", new String[]{"pet"},
+                  null);
+          break;
+        }
         case -140: {
           send_dynamic_menu(p, type, "WIPPER", new String[] { "Chế tạo DIAL", "Thử thách vệ thần" },
               null);
@@ -93,7 +106,7 @@ public class MenuController {
         case -86: {
           send_dynamic_menu(p, type, "Phó bản",
               new String[] { "Đá đít Mr3", "Phó bản khổng lồ", "Hướng dẫn Phó bản khổng lồ" },
-              new short[] { 150, 142, 148 });
+              new short[] { 150, 142, 148 }, 0);
           break;
         }
         case -77: {
@@ -111,17 +124,17 @@ public class MenuController {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
                         "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Khóa xin vào băng", "Giải tán băng" },
-                    new short[] { 141, 171, 146, 143, 144, 118, 128 });
+                    new short[] { 141, 171, 146, 143, 144, 118, 128 }, 0);
               } else {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
                         "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Mở xin vào băng", "Giải tán băng" },
-                    new short[] { 141, 171, 146, 143, 144, 118, 128 });
+                    new short[] { 141, 171, 146, 143, 144, 118, 128 }, 0);
               }
             } else {
               send_dynamic_menu(p, type, "Băng hải tặc",
                   new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng" },
-                  new short[] { 141, 171, 146 });
+                  new short[] { 141, 171, 146 }, 0);
             }
           } else {
             send_dynamic_menu(p, type, "Băng hải tặc",
@@ -142,7 +155,7 @@ public class MenuController {
             case 9: {
               send_dynamic_menu(p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu",
                   "Vượt liên ải", "Trận chiến lớn", "Thợ săn hải tặc", "Đăng truy nã" },
-                  new short[] { 136, 137, 138, 146, 111, 111 });
+                  new short[] { 136, 137, 138, 146, 111, 111 }, 0);
               break;
             }
             case 191:
@@ -154,32 +167,32 @@ public class MenuController {
             case 17: {
               send_dynamic_menu(p, type, "Zosaku",
                   new String[] { "Săn trùm", "Thách đấu", "Vượt liên ải", "Trận chiến lớn" },
-                  new short[] { 136, 137, 138, 146 });
+                  new short[] { 136, 137, 138, 146 }, 0);
               break;
             }
             case 25: {
               send_dynamic_menu(p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu",
                   "Vượt liên ải", "Trận chiến lớn", "Vượt ải đơn" },
-                  new short[] { 136, 137, 138, 146, 138 });
+                  new short[] { 136, 137, 138, 146, 138 }, 0);
               break;
             }
             case 41: {
               send_dynamic_menu(
                   p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu", "Vượt liên ải",
                       "Trận chiến lớn", "Bảo vệ kho báu Namie" },
-                  new short[] { 136, 137, 138, 146, 139 });
+                  new short[] { 136, 137, 138, 146, 139 }, 0);
               break;
             }
             case 49: {
               send_dynamic_menu(p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu",
                   "Vượt liên ải", "Trận chiến lớn", "Lệnh truy nã" },
-                  new short[] { 136, 137, 138, 146, 160 });
+                  new short[] { 136, 137, 138, 146, 160 }, 0);
               break;
             }
             case 83: {
               send_dynamic_menu(p, type, "Zosaku",
                   new String[] { "Săn trùm", "Thách đấu", "Vượt siêu liên ải", "Trận chiến lớn" },
-                  new short[] { 136, 137, 159, 146 });
+                  new short[] { 136, 137, 159, 146 }, 0);
               break;
             }
           }
@@ -381,8 +394,7 @@ public class MenuController {
         case -10:
         case -9:
         case -8: {
-          // send_dynamic_menu(p, type, "Nhiệm vụ", new String[] {"Nhiệm vụ chính", "Nhiệm
-          // vụ lặp"}, null);
+          // send_dynamic_menu(p, type, "Nhiệm vụ", new String[] {"Nhiệm vụ chính", "Nhiệm vụ lặp"}, null);
           Show_List_Map_Tele(p, 0, -5);
           break;
         }
@@ -1112,6 +1124,39 @@ public class MenuController {
         case -71:
         case -48: {
           Menu_Zosaku(p, index);
+          break;
+        }
+        case 9910: {
+          Menu_ThoiTrangSo(p, index);
+          break;
+        }
+        case 9911: {
+          Menu_ThoiTrangCao(p, index);
+          break;
+        }
+        case 9912: {
+          Menu_SieuTrum(p, index);
+          break;
+        }
+        case 9901:
+        case 9913: {
+          Menu_TAQ(p, index, idNPC);
+          break;
+        }
+        case 9914: {
+          Menu_DO(p, index);
+          break;
+        }
+        case 9915: { // Rương đá thần thoại tự chọn
+          Menu_DaThanThoai(p, index);
+          break;
+        }
+        case 9916: { // Rương đỏ VIP tự chọn 2
+          Menu_DO_VIP2(p, index);
+          break;
+        }
+        case 9988: {
+          Menu_Xuat_BXH_Boss(p, index);
           break;
         }
         case 992: {
@@ -2120,6 +2165,7 @@ public class MenuController {
         if (p.map.template.id == 9) { // Đăng truy nã
           core.Service.input_text(p, -89, "Đăng truy nã", new String[] { "Tên nhân vật", "Số tiền (Beri)" });
         }
+        break;
       }
     }
   }
@@ -2558,18 +2604,15 @@ public class MenuController {
       // break;
       // }
       // case 3: { // Lục Thức
-      // send_dynamic_menu(p, 1002, "Lục Thức", new String[] { "Hướng dẫn", "Luyện Lục
-      // Thức", "Cảnh Giới" }, null);
+      // send_dynamic_menu(p, 1002, "Lục Thức", new String[] { "Hướng dẫn", "Luyện Lục Thức", "Cảnh Giới" }, null);
       // break;
       // }
       // case 4: { // Sức Mạnh Vật Lý
-      // send_dynamic_menu(p, 1003, "Sức Mạnh Vật Lý", new String[] { "Hướng dẫn",
-      // "Tăng Sức Mạnh", "Thể Trạng" }, null);
+      // send_dynamic_menu(p, 1003, "Sức Mạnh Vật Lý", new String[] { "Hướng dẫn", "Tăng Sức Mạnh", "Thể Trạng" }, null);
       // break;
       // }
       // case 5: { // Doriki
-      // send_dynamic_menu(p, 1001, "Doriki", new String[] { "Hướng dẫn", "Nâng Cấp",
-      // "Doriki" }, null);
+      // send_dynamic_menu(p, 1001, "Doriki", new String[] { "Hướng dẫn", "Nâng Cấp", "Doriki" }, null);
       // break;
       // }
       // case 6: { // Quay Pet
@@ -2838,7 +2881,7 @@ public class MenuController {
       case 1: {
         int[] id = new int[] { 1, 3, 9, 8, 11 };
         String[] name = new String[id.length];
-        byte[] icon = new byte[id.length];
+        short[] icon = new short[id.length];
         for (int i = 0; i < id.length; i++) {
           ItemTemplate7 temp = ItemTemplate7.get_it_by_id(id[i]);
           name[i] = temp.name;
@@ -2920,7 +2963,7 @@ public class MenuController {
         String[] name = new String[] { "Lấy Hàng", "Trả hàng", "Đăng ký bảo vệ hàng",
             "Thuê bảo vệ hàng", "Đăng ký chức năng", "Hủy vận buôn", "Gọi Lạc đà trở về",
             "Xem vị trí lạc đà", "Xem số lần vận buôn", "Hướng dẫn" };
-        short[] icon = new short[] { 107, 109, 110, 111, 110, 111, 151, -1, 114, 114 };
+        short[] icon = new short[] { 107, 109, 110, 111, 110, 111, 151, 0, 114, 114 };
         byte[] b7 = new byte[] { 3, 3, 3, 3, 7, 3, 3, 7, 7, 7 };
         for (int i = 0; i < 10; i++) {
           m.writer().writeUTF(name[i]);
@@ -2987,6 +3030,390 @@ public class MenuController {
       }
       case 4: {
         Service.Send_UI_Shop(p, 119);
+        break;
+      }
+    }
+  }
+
+  private static void Menu_ThoiTrangSo(Player p, byte index) throws IOException {
+    switch (index) {
+      case 0: {
+        List<GiftBox> list_gift = new ArrayList<>();
+        GiftBox gb_beri = new GiftBox();
+        ItemFashion itf = ItemFashion.get_item(49);
+        GiftBox gb_beri4 = new GiftBox();
+        ItemFashionP2 temp2 = new ItemFashionP2();
+        temp2.id = itf.ID;
+        p.fashion.add(temp2);
+        p.update_fashionP2(temp2);
+        for (int i = 0; i < p.map.players.size(); i++) {
+          Player p0 = p.map.players.get(i);
+          Service.charWearing(p, p0, false);
+        }
+        Service.UpdateInfoMaincharInfo(p);
+        gb_beri4.id = itf.ID;
+        gb_beri4.type = 105;
+        gb_beri4.name = itf.name;
+        gb_beri4.icon = itf.idIcon;
+        gb_beri4.num = 1;
+        gb_beri4.color = 0;
+        list_gift.add(gb_beri4);
+
+        Service.send_gift(p, 0, "Thời trang sơ", "Phần thưởng", list_gift, true);
+        break;
+      }
+      case 1: {
+
+        List<GiftBox> list_gift = new ArrayList<>();
+        ItemFashion itf = ItemFashion.get_item(50);
+        GiftBox gb_beri4 = new GiftBox();
+        ItemFashionP2 temp2 = new ItemFashionP2();
+        temp2.id = itf.ID;
+        p.fashion.add(temp2);
+        p.update_fashionP2(temp2);
+        for (int i = 0; i < p.map.players.size(); i++) {
+          Player p0 = p.map.players.get(i);
+          Service.charWearing(p, p0, false);
+        }
+        Service.UpdateInfoMaincharInfo(p);
+        gb_beri4.id = itf.ID;
+        gb_beri4.type = 105;
+        gb_beri4.name = itf.name;
+        gb_beri4.icon = itf.idIcon;
+        gb_beri4.num = 1;
+        gb_beri4.color = 0;
+        list_gift.add(gb_beri4);
+
+        Service.send_gift(p, 0, "Thời trang sơ", "Phần thưởng", list_gift, true);
+        break;
+      }
+
+    }
+  }
+
+  private static void Menu_ThoiTrangCao(Player p, byte index) throws IOException {
+    switch (index) {
+      case 0: {
+        List<GiftBox> list_gift = new ArrayList<>();
+        GiftBox gb_beri = new GiftBox();
+        ItemFashion itf = ItemFashion.get_item(53);
+        GiftBox gb_beri4 = new GiftBox();
+        ItemFashionP2 temp2 = new ItemFashionP2();
+        temp2.id = itf.ID;
+        p.fashion.add(temp2);
+        p.update_fashionP2(temp2);
+        for (int i = 0; i < p.map.players.size(); i++) {
+          Player p0 = p.map.players.get(i);
+          Service.charWearing(p, p0, false);
+        }
+        Service.UpdateInfoMaincharInfo(p);
+        gb_beri4.id = itf.ID;
+        gb_beri4.type = 105;
+        gb_beri4.name = itf.name;
+        gb_beri4.icon = itf.idIcon;
+        gb_beri4.num = 1;
+        gb_beri4.color = 0;
+        list_gift.add(gb_beri4);
+
+        Service.send_gift(p, 0, "Thời trang sơ", "Phần thưởng", list_gift, true);
+        break;
+      }
+      case 1: {
+
+        List<GiftBox> list_gift = new ArrayList<>();
+        ItemFashion itf = ItemFashion.get_item(58);
+        GiftBox gb_beri4 = new GiftBox();
+        ItemFashionP2 temp2 = new ItemFashionP2();
+        temp2.id = itf.ID;
+        p.fashion.add(temp2);
+        p.update_fashionP2(temp2);
+        for (int i = 0; i < p.map.players.size(); i++) {
+          Player p0 = p.map.players.get(i);
+          Service.charWearing(p, p0, false);
+        }
+        Service.UpdateInfoMaincharInfo(p);
+        gb_beri4.id = itf.ID;
+        gb_beri4.type = 105;
+        gb_beri4.name = itf.name;
+        gb_beri4.icon = itf.idIcon;
+        gb_beri4.num = 1;
+        gb_beri4.color = 0;
+        list_gift.add(gb_beri4);
+
+        Service.send_gift(p, 0, "Thời trang sơ", "Phần thưởng", list_gift, true);
+        break;
+      }
+      case 2: {
+
+        List<GiftBox> list_gift = new ArrayList<>();
+        ItemFashion itf = ItemFashion.get_item(59);
+        GiftBox gb_beri4 = new GiftBox();
+        ItemFashionP2 temp2 = new ItemFashionP2();
+        temp2.id = itf.ID;
+        p.fashion.add(temp2);
+        p.update_fashionP2(temp2);
+        for (int i = 0; i < p.map.players.size(); i++) {
+          Player p0 = p.map.players.get(i);
+          Service.charWearing(p, p0, false);
+        }
+        Service.UpdateInfoMaincharInfo(p);
+        gb_beri4.id = itf.ID;
+        gb_beri4.type = 105;
+        gb_beri4.name = itf.name;
+        gb_beri4.icon = itf.idIcon;
+        gb_beri4.num = 1;
+        gb_beri4.color = 0;
+        list_gift.add(gb_beri4);
+
+        Service.send_gift(p, 0, "Thời trang sơ", "Phần thưởng", list_gift, true);
+        break;
+      }
+    }
+  }
+
+  private static void Menu_TAQ(Player p, byte index, int idNPC) throws IOException {
+    short itemChestId = (idNPC == 9901) ? (short) 690 : (short) 1003;
+    if (p.item.total_item_bag_by_id(4, itemChestId) <= 0) {
+        Service.send_box_ThongBao_OK(p, "Bạn không có " + ItemTemplate4.get_item_name(itemChestId) + "!");
+        return;
+    }
+    short[] listId = new short[]{32, 92, 93, 160, 161, 240};
+    if (index < 0 || index >= listId.length) {
+        return;
+    }
+    short idTAQ = listId[index];
+    ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(idTAQ);
+    if (it_temp4 == null) {
+        return;
+    }
+    
+    p.item.remove_item47(4, itemChestId, 1);
+    p.item.update_Inventory(-1, false);
+    
+    List<GiftBox> list_gift = new ArrayList<>();
+    GiftBox gb = new GiftBox();
+    gb.id = it_temp4.id;
+    gb.type = 4;
+    gb.name = it_temp4.name;
+    gb.icon = it_temp4.icon;
+    gb.num = 1;
+    gb.color = 0;
+    list_gift.add(gb);
+    
+    Service.send_gift(p, 1, ItemTemplate4.get_item_name(itemChestId), "Phần thưởng", list_gift, true);
+  }
+
+  private static void Menu_DO(Player p, byte index) throws IOException {
+    // Rương Đỏ VIP Tự Chọn (1009) - Mỗi phái có 6 item (Kiếm, Áo, Quần, Kính, Nhẫn, Dây)
+    if (p.data_yesno == null || p.data_yesno[0] != 10041 || p.data_yesno[1] != 1009) {
+        // Nếu không có data_yesno hợp lệ, chỉ hiển thị bảng chọn (không xóa rương)
+        if (p.item.total_item_bag_by_id(4, 1009) <= 0) {
+            Service.send_box_ThongBao_OK(p, "Bạn không có Rương Đồ Tự Chọn!");
+            return;
+        }
+        p.data_yesno = new int[]{10041, 1009};
+
+        // Lấy icon cho từng item theo phái
+        int clazz = p.clazz;
+        if (clazz < 0) clazz = 0;
+        if (clazz > 4) clazz = 4;
+        int baseId = 12017 + (clazz * 6);
+
+        short[] listIcon = new short[6];
+        String[] listMenu = new String[6];
+        String[] classNames = {"Sư", "Xạ", "Tri", "Y", "Đao", "Khí"};
+        String[] itemNames = {"Kiếm", "Áo", "Quần", "Kính", "Nhẫn", "Dây"};
+        String clazzName = classNames[clazz];
+
+        for (int i = 0; i < 6; i++) {
+            ItemTemplate3 it3 = ItemTemplate3.get_it_by_id(baseId + i);
+            listIcon[i] = (it3 != null) ? it3.icon : 0;
+            listMenu[i] = itemNames[i] + " " + clazzName;
+        }
+
+        send_dynamic_menu(p, 9914, "Rương Đồ Tự Chọn", listMenu, listIcon);
+        return;
+    }
+    
+    // Xử lý khi người chơi đã chọn item từ bảng
+    int numChest = p.item.total_item_bag_by_id(4, 1009);
+    if (numChest <= 0) {
+        Service.send_box_ThongBao_OK(p, "Bạn không có Rương Đồ Tự Chọn!");
+        p.data_yesno = null;
+        return;
+    }
+    
+    // Xóa rương trước khi gửi quà
+    p.item.remove_item47(4, 1009, 1);
+    p.item.update_Inventory(-1, false);
+    
+    // Map index -> vị trí trong bộ item (0=Kiếm, 1=Áo, 2=Quần, 3=Kính, 4=Nhẫn, 5=Dây chuyền)
+    // Base ID theo phái: clazz 0 = 12017, clazz 1 = 12023, clazz 2 = 12029, clazz 3 = 12035, clazz 4 = 12041
+    int clazz = p.clazz;
+    if (clazz < 0) clazz = 0;
+    if (clazz > 4) clazz = 4;
+    int baseId = 12017 + (clazz * 6);
+    int itemId = baseId + index;
+    
+    List<GiftBox> list_gift = new ArrayList<>();
+    ItemTemplate3 it_temp3 = ItemTemplate3.get_it_by_id(itemId);
+    if (it_temp3 != null) {
+        GiftBox gb = new GiftBox();
+        gb.id = it_temp3.id;
+        gb.type = 3;
+        gb.name = it_temp3.name;
+        gb.icon = it_temp3.icon;
+        gb.num = 1;
+        gb.color = 7;
+        list_gift.add(gb);
+    }
+    Service.send_gift(p, 1, "Rương Đồ Tự Chọn", "Phần thưởng", list_gift, true);
+    p.item.update_Inventory(-1, false);
+    p.data_yesno = null;
+  }
+
+  private static void Menu_DO_VIP2(Player p, byte index) throws IOException {
+    // Rương Đỏ VIP Tự Chọn 2 (1010) - Mỗi phái có 6 item (Kiếm, Áo, Quần, Kính, Nhẫn, Dây)
+    if (p.data_yesno == null || p.data_yesno[0] != 10042 || p.data_yesno[1] != 1010) {
+        // Nếu không có data_yesno hợp lệ, chỉ hiển thị bảng chọn (không xóa rương)
+        if (p.item.total_item_bag_by_id(4, 1010) <= 0) {
+            Service.send_box_ThongBao_OK(p, "Bạn không có Rương Đồ Tự Chọn!");
+            return;
+        }
+        p.data_yesno = new int[]{10042, 1010};
+
+        // Lấy icon cho từng item theo phái
+        int clazz = p.clazz;
+        if (clazz < 0) clazz = 0;
+        if (clazz > 4) clazz = 4;
+        int baseId = 12047 + (clazz * 6);
+
+        short[] listIcon = new short[6];
+        String[] listMenu = new String[6];
+        String[] classNames = {"Sư", "Xạ", "Tri", "Y", "Đao", "Khí"};
+        String[] itemNames = {"Kiếm", "Áo", "Quần", "Kính", "Nhẫn", "Dây"};
+        String clazzName = classNames[clazz];
+
+        for (int i = 0; i < 6; i++) {
+            ItemTemplate3 it3 = ItemTemplate3.get_it_by_id(baseId + i);
+            listIcon[i] = (it3 != null) ? it3.icon : 0;
+            listMenu[i] = itemNames[i] + " " + clazzName;
+        }
+
+        send_dynamic_menu(p, 9916, "Rương Đồ Tự Chọn", listMenu, listIcon);
+        return;
+    }
+    
+    // Xử lý khi người chơi đã chọn item từ bảng
+    int numChest = p.item.total_item_bag_by_id(4, 1010);
+    if (numChest <= 0) {
+        Service.send_box_ThongBao_OK(p, "Bạn không có Rương Đồ Tự Chọn!");
+        p.data_yesno = null;
+        return;
+    }
+    
+    // Xóa rương trước khi gửi quà
+    p.item.remove_item47(4, 1010, 1);
+    p.item.update_Inventory(-1, false);
+    
+    // Map index -> vị trí trong bộ item (0=Kiếm, 1=Áo, 2=Quần, 3=Kính, 4=Nhẫn, 5=Dây chuyền)
+    // Base ID theo phái cho VIP2: clazz 0 = 12047, clazz 1 = 12053, clazz 2 = 12059, clazz 3 = 12065, clazz 4 = 12071
+    int clazz = p.clazz;
+    if (clazz < 0) clazz = 0;
+    if (clazz > 4) clazz = 4;
+    int baseId = 12047 + (clazz * 6);
+    int itemId = baseId + index;
+    
+    List<GiftBox> list_gift = new ArrayList<>();
+    ItemTemplate3 it_temp3 = ItemTemplate3.get_it_by_id(itemId);
+    if (it_temp3 != null) {
+        GiftBox gb = new GiftBox();
+        gb.id = it_temp3.id;
+        gb.type = 3;
+        gb.name = it_temp3.name;
+        gb.icon = it_temp3.icon;
+        gb.num = 1;
+        gb.color = 7;
+        list_gift.add(gb);
+    }
+    Service.send_gift(p, 1, "Rương Đồ Tự Chọn", "Phần thưởng", list_gift, true);
+    p.item.update_Inventory(-1, false);
+    p.data_yesno = null;
+  }
+
+  private static void Menu_DaThanThoai(Player p, byte index) throws IOException {
+    if (p.data_yesno != null && p.data_yesno[0] == 10040 && p.data_yesno[1] == 1004) {
+      int numIds = p.data_yesno.length - 2;
+      if (index >= 0 && index < numIds) {
+        int daId = p.data_yesno[index + 2];
+        ItemTemplate4 it4 = ItemTemplate4.get_it_by_id(daId);
+        if (it4 != null) {
+          int numChest = p.item.total_item_bag_by_id(4, 1004);
+          if (numChest <= 0) {
+            Service.send_box_ThongBao_OK(p, "Bạn không có Rương đá thần thoại!");
+            p.data_yesno = null;
+            return;
+          }
+
+          // Xóa rương trước khi gửi quà (send_gift sẽ tự thêm đá vào hành trang)
+          p.item.remove_item47(4, 1004, 1);
+
+          // Tạo gift để hiển thị popup quà (send_gift sẽ tự thêm item vào hành trang)
+          List<GiftBox> listGift = new ArrayList<>();
+          GiftBox gb = new GiftBox();
+          gb.id = (short) it4.id;
+          gb.type = 4;
+          gb.name = it4.name;
+          gb.icon = it4.icon;
+          gb.num = 1;
+          gb.color = 0;
+          listGift.add(gb);
+          Service.send_gift(p, 1, "Rương Đá Thần Thoại", "Phần thưởng", listGift, true);
+        }
+      }
+    }
+    p.data_yesno = null;
+  }
+
+  private static void Menu_Xuat_BXH_Boss(Player p, byte index) throws IOException {
+    int mobId = 135 + index;
+    if (mobId >= 135 && mobId <= 140) {
+      BXH.sendTopBoss(p, mobId, 0);
+    }
+  }
+
+  private static void Menu_SieuTrum(Player p, byte index) throws IOException {
+    switch (index) {
+      case 0: {
+        StringBuilder sb = new StringBuilder();
+        boolean coBoss = false;
+
+        for (Boss boss : Boss.ENTRYS) {
+          if (boss != null && boss.mob != null && !boss.mob.isdie) {
+            coBoss = true;
+            sb.append(String.format("Boss %s đang ở map %s khu %d\n",
+                boss.mob.mob_template.name, boss.mob.map.template.name, boss.mob.map.zone_id + 1));
+          }
+        }
+
+        if (coBoss) {
+          Service.send_box_ThongBao_OK(p, sb.toString());
+        } else {
+          Service.send_box_ThongBao_OK(p, "Hiện tại không có boss ");
+        }
+        break;
+      }
+      case 1: {
+        // BXH
+        send_dynamic_menu(p, 9988, "BXH Siêu trùm",
+            new String[] { "Siêu Along", "Siêu Smoker", "Siêu Mr. 3", "Siêu Wapol", "Siêu Crocodile",
+                "Siêu Thần Enel" },
+            null);
+        break;
+      }
+      case 2: {
+        Service.send_box_ThongBao_OK(p,
+            "Sát thương tính điểm siêu boss được tính dựa trên số dame bạn gây ra(Tối thiểu 1tr dame)");
         break;
       }
     }
@@ -3086,7 +3513,7 @@ public class MenuController {
       for (int i = 0; i < list_menu.length; i++) {
         m.writer().writeUTF(list_menu[i]);
         if (list_icon != null) {
-          m.writer().writeShort(list_icon[i]);
+          m.writer().writeByte((byte) list_icon[i]);
         }
       }
       p.conn.addmsg(m);
@@ -3095,7 +3522,7 @@ public class MenuController {
   }
 
   private static void send_dynamic_menu(Player p, int id_npc, String name_npc, String[] list_menu,
-      byte[] list_icon, int b) throws IOException {
+      short[] list_icon, int b) throws IOException {
     if (!p.isdie) {
       Message m = new Message(-20);
       m.writer().writeByte(3);

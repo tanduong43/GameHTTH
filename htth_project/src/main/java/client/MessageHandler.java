@@ -32,6 +32,7 @@ import core.Manager;
 import core.MenuController;
 import core.Service;
 import core.Util;
+import client.Qua_tu_hop;
 import event.EventSpecial;
 import io.Message;
 import io.Session;
@@ -53,6 +54,10 @@ public class MessageHandler {
 
     public void process_msg(Message m) throws IOException {
         switch (m.cmd) {
+            case 69: {
+                Qua_tu_hop.process(conn.p, m);
+                break;
+            }
             case -102: {
                 if (conn.p != null) {
                     DanhHieu.process(m, conn.p);

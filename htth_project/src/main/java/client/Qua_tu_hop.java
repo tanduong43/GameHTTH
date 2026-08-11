@@ -100,7 +100,7 @@ public class Qua_tu_hop {
                 Service.send_gift(p, 1, ItemTemplate4.get_item_name(1012), "Phần thưởng", listGift, true);
             }
         }
-                 if (idItem == 1013 && cat == 4 && (select == 0 || select == 1 || select == 2 || select == 3 || select == 4 || select == 5)) { // rương taq tu chon
+        if (idItem == 1013 && cat == 4 && (select == 0 || select == 1 || select == 2 || select == 3 || select == 4 || select == 5)) { // rương taq tu chon
             if (p.item.total_item_bag_by_id(4, 1013) > 0) {
                 short[] listId = new short[]{55};
                 ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(listId[select]);
@@ -113,7 +113,7 @@ public class Qua_tu_hop {
                 gb_.type = 105;
                 gb_.name = itemTemplate4.name;
                 gb_.icon = itemTemplate4.icon;
-                 gb_.num = Util.random(1);
+                gb_.num = Util.random(1);
                 gb_.color = 0;
                 listGift.add(gb_);
                 Service.send_gift(p, 1, ItemTemplate4.get_item_name(1013), "Phần thưởng", listGift, true);

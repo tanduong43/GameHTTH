@@ -172,7 +172,8 @@ public class UseItem {
                             Pokemon_normal randomBoss = bossesAlive.get(rand.nextInt(bossesAlive.size()));
 
                             sb.append(String.format("pokemon %s đang ở map %s khu %d\n",
-                                    randomBoss.mob.mob_template.name, randomBoss.mob.map.template.name, randomBoss.mob.map.zone_id + 1));
+                                    randomBoss.mob.mob_template.name, randomBoss.mob.map.template.name,
+                                    randomBoss.mob.map.zone_id + 1));
 
                             Service.send_box_ThongBao_OK(p, sb.toString());
                         } else {
@@ -181,149 +182,149 @@ public class UseItem {
                         break;
                     }
                     case 690: {
-                            Message m = new Message(69);
-                            m.writer().writeUTF("Rương Trái ác quỷ tự chọn");
-                            m.writer().writeUTF("Đổi");
-                            short[] ids = new short[]{32, 92, 93, 160, 161, 240};
-                            m.writer().writeByte(ids.length);
-                            for (int i = 0; i < ids.length; i++) {
-                                ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
-                                m.writer().writeByte(4);
-                                m.writer().writeUTF(itemTemplate4.name);
-                                m.writer().writeShort(itemTemplate4.icon);
-                                m.writer().writeByte(0);
-                                m.writer().writeShort(1);
-                                m.writer().writeByte(0);
-                            }
-                            m.writer().writeShort(690);
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Trái ác quỷ tự chọn");
+                        m.writer().writeUTF("Đổi");
+                        short[] ids = new short[] { 32, 92, 93, 160, 161, 240 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
                             m.writer().writeByte(4);
-                            p.conn.addmsg(m);
-                            m.cleanup();
-                            return false;
+                            m.writer().writeUTF(itemTemplate4.name);
+                            m.writer().writeShort(itemTemplate4.icon);
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(1);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(690);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
                     }
-                        case 1010: {
-                             GiftBox gb1 = new GiftBox();
-                            Message m = new Message(69);
-                            m.writer().writeUTF("Rương Đồ Tự Chọn");
-                            m.writer().writeUTF("Đổi");
-                            short[] ids = new short[]{12017, 12018, 12019, 12020, 12021, 12022, 12023, 12024};
-                            m.writer().writeByte(ids.length);
-                            for (int i = 0; i < ids.length; i++) {
-                                ItemTemplate3 itemTemplate3 = ItemTemplate3.get_it_by_id(ids[i]);
-                                m.writer().writeByte(3);
-                                m.writer().writeUTF(itemTemplate3.name);
-                                m.writer().writeShort(itemTemplate3.icon);
-                                gb1.color = itemTemplate3.color;
-                                m.writer().writeByte(0);
-                                m.writer().writeShort(1);
-                                m.writer().writeByte(0);
-                            }
-                            m.writer().writeShort(1010);
+                    case 1010: {
+                        GiftBox gb1 = new GiftBox();
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Đồ Tự Chọn");
+                        m.writer().writeUTF("Đổi");
+                        short[] ids = new short[] { 12017, 12018, 12019, 12020, 12021, 12022, 12023, 12024 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate3 itemTemplate3 = ItemTemplate3.get_it_by_id(ids[i]);
+                            m.writer().writeByte(3);
+                            m.writer().writeUTF(itemTemplate3.name);
+                            m.writer().writeShort(itemTemplate3.icon);
+                            gb1.color = itemTemplate3.color;
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(1);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(1010);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
+                    }
+                    case 1011: {
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Pet Vip Tự Chọn");
+                        m.writer().writeUTF("Đổi");
+                        short[] ids = new short[] { 706, 704, 705, 707, 708, 709 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
                             m.writer().writeByte(4);
-                            p.conn.addmsg(m);
-                            m.cleanup();
-                            return false;
+                            m.writer().writeUTF(itemTemplate4.name);
+                            m.writer().writeShort(itemTemplate4.icon);
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(1);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(1011);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
                     }
-                        case 1011: {
-                            Message m = new Message(69);
-                            m.writer().writeUTF("Rương Pet Vip Tự Chọn");
-                            m.writer().writeUTF("Đổi");
-                            short[] ids = new short[]{706, 704, 705, 707, 708, 709};
-                            m.writer().writeByte(ids.length);
-                            for (int i = 0; i < ids.length; i++) {
-                                ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
-                                m.writer().writeByte(4);
-                                m.writer().writeUTF(itemTemplate4.name);
-                                m.writer().writeShort(itemTemplate4.icon);
-                                m.writer().writeByte(0);
-                                m.writer().writeShort(1);
-                                m.writer().writeByte(0);
-                            }
-                            m.writer().writeShort(1011);
+                    case 1012: {
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Ruby");
+                        m.writer().writeUTF("Nhận Lì Xì");
+                        short[] ids = new short[] { 1, 1, 1 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
                             m.writer().writeByte(4);
-                            p.conn.addmsg(m);
-                            m.cleanup();
-                            return false;
+                            m.writer().writeUTF(itemTemplate4.name);
+                            m.writer().writeShort(itemTemplate4.icon);
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(10000);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(1012);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
                     }
-                         case 1012: {
-                            Message m = new Message(69);
-                            m.writer().writeUTF("Ruby");
-                            m.writer().writeUTF("Nhận Lì Xì");
-                            short[] ids = new short[]{1,1 ,1};
-                            m.writer().writeByte(ids.length);
-                            for (int i = 0; i < ids.length; i++) {
-                                ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
-                                m.writer().writeByte(4);
-                                m.writer().writeUTF(itemTemplate4.name);
-                                m.writer().writeShort(itemTemplate4.icon);
-                                m.writer().writeByte(0);
-                                m.writer().writeShort(10000);
-                                m.writer().writeByte(0);
-                            }
-                            m.writer().writeShort(1012);
-                            m.writer().writeByte(4);
-                            p.conn.addmsg(m);
-                            m.cleanup();
-                            return false;
-                    }
-                         
-//                         case 1013: {
-//                            Message m = new Message(69);
-//                            m.writer().writeUTF("Ruby");
-//                            m.writer().writeUTF("Nhận Lì Xì");
-//                            short[] ids = new short[]{55};
-//                            m.writer().writeByte(ids.length);
-//                            for (int i = 0; i < ids.length; i++) {
-//                                ItemFashion ItemFashion = ItemFashion.get_item(ids[i]);
-//                                m.writer().writeByte(105);
-//                                m.writer().writeUTF(ItemFashion.name);
-//                                m.writer().writeShort(ItemFashion.ID);
-//                                m.writer().writeByte(0);
-//                                m.writer().writeShort(1);
-//                                m.writer().writeByte(0);
-//                            }
-//                            m.writer().writeShort(1013);
-//                            m.writer().writeByte(4);
-//                            p.conn.addmsg(m);
-//                            m.cleanup();
-//                            return false;
-//                    }
-                     
-                    case 191: {
-                        //int poke_id = Util.random(115, 120);
-//                        switch (poke_id) {
-//                            case 115: {
-//                                Poke_lua.create_Pokemon(p, id);
-//                                break;
-//                            }
-//                            case 116: {
-//                                Poke_cay.create_Pokemon(p, id);
-//                                break;
-//                            }
-//                            case 117: {
-//                                Poke_da.create_Pokemon(p, id);
-//                                break;
-//                            }
-//                            case 118: {
-//                                Poke_nuoc.create_Pokemon(p, id);
-//                                break;
-//                            }
-//                            case 119: {
-//                                Poke_dien.create_Pokemon(p, id);
-//                                break;
-//                            }
-//                        }
 
-int ran = Util.random(2);
-switch(ran){
-    case 0:{
-        Pokemon_normal.create_Pokemon(p, id);
-        break;
-    }
-    case 1:{
-        break;
-    }
-}
+                    // case 1013: {
+                    // Message m = new Message(69);
+                    // m.writer().writeUTF("Ruby");
+                    // m.writer().writeUTF("Nhận Lì Xì");
+                    // short[] ids = new short[]{55};
+                    // m.writer().writeByte(ids.length);
+                    // for (int i = 0; i < ids.length; i++) {
+                    // ItemFashion ItemFashion = ItemFashion.get_item(ids[i]);
+                    // m.writer().writeByte(105);
+                    // m.writer().writeUTF(ItemFashion.name);
+                    // m.writer().writeShort(ItemFashion.ID);
+                    // m.writer().writeByte(0);
+                    // m.writer().writeShort(1);
+                    // m.writer().writeByte(0);
+                    // }
+                    // m.writer().writeShort(1013);
+                    // m.writer().writeByte(4);
+                    // p.conn.addmsg(m);
+                    // m.cleanup();
+                    // return false;
+                    // }
+
+                    case 191: {
+                        // int poke_id = Util.random(115, 120);
+                        // switch (poke_id) {
+                        // case 115: {
+                        // Poke_lua.create_Pokemon(p, id);
+                        // break;
+                        // }
+                        // case 116: {
+                        // Poke_cay.create_Pokemon(p, id);
+                        // break;
+                        // }
+                        // case 117: {
+                        // Poke_da.create_Pokemon(p, id);
+                        // break;
+                        // }
+                        // case 118: {
+                        // Poke_nuoc.create_Pokemon(p, id);
+                        // break;
+                        // }
+                        // case 119: {
+                        // Poke_dien.create_Pokemon(p, id);
+                        // break;
+                        // }
+                        // }
+
+                        int ran = Util.random(2);
+                        switch (ran) {
+                            case 0: {
+                                Pokemon_normal.create_Pokemon(p, id);
+                                break;
+                            }
+                            case 1: {
+                                break;
+                            }
+                        }
                         break;
                     }
                     case 7:
@@ -447,22 +448,25 @@ switch(ran){
                     case 1001: {
 
                         send_dynamic_menu(p, 9910, "Thời trang sơ cấp",
-                                new String[]{"Tết Nam", "Tết Nữ"}, null);
+                                new String[] { "Tết Nam", "Tết Nữ" }, null);
                         break;
                     }
                     case 1002: {
                         send_dynamic_menu(p, 9911, "Thời trang cao cấp",
-                                new String[]{"chấn Thiên", "Bão Tố", "Đấng"}, null);
+                                new String[] { "chấn Thiên", "Bão Tố", "Đấng" }, null);
                         break;
                     }
                     case 1003: {
                         send_dynamic_menu(p, 9913, "Trái ác quỷ cao cấp",
-                                new String[]{"Trái Sét", "Trái Nham", "Trái Chấn Thiên"}, null);
+                                new String[] { "Trái Sét", "Trái Nham", "Trái Chấn Thiên" }, null);
                         break;
                     }
-                      case 1009: {
+                    case 1009: {
                         send_dynamic_menu(p, 9914, "Trái ác quỷ cao cấp",
-                                new String[]{"Kiếm huyết quỷ 2", "Áo cam lót bi", "Quần hồng nam tính", "Kính thời thượng 2", "Khăn trùm thể thao 2", "Nhẫn vô cực 2", "Dây chuyền lam ngọc", "Găng tay vô cực"}, null);
+                                new String[] { "Kiếm huyết quỷ 2", "Áo cam lót bi", "Quần hồng nam tính",
+                                        "Kính thời thượng 2", "Khăn trùm thể thao 2", "Nhẫn vô cực 2",
+                                        "Dây chuyền lam ngọc", "Găng tay vô cực" },
+                                null);
                         break;
                     }
                     case 111: {
@@ -624,28 +628,28 @@ switch(ran){
                     case 742:
                     case 743:
                     case 744:
-                    case 745:{
+                    case 745: {
                         Service.send_box_yesno(p, id, "Thông báo",
                                 "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name,
-                                new String[]{"Đồng ý", "Hủy"}, new byte[]{-1, -1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
                     case 800: {
                         Service.send_box_yesno(p, (id + 4000), "Thông báo",
                                 "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name,
-                                new String[]{"Đồng ý", "Hủy"}, new byte[]{-1, -1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
                     case 801: {
                         Service.send_box_yesno(p, (id + 4000), "Thông báo",
                                 "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name,
-                                new String[]{"Đồng ý", "Hủy"}, new byte[]{-1, -1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
                     case 802: {
                         Service.send_box_yesno(p, (id + 4000), "Thông báo",
                                 "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name,
-                                new String[]{"Đồng ý", "Hủy"}, new byte[]{-1, -1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
                     case 16:
@@ -722,7 +726,7 @@ switch(ran){
                         if (80 > Util.random(120)) {
                             byte it_color = (byte) ((60 > Util.random(120)) ? 1
                                     : ((20 > Util.random(120)) ? 3
-                                    : (20 > Util.random(120) ? 0 : 2)));
+                                            : (20 > Util.random(120) ? 0 : 2)));
                             int bound1;
                             int bound2;
                             ItemTemplate3 template3;
@@ -831,7 +835,7 @@ switch(ran){
                         }
                         if (25 > Util.random(120)) {
                             GiftBox gb4 = new GiftBox();
-                            short[] id_random = new short[]{44, 50, 56, 62, 68, 74};
+                            short[] id_random = new short[] { 44, 50, 56, 62, 68, 74 };
                             it_temp4 = ItemTemplate4
                                     .get_it_by_id(id_random[Util.random(id_random.length)]);
                             if (it_temp4 != null) {
@@ -852,7 +856,7 @@ switch(ran){
                     }
 
                     case 271: {
-                        Service.input_text(p, 456, "Đổi tên", new String[]{"Tên mới"});
+                        Service.input_text(p, 456, "Đổi tên", new String[] { "Tên mới" });
                         break;
 
                     }
@@ -863,7 +867,7 @@ switch(ran){
                         if (80 > Util.random(120)) {
                             byte it_color = (byte) ((60 > Util.random(120)) ? 1
                                     : ((20 > Util.random(120)) ? 3
-                                    : (20 > Util.random(120) ? 0 : 2)));
+                                            : (20 > Util.random(120) ? 0 : 2)));
                             ItemTemplate4 temp4;
                             if (id == 27) {
                                 temp4 = ItemTemplate4
@@ -919,7 +923,7 @@ switch(ran){
                         }
                         if (25 > Util.random(120)) {
                             GiftBox gb4 = new GiftBox();
-                            short[] id_random = new short[]{44, 50, 56, 62, 68, 74};
+                            short[] id_random = new short[] { 44, 50, 56, 62, 68, 74 };
                             it_temp4 = ItemTemplate4
                                     .get_it_by_id(id_random[Util.random(id_random.length)]);
                             if (it_temp4 != null) {
@@ -940,15 +944,15 @@ switch(ran){
                     }
                     case 29: {
 
-                            short id_add = 86;
-                            if (20 > Util.random(120)) {
-                                id_add = 87;
-                            }
-                            if (!p.item.add_item_bag47(4, id_add, 1)) {
-                                Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
-                                return false;
-                            }
-                            open_taq_random(p, id_add, "Rương ác quỷ", "Nhận ngẫu nhiên");
+                        short id_add = 86;
+                        if (20 > Util.random(120)) {
+                            id_add = 87;
+                        }
+                        if (!p.item.add_item_bag47(4, id_add, 1)) {
+                            Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
+                            return false;
+                        }
+                        open_taq_random(p, id_add, "Rương ác quỷ", "Nhận ngẫu nhiên");
                         break;
                     }
                     case 31: {
@@ -969,19 +973,20 @@ switch(ran){
                                 + p.get_key_boss() + " / " + p.get_key_boss_max());
                         break;
                     }
-                      case 414: { // ky nang don
+                    case 414: { // ky nang don
                         if (p.level < 20) {
                             Service.send_box_ThongBao_OK(p, "Yêu cầu trình độ level 20");
                             return false;
                         }
                         List<Skill_info> listSelect = new ArrayList<>();
                         for (int i = 0; i < p.skill_point.size(); i++) {
-                            if (p.skill_point.get(i).exp > -1 && (p.skill_point.get(i).temp.ID >= 0 || p.skill_point.get(i).temp.ID <= 2)) {
+                            if (p.skill_point.get(i).exp > -1
+                                    && (p.skill_point.get(i).temp.ID >= 0 || p.skill_point.get(i).temp.ID <= 2)) {
                                 listSelect.add(p.skill_point.get(i));
                             }
                         }
-//                        Skill_info skillSelect = listSelect.get(Util.random(listSelect.size()));
-                        for(int i = 0; i < 3; i++){
+                        // Skill_info skillSelect = listSelect.get(Util.random(listSelect.size()));
+                        for (int i = 0; i < 3; i++) {
                             Skill_info skillSelect = listSelect.get(i);
                             if (skillSelect != null) {
                                 long xpReq = Skill_info.EXP[skillSelect.temp.Lv_RQ - 1] - skillSelect.exp;
@@ -992,42 +997,42 @@ switch(ran){
                         break;
                     }
                     case 158: {
-                            short id_add;
-                            int rdom = Util.random(1000);
-                            if (rdom < 50) { // 316
-                                id_add = 316;
-                            } else if (rdom < 130) { // 32
-                                id_add = 32;
-                            } else if (rdom < 210) { // 93
-                                id_add = 93;
-                            } else if (rdom < 330) { // 317
-                                id_add = 317;
-                            } else if (rdom < 450) { // 92
-                                id_add = 92;
-                            } else if (rdom < 580) { // 219
-                                id_add = 219;
-                            } else if (rdom < 710) { // 220
-                                id_add = 220;
-                            } else { // 33
-                                id_add = 33;
-                            }
-                            if (2 > Util.random(150)) {
-                                id_add = (short) ((50 > Util.random(120)) ? 240
-                                        : (50 > Util.random(120)) ? 161 : 160);
-                            }
-                            if (!p.item.add_item_bag47(4, id_add, 1)) {
-                                Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
-                                return false;
-                            }
-                            if (id_add == 240 || id_add == 161 || id_add == 160) {
-                                Manager.gI().chatKTG(0,
-                                        (p.name + " mở Rương đại ác quỷ nhận được "
-                                        + ItemTemplate4.get_item_name(id_add)
-                                        + ", thật là may mắn"),
-                                        5);
-                            }
-                            open_taq_random(p, id_add, "Rương đại ác quỷ", "Nhận ngẫu nhiên");
-                        
+                        short id_add;
+                        int rdom = Util.random(1000);
+                        if (rdom < 50) { // 316
+                            id_add = 316;
+                        } else if (rdom < 130) { // 32
+                            id_add = 32;
+                        } else if (rdom < 210) { // 93
+                            id_add = 93;
+                        } else if (rdom < 330) { // 317
+                            id_add = 317;
+                        } else if (rdom < 450) { // 92
+                            id_add = 92;
+                        } else if (rdom < 580) { // 219
+                            id_add = 219;
+                        } else if (rdom < 710) { // 220
+                            id_add = 220;
+                        } else { // 33
+                            id_add = 33;
+                        }
+                        if (2 > Util.random(150)) {
+                            id_add = (short) ((50 > Util.random(120)) ? 240
+                                    : (50 > Util.random(120)) ? 161 : 160);
+                        }
+                        if (!p.item.add_item_bag47(4, id_add, 1)) {
+                            Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống!");
+                            return false;
+                        }
+                        if (id_add == 240 || id_add == 161 || id_add == 160) {
+                            Manager.gI().chatKTG(0,
+                                    (p.name + " mở Rương đại ác quỷ nhận được "
+                                            + ItemTemplate4.get_item_name(id_add)
+                                            + ", thật là may mắn"),
+                                    5);
+                        }
+                        open_taq_random(p, id_add, "Rương đại ác quỷ", "Nhận ngẫu nhiên");
+
                         break;
                     }
                     case 32:
@@ -1049,7 +1054,7 @@ switch(ran){
                     case 427: {
                         Service.send_box_yesno(p, (id + 4000), "Thông báo",
                                 "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name,
-                                new String[]{"Đồng ý", "Hủy"}, new byte[]{-1, -1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
                     case 80: {
@@ -1069,14 +1074,14 @@ switch(ran){
                     }
                     case 86: {
                         Service.send_box_yesno(p, 35, "Thông báo",
-                                "Bạn có muốn sử dụng Trái Ác Quỷ?", new String[]{"Đồng ý", "Hủy"},
-                                new byte[]{-1, -1});
+                                "Bạn có muốn sử dụng Trái Ác Quỷ?", new String[] { "Đồng ý", "Hủy" },
+                                new byte[] { -1, -1 });
                         return false;
                     }
                     case 87: {
                         Service.send_box_yesno(p, 37, "Thông báo",
                                 "Bạn có muốn sử dụng Trái Ác Quỷ trung cấp?",
-                                new String[]{"Đồng ý", "Hủy"}, new byte[]{-1, -1});
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
                     case 803: {
@@ -1191,9 +1196,9 @@ switch(ran){
                         eff = p.get_eff(17);
                         Service.send_box_ThongBao_OK(p,
                                 "Thời gian EXP đặc biệt còn lại "
-                                + Util.get_time_str_by_sec2(
-                                        eff.time - System.currentTimeMillis())
-                                + "\nLưu ý thời gian cộng dồn tối đa 7 ngày");
+                                        + Util.get_time_str_by_sec2(
+                                                eff.time - System.currentTimeMillis())
+                                        + "\nLưu ý thời gian cộng dồn tối đa 7 ngày");
                         break;
                     }
                     case 159: {
@@ -1227,8 +1232,7 @@ switch(ran){
                         break;
                     }
                     case 455: {
-                        int random_color
-                                = (10 > Util.random(120)) ? 3 : ((50 > Util.random(120)) ? 2 : 1);
+                        int random_color = (10 > Util.random(120)) ? 3 : ((50 > Util.random(120)) ? 2 : 1);
                         for (int i = 0; i < p.skill_point.size(); i++) {
                             if (p.skill_point.get(i).temp.indexSkillInServer == 666) {
                                 random_color = (70 > Util.random(100)) ? 3 : 2;
@@ -1240,19 +1244,19 @@ switch(ran){
                             case 1: {
                                 id_random = (5 > Util.random(120)) ? 12012
                                         : ((20 > Util.random(120)) ? 12011
-                                        : ((40 > Util.random(120)) ? 12010 : 12009));
+                                                : ((40 > Util.random(120)) ? 12010 : 12009));
                                 break;
                             }
                             case 2: {
                                 id_random = (5 > Util.random(120)) ? 12008
                                         : ((20 > Util.random(120)) ? 12007
-                                        : ((40 > Util.random(120)) ? 12006 : 12005));
+                                                : ((40 > Util.random(120)) ? 12006 : 12005));
                                 break;
                             }
                             case 3: {
                                 id_random = (5 > Util.random(120)) ? 12004
                                         : ((20 > Util.random(120)) ? 12003
-                                        : ((40 > Util.random(120)) ? 12002 : 12001));
+                                                : ((40 > Util.random(120)) ? 12002 : 12001));
                                 break;
                             }
                         }
@@ -1408,7 +1412,7 @@ switch(ran){
                         while (!(ItemTemplate3.get_it_by_id(id_add).color == 3
                                 && ItemTemplate3.get_it_by_id(id_add).typeEquip < 6
                                 && (ItemTemplate3.get_it_by_id(id_add).clazz == 0
-                                || ItemTemplate3.get_it_by_id(id_add).clazz == p.clazz))) {
+                                        || ItemTemplate3.get_it_by_id(id_add).clazz == p.clazz))) {
                             id_add = Util.random(bound1, bound2);
                         }
                     } else {
@@ -1440,7 +1444,7 @@ switch(ran){
                     while (!(ItemTemplate3.get_it_by_id(id_add).color == 3
                             && ItemTemplate3.get_it_by_id(id_add).typeEquip < 6
                             && (ItemTemplate3.get_it_by_id(id_add).clazz == 0
-                            || ItemTemplate3.get_it_by_id(id_add).clazz == p.clazz))) {
+                                    || ItemTemplate3.get_it_by_id(id_add).clazz == p.clazz))) {
                         id_add = Util.random(bound1, bound2);
                     }
                     if (id_add > 0) {
@@ -1478,10 +1482,10 @@ switch(ran){
                     } else {
                         Service.send_box_yesno(p, 0, "Thông báo",
                                 "Khi trang bị lên người vật phẩm "
-                                + ItemTemplate3.get_it_by_id(it.template.id).name
-                                + " sẽ chuyển sang trạng thái khóa không thể giao dịch. "
-                                + "Bạn có muốn trang bị?",
-                                new String[]{"Đồng ý", "Hủy"}, new byte[]{2, 1});
+                                        + ItemTemplate3.get_it_by_id(it.template.id).name
+                                        + " sẽ chuyển sang trạng thái khóa không thể giao dịch. "
+                                        + "Bạn có muốn trang bị?",
+                                new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                     }
                 } else if (it.template.id == 11001) {
                     List<String> name_skill = new ArrayList<>();
@@ -1500,7 +1504,7 @@ switch(ran){
                         }
                         str[str.length - 1] = "Hủy";
                         select[str.length - 1] = (byte) -1;
-                        p.data_yesno = new int[]{id};
+                        p.data_yesno = new int[] { id };
                         Service.send_box_yesno(p, 38, "Thông báo",
                                 "Bạn muốn dùng cho skill nào hiện tại?", str, select);
                     } else {
@@ -1580,7 +1584,7 @@ switch(ran){
 
             Service.send_box_ThongBao_OK(p, "Tên của bạn đã được đổi thành: " + newName);
         } catch (SQLException e) {
-            //e.printStackTrace();
+            // e.printStackTrace();
             Service.send_box_ThongBao_OK(p, "Đổi tên không thành công. Vui lòng thử lại.");
             if (e.getErrorCode() == 1062) {
                 Service.send_box_ThongBao_OK(p, "Tên này đã tồn tại.");
@@ -1599,7 +1603,7 @@ switch(ran){
                     while (!(ItemTemplate3.get_it_by_id(id_add).color == 8
                             && ItemTemplate3.get_it_by_id(id_add).typeEquip < 6
                             && (ItemTemplate3.get_it_by_id(id_add).clazz == 0
-                            || ItemTemplate3.get_it_by_id(id_add).clazz == p.clazz))) {
+                                    || ItemTemplate3.get_it_by_id(id_add).clazz == p.clazz))) {
                         id_add = Util.random(bound1, bound2);
                     }
                 } else {
@@ -1632,7 +1636,7 @@ switch(ran){
                 while (!(ItemTemplate3.get_it_by_id(id_add).color == 8
                         && ItemTemplate3.get_it_by_id(id_add).typeEquip < 6
                         && (ItemTemplate3.get_it_by_id(id_add).clazz == 0
-                        || ItemTemplate3.get_it_by_id(id_add).clazz == p.clazz))) {
+                                || ItemTemplate3.get_it_by_id(id_add).clazz == p.clazz))) {
                     id_add = Util.random(bound1, bound2);
                 }
                 if (id_add > 0) {
@@ -1670,36 +1674,43 @@ switch(ran){
                     }
                 }
             }
-            
+
             if (list_random.size() > 0) {
                 Mob mob_select = null;
                 for (Mob mob : list_random) {
-                    if (mob.mob_template.mob_id == 115 && p0.map.zone_id == mob.map.zone_id && p0.map.template.id == mob.map.template.id) {
+                    if (mob.mob_template.mob_id == 115 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
                         mob_select = mob;
                         break;
                     }
-                    if (mob.mob_template.mob_id == 116 && p0.map.zone_id == mob.map.zone_id && p0.map.template.id == mob.map.template.id) {
+                    if (mob.mob_template.mob_id == 116 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
                         mob_select = mob;
                         break;
                     }
-                    if (mob.mob_template.mob_id == 117 && p0.map.zone_id == mob.map.zone_id && p0.map.template.id == mob.map.template.id) {
+                    if (mob.mob_template.mob_id == 117 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
                         mob_select = mob;
                         break;
                     }
-                    if (mob.mob_template.mob_id == 118 && p0.map.zone_id == mob.map.zone_id && p0.map.template.id == mob.map.template.id) {
+                    if (mob.mob_template.mob_id == 118 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
                         mob_select = mob;
                         break;
                     }
-                    if (mob.mob_template.mob_id == 119 && p0.map.zone_id == mob.map.zone_id && p0.map.template.id == mob.map.template.id) {
+                    if (mob.mob_template.mob_id == 119 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
                         mob_select = mob;
                         break;
                     }
-                    if (mob.mob_template.mob_id == 121 && p0.map.zone_id == mob.map.zone_id && p0.map.template.id == mob.map.template.id) {
+                    if (mob.mob_template.mob_id == 121 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
                         mob_select = mob;
                         break;
                     }
                 }
-                if (mob_select != null && p0.map.zone_id == mob_select.map.zone_id && p0.map.template.id == mob_select.map.template.id) {
+                if (mob_select != null && p0.map.zone_id == mob_select.map.zone_id
+                        && p0.map.template.id == mob_select.map.template.id) {
                     if (ti_le > Util.random(120)) {
                         Service.send_eff_poke(mob_select.index, p, type, 12);
                         mob_select.hp = 0;
@@ -1794,18 +1805,18 @@ switch(ran){
                                         "Thu phục pokemon nhận",
                                         list_gift, false);
                                 switch (mob_select.mob_template.mob_id) {
-                                    case 115:{
+                                    case 115: {
                                         Pokemon_normal.result_Pokemon_lua(p, i);
                                         break;
                                     }
-                                    case 121:{
+                                    case 121: {
                                         break;
                                     }
                                 }
                             }
                         }
                     } else {
-                        //ko tim thay or ch die
+                        // ko tim thay or ch die
                     }
                 }
             } else {

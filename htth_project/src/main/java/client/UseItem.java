@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import core.Manager;
+import static core.MenuController.send_dynamic_menu;
 import core.Service;
 import core.Util;
 import io.Message;
@@ -23,6 +24,14 @@ import template.Item_wear;
 import template.Level;
 import template.Skill_Template;
 import template.Skill_info;
+import map.Pokemon_normal;
+import map.Mob;
+import map.LeaveItemMap;
+import map.Map;
+import template.Option;
+import map.Mob;
+import java.util.Random;
+import template.*;
 
 /**
  *
@@ -876,7 +885,10 @@ public class UseItem {
                     case 316:
                     case 317:
                     case 318:
-                    case 427: {
+                    case 427:
+                    case 800:
+                    case 801:
+                    case 802: {
                         Service.send_box_yesno(p, (id + 4000), "Thông báo",
                                 "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name,
                                 new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
@@ -953,6 +965,316 @@ public class UseItem {
                                 new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }
+                    case 1001: {
+                        send_dynamic_menu(p, 9910, "Thời trang sơ cấp",
+                                new String[]{"Tết Nam", "Tết Nữ"}, (short[]) null);
+                        break;
+                    }
+                    case 1002: {
+                        send_dynamic_menu(p, 9911, "Thời trang cao cấp",
+                                new String[]{"chấn Thiên", "Bão Tố", "Đấng"}, (short[]) null);
+                        break;
+                    }
+                    case 1003: {
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Trái ác quỷ tự chọn");
+                        m.writer().writeUTF("Đổi");
+                        short[] ids = new short[] { 32, 92, 93, 160, 161, 240 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
+                            m.writer().writeByte(4);
+                            m.writer().writeUTF(itemTemplate4.name);
+                            m.writer().writeShort(itemTemplate4.icon);
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(1);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(690);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
+                    }
+                    case 1005: {
+                        qua_cau_poke(p, 5, 180);
+                        break;
+                    }
+                    case 1006: {
+                        qua_cau_poke(p, 15, 181);
+                        break;
+                    }
+                    case 1007: {
+                        qua_cau_poke(p, 25, 182);
+                        break;
+                    }
+                    case 1008: {
+                        qua_cau_poke(p, 25, 193);
+                        break;
+                    }
+                    case 189: {
+                        StringBuilder sb = new StringBuilder();
+                        List<Pokemon_normal> bossesAlive = new ArrayList<>();
+                        for (Pokemon_normal boss : Pokemon_normal.ENTRYS) {
+                            if (!boss.mob.isdie) {
+                                bossesAlive.add(boss);
+                            }
+                        }
+                        if (!bossesAlive.isEmpty()) {
+                            Random rand = new Random();
+                            Pokemon_normal randomBoss = bossesAlive.get(rand.nextInt(bossesAlive.size()));
+
+                            sb.append(String.format("pokemon %s đang ở map %s khu %d\n",
+                                    randomBoss.mob.mob_template.name, randomBoss.mob.map.template.name,
+                                    randomBoss.mob.map.zone_id + 1));
+
+                            Service.send_box_ThongBao_OK(p, sb.toString());
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Hiện tại không có pokemon ");
+                        }
+                        break;
+                    }
+                    case 690: {
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Trái ác quỷ tự chọn");
+                        m.writer().writeUTF("Đổi");
+                        short[] ids = new short[] { 32, 92, 93, 160, 161, 240 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
+                            m.writer().writeByte(4);
+                            m.writer().writeUTF(itemTemplate4.name);
+                            m.writer().writeShort(itemTemplate4.icon);
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(1);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(690);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
+                    }
+                    case 1004: { // Rương đá thần thoại tự chọn - hiển thị bảng đá từ id 647 đến 682
+                        String[] listTenDa = new String[36];
+                        int[] listIdDa = new int[36];
+                        int count = 0;
+                        for (int i = 647; i <= 682; i++) {
+                            ItemTemplate4 it4 = ItemTemplate4.get_it_by_id(i);
+                            if (it4 != null) {
+                                listTenDa[count] = it4.name;
+                                listIdDa[count] = i;
+                                count++;
+                            }
+                        }
+                        if (count > 0) {
+                            // Lưu data để xử lý khi người chơi chọn đá
+                            int[] data = new int[count + 2];
+                            data[0] = 10040; // id xử lý
+                            data[1] = 1004; // id chest
+                            for (int i = 0; i < count; i++) {
+                                data[i + 2] = listIdDa[i];
+                            }
+                            p.data_yesno = data;
+                            
+                            send_dynamic_menu(p, 9915, "Rương Đá Thần Thoại", listTenDa, (short[]) null);
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Không tìm thấy đá thần thoại trong hệ thống!");
+                        }
+                        used = false;
+                        break;
+                    }
+                    case 1009: {
+                        // Rương Đỏ VIP Tự Chọn - hiển thị 6 item đỏ để chọn
+                        // Lưu data để xử lý khi người chơi chọn item
+                        p.data_yesno = new int[]{10041, 1009};
+                        String[] classNames = {"Sư", "Xạ", "Tri", "Y", "Đao", "Khí"};
+                        String clazzName = classNames[p.clazz];
+                        send_dynamic_menu(p, 9914, "Rương Đồ Tự Chọn",
+                                new String[]{"Kiếm " + clazzName, "Áo " + clazzName, "Quần " + clazzName,
+                                    "Kính " + clazzName, "Nhẫn " + clazzName, "Dây " + clazzName}, (short[]) null);
+                        used = false;
+                        break;
+                    }
+                    case 111: {
+                        Service.send_eff(p, 20, 1000);
+                        //
+                        List<GiftBox> list = new ArrayList<>();
+                        //
+                        if (85 > Util.random(120)) {
+                            byte it_color = (byte) ((70 > Util.random(120)) ? 0
+                                    : ((20 > Util.random(120)) ? 2 : 1));
+                            int bound1;
+                            int bound2;
+                            ItemTemplate3 template3;
+                            switch (id) {
+                                case 8: {
+                                    bound1 = ((10 / 10) * 192);
+                                    bound2 = (((10 / 10) + 1) * 192);
+                                    break;
+                                }
+                                case 9: {
+                                    bound1 = ((20 / 10) * 192);
+                                    bound2 = (((20 / 10) + 1) * 192);
+                                    break;
+                                }
+                                case 10: {
+                                    bound1 = ((30 / 10) * 192);
+                                    bound2 = (((30 / 10) + 1) * 192);
+                                    break;
+                                }
+                                case 11: {
+                                    bound1 = ((40 / 10) * 192);
+                                    bound2 = (((40 / 10) + 1) * 192);
+                                    break;
+                                }
+                                case 12: {
+                                    bound1 = ((50 / 10) * 192);
+                                    bound2 = (((50 / 10) + 1) * 192);
+                                    break;
+                                }
+                                case 13: {
+                                    bound1 = ((60 / 10) * 192);
+                                    bound2 = (((60 / 10) + 1) * 192);
+                                    break;
+                                }
+                                case 14: {
+                                    bound1 = ((70 / 10) * 192);
+                                    bound2 = (((70 / 10) + 1) * 192);
+                                    break;
+                                }
+                                case 15: {
+                                    bound1 = ((80 / 10) * 192);
+                                    bound2 = (((80 / 10) + 1) * 192);
+                                    break;
+                                }
+                                default: {
+                                    bound1 = 0;
+                                    bound2 = 192;
+                                    break;
+                                }
+                            }
+                            template3 = ItemTemplate3.get_it_by_id(Util.random(bound1, bound2));
+                            int id_exact = template3.id;
+                            if ((template3.typeEquip == 0 || template3.typeEquip == 1
+                                    || template3.typeEquip == 3 || template3.typeEquip == 5)
+                                    && template3.clazz != p.clazz && 90 > Util.random(120)) {
+                                template3 = ItemTemplate3.get_item_random(template3.typeEquip,
+                                        p.clazz, bound1, bound2);
+                            }
+                            id_exact = template3.id;
+                            id_exact -= (template3.color - it_color);
+                            template3 = ItemTemplate3.get_it_by_id(id_exact);
+                            GiftBox gb1 = new GiftBox();
+                            if (template3 != null) {
+                                gb1.id = template3.id;
+                                gb1.type = 3;
+                                gb1.name = template3.name;
+                                gb1.icon = template3.icon;
+                                gb1.num = 1;
+                                gb1.color = template3.color;
+                                list.add(gb1);
+                            }
+                        }
+                        //
+                        GiftBox gb2 = new GiftBox();
+                        ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
+                        if (it_temp4 != null) {
+                            gb2.id = it_temp4.id;
+                            gb2.type = 4;
+                            gb2.name = it_temp4.name;
+                            gb2.icon = it_temp4.icon;
+                            gb2.num = Util.random(50, 180);
+                            gb2.color = 0;
+                            list.add(gb2);
+                        }
+                        //
+                        if (80 > Util.random(120)) {
+                            GiftBox gb3 = new GiftBox();
+                            it_temp4 = ItemTemplate4.get_it_by_id(Util.random(2, 6));
+                            if (it_temp4 != null) {
+                                gb3.id = it_temp4.id;
+                                gb3.type = 4;
+                                gb3.name = it_temp4.name;
+                                gb3.icon = it_temp4.icon;
+                                gb3.num = Util.random(2, 5);
+                                gb3.color = 0;
+                                list.add(gb3);
+                            }
+                        }
+                        if (list.size() > 0) {
+                            for (int i = 0; i < p.map.players.size(); i++) {
+                                Service.send_gift(p.map.players.get(i), 1, "Phần thưởng",
+                                        ItemTemplate4.get_item_name(id), list, true);
+                            }
+                        }
+                        break;
+                    }
+                    case 1010: {
+                        GiftBox gb1 = new GiftBox();
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Đồ Tự Chọn");
+                        m.writer().writeUTF("Đổi");
+                        short[] ids = new short[] { 12017, 12018, 12019, 12020, 12021, 12022, 12023, 12024 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate3 itemTemplate3 = ItemTemplate3.get_it_by_id(ids[i]);
+                            m.writer().writeByte(3);
+                            m.writer().writeUTF(itemTemplate3.name);
+                            m.writer().writeShort(itemTemplate3.icon);
+                            gb1.color = itemTemplate3.color;
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(1);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(1010);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
+                    }
+                    case 1011: {
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Rương Pet Vip Tự Chọn");
+                        m.writer().writeUTF("Đổi");
+                        short[] ids = new short[] { 706, 704, 705, 707, 708, 709 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
+                            m.writer().writeByte(4);
+                            m.writer().writeUTF(itemTemplate4.name);
+                            m.writer().writeShort(itemTemplate4.icon);
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(1);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(1011);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
+                    }
+                    case 1012: {
+                        Message m = new Message(69);
+                        m.writer().writeUTF("Ruby");
+                        m.writer().writeUTF("Nhận Lì Xì");
+                        short[] ids = new short[] { 1, 1, 1 };
+                        m.writer().writeByte(ids.length);
+                        for (int i = 0; i < ids.length; i++) {
+                            ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
+                            m.writer().writeByte(4);
+                            m.writer().writeUTF(itemTemplate4.name);
+                            m.writer().writeShort(itemTemplate4.icon);
+                            m.writer().writeByte(0);
+                            m.writer().writeShort(10000);
+                            m.writer().writeByte(0);
+                        }
+                        m.writer().writeShort(1012);
+                        m.writer().writeByte(4);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        return false;
+                    }
                     case 112:
                     case 113:
                     case 114:
@@ -979,7 +1301,89 @@ public class UseItem {
                         open_box(p, ItemTemplate4.get_it_by_id(id).type, (id - 121) * 10);
                         break;
                     }
-                    case 133: {
+                    case 803: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 10);
+                        break;
+                    }
+                    case 804: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 20);
+                        break;
+                    }
+                    case 805: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 30);
+                        break;
+                    }
+                    case 806: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 40);
+                        break;
+                    }
+                    case 807: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 50);
+                        break;
+                    }
+                    case 808: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 60);
+                        break;
+                    }
+                    case 809: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 70);
+                        break;
+                    }
+                    case 810: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 80);
+                        break;
+                    }
+                    case 811: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 90);
+                        break;
+                    }
+                    case 812: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 100);
+                        break;
+                    }
+
+                    //
+                    case 813: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 10);
+                        break;
+                    }
+                    case 814: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 20);
+                        break;
+                    }
+                    case 815: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 30);
+                        break;
+                    }
+                    case 816: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 40);
+                        break;
+                    }
+                    case 817: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 50);
+                        break;
+                    }
+                    case 818: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 60);
+                        break;
+                    }
+                    case 819: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 70);
+                        break;
+                    }
+                    case 820: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 80);
+                        break;
+                    }
+                    case 821: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 90);
+                        break;
+                    }
+                    case 822: {
+                        open_box2(p, ItemTemplate4.get_it_by_id(id).type, 100);
+                        break;
+                    }
+                                        case 133: {
                         EffTemplate eff = p.get_eff(17);
                         if (eff != null && (eff.time > (System.currentTimeMillis() + 3000L))) {
                             if ((eff.time - System.currentTimeMillis()) < (1000L * 60 * 60 * 24
@@ -1350,6 +1754,68 @@ public class UseItem {
         }
     }
 
+    private static int random_red_equip_id(int bound1, int bound2, byte clazz, boolean sameClazz) {
+        for (int tryCount = 0; tryCount < 500; tryCount++) {
+            int id_add = Util.random(bound1, bound2);
+            ItemTemplate3 it = ItemTemplate3.get_it_by_id(id_add);
+            if (it != null && it.color == 8 && it.typeEquip < 6
+                    && (!sameClazz || it.clazz == 0 || it.clazz == clazz)) {
+                return id_add;
+            }
+        }
+        return 0;
+    }
+
+    private static void open_box2(Player p, byte type, int level) throws IOException {
+        switch (type) {
+            case 22: {
+                int bound1 = ((level / 10) * 192) + 2112, bound2 = (((level / 10) + 1) * 192) + 2112;
+                List<Item_wear> list_receiv = new ArrayList<>();
+                Item_wear temp = new Item_wear();
+                boolean sameClazz = 90 > Util.random(120);
+                int id_add = random_red_equip_id(bound1, bound2, p.clazz, sameClazz);
+                if (id_add > 0) {
+                    temp.setup_template_by_id(id_add);
+                    increaseOptions(temp);
+                    list_receiv.add(temp);
+                    if (temp.template != null) {
+                        temp.numLoKham = (byte) ((50 > Util.random(120)) ? 0
+                                : (70 > Util.random(120) ? 1 : 2));
+                        p.item.add_item_bag3(temp);
+                    }
+                    Service.open_box_item3_orange(p, list_receiv, 545, "Mở Khóa Rương",
+                            ("Rương Đồ Đỏ Lv" + level));
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Lỗi, hãy thử lại");
+                }
+                break;
+            }
+            case 23: {
+                int bound1 = ((level / 10) * 192) + 2112, bound2 = (((level / 10) + 1) * 192) + 2112 + 192;
+                List<Item_wear> list_receiv = new ArrayList<>();
+                Item_wear temp = new Item_wear();
+                int id_add = random_red_equip_id(bound1, bound2, p.clazz, true);
+                if (id_add > 0) {
+                    temp.setup_template_by_id(id_add);
+                    increaseOptions(temp);
+
+                    list_receiv.add(temp);
+                    if (temp.template != null) {
+                        temp.numLoKham = (byte) ((50 > Util.random(120)) ? 0
+                                : (70 > Util.random(120) ? 1 : 2));
+                        p.item.add_item_bag3(temp);
+                    }
+                    Service.open_box_item3_orange(p, list_receiv, 545, "Mở Khóa Rương",
+                            ("Rương Đồ Đỏ cùng hệ Lv" + level));
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Lỗi, hãy thử lại");
+                }
+                break;
+            }
+        }
+    }
+
+    
     private static void use_item_3(Player p, int id) throws IOException {
         if (p.use_item_3 == -1) {
             if (p.item.able_bag() < 1) {
@@ -1421,6 +1887,189 @@ public class UseItem {
                 //
                 p.item.update_Inventory(-1, false);
             }
+        }
+    }
+    
+    private static void qua_cau_poke(Player p, int ti_le, int type) throws IOException {
+        for (int i = 0; i < p.map.players.size(); i++) {
+            Player p0 = p.map.players.get(i);
+            List<Mob> list_random = new ArrayList<>();
+            for (int i11 = 0; i11 < Pokemon_normal.ENTRYS.size(); i11++) {
+                Pokemon_normal boss = Pokemon_normal.ENTRYS.get(i11);
+                Mob mob = boss.mob;
+                if (mob != null) {
+                    if (!mob.isdie && Math.abs(p0.x - mob.x) < 200
+                            && Math.abs(p0.y - mob.y) < 200
+                            && p.id == p0.id) {
+                        list_random.add(mob);
+                    }
+                }
+            }
+
+            if (list_random.size() > 0) {
+                Mob mob_select = null;
+                for (Mob mob : list_random) {
+                    if (mob.mob_template.mob_id == 115 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
+                        mob_select = mob;
+                        break;
+                    }
+                    if (mob.mob_template.mob_id == 116 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
+                        mob_select = mob;
+                        break;
+                    }
+                    if (mob.mob_template.mob_id == 117 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
+                        mob_select = mob;
+                        break;
+                    }
+                    if (mob.mob_template.mob_id == 118 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
+                        mob_select = mob;
+                        break;
+                    }
+                    if (mob.mob_template.mob_id == 119 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
+                        mob_select = mob;
+                        break;
+                    }
+                    if (mob.mob_template.mob_id == 121 && p0.map.zone_id == mob.map.zone_id
+                            && p0.map.template.id == mob.map.template.id) {
+                        mob_select = mob;
+                        break;
+                    }
+                }
+                if (mob_select != null && p0.map.zone_id == mob_select.map.zone_id
+                        && p0.map.template.id == mob_select.map.template.id) {
+                    if (ti_le > Util.random(120)) {
+                        Service.send_eff_poke(mob_select.index, p, type, 12);
+                        mob_select.hp = 0;
+                    } else {
+                        Service.send_eff_poke(mob_select.index, p, type, 13);
+                    }
+                    if (mob_select.hp <= 0 && !mob_select.isdie) {
+                        mob_select.hp = 0;
+                        mob_select.isdie = true;
+                        // boss
+                        if (mob_select.poke_nor_info != null || mob_select.poke_huyen_thoai_info != null) {
+                            p.map.remove_obj(mob_select.index, 1);
+                            //
+                            List<GiftBox> list_gift = new ArrayList<>();
+                            //
+                            GiftBox gb_rcam = new GiftBox();
+                            ItemTemplate4 it_temp4_in;
+                            if (mob_select.mob_template.mob_id == 115) {
+                                it_temp4_in = ItemTemplate4.get_it_by_id(184);
+                                if (it_temp4_in != null) {
+                                    gb_rcam.id = it_temp4_in.id;
+                                    gb_rcam.type = 4;
+                                    gb_rcam.name = it_temp4_in.name;
+                                    gb_rcam.icon = it_temp4_in.icon;
+                                    gb_rcam.num = 1;
+                                    gb_rcam.color = 0;
+                                    list_gift.add(gb_rcam);
+                                }
+                            }
+                            if (mob_select.mob_template.mob_id == 116) {
+                                it_temp4_in = ItemTemplate4.get_it_by_id(183);
+                                if (it_temp4_in != null) {
+                                    gb_rcam.id = it_temp4_in.id;
+                                    gb_rcam.type = 4;
+                                    gb_rcam.name = it_temp4_in.name;
+                                    gb_rcam.icon = it_temp4_in.icon;
+                                    gb_rcam.num = 1;
+                                    gb_rcam.color = 0;
+                                    list_gift.add(gb_rcam);
+                                }
+                            }
+                            if (mob_select.mob_template.mob_id == 117) {
+                                it_temp4_in = ItemTemplate4.get_it_by_id(186);
+                                if (it_temp4_in != null) {
+                                    gb_rcam.id = it_temp4_in.id;
+                                    gb_rcam.type = 4;
+                                    gb_rcam.name = it_temp4_in.name;
+                                    gb_rcam.icon = it_temp4_in.icon;
+                                    gb_rcam.num = 1;
+                                    gb_rcam.color = 0;
+                                    list_gift.add(gb_rcam);
+                                }
+                            }
+                            if (mob_select.mob_template.mob_id == 118) {
+                                it_temp4_in = ItemTemplate4.get_it_by_id(185);
+                                if (it_temp4_in != null) {
+                                    gb_rcam.id = it_temp4_in.id;
+                                    gb_rcam.type = 4;
+                                    gb_rcam.name = it_temp4_in.name;
+                                    gb_rcam.icon = it_temp4_in.icon;
+                                    gb_rcam.num = 1;
+                                    gb_rcam.color = 0;
+                                    list_gift.add(gb_rcam);
+                                }
+                            }
+                            if (mob_select.mob_template.mob_id == 119) {
+                                it_temp4_in = ItemTemplate4.get_it_by_id(187);
+                                if (it_temp4_in != null) {
+                                    gb_rcam.id = it_temp4_in.id;
+                                    gb_rcam.type = 4;
+                                    gb_rcam.name = it_temp4_in.name;
+                                    gb_rcam.icon = it_temp4_in.icon;
+                                    gb_rcam.num = 1;
+                                    gb_rcam.color = 0;
+                                    list_gift.add(gb_rcam);
+                                }
+                            }
+                            if (mob_select.mob_template.mob_id == 121) {
+                                it_temp4_in = ItemTemplate4.get_it_by_id(188);
+                                if (it_temp4_in != null) {
+                                    gb_rcam.id = it_temp4_in.id;
+                                    gb_rcam.type = 4;
+                                    gb_rcam.name = it_temp4_in.name;
+                                    gb_rcam.icon = it_temp4_in.icon;
+                                    gb_rcam.num = 1;
+                                    gb_rcam.color = 0;
+                                    list_gift.add(gb_rcam);
+                                }
+                            }
+                            if (list_gift.size() > 0) {
+                                Service.send_gift(p, 1, "Thu phục pokemon",
+                                        "Thu phục pokemon nhận",
+                                        list_gift, false);
+                                switch (mob_select.mob_template.mob_id) {
+                                    case 115: {
+                                        Pokemon_normal.result_Pokemon_lua(p, i);
+                                        break;
+                                    }
+                                    case 121: {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // ko tim thay or ch die
+                    }
+                }
+            } else {
+                if (type != 193) {
+                    p.item.add_item_bag47(4, type + 825, 1);
+                    p.item.update_Inventory(-1, false);
+                } else {
+                    p.item.add_item_bag47(4, 1008, 1);
+                    p.item.update_Inventory(-1, false);
+                }
+            }
+        }
+    }
+
+    private static void increaseOptions(Item_wear item) {
+        int numOptionsToAdd = Util.random(11, 12);
+        for (int i = 0; i < numOptionsToAdd; i++) {
+            int optionIndex = Util.random(item.option_item.size());
+            Option option = item.option_item.get(optionIndex);
+            int currentParam = option.getParam();
+            int newParam = currentParam + numOptionsToAdd;
+            option.setParam(newParam);
         }
     }
 }

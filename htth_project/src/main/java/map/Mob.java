@@ -19,7 +19,10 @@ public class Mob {
 	public long time_skill;
 	public long time_refresh;
 	public Boss boss_info;
+	public Pokemon_normal poke_nor_info;
+    public Poke_huyen_thoai poke_huyen_thoai_info;
 	public Map map;
 	public int base_dame;
 	public int final_dame;
+	
 }

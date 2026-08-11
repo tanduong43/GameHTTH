@@ -1554,7 +1554,11 @@ public class Service {
             if (it_w != null) {
                 m.writer().writeByte(1);
                 Item.readUpdateItem(m.writer(), it_w, p0);
-                m.writer().writeShort(ItemTemplate3.get_it_by_id(it_w.template.id).part);
+                if (it_w.template != null) {
+                    m.writer().writeShort(ItemTemplate3.get_it_by_id(it_w.template.id).part);
+                } else {
+                    m.writer().writeShort((short) -1);
+                }
             } else {
                 m.writer().writeByte(0);
             }
@@ -1627,7 +1631,7 @@ public class Service {
         if (temp != null) {
             Message m = new Message(-105);
             m.writer().writeShort(id);
-            m.writer().writeUTF(temp.info);
+            m.writer().writeUTF(temp.info != null ? temp.info : "");
             p.conn.addmsg(m);
             m.cleanup();
         } else {
@@ -2250,6 +2254,32 @@ public class Service {
         m.writer().writeShort(num);
         p.map.send_msg_all_p(m, p, true);
         m.cleanup();
+    }
+
+    public static void send_eff_poke(int id, Player p, int num, int type) throws IOException {
+        Player p0 = p.map.get_player_by_id_inmap(id);
+        Mob mob = null;
+        if (p0 == null) {
+            mob = Mob.ENTRYS.get(id);
+        }
+        if (p0 != null || mob != null) {
+            Message m = new Message(-15);
+            m.writer().writeByte(type);
+            m.writer().writeShort(p.index_map);
+            m.writer().writeByte(0);
+            m.writer().writeShort(2000);
+            //
+            m.writer().writeShort(id);
+            if (mob != null) {
+                m.writer().writeByte(1);
+            } else {
+                m.writer().writeByte(0);
+            }
+            m.writer().writeShort(num);
+            //
+            p.map.send_msg_all_p(m, p, true);
+            m.cleanup();
+        }
     }
 
     public static void send_eff_sword_splash(int id, Player p) throws IOException {

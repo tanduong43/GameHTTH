@@ -220,6 +220,9 @@ public class Item {
 
     public static void readUpdateItem(DataOutputStream dos, Item_wear it, Player p)
             throws IOException {
+        if (it.template == null) {
+            return;
+        }
         dos.writeShort(it.index);
         dos.writeUTF(it.template.name);
         dos.writeByte(it.template.clazz);
@@ -286,7 +289,8 @@ public class Item {
 
     public static void readUpdateItem(String jsdata, Item_wear it) {
         JSONArray js = (JSONArray) JSONValue.parse(jsdata);
-        it.template = ItemTemplate3.get_it_by_id(Short.parseShort(js.get(0).toString()));
+        short templateId = Short.parseShort(js.get(0).toString());
+        it.template = ItemTemplate3.get_it_by_id(templateId);
         it.levelup = Byte.parseByte(js.get(1).toString());
         it.typelock = Byte.parseByte(js.get(2).toString());
         it.numHoleDaDuc = Byte.parseByte(js.get(3).toString());
@@ -299,7 +303,7 @@ public class Item {
         for (int i = 0; i < js2.size(); i++) {
             JSONArray js_3 = (JSONArray) JSONValue.parse(js2.get(i).toString());
             int a = Byte.parseByte(js_3.get(0).toString());
-            if (it.template.typeEquip < 6 && (a == 46 || a == 53 || a == 56 || a == 47)) {
+            if (it.template != null && it.template.typeEquip < 6 && (a == 46 || a == 53 || a == 56 || a == 47)) {
                 continue;
             }
             byte id = Byte.parseByte(js_3.get(0).toString());

@@ -589,7 +589,7 @@ public class Player {
                 JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
                 Item_wear temp = new Item_wear();
                 Item.readUpdateItem(js2.toString(), temp);
-                if (temp.index < item.bag3.length) {
+                if (temp.template != null && temp.index < item.bag3.length) {
                     item.bag3[temp.index] = temp;
                 }
             }
@@ -609,7 +609,7 @@ public class Player {
                 JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
                 Item_wear temp = new Item_wear();
                 Item.readUpdateItem(js2.toString(), temp);
-                if (temp.index < item.box3.length) {
+                if (temp.template != null && temp.index < item.box3.length) {
                     item.box3[temp.index] = temp;
                 }
             }
@@ -620,7 +620,7 @@ public class Player {
                 JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
                 Item_wear temp = new Item_wear();
                 Item.readUpdateItem(js2.toString(), temp);
-                if (temp.index < item.it_body.length) {
+                if (temp.template != null && temp.index < item.it_body.length) {
                     if (temp.index == 6) {
                         item.it_heart = temp;
                         item.it_heart.typelock = 1;

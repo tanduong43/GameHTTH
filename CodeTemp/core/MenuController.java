@@ -2,26 +2,57 @@ package core;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
+
 import org.joda.time.LocalTime;
-import activities.*;
-import client.*;
+
+import activities.BossHunt;
+import activities.ChuyenHoa;
+import activities.HanhTrinh;
+import activities.HelpDialog;
+import activities.Join_Item;
+import activities.Market;
+import activities.Max_Level;
+import activities.Rebuild_Item;
+import activities.Ship;
+import activities.Split_Item;
+import activities.TableTickOption;
+import activities.UpgradeDevil;
+import activities.UpgradeDial;
+import activities.UpgradeItem;
+import activities.UpgradeSuperItem;
+import activities.Upgrade_Skin;
+import activities.VongQuay;
+import client.Clazz;
+import client.Player;
 import database.SQL;
 import event.Doriki;
 import event.EventSpecial;
 import event.LucThuc;
 import event.SucManhVatLy;
 import io.Message;
-import io.Session;
 import io.SessionManager;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import map.*;
-import org.json.simple.JSONObject;
-import template.*;
+import map.Boss;
+import map.Map;
+import map.Npc;
+import map.Vgo;
+import template.Clan_member;
+import template.DaThanThoai;
+import template.EffTemplate;
+import template.GiftBox;
+import template.ItemFashion;
+import template.ItemFashionP;
+import template.ItemFashionP2;
+import template.ItemTemplate3;
+import template.ItemTemplate4;
+import template.ItemTemplate7;
+import template.ItemTemplate8;
+import template.QuestP;
+import template.Ship_pet;
+import template.ShopTichLuy;
+import template.Skill_Template;
+import template.Skill_info;
+import template.TaiXiuInfo;
 
 /**
  *
@@ -65,7 +96,7 @@ public class MenuController {
                 case -86: {
                     send_dynamic_menu(p, type, "Phó bản",
                             new String[]{"Đá đít Mr3", "Phó bản khổng lồ", "Hướng dẫn Phó bản khổng lồ"},
-                            new short[]{150, 142, 148});
+                            new byte[]{150, 142, 148});
                     break;
                 }
                 case -77: {
@@ -83,17 +114,17 @@ public class MenuController {
                             send_dynamic_menu(p, type, "Băng hải tặc",
                                     new String[]{"Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
                                         "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", (p.clan.allowRequest == 1 ? "Khóa xin vào băng" : "Mở xin vào băng"), "Giản tán"},
-                                    new short[]{141, 171, 146, 143, 144, 118, 128});
+                                    new byte[]{141, 171, 146, 143, 144, 118, 128});
 //                            } else {
 //                                send_dynamic_menu(p, type, "Băng hải tặc",
 //                                        new String[]{"Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
 //                                            "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Mở xin vào băng"},
-//                                        new short[]{141, 171, 146, 143, 144, 118});
+//                                        new byte[]{141, 171, 146, 143, 144, 118});
 //                            }
                         } else {
                             send_dynamic_menu(p, type, "Băng hải tặc",
                                     new String[]{"Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng"},
-                                    new short[]{141, 171, 146});
+                                    new byte[]{141, 171, 146});
                         }
                     } else {
                         send_dynamic_menu(p, type, "Băng hải tặc",
@@ -113,7 +144,7 @@ public class MenuController {
                     switch (p.map.template.id) {
                         case 9: {
                             send_dynamic_menu(p, type, "Zosaku", new String[]{"Săn trùm", "Thách đấu", "Vượt liên ải"},
-                                    new short[]{136, 137, 138, 146, 111});
+                                    new byte[]{136, 137, 138, 146, 111});
                             break;
                         }
                         case 191:
@@ -125,29 +156,29 @@ public class MenuController {
                         case 17: {
                             send_dynamic_menu(p, type, "Zosaku",
                                     new String[]{"Săn trùm", "Thách đấu", "Vượt liên ải"},
-                                    new short[]{136, 137, 138, 146});
+                                    new byte[]{136, 137, 138, 146});
                             break;
                         }
                         case 25: {
                             send_dynamic_menu(p, type, "Zosaku", new String[]{"Săn trùm", "Thách đấu", "Vượt liên ải", "Vượt ải đơn"},
-                                    new short[]{136, 137, 138, 146, 138});
+                                    new byte[]{136, 137, 138, 146, 138});
                             break;
                         }
                         case 41: {
                             send_dynamic_menu(
                                     p, type, "Zosaku", new String[]{"Săn trùm", "Thách đấu", "Vượt liên ải", "Kho báu Nami"},
-                                    new short[]{136, 137, 138, 146, 139});
+                                    new byte[]{136, 137, 138, 146, 139});
                             break;
                         }
                         case 49: {
                             send_dynamic_menu(p, type, "Zosaku", new String[]{"Săn trùm", "Thách đấu", "Vượt liên ải"},
-                                    new short[]{136, 137, 138, 146, 160});
+                                    new byte[]{136, 137, 138, 146, 160});
                             break;
                         }
                         case 83: {
                             send_dynamic_menu(p, type, "Zosaku",
                                     new String[]{"Săn trùm", "Thách đấu", "Vượt liên ải"},
-                                    new short[]{136, 137, 159, 146});
+                                    new byte[]{136, 137, 159, 146});
                             break;
                         }
                     }
@@ -156,7 +187,7 @@ public class MenuController {
                 case -72: { // npc nami
                     send_dynamic_menu(
                             p, type, "Nami", new String[]{"Đổi Ruby", "Nhận Quà", "Nhiệm vụ hằng ngày", "Tích nạp", "Chợ mua bán"},
-                            new short[]{132, 170, 170, 169, 170, 170, 170});
+                            new byte[]{132, 170, 170, 169, 170, 170, 170});
                     break;
                 }
                 case -997: {
@@ -228,18 +259,18 @@ public class MenuController {
                 case -37: {
                     send_dynamic_menu(p, type, "Bếp trưởng", new String[]{"Học Skill", "Tẩy tiềm năng",
                         "Xóa nội tại", "Người giới thiệu", "Đá hành trình"},
-                            new short[]{123, 124, 125, 138, 127});
+                            new byte[]{123, 124, 125, 138, 127});
                     break;
                 }
                 case -4: {
                     if (p.level >= 100) {
                         send_dynamic_menu(p, type, "Gap", new String[]{"Học Skill", "Tẩy tiềm năng",
                             "Xóa nội tại", "Người giới thiệu", "Thông thạo"},
-                                new short[]{123, 124, 125, 138, 138});
+                                new byte[]{123, 124, 125, 138, 138});
                     } else {
                         send_dynamic_menu(p, type, "Gap",
                                 new String[]{"Học Skill", "Tẩy tiềm năng", "Xóa nội tại", "Người giới thiệu"},
-                                new short[]{123, 124, 125, 138});
+                                new byte[]{123, 124, 125, 138});
                     }
                     break;
                 }
@@ -379,12 +410,12 @@ public class MenuController {
                         send_dynamic_menu(p, type, "Johny",
                                 new String[]{"Cường Hóa", "Khảm đá", "Chuyển hóa", "Ghép mảnh trang bị",
                                     "Cường hóa thời trang", "Cường hóa ác quỷ"},
-                                new short[]{126, 127, 128, 126, 126, 154});
+                                new byte[]{126, 127, 128, 126, 126, 154});
                     } else {
                         send_dynamic_menu(
                                 p, type, "Johny", new String[]{"Cường Hóa", "Khảm đá", "Chuyển hóa",
                                     "Ghép mảnh trang bị", "Cường hóa thời trang"},
-                                new short[]{126, 127, 128, 126, 126});
+                                new byte[]{126, 127, 128, 126, 126});
                     }
                     break;
                 }
@@ -404,7 +435,7 @@ public class MenuController {
                     send_dynamic_menu(
                             p, type, get_name_npc(type), new String[]{"Quán ăn", "Vận Chuyển Hàng", "Tiệm tóc",
                         "Đóng thuyền", "Thời trang", "Thẩm mỹ viện", "Đổi thời trang"},
-                            new short[]{104, 107, 106, 105, 108, 158, 105});
+                            new byte[]{104, 107, 106, 105, 108, 158, 105});
                     break;
                 }
                 case -144: // kinh do nuoc
@@ -445,7 +476,7 @@ public class MenuController {
                             new String[]{Clazz.NAME[p.clazz - 1], "Hệ khác",
                                 (!p.is_show_hat ? "Bật hiển thị nón" : "Tắt hiển thị nón"), "Khóa bảo vệ",
                                 "Thùng rác"},
-                            new short[]{Clazz.ICON[p.clazz - 1], 116, 117, 118, 113});
+                            new byte[]{Clazz.ICON[p.clazz - 1], 116, 117, 118, 113});
                     break;
                 }
                 case -119: {
@@ -453,7 +484,7 @@ public class MenuController {
                 }
                 default: {
                     send_dynamic_menu(p, type, (get_name_npc(type) + " id " + type), new String[]{"Chưa có"},
-                            new short[]{117});
+                            new byte[]{117});
                     break;
                 }
             }
@@ -1948,7 +1979,7 @@ public class MenuController {
                 send_dynamic_menu(p, 993, "Nami",
                         new String[]{"Đổi Ruby", "Đổi extol", "Nạp tiền", "GiftCode", "Đổi Ruby",
                             "Đổi Beri", "Xem Coin", "Mã quà tặng"},
-                        new short[]{128, 128, 132, 161, 127, 162, 140, 140});
+                        new byte[]{128, 128, 132, 161, 127, 162, 140, 140});
                 break;
             }
             case 1: {
@@ -2524,6 +2555,7 @@ public class MenuController {
             }
             case 6: { // ngoc than thoai
                 Message m = new Message(-19);
+                m.writer().writeByte(0);
                 m.writer().write(DaThanThoai.data_shop);
                 p.conn.addmsg(m);
                 m.cleanup();
@@ -2531,12 +2563,12 @@ public class MenuController {
             }
             case 7: {
                 String txt = "Khảm vật phẩm gồm 2 chức năng chính:\n" + "Khảm đá vào vật phẩm\n"
-                        + "Ghép đá\b" + "Khảm đá vào vật phẩm:\n"
-                        + "Mỗi vật phẩm mới khi mở rương sẽ có ngẫu nhiên các Lỗ Khảm dể bạn có thể gắn những viênd đá đặc biệt vào giúp "
-                        + "tăng sức mạnh cho bản thân.\b"
+                        + "Ghép đá\n" + "Khảm đá vào vật phẩm:\n"
+                        + "Mỗi vật phẩm mới khi mở rương sẽ có ngẫu nhiên các Lỗ Khảm để bạn có thể gắn những viên đá đặc biệt vào giúp "
+                        + "tăng sức mạnh cho bản thân.\n"
                         + "Bạn có thể đục lỗ để có thể gắn được nhiều đá hơn (tối đa 2 lần).\n"
-                        + "Ngoài ra còn có chức năng lấy đá từ vật phẩm đã khảm để gắn vào vật phẩm mới.\b"
-                        + "Ghép đá:\n" + "Đá khảm rẩt đa dạng và mỗi loại có 6 cấp độ khác nhau.\b"
+                        + "Ngoài ra còn có chức năng lấy đá từ vật phẩm đã khảm để gắn vào vật phẩm mới.\n"
+                        + "Ghép đá:\n" + "Đá khảm rất đa dạng và mỗi loại có 6 cấp độ khác nhau.\n"
                         + "Bạn có thể dùng 3 viên đá cấp thấp để ghép thành viên đá cấp cao hơn cùng loại.";
                 Service.Help_From_Server(p, -47, txt);
                 break;
@@ -2545,39 +2577,44 @@ public class MenuController {
     }
 
     private static void Menu_Admin(Player p, byte index) throws IOException {
-        // if (p.conn.user.equals("admin")) {
-        switch (index) {
-            case 0: {
-            }
-            case 1: {
-                p.update_vang(1_000_000_000);
-                p.update_ngoc(1_000_000_000);
-                p.update_money();
-                break;
-            }
-            case 2: {
-
-            }
-            case 3: {
-
-            }
-            case 4: {
-                Service.input_text(p, 32002, "Get Item",
-                        new String[]{"Type item", "Id item", "Số lượng"});
-                break;
-            }
-            case 5: {
-                SaveData.process();
-                Service.send_box_ThongBao_OK(p, "Thành công");
-                break;
-            }
-            case 6: {
-                p.id_danh_hieu_da_so_huu = new ArrayList<>();
-                for (DanhHieu dh : DanhHieu.ENY) {
-                    p.id_danh_hieu_da_so_huu.add(dh.id);
+        if (p.conn.user.equals("admin")) {
+            switch (index) {
+                case 0: {
+                    Service.send_box_ThongBao_OK(p, "Tính năng đang phát triển");
+                    break;
                 }
-                Service.send_box_ThongBao_OK(p, "Thành công");
-                break;
+                case 1: {
+                    p.update_vang(1_000_000_000);
+                    p.update_ngoc(1_000_000_000);
+                    p.update_money();
+                    break;
+                }
+                case 2: {
+                    Service.send_box_ThongBao_OK(p, "Tính năng đang phát triển");
+                    break;
+                }
+                case 3: {
+                    Service.send_box_ThongBao_OK(p, "Tính năng đang phát triển");
+                    break;
+                }
+                case 4: {
+                    Service.input_text(p, 32002, "Get Item",
+                            new String[]{"Type item", "Id item", "Số lượng"});
+                    break;
+                }
+                case 5: {
+                    SaveData.process();
+                    Service.send_box_ThongBao_OK(p, "Thành công");
+                    break;
+                }
+                case 6: {
+                    p.id_danh_hieu_da_so_huu = new ArrayList<>();
+                    for (DanhHieu dh : DanhHieu.ENY) {
+                        p.id_danh_hieu_da_so_huu.add(dh.id);
+                    }
+                    Service.send_box_ThongBao_OK(p, "Thành công");
+                    break;
+                }
             }
         }
     }
@@ -2619,21 +2656,21 @@ public class MenuController {
         if (p.map.template.id == 25 && index == 5) { // cuong hoa ac quy
             send_dynamic_menu(p, 32002, "Cường hóa ác quỷ",
                     new String[]{"Cửa hàng đá khảm", "Cường hóa Rương ác quỷ", "Cường hóa Kỹ năng"},
-                    new short[]{129, 155, 156});
+                    new byte[]{129, 155, 156});
         } else {
             switch (index) {
                 case 0: {
                     send_dynamic_menu(
                             p, 32000, "Cường Hóa", new String[]{"Cửa hàng Nguyên liệu", "Ghép nguyên liệu",
                                 "Tách nguyên liệu", "Cường hóa đồ", "Cường hóa cao cấp"},
-                            new short[]{129, 127, 130, 131, 163});
+                            new byte[]{129, 127, 130, 131, 163});
                     break;
                 }
                 case 1: {
                     send_dynamic_menu(p, 32001, "Khảm Đá",
                             new String[]{"Cửa Hàng Đá Khảm", "Ghép Đá", "Đục lỗ khảm", "Khảm Vật Phẩm",
                                 "Tách Đá", "Đá siêu cấp", "Đá thần thoại", "Hướng dẫn"},
-                            new short[]{129, 127, 133, 126, 130, 141, 132, 148});
+                            new byte[]{129, 127, 133, 126, 130, 141, 132, 148});
                     break;
                 }
                 case 2: {
@@ -2645,11 +2682,15 @@ public class MenuController {
                     break;
                 }
                 case 4: {
-                    int ver_ = Integer.parseInt(p.conn.version.replace(".", ""));
-                    if (ver_ >= 115) {
-                        Upgrade_Skin.show_table(p);
-                    } else {
-                        Service.send_box_ThongBao_OK(p, "Hãy sử dụng phiên bản từ 1.1.5 trở lên");
+                    try {
+                        int ver_ = Integer.parseInt(p.conn.version.replace(".", ""));
+                        if (ver_ >= 115) {
+                            Upgrade_Skin.show_table(p);
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Hãy sử dụng phiên bản từ 1.1.5 trở lên");
+                        }
+                    } catch (NumberFormatException e) {
+                        Service.send_box_ThongBao_OK(p, "Không thể xác định phiên bản");
                     }
                     break;
                 }
@@ -2673,7 +2714,7 @@ public class MenuController {
                 String[] name = new String[]{"Lấy Hàng", "Trả hàng", "Đăng ký bảo vệ hàng",
                     "Thuê bảo vệ hàng", "Đăng ký chức năng", "Hủy vận buôn", "Gọi Lạc đà trở về",
                     "Xem vị trí lạc đà", "Xem số lần vận buôn", "Hướng dẫn"};
-                short[] icon = new short[]{107, 109, 110, 111, 110, 111, 151, -1, 114, 114};
+                short[] icon = new byte[]{107, 109, 110, 111, 110, 111, 151, -1, 114, 114};
                 byte[] b7 = new byte[]{3, 3, 3, 3, 7, 3, 3, 7, 7, 7};
                 for (int i = 0; i < 10; i++) {
                     m.writer().writeUTF(name[i]);
@@ -2741,7 +2782,7 @@ public class MenuController {
             case 3: {
                 send_dynamic_menu(p, 994, "Khóa Bảo Vệ",
                         new String[]{"Đăng ký khóa bảo vệ", "Hướng dẫn", "Hủy mã khóa"},
-                        new short[]{118, 148, 118});
+                        new byte[]{118, 148, 118});
                 break;
             }
             case 4: {
@@ -3228,7 +3269,7 @@ public class MenuController {
     }
 
     public static void send_dynamic_menu(Player p, int id_npc, String name_npc, String[] list_menu,
-            short[] list_icon) throws IOException {
+            byte[] list_icon) throws IOException {
         if (!p.isdie) {
             Message m = new Message(-20);
             if (list_icon == null) {
