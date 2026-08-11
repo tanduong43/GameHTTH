@@ -64,15 +64,18 @@ public class MenuController {
   public static void send_menu(Player p, Message m) throws IOException {
     if (!p.isdie) {
       short type = m.reader().readShort();
-      // System.out.println("npc id " + type);
+      System.out.println("DEBUG: NPC clicked with id = " + type);
       boolean in_map = false;
       for (int i = 0; i < p.map.template.npcs.size(); i++) {
         if (type == p.map.template.npcs.get(i).iditem) {
           in_map = true;
+          System.out.println("DEBUG: Found NPC in map at index " + i);
           break;
         }
       }
+      System.out.println("DEBUG: in_map = " + in_map);
       if (!in_map) {
+        System.out.println("DEBUG: NPC not found in map, returning without showing menu");
         return;
       }
       // Check repeatable quest for this NPC
@@ -88,16 +91,16 @@ public class MenuController {
         }
       }
       switch (type) {
-        case -403: {
-          send_dynamic_menu(p, type, "Hô Hô Hô", new String[]{"Danh Hiệu", "Tích Tiêu Noel", "Shop Noel", "Nhận Quà", "Map Noel"},
-                  null);
-          break;
-        }
-        case -404: {
-          send_dynamic_menu(p, type, "Ta Giết Ngươi", new String[]{"pet"},
-                  null);
-          break;
-        }
+        // case -403: {
+        //   send_dynamic_menu(p, type, "Hô Hô Hô", new String[]{"Danh Hiệu", "Tích Tiêu Noel", "Shop Noel", "Nhận Quà", "Map Noel"},
+        //           null);
+        //   break;
+        // }
+        // case -404: {
+        //   send_dynamic_menu(p, type, "Ta Giết Ngươi", new String[]{"pet"},
+        //           null);
+        //   break;
+        // }
         case -140: {
           send_dynamic_menu(p, type, "WIPPER", new String[] { "Chế tạo DIAL", "Thử thách vệ thần" },
               null);
@@ -106,7 +109,7 @@ public class MenuController {
         case -86: {
           send_dynamic_menu(p, type, "Phó bản",
               new String[] { "Đá đít Mr3", "Phó bản khổng lồ", "Hướng dẫn Phó bản khổng lồ" },
-              new short[] { 150, 142, 148 }, 0);
+              new byte[] { (byte) 150, (byte) 142, (byte) 148 }, (byte) 0);
           break;
         }
         case -77: {
@@ -124,17 +127,17 @@ public class MenuController {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
                         "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Khóa xin vào băng", "Giải tán băng" },
-                    new short[] { 141, 171, 146, 143, 144, 118, 128 }, 0);
+                    new byte[] { (byte) 141, (byte) 171, (byte) 146, (byte) 143, (byte) 144, (byte) 118, (byte) 128 }, (byte) 0);
               } else {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
                         "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Mở xin vào băng", "Giải tán băng" },
-                    new short[] { 141, 171, 146, 143, 144, 118, 128 }, 0);
+                    new byte[] { (byte) 141, (byte) 171, (byte) 146, (byte) 143, (byte) 144, (byte) 118, (byte) 128 }, (byte) 0);
               }
             } else {
               send_dynamic_menu(p, type, "Băng hải tặc",
                   new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng" },
-                  new short[] { 141, 171, 146 }, 0);
+                  new byte[] { (byte) 141, (byte) 171, (byte) 146 }, (byte) 0);
             }
           } else {
             send_dynamic_menu(p, type, "Băng hải tặc",
@@ -155,7 +158,7 @@ public class MenuController {
             case 9: {
               send_dynamic_menu(p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu",
                   "Vượt liên ải", "Trận chiến lớn", "Thợ săn hải tặc", "Đăng truy nã" },
-                  new short[] { 136, 137, 138, 146, 111, 111 }, 0);
+                  new byte[] { (byte) 136, (byte) 137, (byte) 138, (byte) 146, (byte) 111, (byte) 111 }, (byte) 0);
               break;
             }
             case 191:
@@ -167,32 +170,32 @@ public class MenuController {
             case 17: {
               send_dynamic_menu(p, type, "Zosaku",
                   new String[] { "Săn trùm", "Thách đấu", "Vượt liên ải", "Trận chiến lớn" },
-                  new short[] { 136, 137, 138, 146 }, 0);
+                  new byte[] { (byte) 136, (byte) 137, (byte) 138, (byte) 146 }, (byte) 0);
               break;
             }
             case 25: {
               send_dynamic_menu(p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu",
                   "Vượt liên ải", "Trận chiến lớn", "Vượt ải đơn" },
-                  new short[] { 136, 137, 138, 146, 138 }, 0);
+                  new byte[] { (byte) 136, (byte) 137, (byte) 138, (byte) 146, (byte) 138 }, (byte) 0);
               break;
             }
             case 41: {
               send_dynamic_menu(
                   p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu", "Vượt liên ải",
                       "Trận chiến lớn", "Bảo vệ kho báu Namie" },
-                  new short[] { 136, 137, 138, 146, 139 }, 0);
+                  new byte[] { (byte) 136, (byte) 137, (byte) 138, (byte) 146, (byte) 139 }, (byte) 0);
               break;
             }
             case 49: {
               send_dynamic_menu(p, type, "Zosaku", new String[] { "Săn trùm", "Thách đấu",
                   "Vượt liên ải", "Trận chiến lớn", "Lệnh truy nã" },
-                  new short[] { 136, 137, 138, 146, 160 }, 0);
+                  new byte[] { (byte) 136, (byte) 137, (byte) 138, (byte) 146, (byte) 160 }, (byte) 0);
               break;
             }
             case 83: {
               send_dynamic_menu(p, type, "Zosaku",
                   new String[] { "Săn trùm", "Thách đấu", "Vượt siêu liên ải", "Trận chiến lớn" },
-                  new short[] { 136, 137, 159, 146 }, 0);
+                  new byte[] { (byte) 136, (byte) 137, (byte) 159, (byte) 146 }, (byte) 0);
               break;
             }
           }
@@ -203,12 +206,12 @@ public class MenuController {
             send_dynamic_menu(p, type, "Nami",
                 new String[] { "Đổi Ruby", "Thành tích hằng ngày", "Tích lũy nạp thẻ", "Đấu giá",
                     "Điểm nạp tích lũy", "Chợ mua bán", "Danh Hiệu" },
-                new short[] { 132, 134, 110, 169, 170, 152, 170 });
+                new byte[] { (byte) 132, (byte) 134, (byte) 110, (byte) 169, (byte) 170, (byte) 152, (byte) 170 });
           } else {
             send_dynamic_menu(
                 p, type, "Nami", new String[] { "Đổi Ruby", "Thành tích hằng ngày",
                     "Tích lũy nạp thẻ", "Đấu giá", "Điểm nạp tích lũy", "Danh Hiệu" },
-                new short[] { 132, 134, 110, 169, 170, 170 });
+                new byte[] { (byte) 132, (byte) 134, (byte) 110, (byte) 169, (byte) 170, (byte) 170 });
           }
           break;
         }
@@ -281,18 +284,18 @@ public class MenuController {
         case -37: {
           send_dynamic_menu(p, type, "Bếp trưởng", new String[] { "Học Skill", "Tẩy tiềm năng",
               "Xóa nội tại", "Người giới thiệu", "Đá hành trình" },
-              new short[] { 123, 124, 125, 138, 127 });
+              new byte[] { (byte) 123, (byte) 124, (byte) 125, (byte) 138, (byte) 127 });
           break;
         }
         case -4: {
           if (p.level >= 100) {
             send_dynamic_menu(p, type, "Gap", new String[] { "Học Skill", "Tẩy tiềm năng",
                 "Xóa nội tại", "Người giới thiệu", "Thông thạo" },
-                new short[] { 123, 124, 125, 138, 138 });
+                new byte[] { (byte) 123, (byte) 124, (byte) 125, (byte) 138, (byte) 138 });
           } else {
             send_dynamic_menu(p, type, "Gap",
                 new String[] { "Học Skill", "Tẩy tiềm năng", "Xóa nội tại", "Người giới thiệu" },
-                new short[] { 123, 124, 125, 138 });
+                new byte[] { (byte) 123, (byte) 124, (byte) 125, (byte) 138 });
           }
           break;
         }
@@ -399,6 +402,7 @@ public class MenuController {
           break;
         }
         case -6: {
+          System.out.println("DEBUG: Processing case -6");
           Service.Send_UI_Shop(p, 99);
           break;
         }
@@ -460,12 +464,12 @@ public class MenuController {
             send_dynamic_menu(p, type, "Johny",
                 new String[] { "Cường Hóa", "Khảm đá", "Chuyển hóa", "Ghép mảnh trang bị",
                     "Cường hóa thời trang", "Cường hóa ác quỷ" },
-                new short[] { 126, 127, 128, 126, 126, 154 });
+                new byte[] { (byte) 126, (byte) 127, (byte) 128, (byte) 126, (byte) 126, (byte) 154 });
           } else {
             send_dynamic_menu(
                 p, type, "Johny", new String[] { "Cường Hóa", "Khảm đá", "Chuyển hóa",
                     "Ghép mảnh trang bị", "Cường hóa thời trang" },
-                new short[] { 126, 127, 128, 126, 126 });
+                new byte[] { (byte) 126, (byte) 127, (byte) 128, (byte) 126, (byte) 126 });
           }
           break;
         }
@@ -485,7 +489,7 @@ public class MenuController {
           send_dynamic_menu(
               p, type, get_name_npc(type), new String[] { "Quán ăn", "Vận Chuyển Hàng", "Tiệm tóc",
                   "Đóng thuyền", "Thời trang", "Thẩm mỹ viện" },
-              new short[] { 104, 107, 106, 105, 108, 158 });
+              new byte[] { (byte) 104, (byte) 107, (byte) 106, (byte) 105, (byte) 108, (byte) 158 });
           break;
         }
         case -144: // kinh do nuoc
@@ -522,11 +526,12 @@ public class MenuController {
         case -23:
         case -15:
         case -3: {
+          System.out.println("DEBUG: Processing NPC menu case -23/-15/-3, type=" + type + ", name=" + get_name_npc(type));
           send_dynamic_menu(p, type, get_name_npc(type),
               new String[] { Clazz.NAME[p.clazz - 1], "Hệ khác",
                   (!p.is_show_hat ? "Bật hiển thị nón" : "Tắt hiển thị nón"), "Khóa bảo vệ",
                   "Thùng rác" },
-              new short[] { Clazz.ICON[p.clazz - 1], 116, 117, 118, 113 });
+              new byte[] { (byte) Clazz.ICON[p.clazz - 1], (byte) 116, (byte) 117, (byte) 118, (byte) 113 });
           break;
         }
         case -119: {
@@ -534,7 +539,7 @@ public class MenuController {
         }
         default: {
           send_dynamic_menu(p, type, (get_name_npc(type) + " id " + type), new String[] { "Chưa có" },
-              new short[] { 117 });
+              new byte[] { (byte) 117 });
           break;
         }
       }
@@ -2008,7 +2013,7 @@ public class MenuController {
           send_dynamic_menu(p, 993, "Nami",
               new String[] { "Đổi Ruby", "Đổi extol", "Nạp tiền", "GiftCode", "Đổi Ruby",
                   "Đổi Beri", "Xem Coin", "Đổi Coin" },
-              new short[] { 128, 128, 132, 161, 127, 162, 140, 140 });
+              new byte[] { (byte) 128, (byte) 128, (byte) 132, (byte) 161, (byte) 127, (byte) 162, (byte) 140, (byte) 140 });
           break;
         }
         case 1: {
@@ -2118,16 +2123,16 @@ public class MenuController {
           for (int i = 0; i < name.length; i++) {
             name[i] = ("Cấp độ " + (i + 3));
           }
-          short[] icon = new short[12];
+          byte[] icon = new byte[12];
           for (int i = 0; i < icon.length; i++) {
             if (i < 2) {
-              icon[i] = 164;
+              icon[i] = (byte) 164;
             } else if (i < 5) {
-              icon[i] = 165;
+              icon[i] = (byte) 165;
             } else if (i < 7) {
-              icon[i] = 166;
+              icon[i] = (byte) 166;
             } else {
-              icon[i] = 167;
+              icon[i] = (byte) 167;
             }
           }
           send_dynamic_menu(p, 988, "Vượt ải đơn", name, icon);
@@ -2371,7 +2376,7 @@ public class MenuController {
     switch (index) {
       case 0: {
         List<String> str_ = new ArrayList<>();
-        List<Integer> icon_ = new ArrayList<>();
+        List<Byte> icon_ = new ArrayList<>();
         for (int i = 0; i < p.skill_point.size(); i++) {
           Skill_info temp = p.skill_point.get(i);
           if ((temp.temp.ID < 4 && temp.temp.Lv_RQ == -1)
@@ -2379,10 +2384,10 @@ public class MenuController {
             if (temp.temp.ID > 3 && temp.temp.ID < 2000 && temp.temp.Lv_RQ > -1) {
               Skill_Template sk_temp = Skill_Template.get_temp((temp.temp.indexSkillInServer + 1), 0);
               str_.add(sk_temp.name);
-              icon_.add((int) (sk_temp.idIcon));
+              icon_.add((byte) (sk_temp.idIcon));
             } else {
               str_.add(temp.temp.name);
-              icon_.add((int) (temp.temp.idIcon));
+              icon_.add((byte) (temp.temp.idIcon));
             }
           }
         }
@@ -2405,12 +2410,12 @@ public class MenuController {
       }
       case 2: {
         List<String> str_ = new ArrayList<>();
-        List<Integer> icon_ = new ArrayList<>();
+        List<Byte> icon_ = new ArrayList<>();
         for (int i = 0; i < p.skill_point.size(); i++) {
           Skill_info temp = p.skill_point.get(i);
           if (temp.temp.ID >= 1000 && temp.temp.ID < 2000 && temp.temp.Lv_RQ > 0) {
             str_.add(temp.temp.name);
-            icon_.add((int) (temp.temp.idIcon));
+            icon_.add((byte) (temp.temp.idIcon));
           }
         }
         if (str_.size() == 0) {
@@ -2878,13 +2883,13 @@ public class MenuController {
       case 1: {
         int[] id = new int[] { 1, 3, 9, 8, 11 };
         String[] name = new String[id.length];
-        short[] icon = new short[id.length];
+        byte[] icon = new byte[id.length];
         for (int i = 0; i < id.length; i++) {
           ItemTemplate7 temp = ItemTemplate7.get_it_by_id(id[i]);
           name[i] = temp.name;
-          icon[i] = temp.icon;
+          icon[i] = (byte) temp.icon;
         }
-        send_dynamic_menu(p, 992, "Ghép nguyên liệu", name, icon, 7);
+        send_dynamic_menu(p, 992, "Ghép nguyên liệu", name, icon, (byte) 7);
         break;
       }
       case 2: {
@@ -2906,21 +2911,21 @@ public class MenuController {
     if (p.map.template.id == 25 && index == 5) { // cuong hoa ac quy
       send_dynamic_menu(p, 32002, "Cường hóa ác quỷ",
           new String[] { "Cửa hàng đá khảm", "Cường hóa Rương ác quỷ", "Cường hóa Kỹ năng" },
-          new short[] { 129, 155, 156 });
+          new byte[] { (byte) 129, (byte) 155, (byte) 156 });
     } else {
       switch (index) {
         case 0: {
           send_dynamic_menu(
               p, 32000, "Cường Hóa", new String[] { "Cửa hàng Nguyên liệu", "Ghép nguyên liệu",
                   "Tách nguyên liệu", "Cường hóa đồ", "Cường hóa cao cấp" },
-              new short[] { 129, 127, 130, 131, 163 });
+              new byte[] { (byte) 129, (byte) 127, (byte) 130, (byte) 131, (byte) 163 });
           break;
         }
         case 1: {
           send_dynamic_menu(p, 32001, "Khảm Đá",
               new String[] { "Cửa Hàng Đá Khảm", "Ghép Đá", "Đục lỗ khảm", "Khảm Vật Phẩm",
                   "Tách Đá", "Đá siêu cấp", "Đá thần thoại", "Hướng dẫn" },
-              new short[] { 129, 127, 133, 126, 130, 141, 132, 148 });
+              new byte[] { (byte) 129, (byte) 127, (byte) 133, (byte) 126, (byte) 130, (byte) 141, (byte) 132, (byte) 148 });
           break;
         }
         case 2: {
@@ -2998,14 +3003,14 @@ public class MenuController {
       }
       case 1: {
         String[] other_clazz_name = new String[4];
-        short[] other_clazz_icon = new short[4];
+        byte[] other_clazz_icon = new byte[4];
         int pos = 0;
         for (int i = 0; i < 5; i++) {
           if ((i + 1) == p.clazz) {
             continue;
           }
           other_clazz_name[pos] = Clazz.NAME[i];
-          other_clazz_icon[pos++] = Clazz.ICON[i];
+          other_clazz_icon[pos++] = (byte) Clazz.ICON[i];
         }
         send_dynamic_menu(p, 32003, "Hệ khác", other_clazz_name, other_clazz_icon);
         break;
@@ -3022,7 +3027,7 @@ public class MenuController {
       case 3: {
         send_dynamic_menu(p, 994, "Khóa Bảo Vệ",
             new String[] { "Đăng ký khóa bảo vệ", "Hướng dẫn", "Hủy mã khóa" },
-            new short[] { 118, 148, 118 });
+            new byte[] { (byte) 118, (byte) 148, (byte) 118 });
         break;
       }
       case 4: {
@@ -3186,7 +3191,7 @@ public class MenuController {
         if (clazz > 4) clazz = 4;
         int baseId = 12017 + (clazz * 6);
 
-        short[] listIcon = new short[6];
+        byte[] listIcon = new byte[6];
         String[] listMenu = new String[6];
         String[] classNames = {"Sư", "Xạ", "Tri", "Y", "Đao", "Khí"};
         String[] itemNames = {"Kiếm", "Áo", "Quần", "Kính", "Nhẫn", "Dây"};
@@ -3194,7 +3199,7 @@ public class MenuController {
 
         for (int i = 0; i < 6; i++) {
             ItemTemplate3 it3 = ItemTemplate3.get_it_by_id(baseId + i);
-            listIcon[i] = (it3 != null) ? it3.icon : 0;
+            listIcon[i] = (byte) ((it3 != null) ? it3.icon : 0);
             listMenu[i] = itemNames[i] + " " + clazzName;
         }
 
@@ -3255,7 +3260,7 @@ public class MenuController {
         if (clazz > 4) clazz = 4;
         int baseId = 12047 + (clazz * 6);
 
-        short[] listIcon = new short[6];
+        byte[] listIcon = new byte[6];
         String[] listMenu = new String[6];
         String[] classNames = {"Sư", "Xạ", "Tri", "Y", "Đao", "Khí"};
         String[] itemNames = {"Kiếm", "Áo", "Quần", "Kính", "Nhẫn", "Dây"};
@@ -3263,7 +3268,7 @@ public class MenuController {
 
         for (int i = 0; i < 6; i++) {
             ItemTemplate3 it3 = ItemTemplate3.get_it_by_id(baseId + i);
-            listIcon[i] = (it3 != null) ? it3.icon : 0;
+            listIcon[i] = (byte) ((it3 != null) ? it3.icon : 0);
             listMenu[i] = itemNames[i] + " " + clazzName;
         }
 
@@ -3465,7 +3470,8 @@ public class MenuController {
   }
 
   public static void send_dynamic_menu(Player p, int id_npc, String name_npc, String[] list_menu,
-      short[] list_icon) throws IOException {
+      byte[] list_icon) throws IOException {
+    System.out.println("DEBUG send_dynamic_menu: id_npc=" + id_npc + ", name=" + name_npc + ", p.isdie=" + p.isdie);
     if (!p.isdie) {
       Message m = new Message(-20);
       if (list_icon == null) {
@@ -3480,16 +3486,18 @@ public class MenuController {
       for (int i = 0; i < list_menu.length; i++) {
         m.writer().writeUTF(list_menu[i]);
         if (list_icon != null) {
-          m.writer().writeByte((byte) list_icon[i]);
+          m.writer().writeByte(list_icon[i]);
         }
       }
+      System.out.println("DEBUG: Message created, cmd=-20, sending to client...");
       p.conn.addmsg(m);
       m.cleanup();
+      System.out.println("DEBUG: Message sent successfully!");
     }
   }
 
   private static void send_dynamic_menu(Player p, int id_npc, String name_npc, String[] list_menu,
-      short[] list_icon, int b) throws IOException {
+    byte[] list_icon, byte b) throws IOException {
     if (!p.isdie) {
       Message m = new Message(-20);
       m.writer().writeByte(3);
@@ -3499,7 +3507,7 @@ public class MenuController {
       m.writer().writeByte(list_menu.length);
       for (int i = 0; i < list_menu.length; i++) {
         m.writer().writeUTF(list_menu[i]);
-        m.writer().writeShort(list_icon[i]);
+        m.writer().writeByte(list_icon[i]);
         m.writer().writeByte(b);
       }
       p.conn.addmsg(m);
@@ -3508,7 +3516,7 @@ public class MenuController {
   }
 
   public static void send_dynamic_menu(Player p, int id_npc, String name_npc,
-      List<String> list_menu, List<Integer> list_icon) throws IOException {
+      List<String> list_menu, List<Byte> list_icon) throws IOException {
     if (!p.isdie) {
       Message m = new Message(-20);
       m.writer().writeByte(4);
@@ -3518,7 +3526,7 @@ public class MenuController {
       m.writer().writeByte(list_menu.size());
       for (int i = 0; i < list_menu.size(); i++) {
         m.writer().writeUTF(list_menu.get(i));
-        m.writer().writeShort(list_icon.get(i));
+        m.writer().writeByte(list_icon.get(i));
       }
       p.conn.addmsg(m);
       m.cleanup();
@@ -3545,18 +3553,6 @@ public class MenuController {
   private static void send_dynamic_menu(Player p, int idNPC, String title, int[] name)
       throws IOException {
     if (!p.isdie) {
-      // Bypass map progression check for UI menu
-      // int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
-      // QuestP quest_select = p.list_quest.get(0);
-      // if (quest_select != null) {
-      // for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-      // if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
-      // idMap = MapCanGoTo.idMap[i - 1];
-      // break;
-      // }
-      // }
-      // }
-
       Message m = new Message(-20);
       m.writer().writeByte(1);
       m.writer().writeShort(idNPC);

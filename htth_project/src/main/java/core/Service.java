@@ -372,7 +372,7 @@ public class Service {
                 break;
             }
             case 111: {
-                m.writer().writeUTF("Shop ÄÃ¡");
+                m.writer().writeUTF("Shop Đá");
                 m.writer().writeByte(4);
                 m.writer().writeShort(Rebuild_Item.ID_SELL.length);
                 for (int i = 0; i < Rebuild_Item.ID_SELL.length; i++) {

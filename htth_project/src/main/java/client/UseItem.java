@@ -967,12 +967,12 @@ public class UseItem {
                     }
                     case 1001: {
                         send_dynamic_menu(p, 9910, "Thời trang sơ cấp",
-                                new String[]{"Tết Nam", "Tết Nữ"}, (short[]) null);
+                                new String[]{"Tết Nam", "Tết Nữ"}, (byte[]) null);
                         break;
                     }
                     case 1002: {
                         send_dynamic_menu(p, 9911, "Thời trang cao cấp",
-                                new String[]{"chấn Thiên", "Bão Tố", "Đấng"}, (short[]) null);
+                                new String[]{"chấn Thiên", "Bão Tố", "Đấng"}, (byte[]) null);
                         break;
                     }
                     case 1003: {
@@ -1077,7 +1077,7 @@ public class UseItem {
                             }
                             p.data_yesno = data;
                             
-                            send_dynamic_menu(p, 9915, "Rương Đá Thần Thoại", listTenDa, (short[]) null);
+                            send_dynamic_menu(p, 9915, "Rương Đá Thần Thoại", listTenDa, (byte[]) null);
                         } else {
                             Service.send_box_ThongBao_OK(p, "Không tìm thấy đá thần thoại trong hệ thống!");
                         }
@@ -1092,7 +1092,7 @@ public class UseItem {
                         String clazzName = classNames[p.clazz];
                         send_dynamic_menu(p, 9914, "Rương Đồ Tự Chọn",
                                 new String[]{"Kiếm " + clazzName, "Áo " + clazzName, "Quần " + clazzName,
-                                    "Kính " + clazzName, "Nhẫn " + clazzName, "Dây " + clazzName}, (short[]) null);
+                                    "Kính " + clazzName, "Nhẫn " + clazzName, "Dây " + clazzName}, (byte[]) null);
                         used = false;
                         break;
                     }

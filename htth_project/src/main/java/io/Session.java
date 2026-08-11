@@ -167,6 +167,14 @@ public class Session implements Runnable {
                     + ", connected=" + connected
                     + ", player=" + (p != null ? p.name : "null"));
         }
+        // Debug log cho packet -20 (NPC Menu)
+        if (msg.cmd == -20) {
+            int dataLen = (data != null) ? data.length : 0;
+            System.out.println("[NPC Menu Packet] send_msg cmd=-20, dataSize=" + dataLen
+                    + ", sendKeyComplete=" + sendKeyComplete
+                    + ", connected=" + connected
+                    + ", player=" + (p != null ? p.name : "null"));
+        }
         if (sendKeyComplete) {
             byte b = writeKey(msg.cmd);
             dos.writeByte(b);
