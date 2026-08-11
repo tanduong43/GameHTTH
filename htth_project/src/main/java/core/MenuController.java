@@ -1139,10 +1139,7 @@ public class MenuController {
           break;
         }
         case 9901:
-        case 9913: {
-          Menu_TAQ(p, index, idNPC);
-          break;
-        }
+        case 9913:
         case 9914: {
           Menu_DO(p, index);
           break;
@@ -3171,37 +3168,7 @@ public class MenuController {
     }
   }
 
-  private static void Menu_TAQ(Player p, byte index, int idNPC) throws IOException {
-    short itemChestId = (idNPC == 9901) ? (short) 690 : (short) 1003;
-    if (p.item.total_item_bag_by_id(4, itemChestId) <= 0) {
-        Service.send_box_ThongBao_OK(p, "Bạn không có " + ItemTemplate4.get_item_name(itemChestId) + "!");
-        return;
-    }
-    short[] listId = new short[]{32, 92, 93, 160, 161, 240};
-    if (index < 0 || index >= listId.length) {
-        return;
-    }
-    short idTAQ = listId[index];
-    ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(idTAQ);
-    if (it_temp4 == null) {
-        return;
-    }
-    
-    p.item.remove_item47(4, itemChestId, 1);
-    p.item.update_Inventory(-1, false);
-    
-    List<GiftBox> list_gift = new ArrayList<>();
-    GiftBox gb = new GiftBox();
-    gb.id = it_temp4.id;
-    gb.type = 4;
-    gb.name = it_temp4.name;
-    gb.icon = it_temp4.icon;
-    gb.num = 1;
-    gb.color = 0;
-    list_gift.add(gb);
-    
-    Service.send_gift(p, 1, ItemTemplate4.get_item_name(itemChestId), "Phần thưởng", list_gift, true);
-  }
+  
 
   private static void Menu_DO(Player p, byte index) throws IOException {
     // Rương Đỏ VIP Tự Chọn (1009) - Mỗi phái có 6 item (Kiếm, Áo, Quần, Kính, Nhẫn, Dây)

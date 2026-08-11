@@ -979,7 +979,7 @@ public class UseItem {
                         Message m = new Message(69);
                         m.writer().writeUTF("Rương Trái ác quỷ tự chọn");
                         m.writer().writeUTF("Đổi");
-                        short[] ids = new short[] { 32, 92, 93, 160, 161, 240 };
+                        short[] ids = new short[] {160, 161, 240};
                         m.writer().writeByte(ids.length);
                         for (int i = 0; i < ids.length; i++) {
                             ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(ids[i]);
