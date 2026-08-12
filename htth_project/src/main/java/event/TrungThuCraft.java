@@ -26,22 +26,29 @@ import template.ItemTemplate7;
 public class TrungThuCraft {
 
     /**
-     * Hiển thị menu ghép đồ sự kiện Trung Thu
+     * Hiển thị thông tin chế tạo sự kiện Trung Thu
+     * (Được gọi khi xem hướng dẫn chi tiết)
      */
     public static void showCraftMenu(Player p) throws IOException {
         Message m = new Message(-50);
         m.writer().writeByte(1);
         m.writer().writeByte(0);
         m.writer().writeUTF("🎑 Sự Kiện Trung Thu - Đêm Rằm Hải Tặc\n\n"
-                + "Ghép bánh để nhận phần thưởng giá trị!\n\n"
+                + "📍 LÀM BÁNH (NPC Chị Hằng → Làm Bánh):\n"
                 + "1. 🥮 Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500.000 Beri\n"
                 + "2. 🥮 Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1.000.000 Beri\n"
                 + "3. 🥮 Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15.000.000 Beri\n"
                 + "4. 🥮 Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2.000.000 Beri\n"
-                + "5. 🏮 Đèn Kéo Quân: 3 Đèn Ông Sao + 2.000.000 Beri\n"
-                + "6. 🎁 Hộp Bánh Trung Thu: 1 mỗi loại bánh + 2.000.000 Beri + 50 Ruby\n"
-                + "7. 🏆 Hộp Bánh Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2.000.000 Beri + 100 Ruby\n\n"
-                + "Sử dụng lệnh: /ghép [1-7]");
+                + "5. 🎁 Hộp Bánh: 1 mỗi loại bánh + 2.000.000 Beri + 50 Ruby\n"
+                + "6. 🏆 Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2.000.000 Beri + 100 Ruby\n\n"
+                + "📍 GHÉP ĐÈN (NPC Chị Hằng → Ghép Đèn):\n"
+                + "• Đèn Kéo Quân: 3 Đèn Ông Sao + 2.000.000 Beri\n\n"
+                + "📍 Nguồn nguyên liệu:\n"
+                + "• Bột Mì: Đánh quái ±10 cấp\n"
+                + "• Đường: Làm Nhiệm vụ Lặp\n"
+                + "• Trứng Muối: NV Băng / PvP / Truy Nã\n"
+                + "• Đèn Ông Sao: Phó Bản Nami / Đá đít Mr.3\n"
+                + "• Giấy Gói Quà: Săn Boss Lân / Vận buôn");
         m.writer().writeByte(0);
         p.conn.addmsg(m);
         m.cleanup();

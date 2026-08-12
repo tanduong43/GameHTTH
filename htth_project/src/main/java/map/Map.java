@@ -1792,7 +1792,9 @@ public class Map implements Runnable {
                             && mob.final_dame > 0) {
                         dame = mob.final_dame;
                     } else {
-                        dame = Util.random(mob.level * 2, mob.level * 5);
+                        // Đảm bảo mob.level >= 1 để tránh lỗi Util.random
+                        int safeLevel = Math.max(1, mob.level);
+                        dame = Util.random(safeLevel * 2, safeLevel * 5);
                         if (mob.level > 30 && mob.level <= 50) {
                             dame = (dame * 15) / 10;
                         } else if (mob.level > 50 && mob.level <= 70) {
@@ -3289,9 +3291,9 @@ public class Map implements Runnable {
 
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
                             && mob_target.mob_template.mob_id != 121
-                            && mob_target.boss_info.thegioi != 2) {
-                        // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) chỉ nhận quà
-                        // khi giết
+                            && mob_target.boss_info.thegioi != 2
+                            && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN) {
+                        // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) và Boss Lân chỉ nhận quà khi giết
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
@@ -3643,8 +3645,9 @@ public class Map implements Runnable {
                             event.EventTrungThu.rewardLienTangMr3(p);
                         }
                     }
-                    // boss
-                    if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)) {
+                    // boss (loại trừ Boss Lân - xử lý riêng trong EventTrungThu)
+                    if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
+                            && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN) {
                         Boss boss = mob_target.boss_info;
                         boss.timeDeath = System.currentTimeMillis();
                         core.BXH.updateTopBoss(boss);
@@ -4220,6 +4223,8 @@ public class Map implements Runnable {
                 } else if (cmd.equals("boss") || cmd.equals("bosstg") || cmd.equals("boss_thegioi")) {
                     int n = map.Boss.force_spawn_all_thegioi1();
                     Service.send_box_ThongBao_OK(p, "Đã gọi " + n + " boss thế giới (thegioi=1) xuất hiện!");
+                } else if (cmd.equals("goilan") || cmd.equals("goi lan") || cmd.equals("call lan")) {
+                    event.EventTrungThu.getInstance().forceSpawnBossLan(p);
                 } else if (cmd.equals("event tt on") || cmd.equals("event tt 1") || cmd.equals("event tt true")) {
                     event.EventTrungThu.setEvent(true);
                     Service.send_box_ThongBao_OK(p, "Đã bật sự kiện Trung Thu!");

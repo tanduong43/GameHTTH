@@ -89,7 +89,7 @@ public class MenuController {
         case -154: {
           if (event.EventTrungThu.isEvent()) {
             send_dynamic_menu(p, type, "Chị Hằng",
-                new String[] { "Làm Bánh Trung Thu", "Đổi Quà Tích Lũy", "Hướng dẫn" },
+                new String[] { "Làm Bánh", "Ghép Đèn", "Hướng dẫn" },
                 null);
           } else {
             Service.send_box_ThongBao_OK(p, "Sự kiện Vui Hội Trung Thu hiện đã khép lại. Hẹn gặp lại bạn năm sau nhé!");
@@ -620,6 +620,10 @@ public class MenuController {
         return "Rita";
       case -22:
         return "Cho Cho";
+      case -154:
+      case -1540:
+      case -1541:
+        return "Chị Hằng";
     }
     return "NPC";
   }
@@ -669,24 +673,80 @@ public class MenuController {
           }
           switch (index) {
             case 0:
-              event.TrungThuCraft.showCraftMenu(p);
+              // Sub-menu: Làm Bánh
+              send_dynamic_menu(p, -1540, "Chị Hằng",
+                  new String[] { "Bánh Trung Thu", "Bánh Đậu Xanh", "Bánh Trứng Muối", "Bánh Hạt Sen", "Hộp Bánh", "Hộp Thượng Hạng" },
+                  null);
               break;
             case 1:
-              Service.send_box_ThongBao_OK(p, "Tính năng Cửa Hàng đang được cập nhật!");
+              // Sub-menu: Ghép Đèn
+              send_dynamic_menu(p, -1541, "Chị Hằng",
+                  new String[] { "Ghép Đèn Kéo Quân" },
+                  null);
               break;
             case 2:
               Service.send_box_ThongBao_OK(p,
-                  "🎑 THÔNG TIN SỰ KIỆN TRUNG THU:\n\n" +
-                  "📍 Nguồn nguyên liệu:\n" +
-                  "• Đánh quái ±10 cấp → Bột Mì\n" +
-                  "• Làm NV Lặp → Đường\n" +
-                  "• Hoàn thành Phó Bản Nami → Đèn Ông Sao\n" +
-                  "• Săn Boss Lân → Giấy Gói Quà\n\n" +
-                  "📍 Chế tạo:\n" +
-                  "• /trungthu hoặc /ghép - Mở menu\n\n" +
-                  "📍 Boss Lân Sư Tử xuất hiện:\n" +
-                  "• 12h, 18h, 20h, 22h hàng ngày\n\n" +
-                  "Hãy gom đủ nguyên liệu để làm Bánh Trung Thu nhé! 🎑");
+                  "🎑 THÔNG TIN SỰ KIỆN TRUNG THU - ĐÊM RẰM HẢI TẶC\n\n"
+                  + "📍 Nguồn nguyên liệu thu thập:\n"
+                  + "• Đánh quái ±10 cấp → Bột Mì (tối đa 100/ngày)\n"
+                  + "• Làm NV Lặp hằng ngày → Đường (tối đa 100/ngày)\n"
+                  + "• Hoàn thành NV Băng / PvP / Truy Nã → Trứng Muối\n"
+                  + "• Phó Bản Nami Liên Tầng / Đá đít Mr.3 → Đèn Ông Sao\n"
+                  + "• Săn Boss Lân Sư Tử / Vận buôn → Giấy Gói Quà\n\n"
+                  + "📍 Chế tạo bánh:\n"
+                  + "• Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500k Beri\n"
+                  + "• Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1M Beri\n"
+                  + "• Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15M Beri\n"
+                  + "• Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2M Beri\n\n"
+                  + "📍 Ghép đèn:\n"
+                  + "• Đèn Kéo Quân: 3 Đèn Ông Sao + 2M Beri\n\n"
+                  + "📍 Ghép hộp bánh:\n"
+                  + "• Hộp Bánh: 4 loại bánh + 2M Beri + 50 Ruby\n"
+                  + "• Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2M Beri + 100 Ruby\n\n"
+                  + "📍 Boss Lân Sư Tử:\n"
+                  + "• Xuất hiện: 12h, 18h, 20h, 22h hàng ngày\n\n"
+                  + "Hãy gom đủ nguyên liệu để làm Bánh Trung Thu nhé! 🎑");
+              break;
+          }
+          break;
+        }
+        case -1540: {
+          // Sub-menu: Làm Bánh Trung Thu
+          if (!event.EventTrungThu.isEvent()) {
+            Service.send_box_ThongBao_OK(p, "Sự kiện Trung Thu chưa được kích hoạt!");
+            return;
+          }
+          switch (index) {
+            case 0:
+              event.TrungThuCraft.processCraft(p, 1); // Bánh Trung Thu
+              break;
+            case 1:
+              event.TrungThuCraft.processCraft(p, 2); // Bánh Đậu Xanh
+              break;
+            case 2:
+              event.TrungThuCraft.processCraft(p, 3); // Bánh Trứng Muối
+              break;
+            case 3:
+              event.TrungThuCraft.processCraft(p, 4); // Bánh Hạt Sen
+              break;
+            case 4:
+              event.TrungThuCraft.processCraft(p, 6); // Hộp Bánh
+              break;
+            case 5:
+              event.TrungThuCraft.processCraft(p, 7); // Hộp Thượng Hạng
+              break;
+          }
+          break;
+        }
+        case -1541: {
+          // Sub-menu: Ghép Đèn
+          if (!event.EventTrungThu.isEvent()) {
+            Service.send_box_ThongBao_OK(p, "Sự kiện Trung Thu chưa được kích hoạt!");
+            return;
+          }
+          switch (index) {
+            case 0:
+              event.TrungThuCraft.processCraft(p, 5); // Đèn Kéo Quân
               break;
           }
           break;

@@ -41,6 +41,15 @@ public class Manager {
     public int max_ip_connection;
     public int max_ccu;
     private int index_mob;
+
+    public int getIndexMob() {
+        return index_mob;
+    }
+
+    public void setIndexMob(int indexMob) {
+        this.index_mob = indexMob;
+    }
+
     private TaiXiu tx;
     private static int a = 0;
 

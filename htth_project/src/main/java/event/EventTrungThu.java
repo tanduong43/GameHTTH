@@ -186,19 +186,19 @@ public class EventTrungThu implements Runnable {
 
         if (inWindow) {
             if (!bossAlive && now >= nextBossSpawnTime) {
-                spawnBossLan();
+                // Tạm thời comment gọi boss tự động để test lệnh gọi Lân
+                // spawnBossLan();
             }
-            if (bossAlive && activeBossLan != null && now >= bossSpawnTime + BOSS_LIFETIME_MS) {
-                despawnBoss("Boss Lân Sư Tử đã bỏ đi!");
-            }
-        } else {
-            if (bossAlive && activeBossLan != null) {
-                despawnBoss("Hết thời gian sự kiện, Boss Lân Sư Tử đã biến mất!");
-            }
+        }
+        
+        if (bossAlive && activeBossLan != null && now >= bossSpawnTime + BOSS_LIFETIME_MS) {
+            despawnBoss("Boss Lân Sư Tử đã bỏ đi!");
         }
     }
 
 
+
+    private static Boss persistentBossLan = null;
 
     private void spawnBossLan() {
         if (bossAlive) return;
@@ -208,7 +208,7 @@ public class EventTrungThu implements Runnable {
             Map[] maps = Map.get_map_by_id(mapId);
             if (maps != null) {
                 for (Map m : maps) {
-                    if (m != null && !isVillageMap(m.template.id)) {
+                    if (m != null) {
                         allowedMaps.add(m);
                     }
                 }
@@ -222,42 +222,88 @@ public class EventTrungThu implements Runnable {
 
         Map targetMap = allowedMaps.get(Util.random(allowedMaps.size()));
 
-        // Tìm boss entry với mob template 153
-        for (Boss boss : Boss.ENTRYS) {
-            if (boss != null && boss.mob != null
-                    && boss.mob.mob_template != null
-                    && boss.mob.mob_template.mob_id == MOB_BOSS_LAN
-                    && boss.mob.isdie) {
-
-                boss.mob.isdie = false;
-                boss.mob.hp = boss.mob.hp_max;
-                boss.mob.id_target = -1;
-                boss.levelBoss = 1;
-                boss.updateHpForLevel();
-                boss.mob.index = boss.index_mob_save;
-                boss.TopDame.clear();
-
-                activeBossLan = boss;
-                bossAlive = true;
-                bossSpawnTime = System.currentTimeMillis();
-                lastHitPlayer = null;
-                participatedPlayers.clear();
-                bossDamageList.clear();
-
-                try {
-                    Manager.gI().chatKTG(0,
-                            "🦁 Boss Lân Sư Tử đã xuất hiện tại " + targetMap.template.name + " khu "
-                                    + (targetMap.zone_id + 1) + "! Hãy nhanh tay săn lượng!",
-                            5);
-                } catch (IOException e) {
-                    System.out.println("Error announcing boss spawn: " + e.getMessage());
-                }
+        if (persistentBossLan == null) {
+            persistentBossLan = new Boss();
+            persistentBossLan.id = 9999;
+            persistentBossLan.thegioi = 1;
+            persistentBossLan.mob = new Mob();
+            persistentBossLan.mob.mob_template = template.MobTemplate.ENTRYS.get(MOB_BOSS_LAN);
+            if (persistentBossLan.mob.mob_template == null) {
+                System.out.println("Lỗi: Không tìm thấy MobTemplate 153 cho Boss Lân");
+                nextBossSpawnTime = System.currentTimeMillis() + 60_000L;
                 return;
+            }
+            persistentBossLan.mob.hp_max = persistentBossLan.mob.mob_template.hp_max;
+            persistentBossLan.hp_max_origin = persistentBossLan.mob.mob_template.hp_max;
+            persistentBossLan.mob.boss_info = persistentBossLan;
+            persistentBossLan.TopDame = new ArrayList<>();
+            persistentBossLan.skill = new short[]{1}; 
+            persistentBossLan.buff = new ArrayList<>();
+            persistentBossLan.time_atk = new long[]{0, 0, 0, 0, 0};
+            int currentIndex = core.Manager.gI().getIndexMob();
+            persistentBossLan.mob.index = currentIndex;
+            persistentBossLan.index_mob_save = currentIndex;
+            core.Manager.gI().setIndexMob(currentIndex + 10);
+            for (int j = 0; j < 10; j++) { 
+                Mob.ENTRYS.put((persistentBossLan.mob.index + j), persistentBossLan.mob);
+            }
+            // Thêm vào Boss.ENTRYS để người chơi có thể thấy boss khi vào map
+            if (Boss.ENTRYS != null && !Boss.ENTRYS.contains(persistentBossLan)) {
+                Boss.ENTRYS.add(persistentBossLan);
             }
         }
 
-        // Retry in 1 minute if failed to spawn
-        nextBossSpawnTime = System.currentTimeMillis() + 60_000L;
+        persistentBossLan.mob.map = targetMap;
+        persistentBossLan.mapOrigin = targetMap;
+        persistentBossLan.mob.x = (short) (targetMap.template.maxW / 2);
+        persistentBossLan.mob.y = 200;
+        persistentBossLan.mob.isdie = false;
+        persistentBossLan.mob.hp = persistentBossLan.mob.hp_max;
+        persistentBossLan.mob.id_target = -1;
+        persistentBossLan.levelBoss = 1;
+        persistentBossLan.updateHpForLevel();
+        persistentBossLan.TopDame.clear();
+
+        activeBossLan = persistentBossLan;
+        bossAlive = true;
+        bossSpawnTime = System.currentTimeMillis();
+        lastHitPlayer = null;
+        participatedPlayers.clear();
+        bossDamageList.clear();
+
+        try {
+            Manager.gI().chatKTG(0,
+                    "🦁 Boss Lân Sư Tử đã xuất hiện tại " + targetMap.template.name + " khu "
+                            + (targetMap.zone_id + 1) + "! Hãy nhanh tay săn lượng!",
+                    5);
+
+            Message m_local = new Message(1);
+            m_local.writer().writeByte(1);
+            m_local.writer().writeShort(persistentBossLan.mob.index);
+            m_local.writer().writeShort(persistentBossLan.mob.x);
+            m_local.writer().writeShort(persistentBossLan.mob.y);
+            for (int j = 0; j < targetMap.players.size(); j++) {
+                Player p0 = targetMap.players.get(j);
+                if (p0 != null && p0.conn != null) {
+                    p0.conn.addmsg(m_local);
+                }
+            }
+            m_local.cleanup();
+        } catch (IOException e) {
+            System.out.println("Error announcing boss spawn: " + e.getMessage());
+        }
+    }
+
+    public void forceSpawnBossLan(Player p) {
+        if (bossAlive) {
+            despawnBoss("Boss Lân cũ đã bị giải tán để gọi Boss mới!");
+        }
+        spawnBossLan();
+        if (p != null) {
+            try {
+                core.Service.send_box_ThongBao_OK(p, "Đã gọi Lân thành công!");
+            } catch (Exception e) {}
+        }
     }
 
     private boolean isVillageMap(int mapId) {
@@ -319,38 +365,33 @@ public class EventTrungThu implements Runnable {
         despawnBoss(null);
     }
 
+    private GiftBox createGiftBox(int id, int num) {
+        GiftBox gb = new GiftBox();
+        gb.type = 4;
+        gb.id = (short) id;
+        gb.num = num;
+        gb.color = 0;
+        template.ItemTemplate4 it = template.ItemTemplate4.get_it_by_id(id);
+        if (it != null) {
+            gb.name = it.name;
+            gb.icon = it.icon;
+            if (id == 1 || id == ITEM_HOP_BANH_THUONG_HANG) {
+                gb.color = 5;
+            }
+        } else {
+            gb.name = "Vật phẩm " + id;
+            gb.icon = 0;
+        }
+        return gb;
+    }
+
     private void giveLastHitReward(Player player) {
         if (player == null) return;
 
         List<GiftBox> rewards = new ArrayList<>();
-
-        // 1 Hộp Bánh Thượng Hạng
-        GiftBox hopBanH = new GiftBox();
-        hopBanH.type = 4;
-        hopBanH.id = ITEM_HOP_BANH_THUONG_HANG;
-        hopBanH.num = 1;
-        hopBanH.icon = 165;
-        hopBanH.color = 5;
-        rewards.add(hopBanH);
-
-        // 50 Ruby
-        GiftBox ruby = new GiftBox();
-        ruby.type = 4;
-        ruby.name = "ruby";
-        ruby.num = 50;
-        ruby.icon = 1;
-        ruby.color = 5;
-        ruby.id = 1;
-        rewards.add(ruby);
-
-        // 2 Giấy Gói Quà
-        GiftBox giay = new GiftBox();
-        giay.type = 4;
-        giay.id = ITEM_GIAY_GOI_QUA;
-        giay.num = 2;
-        giay.icon = 104;
-        giay.color = 0;
-        rewards.add(giay);
+        rewards.add(createGiftBox(ITEM_HOP_BANH_THUONG_HANG, 1));
+        rewards.add(createGiftBox(1, 50)); // Ruby
+        rewards.add(createGiftBox(ITEM_GIAY_GOI_QUA, 2));
 
         try {
             Service.send_gift(player, 0, "Phần thưởng Đòn Kết Liễu Boss Lân!", "", rewards, true);
@@ -361,51 +402,11 @@ public class EventTrungThu implements Runnable {
 
     private void giveParticipationRewards() {
         List<GiftBox> baseRewards = new ArrayList<>();
-
-        // 100k Beri
-        GiftBox beri = new GiftBox();
-        beri.type = 4;
-        beri.id = 0;
-        beri.num = 100000;
-        beri.icon = 0;
-        beri.color = 0;
-        baseRewards.add(beri);
-
-        // 5 Bột Mì
-        GiftBox botMi = new GiftBox();
-        botMi.type = 4;
-        botMi.id = ITEM_BOT_MI;
-        botMi.num = 5;
-        botMi.icon = 156;
-        botMi.color = 0;
-        baseRewards.add(botMi);
-
-        // 5 Đường
-        GiftBox duong = new GiftBox();
-        duong.type = 4;
-        duong.id = ITEM_DUONG;
-        duong.num = 5;
-        duong.icon = 154;
-        duong.color = 0;
-        baseRewards.add(duong);
-
-        // 2 Trứng Muối
-        GiftBox trung = new GiftBox();
-        trung.type = 4;
-        trung.id = ITEM_TRUNG_MUOI;
-        trung.num = 2;
-        trung.icon = 157;
-        trung.color = 0;
-        baseRewards.add(trung);
-
-        // 1 Giấy Gói Quà
-        GiftBox giay = new GiftBox();
-        giay.type = 4;
-        giay.id = ITEM_GIAY_GOI_QUA;
-        giay.num = 1;
-        giay.icon = 104;
-        giay.color = 0;
-        baseRewards.add(giay);
+        baseRewards.add(createGiftBox(0, 100000)); // Beri
+        baseRewards.add(createGiftBox(ITEM_BOT_MI, 5));
+        baseRewards.add(createGiftBox(ITEM_DUONG, 5));
+        baseRewards.add(createGiftBox(ITEM_TRUNG_MUOI, 2));
+        baseRewards.add(createGiftBox(ITEM_GIAY_GOI_QUA, 1));
 
         for (Player p : participatedPlayers) {
             try {
@@ -488,7 +489,7 @@ public class EventTrungThu implements Runnable {
     }
 
     private void despawnBoss(String message) {
-        if (activeBossLan != null && activeBossLan.mob != null && !activeBossLan.mob.isdie) {
+        if (activeBossLan != null && activeBossLan.mob != null) {
             try {
                 activeBossLan.mob.isdie = true;
                 activeBossLan.mob.hp = 0;
@@ -887,7 +888,7 @@ public class EventTrungThu implements Runnable {
         }
 
         // Kiểm tra đã có thẻ chưa
-        if (p.item.total_item_bag_by_id(7, ITEM_THE_TT_TRUNG_THU) <= 0) {
+        if (p.item.total_item_bag_by_id(4, ITEM_THE_TT_TRUNG_THU) <= 0) {
             Service.send_box_ThongBao_OK(p, "Bạn không có Thẻ TT Trung Thu!");
             return;
         }
@@ -910,7 +911,7 @@ public class EventTrungThu implements Runnable {
         p.fashion.add(newFashion);
 
         // Xóa thẻ TT
-        p.item.remove_item47(7, ITEM_THE_TT_TRUNG_THU, 1);
+        p.item.remove_item47(4, ITEM_THE_TT_TRUNG_THU, 1);
         p.item.update_Inventory(-1, false);
 
         Service.send_box_ThongBao_OK(p,

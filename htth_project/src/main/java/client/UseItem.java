@@ -45,6 +45,14 @@ public class UseItem {
         // System.out.println(id);
         // System.out.println(cat);
         switch (cat) {
+            case 4: {
+                try {
+                    use_item_4(p, id);
+                } catch (IOException e) {
+                    System.out.println("Error in use_item_4: " + e.getMessage());
+                }
+                break;
+            }
             case 3: {
                 use_item_3(p, id);
                 break;
@@ -167,6 +175,9 @@ public class UseItem {
                 EventTrungThu.openHopBanhThuongHang(p);
                 p.item.remove_item47(4, id, 1);
                 break;
+            case EventTrungThu.ITEM_THE_TT_TRUNG_THU:
+                EventTrungThu.useTheTTTrungThu(p);
+                break;
         }
         p.item.update_Inventory(-1, false);
     }
@@ -208,7 +219,8 @@ public class UseItem {
                         || id == EventTrungThu.ITEM_BANH_HAT_SEN
                         || id == EventTrungThu.ITEM_HOP_BANH
                         || id == EventTrungThu.ITEM_HOP_BANH_THUONG_HANG
-                        || id == EventTrungThu.ITEM_DEN_KEO_QUAN)) {
+                        || id == EventTrungThu.ITEM_DEN_KEO_QUAN
+                        || id == EventTrungThu.ITEM_THE_TT_TRUNG_THU)) {
                     try {
                         handleTrungThuItem(p, id);
                         return true;
