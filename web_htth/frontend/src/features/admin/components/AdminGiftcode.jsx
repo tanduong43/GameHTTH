@@ -35,6 +35,12 @@ const styles = {
   formCol: {
     flex: '1 1 380px',
     minWidth: '320px',
+    position: 'sticky',
+    top: '0px',
+    alignSelf: 'flex-start',
+    maxHeight: 'calc(100vh - 120px)',
+    overflowY: 'auto',
+    borderRadius: '16px',
   },
   listCol: {
     flex: '2 1 650px',
@@ -43,9 +49,20 @@ const styles = {
     backdropFilter: 'blur(12px)',
     border: '1px solid rgba(255, 255, 255, 0.08)',
     borderRadius: '16px',
-    padding: '28px',
+    padding: '24px',
     alignSelf: 'flex-start',
     boxShadow: '0 12px 40px rgba(0, 0, 0, 0.4)',
+    maxHeight: 'calc(100vh - 120px)',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  tableWrapper: {
+    overflowY: 'auto',
+    overflowX: 'auto',
+    flex: 1,
+    maxHeight: 'calc(100vh - 200px)',
+    borderRadius: '10px',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
   },
   form: {
     textAlign: 'left',
@@ -189,6 +206,11 @@ const styles = {
     textTransform: 'uppercase',
     fontSize: '12px',
     letterSpacing: '0.5px',
+    position: 'sticky',
+    top: 0,
+    background: '#141414',
+    zIndex: 2,
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.4)',
   },
   td: {
     padding: '14px 12px',
@@ -436,7 +458,7 @@ function AdminGiftcode() {
 
       <div style={styles.layout}>
         {/* Cột Trái: Biểu mẫu tạo / cập nhật */}
-        <div style={styles.formCol}>
+        <div style={styles.formCol} className="custom-scrollbar">
           <form onSubmit={editId ? handleUpdateGiftcode : handleCreateGiftcode} style={styles.form}>
             <h4 style={styles.formTitle}>
               {editId ? `📝 CẬP NHẬT GIFTCODE (ID: ${editId})` : '➕ TẠO GIFTCODE MỚI'}
@@ -632,7 +654,7 @@ function AdminGiftcode() {
           {loading ? (
             <div style={{ textAlign: 'center', padding: '30px', color: '#aaa' }}>Đang tải dữ liệu...</div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={styles.tableWrapper} className="custom-scrollbar">
               <table style={styles.table}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)' }}>

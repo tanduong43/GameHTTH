@@ -2028,7 +2028,15 @@ public class UseItem {
         int numInBag = p.item.total_item_bag_by_id(4, id);
         if (numInBag > 0) {
             if (use_item_4(p, id)) {
-                if (id != 271) {
+                if (id != 271
+                        && id != EventTrungThu.ITEM_BANH_TRUNG_THU
+                        && id != EventTrungThu.ITEM_BANH_DAU_XANH
+                        && id != EventTrungThu.ITEM_BANH_TRUNG_MUOI
+                        && id != EventTrungThu.ITEM_BANH_HAT_SEN
+                        && id != EventTrungThu.ITEM_HOP_BANH
+                        && id != EventTrungThu.ITEM_HOP_BANH_THUONG_HANG
+                        && id != EventTrungThu.ITEM_DEN_KEO_QUAN
+                        && id != EventTrungThu.ITEM_THE_TT_TRUNG_THU) {
                     p.item.remove_item47(4, id, 1);
                 }
                 Message m2 = new Message(-13);

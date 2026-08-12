@@ -37,6 +37,8 @@ public class Manager {
     public String mysql_pass;
     public int server_port;
     public int exp;
+    public static int RATE_EXP = 1;
+    public static int RATE_EXP_SKILL = 1;
     public boolean server_admin;
     public int max_ip_connection;
     public int max_ccu;
@@ -108,6 +110,39 @@ public class Manager {
         a = Skill_info.EXP.length;
         //
         System.out.println("Start Service OK, " + a);
+        if (RATE_EXP > 1 || RATE_EXP_SKILL > 1) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(5000);
+                    setRateExp(RATE_EXP, RATE_EXP_SKILL, true);
+                } catch (Exception e) {
+                }
+            }).start();
+        }
+    }
+
+    public void setRateExp(int rateExp, int rateExpSkill, boolean broadcast) {
+        RATE_EXP = rateExp;
+        RATE_EXP_SKILL = rateExpSkill;
+        this.exp = rateExp;
+        if (broadcast) {
+            try {
+                if (rateExp > 1 || rateExpSkill > 1) {
+                    String msg = "THÔNG BÁO SỰ KIỆN: Đang diễn ra sự kiện ";
+                    if (rateExp > 1 && rateExpSkill > 1) {
+                        msg += "x" + rateExp + " EXP & x" + rateExpSkill + " EXP Skill toàn máy chủ!";
+                    } else if (rateExp > 1) {
+                        msg += "x" + rateExp + " EXP toàn máy chủ!";
+                    } else {
+                        msg += "x" + rateExpSkill + " EXP Skill toàn máy chủ!";
+                    }
+                    chatKTG(0, msg, 5);
+                } else {
+                    chatKTG(0, "THÔNG BÁO: Sự kiện tăng EXP toàn máy chủ đã kết thúc!", 5);
+                }
+            } catch (Exception e) {
+            }
+        }
     }
 
     private void stop_service() {
@@ -1038,6 +1073,17 @@ public class Manager {
         // Event Trung Thu config
         if (configMap.containsKey("event-trung-thu")) {
             event.EventTrungThu.setEvent(Boolean.parseBoolean(configMap.get("event-trung-thu")));
+        }
+        // Server Event Rate Config (x2 EXP, x2 EXP Skill)
+        if (configMap.containsKey("rate-exp")) {
+            RATE_EXP = Integer.parseInt(configMap.get("rate-exp"));
+        } else {
+            RATE_EXP = 1;
+        }
+        if (configMap.containsKey("rate-exp-skill")) {
+            RATE_EXP_SKILL = Integer.parseInt(configMap.get("rate-exp-skill"));
+        } else {
+            RATE_EXP_SKILL = 1;
         }
     }
 

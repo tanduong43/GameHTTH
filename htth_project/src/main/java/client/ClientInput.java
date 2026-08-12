@@ -926,8 +926,8 @@ public class ClientInput {
                         if (value < 0 || value > 10_000_000) {
                             value = 1;
                         }
-                        Manager.gI().exp = value;
-                        Service.send_box_ThongBao_OK(p, "Thay đổi xp x" + value);
+                        Manager.gI().setRateExp(value, value, true);
+                        Service.send_box_ThongBao_OK(p, "Thay đổi tỉ lệ EXP & EXP Skill x" + value + " thành công!");
                     }
                 }
                 break;

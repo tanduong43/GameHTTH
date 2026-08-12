@@ -263,17 +263,76 @@ router.get('/admin/stats', jwtRequired, isAdmin, async (req, res) => {
 
 // POST /api/admin/add_coin/
 router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
-    const { username, amount } = req.body;
+    const { username, amount, isDeposit } = req.body;
     const coinAmount = parseInt(amount || 0, 10);
+    const countAsDeposit = isDeposit !== false;
 
     try {
-        const [rows] = await db.execute('SELECT * FROM accounts WHERE user = ?', [username]);
+        const [rows] = await db.execute('SELECT coin, sumamount, vip, tichnap FROM accounts WHERE user = ?', [username]);
         if (rows.length === 0) {
             return res.json({ success: false, message: 'Không tìm thấy tài khoản!' });
         }
 
-        await db.execute('UPDATE accounts SET coin = coin + ? WHERE user = ?', [coinAmount, username]);
-        return res.json({ success: true, message: `Đã cộng ${coinAmount} Coin cho ${username}!` });
+        const acc = rows[0];
+        const currentBalance = parseInt(acc.coin || 0, 10);
+        const newBalance = currentBalance + coinAmount;
+
+        if (countAsDeposit && coinAmount > 0) {
+            const actualAmount = coinAmount * 1000;
+            const currentSumAmount = parseInt(acc.sumamount || 0, 10);
+            const currentVip = parseInt(acc.vip || 0, 10);
+            const currentTichNap = parseInt(acc.tichnap || 0, 10);
+
+            const newSumAmount = currentSumAmount + actualAmount;
+            const newTichNap = currentTichNap + actualAmount;
+
+            // Calculate VIP
+            let calculatedVip = 0;
+            if (newSumAmount >= 10000000) calculatedVip = 7;
+            else if (newSumAmount >= 5000000) calculatedVip = 6;
+            else if (newSumAmount >= 3000000) calculatedVip = 5;
+            else if (newSumAmount >= 2000000) calculatedVip = 4;
+            else if (newSumAmount >= 1000000) calculatedVip = 3;
+            else if (newSumAmount >= 500000) calculatedVip = 2;
+            else if (newSumAmount >= 200000) calculatedVip = 1;
+
+            const newVip = Math.max(currentVip, calculatedVip);
+
+            await db.execute(
+                'UPDATE accounts SET coin = ?, sumamount = ?, vip = ?, tichnap = ? WHERE user = ?',
+                [newBalance, newSumAmount, newVip, newTichNap, username]
+            );
+
+            // Record transaction log if available
+            try {
+                await db.execute(
+                    'INSERT INTO transactions (username, type, amount, balance_before, balance_after, description) VALUES (?, ?, ?, ?, ?, ?)',
+                    [username, 'deposit', coinAmount, currentBalance, newBalance, `Admin Buff Nạp (+${coinAmount.toLocaleString()} Coin)`]
+                );
+            } catch (tErr) {
+                console.error('Transaction log error (non-fatal):', tErr.message);
+            }
+
+            // Emit Socket notification
+            const reqIo = req.app.get('io');
+            if (reqIo) {
+                reqIo.to(`user_${username}`).emit('deposit_success', {
+                    username: username,
+                    amount: coinAmount,
+                    newBalance: newBalance,
+                    message: `⚡ Admin vừa Buff Nạp thành công +${coinAmount.toLocaleString()} Coin!`,
+                    real_amount: actualAmount
+                });
+            }
+
+            return res.json({ 
+                success: true, 
+                message: `Đã Buff Nạp ${coinAmount.toLocaleString()} Coin (Tương đương ${actualAmount.toLocaleString()}đ nạp & VIP ${newVip}) cho ${username}!` 
+            });
+        } else {
+            await db.execute('UPDATE accounts SET coin = ? WHERE user = ?', [newBalance, username]);
+            return res.json({ success: true, message: `Đã cộng ${coinAmount.toLocaleString()} Coin cho ${username}!` });
+        }
     } catch (err) {
         console.error('Admin add coin error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });

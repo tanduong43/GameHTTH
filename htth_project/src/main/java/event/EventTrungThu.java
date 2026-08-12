@@ -35,10 +35,10 @@ public class EventTrungThu implements Runnable {
     private static final String CONFIG_KEY = "event-trung-thu";
 
     // Item IDs - Nguyên liệu
-    public static final int ITEM_BOT_MI = 202;       // Bột Mì
-    public static final int ITEM_DUONG = 200;         // Đường
-    public static final int ITEM_TRUNG_MUOI = 203;    // Trứng Muối
-    public static final int ITEM_DEN_ONG_SAO = 473;  // Đèn ông sao
+    public static final int ITEM_BOT_MI = 202; // Bột Mì
+    public static final int ITEM_DUONG = 200; // Đường
+    public static final int ITEM_TRUNG_MUOI = 203; // Trứng Muối
+    public static final int ITEM_DEN_ONG_SAO = 473; // Đèn ông sao
     public static final int ITEM_GIAY_GOI_QUA = 575; // Giấy gói quà
 
     // Item IDs - Thành phẩm
@@ -59,7 +59,7 @@ public class EventTrungThu implements Runnable {
     public static final int MOB_BOSS_LAN = 153;
 
     // Thời gian spawn boss (giờ trong ngày)
-    private static final int[] BOSS_SPAWN_HOURS = {12, 18, 20, 22};
+    private static final int[] BOSS_SPAWN_HOURS = { 12, 18, 20, 22 };
     private static final long BOSS_LIFETIME_MS = 30 * 60 * 1000L; // 30 phút
     private static final long BOSS_ANNOUNCE_BEFORE_MS = 5 * 60 * 1000L; // 5 phút trước
 
@@ -139,14 +139,14 @@ public class EventTrungThu implements Runnable {
         }
     }
 
-
-
     private boolean isWithinBossActiveTime(long now) {
         java.util.Calendar cal = java.util.Calendar.getInstance();
         cal.setTimeInMillis(now);
         int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
-        if (hour >= 11 && hour < 13) return true;
-        if (hour >= 20 && hour < 21) return true;
+        if (hour >= 11 && hour < 13)
+            return true;
+        if (hour >= 20 && hour < 21)
+            return true;
         return false;
     }
 
@@ -190,18 +190,17 @@ public class EventTrungThu implements Runnable {
                 // spawnBossLan();
             }
         }
-        
+
         if (bossAlive && activeBossLan != null && now >= bossSpawnTime + BOSS_LIFETIME_MS) {
             despawnBoss("Boss Lân Sư Tử đã bỏ đi!");
         }
     }
 
-
-
     private static Boss persistentBossLan = null;
 
     private void spawnBossLan() {
-        if (bossAlive) return;
+        if (bossAlive)
+            return;
 
         List<Map> allowedMaps = new ArrayList<>();
         for (int mapId : Boss.ALLOWED_MAP_IDS) {
@@ -237,14 +236,14 @@ public class EventTrungThu implements Runnable {
             persistentBossLan.hp_max_origin = persistentBossLan.mob.mob_template.hp_max;
             persistentBossLan.mob.boss_info = persistentBossLan;
             persistentBossLan.TopDame = new ArrayList<>();
-            persistentBossLan.skill = new short[]{1}; 
+            persistentBossLan.skill = new short[] { 1 };
             persistentBossLan.buff = new ArrayList<>();
-            persistentBossLan.time_atk = new long[]{0, 0, 0, 0, 0};
+            persistentBossLan.time_atk = new long[] { 0, 0, 0, 0, 0 };
             int currentIndex = core.Manager.gI().getIndexMob();
             persistentBossLan.mob.index = currentIndex;
             persistentBossLan.index_mob_save = currentIndex;
             core.Manager.gI().setIndexMob(currentIndex + 10);
-            for (int j = 0; j < 10; j++) { 
+            for (int j = 0; j < 10; j++) {
                 Mob.ENTRYS.put((persistentBossLan.mob.index + j), persistentBossLan.mob);
             }
             // Thêm vào Boss.ENTRYS để người chơi có thể thấy boss khi vào map
@@ -302,7 +301,8 @@ public class EventTrungThu implements Runnable {
         if (p != null) {
             try {
                 core.Service.send_box_ThongBao_OK(p, "Đã gọi Lân thành công!");
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
     }
 
@@ -311,7 +311,8 @@ public class EventTrungThu implements Runnable {
     }
 
     public void onBossDamaged(Player player, int damage) {
-        if (!bossAlive || activeBossLan == null) return;
+        if (!bossAlive || activeBossLan == null)
+            return;
 
         // Ghi nhận damage
         Top_Dame entry = new Top_Dame();
@@ -339,7 +340,8 @@ public class EventTrungThu implements Runnable {
     }
 
     public void onBossKilled(Player killer) {
-        if (!bossAlive || activeBossLan == null) return;
+        if (!bossAlive || activeBossLan == null)
+            return;
 
         lastHitPlayer = killer;
 
@@ -355,11 +357,11 @@ public class EventTrungThu implements Runnable {
         // Phần thưởng Last Hit
         giveLastHitReward(killer);
 
-        // Phần thưởng tham gia
-        giveParticipationRewards();
+        // Phần thưởng tham gia (Đã bỏ theo yêu cầu)
+        // giveParticipationRewards();
 
-        // Rơi item nhặt lộc
-        spawnLuckyDrops();
+        // Rơi item nhặt lộc (Đã bỏ theo yêu cầu)
+        // spawnLuckyDrops();
 
         // Reset
         despawnBoss(null);
@@ -386,12 +388,21 @@ public class EventTrungThu implements Runnable {
     }
 
     private void giveLastHitReward(Player player) {
-        if (player == null) return;
+        if (player == null)
+            return;
 
         List<GiftBox> rewards = new ArrayList<>();
-        rewards.add(createGiftBox(ITEM_HOP_BANH_THUONG_HANG, 1));
+
+        // Tỉ lệ 30% ra Hộp Bánh Thượng Hạng
+        if (core.Util.random(100) < 30) {
+            rewards.add(createGiftBox(ITEM_HOP_BANH_THUONG_HANG, 1));
+        }
+
         rewards.add(createGiftBox(1, 50)); // Ruby
         rewards.add(createGiftBox(ITEM_GIAY_GOI_QUA, 2));
+        rewards.add(createGiftBox(ITEM_BOT_MI, 1));
+        rewards.add(createGiftBox(ITEM_DUONG, 1));
+        rewards.add(createGiftBox(ITEM_TRUNG_MUOI, 1));
 
         try {
             Service.send_gift(player, 0, "Phần thưởng Đòn Kết Liễu Boss Lân!", "", rewards, true);
@@ -418,14 +429,16 @@ public class EventTrungThu implements Runnable {
     }
 
     private void spawnLuckyDrops() {
-        if (activeBossLan == null || activeBossLan.mob == null) return;
+        if (activeBossLan == null || activeBossLan.mob == null)
+            return;
 
         Map map = activeBossLan.mob.map;
-        if (map == null) return;
+        if (map == null)
+            return;
 
         int dropCount = Util.random(30, 50);
-        ItemTemplate4[] possibleItems = new ItemTemplate4[]{
-                ItemTemplate4.get_it_by_id(0),   // Beri
+        ItemTemplate4[] possibleItems = new ItemTemplate4[] {
+                ItemTemplate4.get_it_by_id(0), // Beri
                 ItemTemplate4.get_it_by_id(ITEM_BANH_TRUNG_THU),
                 ItemTemplate4.get_it_by_id(ITEM_BOT_MI),
                 ItemTemplate4.get_it_by_id(ITEM_DUONG),
@@ -531,111 +544,250 @@ public class EventTrungThu implements Runnable {
         // Random rewards dựa trên loại bánh
         switch (itemId) {
             case ITEM_BANH_TRUNG_THU: {
-                // Đá Khảm Cấp 6 ngẫu nhiên
-                int gemId = Util.random(44, 83);
-                GiftBox gem = new GiftBox();
-                gem.type = 4;
-                gem.id = (short)gemId;
-                gem.num = 1;
-                gem.color = 0;
-                rewards.add(gem);
-
-                // Beri hoặc Ruby ngẫu nhiên
-                if (Util.random(2) == 0) {
-                    GiftBox beri = new GiftBox();
-                    beri.type = 4;
-                    beri.id = 0;
-                    beri.num = Util.random(50000, 150000);
-                    beri.color = 0;
-                    rewards.add(beri);
-                } else {
-                    GiftBox ruby = new GiftBox();
-                    ruby.type = 4;
-                    ruby.name = "ruby";
-                    ruby.num = Util.random(50, 150);
-                    ruby.id = 1;
-                    ruby.color = 5;
-                    rewards.add(ruby);
+                int rand = Util.random(4);
+                switch (rand) {
+                    case 0: {
+                        int gemId = Util.random(44, 79);
+                        ItemTemplate4 gemTemplate = ItemTemplate4.get_it_by_id(gemId);
+                        GiftBox gem = new GiftBox();
+                        gem.type = 4;
+                        gem.id = (short) gemId;
+                        gem.num = 1;
+                        gem.color = 0;
+                        if (gemTemplate != null) {
+                            gem.name = gemTemplate.name;
+                            gem.icon = gemTemplate.icon;
+                        }
+                        rewards.add(gem);
+                        break;
+                    }
+                    case 1: {
+                        ItemTemplate4 beriTemplate = ItemTemplate4.get_it_by_id(0);
+                        GiftBox beri = new GiftBox();
+                        beri.type = 4;
+                        beri.id = 0;
+                        beri.num = Util.random(50000, 150000);
+                        beri.color = 0;
+                        if (beriTemplate != null) {
+                            beri.name = beriTemplate.name;
+                            beri.icon = beriTemplate.icon;
+                        }
+                        rewards.add(beri);
+                        break;
+                    }
+                    case 2: {
+                        ItemTemplate4 rubyTemplate = ItemTemplate4.get_it_by_id(1);
+                        GiftBox ruby = new GiftBox();
+                        ruby.type = 4;
+                        ruby.name = "ruby";
+                        ruby.num = Util.random(50, 150);
+                        ruby.id = 1;
+                        ruby.color = 5;
+                        if (rubyTemplate != null) {
+                            ruby.icon = rubyTemplate.icon;
+                        }
+                        rewards.add(ruby);
+                        break;
+                    }
+                    case 3: {
+                        int bonusId = Util.random(2) == 0 ? 0 : 1; // 0: Đá ngũ sắc, 1: Bột cường hóa
+                        int amount = bonusId == 0 ? 500 : 50;
+                        ItemTemplate7 bonusTemplate = ItemTemplate7.get_it_by_id(bonusId);
+                        GiftBox bonus = new GiftBox();
+                        bonus.type = 7;
+                        bonus.id = (short) bonusId;
+                        bonus.num = amount;
+                        bonus.color = 0;
+                        if (bonusTemplate != null) {
+                            bonus.name = bonusTemplate.name;
+                            bonus.icon = bonusTemplate.icon;
+                        }
+                        rewards.add(bonus);
+                        break;
+                    }
                 }
                 break;
             }
             case ITEM_BANH_DAU_XANH: {
-                int gemId = Util.random(44, 83);
-                GiftBox gem = new GiftBox();
-                gem.type = 4;
-                gem.id = (short)gemId;
-                gem.num = 1;
-                gem.color = 0;
-                rewards.add(gem);
-
-                GiftBox beri = new GiftBox();
-                beri.type = 4;
-                beri.id = 0;
-                beri.num = Util.random(500000, 15000000);
-                beri.color = 0;
-                rewards.add(beri);
-
-                GiftBox expCard = new GiftBox();
-                expCard.type = 4;
-                expCard.id = 266; // Thẻ x2 EXP
-                expCard.num = 1;
-                expCard.icon = 0;
-                expCard.color = 0;
-                rewards.add(expCard);
+                int rand = Util.random(3);
+                switch (rand) {
+                    case 0: {
+                        int gemId = Util.random(44, 79);
+                        ItemTemplate4 gemTemplate = ItemTemplate4.get_it_by_id(gemId);
+                        GiftBox gem = new GiftBox();
+                        gem.type = 4;
+                        gem.id = (short) gemId;
+                        gem.num = 1;
+                        gem.color = 0;
+                        if (gemTemplate != null) {
+                            gem.name = gemTemplate.name;
+                            gem.icon = gemTemplate.icon;
+                        }
+                        rewards.add(gem);
+                        break;
+                    }
+                    case 1: {
+                        ItemTemplate4 beriTemplate = ItemTemplate4.get_it_by_id(0);
+                        GiftBox beri = new GiftBox();
+                        beri.type = 4;
+                        beri.id = 0;
+                        beri.num = Util.random(100000, 500000);
+                        beri.color = 0;
+                        if (beriTemplate != null) {
+                            beri.name = beriTemplate.name;
+                            beri.icon = beriTemplate.icon;
+                        }
+                        rewards.add(beri);
+                        break;
+                    }
+                    case 2: {
+                        ItemTemplate4 rubyTemplate = ItemTemplate4.get_it_by_id(1);
+                        GiftBox ruby = new GiftBox();
+                        ruby.type = 4;
+                        ruby.name = "ruby";
+                        ruby.num = Util.random(10, 50);
+                        ruby.id = 1;
+                        ruby.color = 5;
+                        if (rubyTemplate != null) {
+                            ruby.icon = rubyTemplate.icon;
+                        }
+                        rewards.add(ruby);
+                        break;
+                    }
+                }
                 break;
             }
             case ITEM_BANH_TRUNG_MUOI: {
-                int gemId = Util.random(44, 83);
-                GiftBox gem = new GiftBox();
-                gem.type = 4;
-                gem.id = (short)gemId;
-                gem.num = 1;
-                gem.color = 0;
-                rewards.add(gem);
-
-                GiftBox beri = new GiftBox();
-                beri.type = 4;
-                beri.id = 0;
-                beri.num = Util.random(800000, 20000000);
-                beri.color = 0;
-                rewards.add(beri);
-
-                GiftBox acQuy = new GiftBox();
-                acQuy.type = 7;
-                acQuy.id = 9; // Tinh thể đá ác quỷ
-                acQuy.num = Util.random(2, 5);
-                acQuy.color = 0;
-                rewards.add(acQuy);
+                int rand = Util.random(4);
+                switch (rand) {
+                    case 0: {
+                        int gemId = Util.random(44, 79);
+                        ItemTemplate4 gemTemplate = ItemTemplate4.get_it_by_id(gemId);
+                        GiftBox gem = new GiftBox();
+                        gem.type = 4;
+                        gem.id = (short) gemId;
+                        gem.num = 1;
+                        gem.color = 0;
+                        if (gemTemplate != null) {
+                            gem.name = gemTemplate.name;
+                            gem.icon = gemTemplate.icon;
+                        }
+                        rewards.add(gem);
+                        break;
+                    }
+                    case 1: {
+                        ItemTemplate4 beriTemplate = ItemTemplate4.get_it_by_id(0);
+                        GiftBox beri = new GiftBox();
+                        beri.type = 4;
+                        beri.id = 0;
+                        beri.num = Util.random(100000, 500000);
+                        beri.color = 0;
+                        if (beriTemplate != null) {
+                            beri.name = beriTemplate.name;
+                            beri.icon = beriTemplate.icon;
+                        }
+                        rewards.add(beri);
+                        break;
+                    }
+                    case 2: {
+                        ItemTemplate4 rubyTemplate = ItemTemplate4.get_it_by_id(1);
+                        GiftBox ruby = new GiftBox();
+                        ruby.type = 4;
+                        ruby.name = "ruby";
+                        ruby.num = Util.random(10, 50);
+                        ruby.id = 1;
+                        ruby.color = 5;
+                        if (rubyTemplate != null) {
+                            ruby.icon = rubyTemplate.icon;
+                        }
+                        rewards.add(ruby);
+                        break;
+                    }
+                    case 3: {
+                        ItemTemplate7 acQuyTemplate = ItemTemplate7.get_it_by_id(9);
+                        GiftBox acQuy = new GiftBox();
+                        acQuy.type = 7;
+                        acQuy.id = 9;
+                        acQuy.num = Util.random(2, 5);
+                        acQuy.color = 0;
+                        if (acQuyTemplate != null) {
+                            acQuy.name = acQuyTemplate.name;
+                            acQuy.icon = acQuyTemplate.icon;
+                        }
+                        rewards.add(acQuy);
+                        break;
+                    }
+                }
                 break;
             }
             case ITEM_BANH_HAT_SEN: {
-                int gemId = Util.random(44, 83);
-                GiftBox gem = new GiftBox();
-                gem.type = 4;
-                gem.id = (short)gemId;
-                gem.num = 1;
-                gem.color = 0;
-                rewards.add(gem);
-
-                GiftBox beri = new GiftBox();
-                beri.type = 4;
-                beri.id = 0;
-                beri.num = Util.random(1000000, 25000000);
-                beri.color = 0;
-                rewards.add(beri);
-
-                // Bột Vàng hoặc Mai Rùa
-                GiftBox bonus = new GiftBox();
-                bonus.type = 7;
-                bonus.id = (short) (Util.random(2) == 0 ? 1 : 2); // Bột vàng hoặc mai rùa
-                bonus.num = Util.random(2, 5);
-                bonus.color = 0;
-                rewards.add(bonus);
+                int rand = Util.random(4);
+                switch (rand) {
+                    case 0: {
+                        int gemId = Util.random(44, 79);
+                        ItemTemplate4 gemTemplate = ItemTemplate4.get_it_by_id(gemId);
+                        GiftBox gem = new GiftBox();
+                        gem.type = 4;
+                        gem.id = (short) gemId;
+                        gem.num = 1;
+                        gem.color = 0;
+                        if (gemTemplate != null) {
+                            gem.name = gemTemplate.name;
+                            gem.icon = gemTemplate.icon;
+                        }
+                        rewards.add(gem);
+                        break;
+                    }
+                    case 1: {
+                        ItemTemplate4 beriTemplate = ItemTemplate4.get_it_by_id(0);
+                        GiftBox beri = new GiftBox();
+                        beri.type = 4;
+                        beri.id = 0;
+                        beri.num = Util.random(100000, 500000);
+                        beri.color = 0;
+                        if (beriTemplate != null) {
+                            beri.name = beriTemplate.name;
+                            beri.icon = beriTemplate.icon;
+                        }
+                        rewards.add(beri);
+                        break;
+                    }
+                    case 2: {
+                        ItemTemplate4 rubyTemplate = ItemTemplate4.get_it_by_id(1);
+                        GiftBox ruby = new GiftBox();
+                        ruby.type = 4;
+                        ruby.name = "ruby";
+                        ruby.num = Util.random(10, 50);
+                        ruby.id = 1;
+                        ruby.color = 5;
+                        if (rubyTemplate != null) {
+                            ruby.icon = rubyTemplate.icon;
+                        }
+                        rewards.add(ruby);
+                        break;
+                    }
+                    case 3: {
+                        // Bột Vàng (id=1) hoặc Mai Rùa (id=2)
+                        int bonusId = Util.random(2) == 0 ? 1 : 2;
+                        ItemTemplate7 bonusTemplate = ItemTemplate7.get_it_by_id(bonusId);
+                        GiftBox bonus = new GiftBox();
+                        bonus.type = 7;
+                        bonus.id = (short) bonusId;
+                        bonus.num = Util.random(2, 5);
+                        bonus.color = 0;
+                        if (bonusTemplate != null) {
+                            bonus.name = bonusTemplate.name;
+                            bonus.icon = bonusTemplate.icon;
+                        }
+                        rewards.add(bonus);
+                        break;
+                    }
+                }
                 break;
             }
         }
 
-        Service.send_gift(p, 0, "Bạn mở bánh Trung Thu và nhận được:", "", rewards, true);
+        Service.send_gift(p, 0, "Quà trung thu:", "", rewards, true);
     }
 
     /**
@@ -650,94 +802,86 @@ public class EventTrungThu implements Runnable {
         List<GiftBox> rewards = new ArrayList<>();
 
         // Random 1 trong các phần thưởng
-        int rand = Util.random(9);
+        int rand = Util.random(5);
         switch (rand) {
             case 0: {
-                GiftBox ngusac = new GiftBox();
-                ngusac.type = 7;
-                ngusac.id = 0; // Đá ngũ sắc
-                ngusac.num = Util.random(1, 3);
-                ngusac.color = 0;
-                rewards.add(ngusac);
-                break;
-            }
-            case 1: {
-                GiftBox botCuong = new GiftBox();
-                botCuong.type = 7;
-                botCuong.id = 1; // Bột cường hóa
-                botCuong.num = Util.random(1, 3);
-                botCuong.color = 0;
-                rewards.add(botCuong);
-                break;
-            }
-            case 2: {
-                GiftBox expCard = new GiftBox();
-                expCard.type = 4;
-                expCard.id = 266; // Thẻ x2 EXP
-                expCard.num = 1;
-                expCard.color = 0;
-                rewards.add(expCard);
-                break;
-            }
-            case 3: {
-                GiftBox doiTen = new GiftBox();
-                doiTen.type = 4;
-                doiTen.id = 265; // Thẻ đổi tên
-                doiTen.num = 1;
-                doiTen.color = 0;
-                rewards.add(doiTen);
-                break;
-            }
-            case 4: {
+                // Rương cam theo cấp
                 int level = p.level;
-                if (level < 10) level = 10;
-                if (level > 90) level = 90;
+                if (level < 10)
+                    level = 10;
+                if (level > 90)
+                    level = 90;
                 int chestIdNormal = 111 + level / 10;
-                template.ItemTemplate4 it_rcam = template.ItemTemplate4.get_it_by_id(chestIdNormal);
+                ItemTemplate4 it_rcam = ItemTemplate4.get_it_by_id(chestIdNormal);
                 if (it_rcam != null) {
                     GiftBox giftChest = new GiftBox();
                     giftChest.id = (short) chestIdNormal;
                     giftChest.type = 4;
                     giftChest.name = it_rcam.name;
+                    giftChest.icon = it_rcam.icon;
                     giftChest.num = 1;
                     giftChest.color = 0;
                     rewards.add(giftChest);
                 }
                 break;
             }
-            case 5: {
+            case 1: {
+                // Mai rùa (id 6 item7)
+                ItemTemplate7 template7 = ItemTemplate7.get_it_by_id(6);
                 GiftBox mairua = new GiftBox();
                 mairua.type = 7;
-                mairua.id = 2; // Mai rùa
+                mairua.id = 6;
                 mairua.num = Util.random(1, 3);
                 mairua.color = 0;
+                if (template7 != null) {
+                    mairua.name = template7.name;
+                    mairua.icon = template7.icon;
+                }
                 rewards.add(mairua);
                 break;
             }
-            case 6: {
-                GiftBox dKham5 = new GiftBox();
-                dKham5.type = 4;
-                dKham5.id = (short) Util.random(127, 136); // Đá khảm cấp 5 ngẫu nhiên
-                dKham5.num = 1;
-                dKham5.color = 0;
-                rewards.add(dKham5);
+            case 2: {
+                // Xp chiêu thức 159 item4
+                ItemTemplate4 template4 = ItemTemplate4.get_it_by_id(159);
+                GiftBox xpSkill = new GiftBox();
+                xpSkill.type = 4;
+                xpSkill.id = 159;
+                xpSkill.num = 1;
+                xpSkill.color = 0;
+                if (template4 != null) {
+                    xpSkill.name = template4.name;
+                    xpSkill.icon = template4.icon;
+                }
+                rewards.add(xpSkill);
                 break;
             }
-            case 7: {
+            case 3: {
+                // Đá ác quỷ: id 134 item4
+                ItemTemplate4 template4 = ItemTemplate4.get_it_by_id(134);
                 GiftBox daquy = new GiftBox();
-                daquy.type = 7;
-                daquy.id = 8; // Đá ác quỷ
+                daquy.type = 4;
+                daquy.id = 134;
                 daquy.num = 1;
                 daquy.color = 0;
+                if (template4 != null) {
+                    daquy.name = template4.name;
+                    daquy.icon = template4.icon;
+                }
                 rewards.add(daquy);
                 break;
             }
-            case 8: {
+            case 4: {
+                // Rương đại ác quỷ: id 158 item4
+                ItemTemplate4 template4 = ItemTemplate4.get_it_by_id(158);
                 GiftBox ruongDa = new GiftBox();
                 ruongDa.type = 4;
-                ruongDa.id = 87; // Rương đại ác quỷ
+                ruongDa.id = 158;
                 ruongDa.num = 1;
                 ruongDa.color = 0;
+                if (template4 != null) {
+                    ruongDa.name = template4.name;
+                    ruongDa.icon = template4.icon;
+                }
                 rewards.add(ruongDa);
                 break;
             }
@@ -746,7 +890,7 @@ public class EventTrungThu implements Runnable {
         // Thông báo bắn pháo hoa
         Manager.gI().chatKTG(0, "🎆 " + p.name + " đã bắn pháo hoa rực rỡ!", 5);
 
-        Service.send_gift(p, 0, "Pháo hoa rực rỡ! Bạn nhận được:", "", rewards, true);
+        Service.send_gift(p, 0, "Bạn nhận được:", "", rewards, true);
     }
 
     /**
@@ -760,40 +904,84 @@ public class EventTrungThu implements Runnable {
 
         List<GiftBox> rewards = new ArrayList<>();
 
-        // Ruby
-        GiftBox ruby = new GiftBox();
-        ruby.type = 4;
-        ruby.name = "ruby";
-        ruby.num = Util.random(1500, 3500);
-        ruby.id = 1;
-        ruby.color = 5;
-        rewards.add(ruby);
+        // Random 1 trong 4 phần thưởng
+        int rand = Util.random(4);
+        switch (rand) {
+            case 0: {
+                // Ruby 10-50
+                ItemTemplate4 rubyTemplate = ItemTemplate4.get_it_by_id(1);
+                GiftBox ruby = new GiftBox();
+                ruby.type = 4;
+                ruby.id = 1;
+                ruby.num = Util.random(10, 50);
+                ruby.color = 5;
+                if (rubyTemplate != null) {
+                    ruby.name = "ruby";
+                    ruby.icon = rubyTemplate.icon;
+                }
+                rewards.add(ruby);
+                break;
+            }
+            case 1: {
+                // Bột Vàng + Tinh Thể
+                ItemTemplate7 botVangTemplate = ItemTemplate7.get_it_by_id(1);
+                GiftBox botVang = new GiftBox();
+                botVang.type = 7;
+                botVang.id = 1;
+                botVang.num = Util.random(2, 5);
+                botVang.color = 0;
+                if (botVangTemplate != null) {
+                    botVang.name = botVangTemplate.name;
+                    botVang.icon = botVangTemplate.icon;
+                }
+                rewards.add(botVang);
 
-        // Bột Vàng
-        GiftBox botVang = new GiftBox();
-        botVang.type = 7;
-        botVang.id = 1;
-        botVang.num = Util.random(1, 3);
-        botVang.color = 0;
-        rewards.add(botVang);
+                ItemTemplate7 acQuyTemplate = ItemTemplate7.get_it_by_id(9);
+                GiftBox acQuy = new GiftBox();
+                acQuy.type = 7;
+                acQuy.id = 9;
+                acQuy.num = Util.random(2, 5);
+                acQuy.color = 0;
+                if (acQuyTemplate != null) {
+                    acQuy.name = acQuyTemplate.name;
+                    acQuy.icon = acQuyTemplate.icon;
+                }
+                rewards.add(acQuy);
+                break;
+            }
+            case 2: {
+                // Beri lớn
+                ItemTemplate4 beriTemplate = ItemTemplate4.get_it_by_id(0);
+                GiftBox beri = new GiftBox();
+                beri.type = 4;
+                beri.id = 0;
+                beri.num = Util.random(100000, 500000);
+                beri.color = 0;
+                if (beriTemplate != null) {
+                    beri.name = beriTemplate.name;
+                    beri.icon = beriTemplate.icon;
+                }
+                rewards.add(beri);
+                break;
+            }
+            case 3: {
+                // Rương Đại Ác Quỷ
+                ItemTemplate4 ruongTemplate = ItemTemplate4.get_it_by_id(158);
+                GiftBox ruong = new GiftBox();
+                ruong.type = 4;
+                ruong.id = 158;
+                ruong.num = 1;
+                ruong.color = 5;
+                if (ruongTemplate != null) {
+                    ruong.name = ruongTemplate.name;
+                    ruong.icon = ruongTemplate.icon;
+                }
+                rewards.add(ruong);
+                break;
+            }
+        }
 
-        // Tinh Thể Đá Ác Quỷ
-        GiftBox acQuy = new GiftBox();
-        acQuy.type = 7;
-        acQuy.id = 9;
-        acQuy.num = Util.random(1, 3);
-        acQuy.color = 0;
-        rewards.add(acQuy);
-
-        // Beri
-        GiftBox beri = new GiftBox();
-        beri.type = 4;
-        beri.id = 0;
-        beri.num = Util.random(1000000, 5000000);
-        beri.color = 0;
-        rewards.add(beri);
-
-        Service.send_gift(p, 0, "Bạn mở Hộp Bánh Trung Thu và nhận được:", "", rewards, true);
+        Service.send_gift(p, 0, "Quà từ Hộp Bánh Trung Thu:", "", rewards, true);
     }
 
     /**
@@ -807,73 +995,104 @@ public class EventTrungThu implements Runnable {
 
         List<GiftBox> rewards = new ArrayList<>();
 
-        // Ruby
-        GiftBox ruby = new GiftBox();
-        ruby.type = 4;
-        ruby.name = "ruby";
-        ruby.num = Util.random(1500, 3500);
-        ruby.id = 1;
-        ruby.color = 5;
-        rewards.add(ruby);
+        // Random 1 trong 4 phần thưởng
+        int rand = Util.random(4);
+        switch (rand) {
+            case 0: {
+                // Ruby 10-50
+                ItemTemplate4 rubyTemplate = ItemTemplate4.get_it_by_id(1);
+                GiftBox ruby = new GiftBox();
+                ruby.type = 4;
+                ruby.id = 1;
+                ruby.num = Util.random(10, 50);
+                ruby.color = 5;
+                if (rubyTemplate != null) {
+                    ruby.name = "ruby";
+                    ruby.icon = rubyTemplate.icon;
+                }
+                rewards.add(ruby);
+                break;
+            }
+            case 1: {
+                // Đá Ác Quỷ + Tinh Thể
+                ItemTemplate7 daAcQuyTemplate = ItemTemplate7.get_it_by_id(8);
+                GiftBox daAcQuy = new GiftBox();
+                daAcQuy.type = 7;
+                daAcQuy.id = 8;
+                daAcQuy.num = Util.random(15, 30);
+                daAcQuy.color = 0;
+                if (daAcQuyTemplate != null) {
+                    daAcQuy.name = daAcQuyTemplate.name;
+                    daAcQuy.icon = daAcQuyTemplate.icon;
+                }
+                rewards.add(daAcQuy);
 
-        // Đá Ác Quỷ
-        GiftBox daAcQuy = new GiftBox();
-        daAcQuy.type = 7;
-        daAcQuy.id = 8;
-        daAcQuy.num = Util.random(10, 20);
-        daAcQuy.color = 0;
-        rewards.add(daAcQuy);
+                ItemTemplate7 tinhTheTemplate = ItemTemplate7.get_it_by_id(9);
+                GiftBox tinhThe = new GiftBox();
+                tinhThe.type = 7;
+                tinhThe.id = 9;
+                tinhThe.num = Util.random(3, 7);
+                tinhThe.color = 0;
+                if (tinhTheTemplate != null) {
+                    tinhThe.name = tinhTheTemplate.name;
+                    tinhThe.icon = tinhTheTemplate.icon;
+                }
+                rewards.add(tinhThe);
+                break;
+            }
+            case 2: {
+                // Thẻ TT Trung Thu
+                ItemTemplate4 theTTTemplate = ItemTemplate4.get_it_by_id(ITEM_THE_TT_TRUNG_THU);
+                GiftBox theTT = new GiftBox();
+                theTT.type = 4;
+                theTT.id = ITEM_THE_TT_TRUNG_THU;
+                theTT.num = 1;
+                theTT.color = 5;
+                if (theTTTemplate != null) {
+                    theTT.name = theTTTemplate.name;
+                    theTT.icon = theTTTemplate.icon;
+                }
+                rewards.add(theTT);
+                break;
+            }
+            case 3: {
+                // Rương Đại Ác Quỷ + Pet Thỏ
+                ItemTemplate4 ruongTemplate = ItemTemplate4.get_it_by_id(87);
+                GiftBox ruong = new GiftBox();
+                ruong.type = 4;
+                ruong.id = 87;
+                ruong.num = 1;
+                ruong.color = 5;
+                if (ruongTemplate != null) {
+                    ruong.name = ruongTemplate.name;
+                    ruong.icon = ruongTemplate.icon;
+                }
+                rewards.add(ruong);
 
-        // Bột Vàng
-        GiftBox botVang = new GiftBox();
-        botVang.type = 7;
-        botVang.id = 1;
-        botVang.num = Util.random(2, 5);
-        botVang.color = 0;
-        rewards.add(botVang);
-
-        // Tinh Thể
-        GiftBox tinhThe = new GiftBox();
-        tinhThe.type = 7;
-        tinhThe.id = 9;
-        tinhThe.num = Util.random(2, 5);
-        tinhThe.color = 0;
-        rewards.add(tinhThe);
-
-        // Thẻ TT Trung Thu
-        GiftBox theTT = new GiftBox();
-        theTT.type = 4;
-        theTT.id = ITEM_THE_TT_TRUNG_THU;
-        theTT.num = 1;
-        theTT.icon = 423;
-        theTT.color = 5;
-        rewards.add(theTT);
-
-        // Rương Đại Ác Quỷ
-        GiftBox ruong = new GiftBox();
-        ruong.type = 4;
-        ruong.id = 87;
-        ruong.num = 1;
-        ruong.color = 5;
-        rewards.add(ruong);
-
-        // Pet Thỏ (theo tỷ lệ)
-        int petRand = Util.random(100);
-        GiftBox pet = new GiftBox();
-        pet.type = 4;
-        pet.id = 34; // Pet thỏ
-        pet.icon = 0;
-        if (petRand < 70) {
-            pet.num = 1; // 1 ngày
-            pet.color = 0;
-        } else if (petRand < 95) {
-            pet.num = 7; // 7 ngày
-            pet.color = 1;
-        } else {
-            pet.num = -1; // Vĩnh viễn
-            pet.color = 5;
+                // Pet Thỏ
+                int petRand = Util.random(100);
+                ItemTemplate4 petTemplate = ItemTemplate4.get_it_by_id(34);
+                GiftBox pet = new GiftBox();
+                pet.type = 4;
+                pet.id = 34;
+                if (petTemplate != null) {
+                    pet.name = petTemplate.name;
+                    pet.icon = petTemplate.icon;
+                }
+                if (petRand < 70) {
+                    pet.num = 1; // 1 ngày
+                    pet.color = 0;
+                } else if (petRand < 95) {
+                    pet.num = 7; // 7 ngày
+                    pet.color = 1;
+                } else {
+                    pet.num = -1; // Vĩnh viễn
+                    pet.color = 5;
+                }
+                rewards.add(pet);
+                break;
+            }
         }
-        rewards.add(pet);
 
         Service.send_gift(p, 0, "Bạn mở Hộp Bánh Thượng Hạng và nhận được:", "", rewards, true);
     }
@@ -915,7 +1134,8 @@ public class EventTrungThu implements Runnable {
         p.item.update_Inventory(-1, false);
 
         Service.send_box_ThongBao_OK(p,
-                "Bạn đã nhận được Thời trang " + fashionName + " vĩnh viễn! (+130% né tránh, +80% HP, +100% Miễn thương)");
+                "Bạn đã nhận được Thời trang " + fashionName
+                        + " vĩnh viễn! (+130% né tránh, +80% HP, +100% Miễn thương)");
     }
 
     // ================== CRAFITING RECIPES ==================
@@ -932,27 +1152,29 @@ public class EventTrungThu implements Runnable {
 
     /**
      * Lấy công thức craft cho item sự kiện
+     * 
      * @return mảng [resultId, mat1, mat2, mat3, beriCost, rubyCost]
      *         null nếu không có công thức
      */
     public static int[] getCraftRecipe(int itemId) {
         switch (itemId) {
             case ITEM_BANH_TRUNG_THU:
-                return new int[]{ITEM_BANH_TRUNG_THU, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 500000, 0};
+                return new int[] { ITEM_BANH_TRUNG_THU, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 500000, 0 };
             case ITEM_BANH_DAU_XANH:
-                return new int[]{ITEM_BANH_DAU_XANH, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 1, ITEM_TRUNG_MUOI, 1000000, 0};
+                return new int[] { ITEM_BANH_DAU_XANH, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 1, ITEM_TRUNG_MUOI, 1000000, 0 };
             case ITEM_BANH_TRUNG_MUOI:
-                return new int[]{ITEM_BANH_TRUNG_MUOI, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 2, ITEM_TRUNG_MUOI, 15000000, 0};
+                return new int[] { ITEM_BANH_TRUNG_MUOI, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 2, ITEM_TRUNG_MUOI, 15000000,
+                        0 };
             case ITEM_BANH_HAT_SEN:
-                return new int[]{ITEM_BANH_HAT_SEN, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 3, ITEM_TRUNG_MUOI, 2000000, 0};
+                return new int[] { ITEM_BANH_HAT_SEN, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 3, ITEM_TRUNG_MUOI, 2000000, 0 };
             case ITEM_DEN_KEO_QUAN:
-                return new int[]{ITEM_DEN_KEO_QUAN, 3, ITEM_DEN_ONG_SAO, 2000000, 0};
+                return new int[] { ITEM_DEN_KEO_QUAN, 3, ITEM_DEN_ONG_SAO, 2000000, 0 };
             case ITEM_HOP_BANH:
-                return new int[]{ITEM_HOP_BANH, 1, ITEM_BANH_TRUNG_THU, 1, ITEM_BANH_DAU_XANH,
-                        1, ITEM_BANH_TRUNG_MUOI, 1, ITEM_BANH_HAT_SEN, 2000000, 50};
+                return new int[] { ITEM_HOP_BANH, 1, ITEM_BANH_TRUNG_THU, 1, ITEM_BANH_DAU_XANH,
+                        1, ITEM_BANH_TRUNG_MUOI, 1, ITEM_BANH_HAT_SEN, 2000000, 50 };
             case ITEM_HOP_BANH_THUONG_HANG:
-                return new int[]{ITEM_HOP_BANH_THUONG_HANG, 1, ITEM_HOP_BANH, 1, ITEM_GIAY_GOI_QUA,
-                        2000000, 100};
+                return new int[] { ITEM_HOP_BANH_THUONG_HANG, 1, ITEM_HOP_BANH, 1, ITEM_GIAY_GOI_QUA,
+                        2000000, 100 };
             default:
                 return null;
         }
@@ -997,7 +1219,8 @@ public class EventTrungThu implements Runnable {
      * Thêm nguyên liệu sự kiện vào túi player
      */
     public static void addMaterial(Player p, int itemId, int quantity) {
-        if (!isEvent() || p == null) return;
+        if (!isEvent() || p == null)
+            return;
 
         switch (itemId) {
             case ITEM_BOT_MI:
@@ -1014,8 +1237,10 @@ public class EventTrungThu implements Runnable {
      * Thưởng nguyên liệu khi hoàn thành nhiệm vụ lặp (Đường)
      */
     public static void rewardNhiemVuLap(Player p) {
-        if (!isEvent() || p == null) return;
-        if (p.duongReceivedToday >= 100) return;
+        if (!isEvent() || p == null)
+            return;
+        if (p.duongReceivedToday >= 100)
+            return;
 
         p.duongReceivedToday++;
         addMaterial(p, ITEM_DUONG, 1);
@@ -1030,7 +1255,8 @@ public class EventTrungThu implements Runnable {
      * Thưởng nguyên liệu khi hoàn thành nhiệm vụ băng (Trứng Muối)
      */
     public static void rewardNhiemVuBang(Player p) {
-        if (!isEvent() || p == null) return;
+        if (!isEvent() || p == null)
+            return;
         addMaterial(p, ITEM_TRUNG_MUOI, 2);
         try {
             Service.send_box_ThongBao_OK(p, "Bạn nhận được 2 Trứng Muối từ nhiệm vụ băng!");
@@ -1043,14 +1269,17 @@ public class EventTrungThu implements Runnable {
      * Thưởng nguyên liệu khi PvP hoặc Truy nã (Trứng Muối)
      */
     public static void rewardPvpTruyNa(Player p) {
-        if (!isEvent() || p == null) return;
-        if (p.trungMuoiReceivedToday >= 100) return;
+        if (!isEvent() || p == null)
+            return;
+        if (p.trungMuoiReceivedToday >= 100)
+            return;
         int amount = 5;
         if (p.trungMuoiReceivedToday + amount > 100) {
             amount = 100 - p.trungMuoiReceivedToday;
         }
-        if (amount <= 0) return;
-        
+        if (amount <= 0)
+            return;
+
         p.trungMuoiReceivedToday += amount;
         addMaterial(p, ITEM_TRUNG_MUOI, amount);
         try {
@@ -1064,7 +1293,8 @@ public class EventTrungThu implements Runnable {
      * Thưởng nguyên liệu khi hoàn thành đi liên tầng hoặc đá đít Mr3 (Đèn Ông Sao)
      */
     public static void rewardLienTangMr3(Player p) {
-        if (!isEvent() || p == null) return;
+        if (!isEvent() || p == null)
+            return;
         addMaterial(p, ITEM_DEN_ONG_SAO, 1);
         try {
             Service.send_box_ThongBao_OK(p, "Bạn nhận được 1 Đèn Ông Sao từ hoạt động!");
@@ -1097,7 +1327,8 @@ public class EventTrungThu implements Runnable {
      * Thưởng khi hoàn thành Phong Thách Nami (event Trung Thu)
      */
     public static void rewardPhongThachNami(Player p) {
-        if (!isEvent() || p == null) return;
+        if (!isEvent() || p == null)
+            return;
         addMaterial(p, ITEM_BOT_MI, Util.random(5, 15));
         try {
             Service.send_box_ThongBao_OK(p, "Bạn nhận được Bột Mì từ Phong Thách Nami!");

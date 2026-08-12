@@ -4099,6 +4099,13 @@ public class Map implements Runnable {
         if (petSkillExpPercent > 0) {
             exp_up[1] = (exp_up[1] * (100 + petSkillExpPercent)) / 100;
         }
+        // Server Event Multiplier (x2 EXP & x2 EXP Skill toàn server)
+        if (core.Manager.RATE_EXP > 1) {
+            exp_up[0] *= core.Manager.RATE_EXP;
+        }
+        if (core.Manager.RATE_EXP_SKILL > 1) {
+            exp_up[1] *= core.Manager.RATE_EXP_SKILL;
+        }
         // update quest
         if (id_mob_die.size() > 0) {
             for (java.util.Map.Entry<Integer, Integer> en : id_mob_die.entrySet()) {

@@ -67,6 +67,7 @@ function AdminCoin() {
   const { showMessage } = useOutletContext();
   const [targetUser, setTargetUser] = useState('');
   const [amount, setAmount] = useState('');
+  const [isDeposit, setIsDeposit] = useState(true);
   const [focusField, setFocusField] = useState('');
 
   const handleAddCoin = async (e) => {
@@ -75,7 +76,11 @@ function AdminCoin() {
     if (!amount || Number(amount) <= 0) return showMessage('error', 'Số lượng coin phải lớn hơn 0!');
 
     try {
-      const res = await api.post('admin/add_coin/', { username: targetUser.trim(), amount: Number(amount) });
+      const res = await api.post('admin/add_coin/', { 
+        username: targetUser.trim(), 
+        amount: Number(amount),
+        isDeposit 
+      });
       showMessage(res.data.success ? 'success' : 'error', res.data.message);
       if (res.data.success) {
         setTargetUser('');
@@ -175,6 +180,18 @@ function AdminCoin() {
               boxShadow: focusField === 'amount' ? '0 0 0 2px rgba(255, 51, 102, 0.2)' : 'none'
             }}
           />
+        </div>
+
+        <div style={{ marginBottom: '18px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#eee' }}>
+            <input
+              type="checkbox"
+              checked={isDeposit}
+              onChange={(e) => setIsDeposit(e.target.checked)}
+              style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#ff3366' }}
+            />
+            <span>⚡ Tính là Nạp tiền (Tăng Tích Nạp & VIP)</span>
+          </label>
         </div>
 
         <button 

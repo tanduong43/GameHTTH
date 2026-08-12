@@ -21,6 +21,12 @@ function AdminAccount() {
   const [lockFilter, setLockFilter] = useState('all');
   const [loading, setLoading] = useState(false);
 
+  // Buff Nạp Modal state
+  const [buffModalUser, setBuffModalUser] = useState(null);
+  const [buffAmount, setBuffAmount] = useState('');
+  const [buffIsDeposit, setBuffIsDeposit] = useState(true);
+  const [submittingBuff, setSubmittingBuff] = useState(false);
+
   const fetchAccounts = useCallback(async (targetPage = page, targetLimit = limit) => {
     setLoading(true);
     try {
@@ -97,6 +103,40 @@ function AdminAccount() {
       }
     } catch {
       showMessage('error', 'Lỗi kết nối máy chủ!');
+    }
+  };
+
+  const handleOpenBuffModal = (acc) => {
+    setBuffModalUser(acc);
+    setBuffAmount('');
+    setBuffIsDeposit(true);
+  };
+
+  const handleConfirmBuffNap = async (e) => {
+    e.preventDefault();
+    if (!buffModalUser) return;
+    const coinNum = Number(buffAmount);
+    if (!coinNum || coinNum <= 0) {
+      showMessage('error', 'Vui lòng nhập số Coin hợp lệ (> 0)!');
+      return;
+    }
+
+    setSubmittingBuff(true);
+    try {
+      const res = await api.post('admin/add_coin/', {
+        username: buffModalUser.user,
+        amount: coinNum,
+        isDeposit: buffIsDeposit
+      });
+      showMessage(res.data.success ? 'success' : 'error', res.data.message);
+      if (res.data.success) {
+        setBuffModalUser(null);
+        fetchAccounts(page, limit);
+      }
+    } catch {
+      showMessage('error', 'Lỗi kết nối máy chủ khi buff nạp!');
+    } finally {
+      setSubmittingBuff(false);
     }
   };
 
@@ -450,6 +490,29 @@ function AdminAccount() {
                     </td>
                     <td style={{ padding: '14px 10px', display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
                       <button
+                        onClick={() => handleOpenBuffModal(acc)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(0, 229, 255, 0.4)',
+                          background: 'rgba(0, 229, 255, 0.1)',
+                          color: '#00e5ff',
+                          cursor: 'pointer',
+                          fontSize: '12.5px',
+                          fontWeight: 'bold',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = 'rgba(0, 229, 255, 0.25)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = 'rgba(0, 229, 255, 0.1)';
+                        }}
+                        title="Buff Coin & Tích nạp cho tài khoản"
+                      >
+                        ⚡ Buff Nạp
+                      </button>
+                      <button
                         onClick={() => handleUpdateUser('activate', acc.user)}
                         style={{
                           padding: '6px 12px',
@@ -625,6 +688,146 @@ function AdminAccount() {
           </div>
         )}
       </div>
+
+      {/* Modal Buff Nạp */}
+      {buffModalUser && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.75)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 2000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #222 100%)',
+            border: '1px solid rgba(0, 229, 255, 0.4)',
+            borderRadius: '16px',
+            padding: '28px',
+            maxWidth: '460px',
+            width: '100%',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.7)',
+            color: '#fff',
+            position: 'relative'
+          }}>
+            <h4 style={{
+              margin: '0 0 16px 0',
+              color: '#00e5ff',
+              fontSize: '20px',
+              fontWeight: '800',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              ⚡ BUFF NẠP TIỀN QUẢN TRỊ
+            </h4>
+            
+            <div style={{
+              background: 'rgba(0, 0, 0, 0.4)',
+              padding: '14px 16px',
+              borderRadius: '10px',
+              marginBottom: '20px',
+              fontSize: '13.5px',
+              border: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px'
+            }}>
+              <div>👤 Tài khoản: <strong style={{ color: '#00e5ff' }}>{buffModalUser.user}</strong></div>
+              <div>🎮 Nhân vật: <strong style={{ color: '#ff8a00' }}>{buffModalUser.charName || 'Chưa tạo'}</strong></div>
+              <div>💰 Coin hiện có: <strong style={{ color: '#faad14' }}>{buffModalUser.coin.toLocaleString()} Coin</strong></div>
+            </div>
+
+            <form onSubmit={handleConfirmBuffNap}>
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13.5px', color: '#aaa', fontWeight: '600' }}>
+                  Số Coin cần Buff:
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Ví dụ: 1000, 50000..."
+                  value={buffAmount}
+                  onChange={(e) => setBuffAmount(e.target.value)}
+                  required
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(0, 229, 255, 0.3)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    color: '#fff',
+                    fontSize: '15px',
+                    fontWeight: 'bold',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                {Number(buffAmount) > 0 && (
+                  <div style={{ fontSize: '12.5px', color: '#52c41a', marginTop: '8px', fontWeight: '500' }}>
+                    💡 Tương đương: <strong>+{(Number(buffAmount) * 1000).toLocaleString()}đ</strong> Tích nạp & Tổng nạp (Tự động tính VIP)
+                  </div>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '22px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13.5px', color: '#eee' }}>
+                  <input
+                    type="checkbox"
+                    checked={buffIsDeposit}
+                    onChange={(e) => setBuffIsDeposit(e.target.checked)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#00e5ff' }}
+                  />
+                  <span>⚡ Cộng như nạp tiền (Tính Tích Lũy Nạp & Cấp VIP)</span>
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setBuffModalUser(null)}
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    background: 'transparent',
+                    color: '#aaa',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    fontSize: '14px'
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingBuff}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #00e5ff 0%, #0088cc 100%)',
+                    color: '#fff',
+                    cursor: submittingBuff ? 'not-allowed' : 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    boxShadow: '0 4px 15px rgba(0, 229, 255, 0.3)'
+                  }}
+                >
+                  {submittingBuff ? 'Đang xử lý...' : '⚡ Buff Nạp Ngay'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

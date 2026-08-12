@@ -39,11 +39,11 @@
 
 | ID Item4 | Tên Thành Phẩm | Icon | Phân Loại | Phần Thưởng Khi Sử Dụng (Nhận 1 Trong Các Quà Ngẫu Nhiên) |
 | :---: | :--- | :---: | :---: | :--- |
-| **`207`** | **Bánh Trung Thu** | `164` | Quà Ngẫu Nhiên | 🎁 **Mở nhận 1 trong các phần quà:**<br>• 💎 **1 Đá Khảm Cấp 6 ngẫu nhiên** (Topaz, Ruby, Saphia, Cẩm thạch...)<br>• 💰 50.000 - 150.000 Beri<br>• 🌟 50 - 150 Ruby<br>• 🌾 50 Bột Cường Hóa / 500 Đá Ngũ Sắc |
-| **`208`** | **Bánh Đậu Xanh** | `161` | Quà Ngẫu Nhiên | 🎁 **Mở nhận 1 trong các phần quà:**<br>• 💎 **1 Đá Khảm Cấp 6 ngẫu nhiên**<br>• 💰 500.000 - 15.000.000 Beri<br>• 🌟 500 - 1500 Ruby<br>• 📜 1 Thẻ x2 EXP (1 Giờ) |
-| **`209`** | **Bánh Trứng Muối**| `162` | Quà Ngẫu Nhiên | 🎁 **Mở nhận 1 trong các phần quà:**<br>• 💎 **1 Đá Khảm Cấp 6 ngẫu nhiên**<br>• 💰 800.000 - 20.000.000 Beri<br>• 🌟 100 - 200 Ruby<br>• ✨ 2-5 Tinh Thể Đá Ác Quỷ |
-| **`210`** | **Bánh Hạt Sen** | `362` | Quà Ngẫu Nhiên | 🎁 **Mở nhận 1 trong các phần quà:**<br>• 💎 **1 Đá Khảm Cấp 6 ngẫu nhiên**<br>• 💰 1.000.000 - 25.000.000 Beri<br>• 🌟 100 - 250 Ruby<br>• 🍯 2-5 Bột Vàng / Mai Rùa |
-| **`410`** | **Đèn kéo quân** | `361` | Hiệu Ứng | 🌟 **Bắn pháo hoa rực rỡ** + Nhận ngẫu nhiên: Đá Ngũ Sắc, Bột Cường Hóa, Thẻ x2 EXP, Thẻ đổi tên, Rương cam cùng lv, Mai rùa, Đá khảm cấp 5 ngẫu nhiên, Đá ác quỷ, Rương đại ác quỷ (ID 87) |
+| **`207`** | **Bánh Trung Thu** | `164` | Quà Ngẫu Nhiên | 🎁 **Mở nhận 1 trong các phần quà:**<br>• 💎 **1 Đá Khảm (Cấp 1-6) ngẫu nhiên**<br>• 💰 50.000 - 150.000 Beri<br>• 🌟 50 - 150 Ruby<br>• 🌾 50 Bột Cường Hóa / 500 Đá Ngũ Sắc |
+| **`208`** | **Bánh Đậu Xanh** | `161` | Quà Ngẫu Nhiên | 🎁 **Mở nhận 1 trong các phần quà:**<br>• 💎 **1 Đá Khảm (Cấp 1-6) ngẫu nhiên**<br>• 💰 500.000 - 15.000.000 Beri<br>• 🌟 500 - 1500 Ruby |
+| **`209`** | **Bánh Trứng Muối**| `162` | Quà Ngẫu Nhiên | 🎁 **Mở nhận 1 trong các phần quà:**<br>• 💎 **1 Đá Khảm (Cấp 1-6) ngẫu nhiên**<br>• 💰 800.000 - 20.000.000 Beri<br>• 🌟 100 - 200 Ruby<br>• ✨ 2-5 Tinh Thể Đá Ác Quỷ |
+| **`210`** | **Bánh Hạt Sen** | `362` | Quà Ngẫu Nhiên | 🎁 **Mở nhận 1 trong các phần quà:**<br>• 💎 **1 Đá Khảm (Cấp 1-6) ngẫu nhiên**<br>• 💰 1.000.000 - 25.000.000 Beri<br>• 🌟 100 - 250 Ruby<br>• 🍯 2-5 Bột Vàng / Mai Rùa |
+| **`410`** | **Đèn kéo quân** | `361` | Hiệu Ứng | 🌟 **Bắn pháo hoa rực rỡ** + Nhận ngẫu nhiên: Rương cam theo cấp độ, Mai rùa, Xp chiêu thức, Đá ác quỷ, Rương đại ác quỷ |
 | **`211`** | **Hộp Bánh Trung Thu**| `165` | Mở Quà | 🎁 **Mở nhận:** 1.500-3.500 Ruby, Bột Vàng, Tinh Thể Đá Ác Quỷ, Beri |
 | **`576`** | **Hộp bánh thượng hạng**| `165` | Rương VIP | 🏆 **Mở nhận Quà VIP:** 1.500-3.500, 10-20 Đá Ác Quỷ, Bột Vàng, Tinh Thể, **Thẻ TT Trung Thu (475)**, Rương Đại Ác Quỷ (ID 87),Pet thỏ (theo giờ hoặc vĩnh viễn id 34 trong bảng pet_template, Tỷ lệ 70% Pet Thỏ 1 ngày, 25% Pet Thỏ 7 ngày,5% Pet Thỏ vĩnh viễn) |
 | **`475`** | **Thẻ TT Trung Thu**| `423` | Thời Trang | 👑 **Sử dụng:** Nhận trực tiếp Thời trang Chú Cuội (ID 65) hoặc Chị Hằng (ID 66) Vĩnh Viễn |
@@ -91,19 +91,20 @@ graph TD
     A[Khung giờ vàng 12h/18h/20h/22h] --> B[Spawn Boss Lân Sư Tử ID 153 + Loa KTG]
     B --> C[Toàn server tham gia săn Boss]
     C --> D{Boss Bị Tiêu Diệt}
-    D --> E[👑 Last Hit: 1 Hộp Bánh Thượng Hạng 576 + 50 Ruby + 2 Giấy Gói Quà 575]
+    D --> E[👑 Last Hit: Tỉ lệ 30% 1 Hộp Bánh Thượng Hạng, 50 Ruby, 2 Giấy Gói Quà, 1 Bột Mì, 1 Đường, 1 Trứng Muối]
     D --> F[🏆 Ghi nhận Sát Thương vào BXH Đua Top Toàn Mùa]
-    D --> G[👥 Tham Gia >=1% HP: Gói Bột Mì, Đường, Trứng Muối, Giấy Gói Quà]
-    D --> H[🎆 Ngày Hội Nhặt Lộc: Bung 30-50 bọc quà rơi tự do khắp mặt đất]
 ```
 
 ### 🎁 B. Chi Tiết Phần Thưởng Boss Lân:
 1. **Đòn Kết Liễu (Last Hit):**
-   - `1 Hộp Bánh Thượng Hạng (ID 576)` + `50 Ruby` + `2 Giấy Gói Quà (ID 575)` + Loa KTG vinh danh.
+   - Tỉ lệ 30% rớt `1 Hộp Bánh Thượng Hạng (ID 576)`.
+   - `50 Ruby` + `2 Giấy Gói Quà (ID 575)`.
+   - `1 Bột Mì (202)` + `1 Đường (200)` + `1 Trứng Muối (203)`.
+   - Loa KTG vinh danh.
 2. **Thưởng Tham Gia (Gây >= 1% HP):**
-   - `100.000 Beri` + `5 Bột Mì (202)` + `5 Đường (200)` + `2 Trứng Muối (203)` + `1 Giấy Gói Quà (575)`.
+   - Đã loại bỏ.
 3. **Quà Nhặt Lộc Rơi Tự Do (Dưới đất):**
-   - Rơi rải rác 30 - 50 bọc quà: Beri (50k - 100k), Ruby (2 - 5), Bánh Trung Thu (207), Bột Mì, Đường, Bánh Đậu Xanh.
+   - Đã loại bỏ.
 4. **Bảng Xếp Hạng Top Sát Thương (Trao Sau Khi Kết Thúc Sự Kiện):**
    - Hệ thống tự động tích lũy điểm sát thương qua tất cả các trận. Phần thưởng cuối sự kiện sẽ được tùy chỉnh sau.
 
