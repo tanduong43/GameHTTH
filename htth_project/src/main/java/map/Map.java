@@ -44,6 +44,7 @@ import template.Option_Dame_Msg;
 import template.Ship_pet;
 import template.Skill_info;
 import template.Top_Dame;
+import event.EventTrungThu;
 
 /**
  *
@@ -853,6 +854,7 @@ public class Map implements Runnable {
                                 core.Service.send_box_ThongBao_OK(players.get(0),
                                         "Hoàn thành Thành tích hằng ngày: PVP");
                             }
+                            event.EventTrungThu.rewardPvpTruyNa(players.get(0));
                             players.get(1).pvp_lose++;
                             //
                             int chenhLech = players.get(1).get_pvpPoint() - players.get(0).get_pvpPoint();
@@ -874,6 +876,7 @@ public class Map implements Runnable {
                                 core.Service.send_box_ThongBao_OK(players.get(1),
                                         "Hoàn thành Thành tích hằng ngày: PVP");
                             }
+                            event.EventTrungThu.rewardPvpTruyNa(players.get(1));
                             players.get(0).pvp_lose++;
                             //
                             int chenhLech = players.get(0).get_pvpPoint() - players.get(1).get_pvpPoint();
@@ -898,6 +901,7 @@ public class Map implements Runnable {
                             players.get(1).update_wanted_point((int) -beri_lose);
                             //
                             Wanted_Chest.receiv_ruong(players.get(0));
+                            event.EventTrungThu.rewardPvpTruyNa(players.get(0));
 
                             Service.send_box_ThongBao_OK(players.get(0),
                                     "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win
@@ -917,6 +921,7 @@ public class Map implements Runnable {
                             players.get(0).update_wanted_point((int) -beri_lose);
                             //
                             Wanted_Chest.receiv_ruong(players.get(1));
+                            event.EventTrungThu.rewardPvpTruyNa(players.get(1));
 
                             Service.send_box_ThongBao_OK(players.get(0),
                                     "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
@@ -3249,6 +3254,12 @@ public class Map implements Runnable {
                     dame_inf.dameM = 0;
                 }
                 long dame_to_target = dame2 + dame_inf.dameM;
+                if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN && dame_to_target > 0) {
+                    dame_to_target = 1;
+                    dame_inf.dameP = 1;
+                    dame_inf.dameM = 0;
+                    EventTrungThu.getInstance().onBossDamaged(p, 1);
+                }
                 if (mob_target.boss_info != null && dame_to_target > 0) {
                     Top_Dame topdame = null;
                     for (int j = 0; j < mob_target.boss_info.TopDame.size(); j++) {
@@ -3607,6 +3618,16 @@ public class Map implements Runnable {
                         }
                         LeaveItemMap.leave_item_quest(this, mob_target, p);
                     }
+                    // Event Trung Thu: Drop Bột Mì khi giết quái ±10 level (tối đa 100 cái/ngày)
+                    if (EventTrungThu.isEvent() && Math.abs(p.level - mob_target.level) <= 10) {
+                        if (p.botMiReceivedToday < 100 && 20 > Util.random(120)) { // ~16.7% chance
+                            p.botMiReceivedToday++;
+                            EventTrungThu.addMaterial(p, EventTrungThu.ITEM_BOT_MI, 1);
+                        }
+                    }
+                    if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN) {
+                        EventTrungThu.getInstance().onBossKilled(p);
+                    }
                     // update quest relative to
                     if (!id_mob_die.containsKey((int) mob_target.mob_template.mob_id)) {
                         id_mob_die.put((int) mob_target.mob_template.mob_id, 1);
@@ -3618,6 +3639,9 @@ public class Map implements Runnable {
                     if (this.map_little_garden != null && !this.map_little_garden.is_finish
                             && (p.type_pk == 4 || p.type_pk == 5)) {
                         LeaveItemMap.leave_item4_little_garden(this, mob_target, p);
+                        if (mob_target.mob_template.mob_id == 81) {
+                            event.EventTrungThu.rewardLienTangMr3(p);
+                        }
                     }
                     // boss
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)) {
@@ -4196,6 +4220,24 @@ public class Map implements Runnable {
                 } else if (cmd.equals("boss") || cmd.equals("bosstg") || cmd.equals("boss_thegioi")) {
                     int n = map.Boss.force_spawn_all_thegioi1();
                     Service.send_box_ThongBao_OK(p, "Đã gọi " + n + " boss thế giới (thegioi=1) xuất hiện!");
+                } else if (cmd.equals("event tt on") || cmd.equals("event tt 1") || cmd.equals("event tt true")) {
+                    event.EventTrungThu.setEvent(true);
+                    Service.send_box_ThongBao_OK(p, "Đã bật sự kiện Trung Thu!");
+                } else if (cmd.equals("event tt off") || cmd.equals("event tt 0") || cmd.equals("event tt false")) {
+                    event.EventTrungThu.setEvent(false);
+                    Service.send_box_ThongBao_OK(p, "Đã tắt sự kiện Trung Thu!");
+                } else if (cmd.equals("event tt status")) {
+                    boolean status = event.EventTrungThu.isEvent();
+                    Service.send_box_ThongBao_OK(p, "Trạng thái sự kiện Trung Thu: " + (status ? "BẬT" : "TẮT"));
+                } else if (cmd.equals("event tt menu") || cmd.equals("tt menu") || cmd.equals("trungthu") || cmd.equals("ghép") || cmd.equals("ghep")) {
+                    event.TrungThuCraft.showCraftMenu(p);
+                } else if (cmd.startsWith("ghép ") || cmd.startsWith("ghep ")) {
+                    try {
+                        int choice = Integer.parseInt(cmd.substring(5).trim());
+                        event.TrungThuCraft.processCraft(p, choice);
+                    } catch (NumberFormatException e) {
+                        Service.send_box_ThongBao_OK(p, "Sai định dạng! Ví dụ: /ghép 1");
+                    }
                 } else if (cmd.startsWith("setdo ")) {
                     try {
                         String[] parts = cmd.split(" ");
@@ -4351,6 +4393,29 @@ public class Map implements Runnable {
             }
             return;
         }
+        
+        // Lệnh sự kiện Trung Thu - cho tất cả người chơi
+        if (txt.equals("trungthu") || txt.equals("ghép") || txt.equals("ghep")) {
+            if (EventTrungThu.isEvent()) {
+                event.TrungThuCraft.showCraftMenu(p);
+            } else {
+                Service.send_box_ThongBao_OK(p, "Sự kiện Trung Thu chưa được kích hoạt!");
+            }
+            return;
+        } else if (txt.startsWith("ghép ") || txt.startsWith("ghep ")) {
+            if (EventTrungThu.isEvent()) {
+                try {
+                    int choice = Integer.parseInt(txt.substring(5).trim());
+                    event.TrungThuCraft.processCraft(p, choice);
+                } catch (NumberFormatException e) {
+                    Service.send_box_ThongBao_OK(p, "Sai định dạng! Ví dụ: /ghép 1");
+                }
+            } else {
+                Service.send_box_ThongBao_OK(p, "Sự kiện Trung Thu chưa được kích hoạt!");
+            }
+            return;
+        }
+        
         this.send_chat_popup(0, p.index_map, s, false);
     }
 

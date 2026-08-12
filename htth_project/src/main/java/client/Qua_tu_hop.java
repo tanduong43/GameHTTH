@@ -46,6 +46,25 @@ public class Qua_tu_hop {
                 Service.send_gift(p, 1, ItemTemplate4.get_item_name(690), "Phần thưởng", listGift, true);
             }
         }
+        if (idItem == 1003 && cat == 4 && (select == 0 || select == 1 || select == 2)) { // rương đại ác quỷ cao cấp tự chọn
+            if (p.item.total_item_bag_by_id(4, 1003) > 0) {
+                short[] listId = new short[]{160, 161, 240};
+                ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(listId[select]);
+                p.item.remove_item47(4, 1003, 1);
+                Service.UpdateInfoMaincharInfo(p);
+                //
+                List<GiftBox> listGift = new ArrayList<>();
+                GiftBox gb_ = new GiftBox();
+                gb_.id = itemTemplate4.id;
+                gb_.type = 4;
+                gb_.name = itemTemplate4.name;
+                gb_.icon = itemTemplate4.icon;
+                gb_.num = 1;
+                gb_.color = 0;
+                listGift.add(gb_);
+                Service.send_gift(p, 1, ItemTemplate4.get_item_name(1003), "Phần thưởng", listGift, true);
+            }
+        }
         if (idItem == 1010 && cat == 4 && (select == 0 || select == 1 || select == 2 || select == 3 || select == 4 || select == 5 || select == 6 || select == 7)) { // rương taq tu chon
             if (p.item.total_item_bag_by_id(4, 1010) > 0) {
                 short[] listId = new short[]{12017, 12018, 12019, 12020, 12021, 12022, 12023, 12024};

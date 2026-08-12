@@ -32,6 +32,7 @@ import template.Option;
 import map.Mob;
 import java.util.Random;
 import template.*;
+import event.EventTrungThu;
 
 /**
  *
@@ -126,6 +127,48 @@ public class UseItem {
     }
 
     private static void use_item_7(Player p, int id) {
+        // Event Trung Thu handling
+        if (EventTrungThu.isEvent()) {
+            try {
+                EventTrungThu.useTheTTTrungThu(p);
+                return;
+            } catch (Exception e) {
+                System.out.println("Error using fashion card: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Xử lý các item đặc biệt của sự kiện Trung Thu
+     */
+    private static void handleTrungThuItem(Player p, int id) throws IOException {
+        if (p.item.total_item_bag_by_id(4, id) <= 0) {
+            Service.send_box_ThongBao_OK(p, "Bạn không có vật phẩm này!");
+            return;
+        }
+
+        switch (id) {
+            case EventTrungThu.ITEM_BANH_TRUNG_THU:
+            case EventTrungThu.ITEM_BANH_DAU_XANH:
+            case EventTrungThu.ITEM_BANH_TRUNG_MUOI:
+            case EventTrungThu.ITEM_BANH_HAT_SEN:
+                EventTrungThu.openBanh(p, id);
+                p.item.remove_item47(4, id, 1);
+                break;
+            case EventTrungThu.ITEM_DEN_KEO_QUAN:
+                EventTrungThu.useDenKeoQuan(p);
+                p.item.remove_item47(4, id, 1);
+                break;
+            case EventTrungThu.ITEM_HOP_BANH:
+                EventTrungThu.openHopBanh(p);
+                p.item.remove_item47(4, id, 1);
+                break;
+            case EventTrungThu.ITEM_HOP_BANH_THUONG_HANG:
+                EventTrungThu.openHopBanhThuongHang(p);
+                p.item.remove_item47(4, id, 1);
+                break;
+        }
+        p.item.update_Inventory(-1, false);
     }
 
     private static boolean use_item_4(Player p, int id) throws IOException {
@@ -158,6 +201,22 @@ public class UseItem {
                     }
                 }
             } else {
+                // Event Trung Thu: Xử lý các item đặc biệt
+                if (EventTrungThu.isEvent() && (id == EventTrungThu.ITEM_BANH_TRUNG_THU
+                        || id == EventTrungThu.ITEM_BANH_DAU_XANH
+                        || id == EventTrungThu.ITEM_BANH_TRUNG_MUOI
+                        || id == EventTrungThu.ITEM_BANH_HAT_SEN
+                        || id == EventTrungThu.ITEM_HOP_BANH
+                        || id == EventTrungThu.ITEM_HOP_BANH_THUONG_HANG
+                        || id == EventTrungThu.ITEM_DEN_KEO_QUAN)) {
+                    try {
+                        handleTrungThuItem(p, id);
+                        return true;
+                    } catch (Exception e) {
+                        System.out.println("Error handling Trung Thu item: " + e.getMessage());
+                    }
+                }
+
                 if (it_temp.name != null && (it_temp.name.toLowerCase().contains("pháo hoa")
                         || it_temp.name.toLowerCase().contains("phao hoa") || id == 359 || id == 361)) {
                     Service.send_eff(p, 23, 0); // Hiệu ứng Pháo hoa rực rỡ
@@ -1033,7 +1092,7 @@ public class UseItem {
                             m.writer().writeShort(1);
                             m.writer().writeByte(0);
                         }
-                        m.writer().writeShort(690);
+                        m.writer().writeShort(1003);
                         m.writer().writeByte(4);
                         p.conn.addmsg(m);
                         m.cleanup();
@@ -1128,15 +1187,53 @@ public class UseItem {
                         break;
                     }
                     case 1009: {
-                        // Rương Đỏ VIP Tự Chọn - hiển thị 6 item đỏ để chọn
-                        // Lưu data để xử lý khi người chơi chọn item
-                        p.data_yesno = new int[] { 10041, 1009 };
-                        String[] classNames = { "Sư", "Xạ", "Tri", "Y", "Đao", "Khí" };
-                        String clazzName = classNames[p.clazz];
-                        send_dynamic_menu(p, 9914, "Rương Đồ Tự Chọn",
-                                new String[] { "Kiếm " + clazzName, "Áo " + clazzName, "Quần " + clazzName,
-                                        "Kính " + clazzName, "Nhẫn " + clazzName, "Dây " + clazzName },
-                                (short[]) null);
+                        // Rương Đồ VIP - random ngẫu nhiên theo lv player
+                        if (p.item.total_item_bag_by_id(4, 1009) > 0) {
+                            int playerLevel = p.level;
+                            if (playerLevel < 10) {
+                                playerLevel = 10;
+                            }
+                            int tier = playerLevel / 10;
+                            if (tier > 22) {
+                                tier = 22;
+                            }
+                            int bound1 = tier * 192;
+                            int bound2 = (tier + 1) * 192;
+                            if (bound2 > 4222) {
+                                bound2 = 4222;
+                            }
+                            int itemId = Util.random(bound1, bound2);
+                            ItemTemplate3 template3 = ItemTemplate3.get_it_by_id(itemId);
+                            // fallback: nếu id random không tồn tại, thử tìm id gần nhất trong tier
+                            if (template3 == null) {
+                                for (int i = 0; i < 100; i++) {
+                                    int tryId = bound1 + Util.random(bound2 - bound1);
+                                    template3 = ItemTemplate3.get_it_by_id(tryId);
+                                    if (template3 != null) {
+                                        itemId = tryId;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (template3 != null) {
+                                p.item.remove_item47(4, 1009, 1);
+                                Service.UpdateInfoMaincharInfo(p);
+                                List<GiftBox> listGift = new ArrayList<>();
+                                GiftBox gb_ = new GiftBox();
+                                gb_.id = template3.id;
+                                gb_.type = 3;
+                                gb_.name = template3.name;
+                                gb_.icon = template3.icon;
+                                gb_.num = 1;
+                                gb_.color = template3.color;
+                                listGift.add(gb_);
+                                Service.send_gift(p, 1, "Rương Đồ Vip", "Phần thưởng", listGift, true);
+                            } else {
+                                Service.send_box_ThongBao_OK(p, "Không tìm thấy trang bị trong hệ thống!");
+                            }
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Bạn không có Rương Đồ Vip!");
+                        }
                         used = false;
                         break;
                     }

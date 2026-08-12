@@ -123,6 +123,9 @@ public class Player {
     public byte time_hangdong;
     public int[] daily_achievements = new int[8];
     public boolean[] daily_achievements_claimed = new boolean[8];
+    public int botMiReceivedToday = 0;
+    public int duongReceivedToday = 0;
+    public int trungMuoiReceivedToday = 0;
     public byte time_can_hs;
     public List<FriendTemp> enemy_list;
     public TableTickOption tableTickOption;
@@ -354,6 +357,24 @@ public class Player {
                     for (int i = 0; i < jsDaClaimed.size() && i < daily_achievements_claimed.length; i++) {
                         daily_achievements_claimed[i] = Integer.parseInt(jsDaClaimed.get(i).toString()) == 1;
                     }
+                } catch (Exception e) {
+                }
+            }
+            if (js.size() > 20 && js.get(20) != null) {
+                try {
+                    botMiReceivedToday = Integer.parseInt(js.get(20).toString());
+                } catch (Exception e) {
+                }
+            }
+            if (js.size() > 21 && js.get(21) != null) {
+                try {
+                    duongReceivedToday = Integer.parseInt(js.get(21).toString());
+                } catch (Exception e) {
+                }
+            }
+            if (js.size() > 22 && js.get(22) != null) {
+                try {
+                    trungMuoiReceivedToday = Integer.parseInt(js.get(22).toString());
                 } catch (Exception e) {
                 }
             }
@@ -1021,6 +1042,9 @@ public class Player {
                 jsDaClaimed.add(p.daily_achievements_claimed[i] ? 1 : 0);
             }
             js.add(jsDaClaimed);
+            js.add(p.botMiReceivedToday);
+            js.add(p.duongReceivedToday);
+            js.add(p.trungMuoiReceivedToday);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -2285,6 +2309,9 @@ public class Player {
             time_hangdong = 0;
             daily_achievements = new int[8];
             daily_achievements_claimed = new boolean[8];
+            botMiReceivedToday = 0;
+            duongReceivedToday = 0;
+            trungMuoiReceivedToday = 0;
         }
     }
 

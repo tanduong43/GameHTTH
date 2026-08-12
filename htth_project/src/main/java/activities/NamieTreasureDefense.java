@@ -22,6 +22,7 @@ import template.GiftBox;
 import template.ItemTemplate4;
 import template.ItemTemplate7;
 import template.MobTemplate;
+import event.EventTrungThu;
 
 /**
  * Phó bản: "Bảo vệ kho báu Namie" (Namie Treasure Defense).
@@ -500,6 +501,10 @@ public class NamieTreasureDefense extends Dungeon {
                     e.printStackTrace();
                 }
                 giveRewards(pOnline, 3);
+                // Event Trung Thu: Thưởng Đèn Ông Sao khi hoàn thành Phó Bản Nami
+                if (EventTrungThu.isEvent()) {
+                    EventTrungThu.rewardPhongThachNami(pOnline);
+                }
             }
         }
         

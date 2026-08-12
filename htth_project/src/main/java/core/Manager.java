@@ -12,6 +12,7 @@ import java.util.*;
 import activities.*;
 import client.*;
 import event.TaiXiu;
+import event.EventTrungThu;
 import map.*;
 import map.Map;
 import org.json.simple.JSONArray;
@@ -86,6 +87,7 @@ public class Manager {
         }
         // load static class
         tx = new TaiXiu();
+        EventTrungThu.getInstance(); // Initialize Trung Thu event
         a = Rebuild_Item.ID_SELL.length;
         a = Red_Line.KEY0.length;
         a = UpgradeItem.DATA.size();
@@ -1023,6 +1025,10 @@ public class Manager {
             this.max_ccu = Integer.parseInt(configMap.get("max-ccu"));
         } else {
             this.max_ccu = 500;
+        }
+        // Event Trung Thu config
+        if (configMap.containsKey("event-trung-thu")) {
+            event.EventTrungThu.setEvent(Boolean.parseBoolean(configMap.get("event-trung-thu")));
         }
     }
 

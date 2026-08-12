@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import event.EventTrungThu;
 /**
  *
  * @author Truongbk
@@ -277,6 +278,10 @@ public class Quest {
     private static void remove_side_quest(Player p, QuestP questP) throws IOException {
         if (questP.template.gift.size() > 0) {
             Quest.send_gift(p, questP);
+        }
+        // Event Trung Thu: Thưởng Đường khi hoàn thành nhiệm vụ lặp
+        if (EventTrungThu.isEvent()) {
+            EventTrungThu.rewardNhiemVuLap(p);
         }
         p.list_quest.remove(questP);
         Quest.update_map_have_side_quest(p, false);

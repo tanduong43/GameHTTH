@@ -38,6 +38,7 @@ import map.Vgo;
 import template.Clan_member;
 import template.DaThanThoai;
 import template.EffTemplate;
+import template.GiftBox;
 import template.ItemFashion;
 import template.ItemFashionP;
 import template.ItemTemplate3;
@@ -85,6 +86,16 @@ public class MenuController {
         }
       }
       switch (type) {
+        case -154: {
+          if (event.EventTrungThu.isEvent()) {
+            send_dynamic_menu(p, type, "Chị Hằng",
+                new String[] { "Làm Bánh Trung Thu", "Đổi Quà Tích Lũy", "Hướng dẫn" },
+                null);
+          } else {
+            Service.send_box_ThongBao_OK(p, "Sự kiện Vui Hội Trung Thu hiện đã khép lại. Hẹn gặp lại bạn năm sau nhé!");
+          }
+          break;
+        }
         case -140: {
           send_dynamic_menu(p, type, "WIPPER", new String[] { "Chế tạo DIAL", "Thử thách vệ thần" },
               null);
@@ -622,6 +633,64 @@ public class MenuController {
       // System.out.println("idNPC " + idNPC);
       // System.out.println("idMenu " + idMenu);
       switch (idNPC) {
+        case 9915: {
+          // Rương Đá Thần Thoại Tự Chọn (id=1004) - menu response
+          if (p.data_yesno != null && p.data_yesno[0] == 10040 && p.data_yesno[1] == 1004) {
+            if (index >= 0 && index < p.data_yesno.length - 2) {
+              int itemId = p.data_yesno[index + 2];
+              int numChest = p.item.total_item_bag_by_id(4, 1004);
+              if (numChest > 0) {
+                p.item.remove_item47(4, 1004, 1);
+                ItemTemplate4 template4 = ItemTemplate4.get_it_by_id(itemId);
+                if (template4 != null) {
+                  List<GiftBox> listGift = new ArrayList<>();
+                  GiftBox gb_ = new GiftBox();
+                  gb_.id = template4.id;
+                  gb_.type = 4;
+                  gb_.name = template4.name;
+                  gb_.icon = template4.icon;
+                  gb_.num = 1;
+                  gb_.color = 0;
+                  listGift.add(gb_);
+                  Service.send_gift(p, 1, "Rương Đá Thần Thoại", "Phần thưởng", listGift, true);
+                }
+              } else {
+                Service.send_box_ThongBao_OK(p, "Bạn không có Rương Đá Thần Thoại!");
+              }
+            }
+            p.data_yesno = null;
+          }
+          break;
+        }
+        case -154: {
+          if (!event.EventTrungThu.isEvent()) {
+            Service.send_box_ThongBao_OK(p, "Sự kiện Vui Hội Trung Thu hiện đã khép lại. Hẹn gặp lại bạn năm sau nhé!");
+            return;
+          }
+          switch (index) {
+            case 0:
+              event.TrungThuCraft.showCraftMenu(p);
+              break;
+            case 1:
+              Service.send_box_ThongBao_OK(p, "Tính năng Cửa Hàng đang được cập nhật!");
+              break;
+            case 2:
+              Service.send_box_ThongBao_OK(p,
+                  "🎑 THÔNG TIN SỰ KIỆN TRUNG THU:\n\n" +
+                  "📍 Nguồn nguyên liệu:\n" +
+                  "• Đánh quái ±10 cấp → Bột Mì\n" +
+                  "• Làm NV Lặp → Đường\n" +
+                  "• Hoàn thành Phó Bản Nami → Đèn Ông Sao\n" +
+                  "• Săn Boss Lân → Giấy Gói Quà\n\n" +
+                  "📍 Chế tạo:\n" +
+                  "• /trungthu hoặc /ghép - Mở menu\n\n" +
+                  "📍 Boss Lân Sư Tử xuất hiện:\n" +
+                  "• 12h, 18h, 20h, 22h hàng ngày\n\n" +
+                  "Hãy gom đủ nguyên liệu để làm Bánh Trung Thu nhé! 🎑");
+              break;
+          }
+          break;
+        }
         case 1003: {
           Menu_SucManhVatLy(p, index);
           break;
@@ -1721,6 +1790,13 @@ public class MenuController {
                 Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Vận buôn");
               } catch (Exception e) {
               }
+            }
+            if (event.EventTrungThu.isEvent()) {
+                event.EventTrungThu.addMaterial(p, event.EventTrungThu.ITEM_GIAY_GOI_QUA, 1);
+                try {
+                    Service.send_box_ThongBao_OK(p, "Bạn nhận được 1 Giấy Gói Quà từ Vận buôn!");
+                } catch (Exception e) {
+                }
             }
             p.name_ThoSanHaiTac = null;
             p.update_money();
