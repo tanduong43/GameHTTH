@@ -85,12 +85,9 @@ public class MenuController {
           return;
         }
       }
-      if (type == -38 && p.map.template.id == 2000) {
-        Vgo vgo = new Vgo();
-        vgo.map_go = Map.get_map_by_id(1);
-        vgo.xnew = 400;
-        vgo.ynew = 250;
-        p.goto_map(vgo);
+      if ((type == -38 || type == -1) && p.map.template.id == 2000) {
+        send_dynamic_menu(p, type, "Trưởng Làng",
+            new String[] { "Chuyển Khu", "Về Làng Cối Xay Gió" }, null);
         return;
       }
       switch (type) {
@@ -1414,6 +1411,22 @@ public class MenuController {
           Menu_Gap(p, index);
           break;
         }
+        case -38: {
+          if (p.map.template.id == 2000) {
+            if (index == 0) {
+              Menu_Change_Zone(p);
+            } else if (index == 1) {
+              Vgo vgo = new Vgo();
+              vgo.map_go = Map.get_map_by_id(1);
+              vgo.xnew = 400;
+              vgo.ynew = 250;
+              p.goto_map(vgo);
+            }
+            break;
+          }
+          Menu_Guru(p, index);
+          break;
+        }
         case -145:
         case -122:
         case -118:
@@ -1424,8 +1437,23 @@ public class MenuController {
         case -45:
         case -31:
         case -21:
-        case -13:
+        case -13: {
+          Menu_TruongLang(p, idNPC, index);
+          break;
+        }
         case -1: {
+          if (p.map.template.id == 2000) {
+            if (index == 0) {
+              Menu_Change_Zone(p);
+            } else if (index == 1) {
+              Vgo vgo = new Vgo();
+              vgo.map_go = Map.get_map_by_id(1);
+              vgo.xnew = 400;
+              vgo.ynew = 250;
+              p.goto_map(vgo);
+            }
+            break;
+          }
           Menu_TruongLang(p, idNPC, index);
           break;
         }
@@ -1639,7 +1667,6 @@ public class MenuController {
         case -88:
         case -75:
         case -69: // masu
-        case -38: // menu partty
         case -30: // menu merri
         case -23: // menu poroy
         case -15: // Menu_MomRiTa
