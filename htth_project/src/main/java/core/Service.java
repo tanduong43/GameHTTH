@@ -2282,6 +2282,58 @@ public class Service {
         }
     }
 
+    public static void send_eff_haki_bavuong(Player p) throws IOException {
+        if (p == null || p.map == null) return;
+        short effId = 26;
+        // Gửi Message 74 hiển thị effect 26 cho tất cả người chơi trong map tại vị trí p.index_map
+        Message mTest = new Message(74);
+        mTest.writer().writeByte(1);
+        mTest.writer().writeShort(p.index_map);
+        mTest.writer().writeShort(effId);
+        mTest.writer().writeInt(3000); // 3 giây
+        mTest.writer().writeByte(0);   // typemove: 0 (tại chỗ)
+        mTest.writer().writeByte(1);   // loop: 1 (phát 1 lần)
+        p.map.send_msg_all_p(mTest, null, true);
+        mTest.cleanup();
+
+        // Gửi dữ liệu effect 26 cho các client nếu chưa có
+        for (Player p0 : p.map.players) {
+            if (p0 != null && p0.conn != null) {
+                byte zoomlv = p0.conn.zoomlv;
+                byte[] data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + effId);
+                byte[] data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + effId + ".png");
+                
+                if (data1 == null) {
+                    data1 = Util.loadfile("data/template/skill/x4/data/" + effId);
+                    data2 = Util.loadfile("data/template/skill/x4/img/" + effId + ".png");
+                }
+                if (data1 == null) {
+                    data1 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + effId);
+                    data2 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
+                }
+                if (data1 == null) {
+                    data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + effId);
+                    data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + effId + ".png");
+                }
+                if (data1 == null) {
+                    data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + effId);
+                    data2 = Util.loadfile("data/nro/data/effect/x4/img/ImgEffect_" + effId + ".png");
+                }
+                
+                if (data1 != null && data2 != null) {
+                    Message mData = new Message(74);
+                    mData.writer().writeByte(0);
+                    mData.writer().writeShort(effId);
+                    mData.writer().writeShort(data1.length);
+                    mData.writer().write(data1);
+                    mData.writer().write(data2);
+                    p0.conn.addmsg(mData);
+                    mData.cleanup();
+                }
+            }
+        }
+    }
+
     public static void send_eff_sword_splash(int id, Player p) throws IOException {
         Player p0 = p.map.get_player_by_id_inmap(id);
         Mob mob = null;

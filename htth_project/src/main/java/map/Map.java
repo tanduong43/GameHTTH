@@ -2418,6 +2418,9 @@ public class Map implements Runnable {
             Service.use_potion(p, 1, mp_);
 
             p.mp -= sk_temp.temp.manaLost;
+            if (sk_temp.temp.indexSkillInServer == 902) {
+                Service.send_eff_haki_bavuong(p);
+            }
             long dame = p.body.get_dame(true);
             dame = (dame * p.body.get_dame_devil_percent()) / 100;
             EffTemplate eff = p.get_eff(5); // combo
