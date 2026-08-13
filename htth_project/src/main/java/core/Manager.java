@@ -241,7 +241,13 @@ public class Manager {
                 short id_map = rs.getShort("id");
                 File f = new File("data/map/" + id_map);
                 if (!f.exists()) {
+                    // [DEBUG HAKI] Map folder not found - thu muc map khong ton tai
+                    System.err.println("[DEBUG HAKI] SKIP map " + id_map + " - folder not found: data/map/" + id_map);
                     continue;
+                }
+                // [DEBUG HAKI] Log map 2000 load success
+                if (id_map == 2000) {
+                    System.out.println("[DEBUG HAKI] Map 2000 folder found: " + f.getAbsolutePath());
                 }
                 //
                 MapTemplate map_temp = new MapTemplate();
@@ -262,32 +268,40 @@ public class Manager {
                 }
                 map_temp.npcs = new ArrayList<>();
                 for (int i = 0; i < js_npc.size(); i++) {
-                    JSONArray js_npc_temp = (JSONArray) JSONValue.parse(js_npc.get(i).toString());
-                    Npc npc = new Npc();
-                    npc.iditem = Short.parseShort(js_npc_temp.get(0).toString());
-                    npc.name = js_npc_temp.get(1).toString();
-                    npc.namegt = js_npc_temp.get(2).toString();
-                    npc.chat = js_npc_temp.get(3).toString();
-                    npc.x = Short.parseShort(js_npc_temp.get(4).toString());
-                    npc.y = Short.parseShort(js_npc_temp.get(5).toString());
-                    npc.isPerson = Byte.parseByte(js_npc_temp.get(6).toString());
-                    npc.typeIcon = Byte.parseByte(js_npc_temp.get(7).toString());
-                    npc.wBlock = Byte.parseByte(js_npc_temp.get(8).toString());
-                    npc.hBlock = Byte.parseByte(js_npc_temp.get(9).toString());
-                    npc.b3 = Byte.parseByte(js_npc_temp.get(10).toString());
-                    JSONArray js_npc_temp_2 = (JSONArray) JSONValue.parse(js_npc_temp.get(11).toString());
-                    npc.dataFrame = new byte[js_npc_temp_2.size()];
-                    for (int j = 0; j < npc.dataFrame.length; j++) {
-                        npc.dataFrame[j] = Byte.parseByte(js_npc_temp_2.get(j).toString());
+                    try {
+                        Object obj = JSONValue.parse(js_npc.get(i).toString());
+                        if (!(obj instanceof JSONArray)) {
+                            continue;
+                        }
+                        JSONArray js_npc_temp = (JSONArray) obj;
+                        Npc npc = new Npc();
+                        npc.iditem = Short.parseShort(js_npc_temp.get(0).toString());
+                        npc.name = js_npc_temp.get(1).toString();
+                        npc.namegt = js_npc_temp.get(2).toString();
+                        npc.chat = js_npc_temp.get(3).toString();
+                        npc.x = Short.parseShort(js_npc_temp.get(4).toString());
+                        npc.y = Short.parseShort(js_npc_temp.get(5).toString());
+                        npc.isPerson = Byte.parseByte(js_npc_temp.get(6).toString());
+                        npc.typeIcon = Byte.parseByte(js_npc_temp.get(7).toString());
+                        npc.wBlock = Byte.parseByte(js_npc_temp.get(8).toString());
+                        npc.hBlock = Byte.parseByte(js_npc_temp.get(9).toString());
+                        npc.b3 = Byte.parseByte(js_npc_temp.get(10).toString());
+                        JSONArray js_npc_temp_2 = (JSONArray) JSONValue.parse(js_npc_temp.get(11).toString());
+                        npc.dataFrame = new byte[js_npc_temp_2.size()];
+                        for (int j = 0; j < npc.dataFrame.length; j++) {
+                            npc.dataFrame[j] = Byte.parseByte(js_npc_temp_2.get(j).toString());
+                        }
+                        npc.head = Short.parseShort(js_npc_temp.get(12).toString());
+                        npc.hair = Short.parseShort(js_npc_temp.get(13).toString());
+                        JSONArray js_npc_temp_3 = (JSONArray) JSONValue.parse(js_npc_temp.get(14).toString());
+                        npc.wearing = new short[js_npc_temp_3.size()];
+                        for (int k = 0; k < npc.wearing.length; k++) {
+                            npc.wearing[k] = Short.parseShort(js_npc_temp_3.get(k).toString());
+                        }
+                        map_temp.npcs.add(npc);
+                    } catch (Exception e) {
+                        System.err.println("[DEBUG HAKI] Skip invalid NPC entry in map " + id_map + ": " + e.getMessage());
                     }
-                    npc.head = Short.parseShort(js_npc_temp.get(12).toString());
-                    npc.hair = Short.parseShort(js_npc_temp.get(13).toString());
-                    JSONArray js_npc_temp_3 = (JSONArray) JSONValue.parse(js_npc_temp.get(14).toString());
-                    npc.wearing = new short[js_npc_temp_3.size()];
-                    for (int k = 0; k < npc.wearing.length; k++) {
-                        npc.wearing[k] = Short.parseShort(js_npc_temp_3.get(k).toString());
-                    }
-                    map_temp.npcs.add(npc);
                 }
                 js_npc.clear();
                 String boatStr = rs.getString("boat");
@@ -329,11 +343,15 @@ public class Manager {
                         ? (JSONArray) JSONValue.parse(dataStr)
                         : new JSONArray();
                 map_temp.data = new byte[2][];
-                for (int i = 0; i < js_npc.size(); i++) {
-                    JSONArray js_in = (JSONArray) js_npc.get(i);
-                    map_temp.data[i] = new byte[js_in.size()];
-                    for (int j = 0; j < map_temp.data[i].length; j++) {
-                        map_temp.data[i][j] = Byte.parseByte(js_in.get(j).toString());
+                for (int i = 0; i < 2; i++) {
+                    if (i < js_npc.size()) {
+                        JSONArray js_in = (JSONArray) js_npc.get(i);
+                        map_temp.data[i] = new byte[js_in.size()];
+                        for (int j = 0; j < map_temp.data[i].length; j++) {
+                            map_temp.data[i][j] = Byte.parseByte(js_in.get(j).toString());
+                        }
+                    } else {
+                        map_temp.data[i] = new byte[0];
                     }
                 }
                 js_npc.clear();

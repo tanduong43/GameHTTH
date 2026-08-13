@@ -126,6 +126,7 @@ public class Player {
     public int botMiReceivedToday = 0;
     public int duongReceivedToday = 0;
     public int trungMuoiReceivedToday = 0;
+    public int lanKills = 0; // Số lần giết boss Lân sự kiện Trung Thu
     public byte time_can_hs;
     public List<FriendTemp> enemy_list;
     public TableTickOption tableTickOption;
@@ -224,6 +225,7 @@ public class Player {
     public int[] doriki;
     public int[] lucthuc;
     public int hangdong_stage = 0;
+    public int haki_monster_killed = 0;
 
     public Player(Session conn, String name) {
         this.conn = conn;
@@ -246,6 +248,12 @@ public class Player {
             }
             id = rs.getInt("id");
             hangdong_stage = rs.getInt("hangdong_stage");
+            // Đọc số lần giết Lân Trung Thu
+            try {
+                lanKills = rs.getInt("lan_kills");
+            } catch (Exception e) {
+                lanKills = 0;
+            }
             // Đọc danh hiệu đang dùng theo CodeTemp: column "danh_hieu"
             try {
                 danhhieu = rs.getByte("danh_hieu");
@@ -375,6 +383,18 @@ public class Player {
             if (js.size() > 22 && js.get(22) != null) {
                 try {
                     trungMuoiReceivedToday = Integer.parseInt(js.get(22).toString());
+                } catch (Exception e) {
+                }
+            }
+            if (js.size() > 23 && js.get(23) != null) {
+                try {
+                    lanKills = Integer.parseInt(js.get(23).toString());
+                } catch (Exception e) {
+                }
+            }
+            if (js.size() > 24 && js.get(24) != null) {
+                try {
+                    haki_monster_killed = Integer.parseInt(js.get(24).toString());
                 } catch (Exception e) {
                 }
             }
@@ -934,7 +954,7 @@ public class Player {
                 + "`rms` = ?, `skill` = ?, `friend` = ?, `enemy` = ?, `fashion` = ?, `eff` = ?, `box47` = ?, `box3` = ?, `quest` = ?, "
                 + "`exp` = ?, `pvppoint` = ?, `save_it3` = ?, `save_it47` = ?, "
                 + "`hanhtrinh` = ?, `wanted_point` = ?, `wanted_chest` = ?, `mypet` = ?, `diemdanh` = ?, `diemdanhvip` = ?, `lucthuc` = ?, "
-                + "`danh_hieu` = ?, `hangdong_stage` = ?, `num_phao_hoa` = ? WHERE `id` = "
+                + "`danh_hieu` = ?, `hangdong_stage` = ?, `num_phao_hoa` = ?, `lan_kills` = ? WHERE `id` = "
                 + p.id + ";";
         Connection connection = null;
         PreparedStatement ps = null;
@@ -1045,6 +1065,8 @@ public class Player {
             js.add(p.botMiReceivedToday);
             js.add(p.duongReceivedToday);
             js.add(p.trungMuoiReceivedToday);
+            js.add(p.lanKills);
+            js.add(p.haki_monster_killed);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -1300,6 +1322,7 @@ public class Player {
             ps.setInt(29, p.danhhieu); // column "danh_hieu"
             ps.setInt(30, p.hangdong_stage);
             ps.setInt(31, p.num_phao_hoa);
+            ps.setInt(32, p.lanKills); // số lần giết Lân Trung Thu
 
             //
             result = ps.executeUpdate();
@@ -1366,7 +1389,11 @@ public class Player {
         this.xold = this.x;
         this.yold = this.y;
         Map[] map_go = vgo.map_go;
+        // [DEBUG HAKI] Log khi goi goto_map
+        System.out.println("[DEBUG HAKI] goto_map called - map_go: " + (map_go != null ? map_go[0].template.id : "NULL") + ", player: " + this.name);
         if (map_go == null) {
+            // [DEBUG HAKI] map_go is null - nguyen nhan man hinh den
+            System.err.println("[DEBUG HAKI] goto_map FAILED - map_go is NULL! vgo.id_map_go: " + vgo.id_map_go);
             Service.send_box_ThongBao_OK(this, "Chưa thể đi đến map này!");
             return;
         }
@@ -2591,53 +2618,31 @@ public class Player {
 
     public void get_skill_haki_new(int id) throws IOException {
         id += 4000;
-        List<Skill_info> list_remove = new ArrayList<>();
-        this.skill_point.removeAll(list_remove);
-        list_remove.clear();
+        // Map: 4800 = Haki Quan Sát (900), 4801 = Haki Bá Vương (901), 4802 = Haki Vũ Trang (902)
+        int hakiIndex;
         switch (id) {
-            case 4800: {
-                int[] id_ = new int[] { 667 };// id index
-                for (int i = 0; i < id_.length; i++) {
-                    Skill_info sk_add = new Skill_info();
-                    sk_add.exp = 0;
-                    sk_add.temp = Skill_Template.get_temp(id_[i], sk_add.exp);
-                    if (sk_add.temp != null) {
-                        list_remove.add(sk_add);
-                    }
-                }
-                break;
-            }
-
-            case 4801: {
-                int[] id_ = new int[] { 672 };// id index
-                for (int i = 0; i < id_.length; i++) {
-                    Skill_info sk_add = new Skill_info();
-                    sk_add.exp = 0;
-                    sk_add.temp = Skill_Template.get_temp(id_[i], sk_add.exp);
-                    if (sk_add.temp != null) {
-                        list_remove.add(sk_add);
-                    }
-                }
-                break;
-            }
-            case 4802: {
-                int[] id_ = new int[] { 677 };// id index
-                for (int i = 0; i < id_.length; i++) {
-                    Skill_info sk_add = new Skill_info();
-                    sk_add.exp = 0;
-                    sk_add.temp = Skill_Template.get_temp(id_[i], sk_add.exp);
-                    if (sk_add.temp != null) {
-                        list_remove.add(sk_add);
-                    }
-                }
-                break;
+            case 4800: hakiIndex = 900; break; // Haki Quan Sát
+            case 4801: hakiIndex = 901; break; // Haki Vũ Trang
+            case 4802: hakiIndex = 902; break; // Haki Bá Vương
+            default: return;
+        }
+        // Check xem player đã có haki này chưa
+        for (int i = 0; i < this.skill_point.size(); i++) {
+            if (this.skill_point.get(i).temp.indexSkillInServer == hakiIndex) {
+                return; // Đã có rồi, không add thêm
             }
         }
-
-        this.skill_point.addAll(list_remove);
-        list_remove.clear();
-        this.send_skill();
-        this.update_info_to_all();
+        Skill_info sk_add = new Skill_info();
+        sk_add.exp = -1; // Lv_RQ = -1 (chưa học)
+        sk_add.temp = Skill_Template.get_temp(hakiIndex, sk_add.exp);
+        if (sk_add.temp != null) {
+            // Chuyển từ cấp -1 sang cấp 1
+            if (Skill_Template.learn_skill(sk_add)) {
+                this.skill_point.add(sk_add);
+                this.send_skill();
+                this.update_info_to_all();
+            }
+        }
     }
 
     public void update_info_to_all() throws IOException {

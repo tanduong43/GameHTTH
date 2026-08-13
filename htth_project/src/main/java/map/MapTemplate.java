@@ -6,6 +6,7 @@ import java.util.List;
  * @author Truongbk
  */
 public class MapTemplate {
+    public static final String Skill_info = null;
     public static List<MapTemplate> ENTRYS;
     public int id;
     public String name;

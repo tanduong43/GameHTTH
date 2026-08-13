@@ -85,11 +85,19 @@ public class MenuController {
           return;
         }
       }
+      if (type == -38 && p.map.template.id == 2000) {
+        Vgo vgo = new Vgo();
+        vgo.map_go = Map.get_map_by_id(1);
+        vgo.xnew = 400;
+        vgo.ynew = 250;
+        p.goto_map(vgo);
+        return;
+      }
       switch (type) {
         case -154: {
           if (event.EventTrungThu.isEvent()) {
             send_dynamic_menu(p, type, "Chị Hằng",
-                new String[] { "Làm Bánh", "Ghép Đèn", "Hướng dẫn" },
+                new String[] { "Làm Bánh", "Ghép Đèn", "BXH Giết Lân", "Hướng dẫn" },
                 null);
           } else {
             Service.send_box_ThongBao_OK(p, "Sự kiện Vui Hội Trung Thu hiện đã khép lại. Hẹn gặp lại bạn năm sau nhé!");
@@ -285,12 +293,12 @@ public class MenuController {
         case -4: {
           if (p.level >= 100) {
             send_dynamic_menu(p, type, "Gap", new String[] { "Học Skill", "Tẩy tiềm năng",
-                "Xóa nội tại", "Người giới thiệu", "Thông thạo" },
-                new short[] { 123, 124, 125, 138, 138 });
+                "Xóa nội tại", "Người giới thiệu", "Thông thạo", "Luyện Haki" },
+                new short[] { 123, 124, 125, 138, 138, 138 });
           } else {
             send_dynamic_menu(p, type, "Gap",
-                new String[] { "Học Skill", "Tẩy tiềm năng", "Xóa nội tại", "Người giới thiệu" },
-                new short[] { 123, 124, 125, 138 });
+                new String[] { "Học Skill", "Tẩy tiềm năng", "Xóa nội tại", "Người giới thiệu", "Luyện Haki" },
+                new short[] { 123, 124, 125, 138, 138 });
           }
           break;
         }
@@ -685,6 +693,10 @@ public class MenuController {
                   null);
               break;
             case 2:
+              // BXH Giết Lân
+              BXH.send(p, 13, 0);
+              break;
+            case 3:
               Service.send_box_ThongBao_OK(p,
                   "🎑 THÔNG TIN SỰ KIỆN TRUNG THU - ĐÊM RẰM HẢI TẶC\n\n"
                   + "📍 Nguồn nguyên liệu thu thập:\n"
@@ -2521,7 +2533,21 @@ public class MenuController {
       case 4: {
         if (p.level >= 100) {
           Max_Level.show_table(p);
+        } else {
+          Vgo vgo = new Vgo();
+          vgo.map_go = Map.get_map_by_id(2000);
+          vgo.xnew = 400;
+          vgo.ynew = 250;
+          p.goto_map(vgo);
         }
+        break;
+      }
+      case 5: {
+        Vgo vgo = new Vgo();
+        vgo.map_go = Map.get_map_by_id(2000);
+        vgo.xnew = 400;
+        vgo.ynew = 250;
+        p.goto_map(vgo);
         break;
       }
     }

@@ -188,7 +188,10 @@ public class Skill_Template {
                 }
             }
         }
-        if (result == null && sk_info.temp.indexSkillInServer >=661&&sk_info.temp.indexSkillInServer <=665){ // skill dial
+        if (result == null && (
+            (sk_info.temp.indexSkillInServer >= 661 && sk_info.temp.indexSkillInServer <= 665) ||
+            (sk_info.temp.indexSkillInServer >= 900 && sk_info.temp.indexSkillInServer <= 902)
+        )) {
             for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
                 Skill_Template temp_ss = Skill_Template.ENTRYS.get(i);
                 if (sk_info.temp.ID == temp_ss.ID && temp_ss.Lv_RQ == (sk_info.temp.Lv_RQ + 1)) {

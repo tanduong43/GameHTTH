@@ -203,7 +203,20 @@ public class MessageHandler {
                             data2 = Util.loadfile(
                                     "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
                         }
+                        
+                        // Fallback: Nếu không có DataEffect, thử tìm trong data skill (do admin eff có thể gọi id skill)
+                        if (data1 == null) {
+                            System.out.println("[Debug Admin] DataEffect_" + id + " not found, falling back to skill data...");
+                            data1 = Util.loadfile("data/template/skill/x" + conn.zoomlv + "/data/" + id);
+                            data2 = Util.loadfile("data/template/skill/x" + conn.zoomlv + "/img/" + id + ".png");
+                            if (data1 == null) {
+                                data1 = Util.loadfile("data/template/skill/x4/data/" + id);
+                                data2 = Util.loadfile("data/template/skill/x4/img/" + id + ".png");
+                            }
+                        }
+
                         if (data1 != null && data2 != null) {
+                            System.out.println("[Debug Admin] Successfully loaded data for effect id=" + id + ". Sending to client...");
                             Message m2 = new Message(74);
                             m2.writer().writeByte(1);
                             m2.writer().writeShort(id);
@@ -213,6 +226,7 @@ public class MessageHandler {
                             conn.addmsg(m2);
                             m2.cleanup();
                         } else {
+                            System.out.println("[Debug Admin] FAILED to load any data for effect id=" + id + " (zoom=x" + conn.zoomlv + ")");
                             System.out.println("[DanhHieu Log] Client request failed id=" + id + ", zoom=x"
                                     + conn.zoomlv + ", data=" + (data1 != null) + ", img=" + (data2 != null));
                         }

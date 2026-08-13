@@ -27,6 +27,9 @@ public class Skill_info {
     // idEff 16: gay hoang loan
     //
     public static long[] EXP = new long[32];
+    public static long[] EXP_HAKI = new long[] {
+        300000, 600000, 900000, 1200000, 1500000, 1800000, 2100000, 2400000, 2700000, 3000000
+    };
     public static int[] EXP_DEVIL = new int[] { 100, 125, 167, 200, 250 };
     public long exp;
     public Skill_Template temp;
@@ -47,7 +50,19 @@ public class Skill_info {
         if (exp <= 0) {
             return 0;
         }
-        long exp_total = Skill_info.EXP[temp.Lv_RQ - 1];
+        long exp_total = 0;
+        if (temp.indexSkillInServer >= 900 && temp.indexSkillInServer <= 902) {
+            // Guard: Lv_RQ phải >= 1 và nằm trong range EXP_HAKI
+            if (temp.Lv_RQ < 1 || temp.Lv_RQ > EXP_HAKI.length) {
+                return 0;
+            }
+            exp_total = EXP_HAKI[temp.Lv_RQ - 1];
+        } else {
+            if (temp.Lv_RQ < 1 || temp.Lv_RQ > EXP.length) {
+                return 0;
+            }
+            exp_total = Skill_info.EXP[temp.Lv_RQ - 1];
+        }
         if (exp_total == 0) {
             return 0;
         }

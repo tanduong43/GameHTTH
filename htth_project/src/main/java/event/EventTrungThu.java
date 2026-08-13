@@ -9,11 +9,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import client.Player;
+import core.BXH;
 import core.Manager;
 import core.Service;
 import core.Util;
 import io.Message;
 import map.Boss;
+import template.InfoMemList;
 import template.ItemMap;
 import map.Map;
 import map.Mob;
@@ -345,10 +347,15 @@ public class EventTrungThu implements Runnable {
 
         lastHitPlayer = killer;
 
+        // Tăng số lần giết Lân
+        if (killer != null) {
+            killer.lanKills++;
+        }
+
         // Thông báo
         try {
             Manager.gI().chatKTG(0,
-                    "🎉 Chúc mừng " + killer.name + " đã hạ gục Boss Lân Sư Tử!",
+                    "🎉 Chúc mừng " + killer.name + " đã hạ gục Boss Lân Sư Tử! (Lần thứ " + killer.lanKills + ")",
                     5);
         } catch (IOException e) {
             System.out.println("Error announcing boss kill: " + e.getMessage());
@@ -1335,5 +1342,76 @@ public class EventTrungThu implements Runnable {
         } catch (IOException e) {
             System.out.println("Error sending message: " + e.getMessage());
         }
+    }
+
+    /**
+     * Hiển thị bảng xếp hạng giết Lân
+     */
+    public static void showLanKillLeaderboard(Player p) {
+        if (p == null)
+            return;
+
+        try {
+            // Cập nhật BXH trước khi hiển thị
+            BXH.update();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("🏆 BẢNG XẾP HẠNG GIẾT LÂN SƯ TỬ\n");
+            sb.append("═══════════════════════════════\n\n");
+
+            List<InfoMemList> topKillers = BXH.LAN_KILLS;
+
+            if (topKillers.isEmpty()) {
+                sb.append("Chưa có ai giết Lân nào!\n");
+                sb.append("Hãy nhanh tay tham gia săn Lân nhé!\n");
+            } else {
+                for (int i = 0; i < Math.min(10, topKillers.size()); i++) {
+                    InfoMemList entry = topKillers.get(i);
+                    String rankEmoji;
+                    if (i == 0) {
+                        rankEmoji = "🥇";
+                    } else if (i == 1) {
+                        rankEmoji = "🥈";
+                    } else if (i == 2) {
+                        rankEmoji = "🥉";
+                    } else {
+                        rankEmoji = (i + 1) + ".";
+                    }
+
+                    sb.append(rankEmoji).append(" ").append(entry.name)
+                      .append(": ").append(entry.thongthao).append(" Lân\n");
+
+                    if (i == 0) {
+                        sb.append("   └─ Phần thưởng: Hộp Bánh Thượng Hạng\n");
+                    } else if (i < 5) {
+                        sb.append("   └─ Phần thưởng: Hộp Bánh x3\n");
+                    }
+                }
+            }
+
+            sb.append("\n═══════════════════════════════\n");
+            sb.append("📊 Thành tích của bạn: ").append(p.lanKills).append(" Lân\n");
+            sb.append("📍 Top của bạn: ").append(getPlayerRankLanKills(p)).append("\n");
+
+            Service.send_box_ThongBao_OK(p, sb.toString());
+        } catch (IOException e) {
+            System.out.println("Error showing lan kill leaderboard: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lấy rank của player hiện tại trong BXH giết Lân
+     */
+    private static int getPlayerRankLanKills(Player p) {
+        if (p == null || p.lanKills <= 0) {
+            return -1;
+        }
+        List<InfoMemList> list = BXH.LAN_KILLS;
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).name.equals(p.name)) {
+                return i + 1;
+            }
+        }
+        return -1;
     }
 }

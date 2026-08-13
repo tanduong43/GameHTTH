@@ -42,6 +42,7 @@ import template.Map_clan_resource;
 import template.Map_pvp;
 import template.Option_Dame_Msg;
 import template.Ship_pet;
+import template.Skill_Template;
 import template.Skill_info;
 import template.Top_Dame;
 import event.EventTrungThu;
@@ -2195,11 +2196,18 @@ public class Map implements Runnable {
     }
 
     public static Map[] get_map_by_id(int id) {
+        // [DEBUG HAKI] Log get_map_by_id
         for (int i = 0; i < Map.ENTRYS.size(); i++) {
             if (Map.ENTRYS.get(i)[0].template.id == id) {
+                // [DEBUG HAKI] Found map
+                if (id == 2000) {
+                    System.out.println("[DEBUG HAKI] get_map_by_id FOUND map 2000, zones: " + Map.ENTRYS.get(i).length);
+                }
                 return Map.ENTRYS.get(i);
             }
         }
+        // [DEBUG HAKI] Map not found - nguyen nhan man hinh den
+        System.err.println("[DEBUG HAKI] get_map_by_id NOT FOUND map " + id + "! Total maps loaded: " + Map.ENTRYS.size());
         return null;
     }
 
@@ -2514,11 +2522,64 @@ public class Map implements Runnable {
                 }
             }
             if (exp_up != null) { // update exp
-                if (exp_up[0] > 0) {
-                    p.update_exp(exp_up[0], true);
-                }
-                if (exp_up[1] > 0) {
-                    p.update_skill_exp(idSkill, exp_up[1]);
+                if (this.template.id == 2000) {
+                    p.haki_monster_killed += 1;
+                    if (p.haki_monster_killed == 10) {
+                        Skill_info hq = new Skill_info();
+                        hq.temp = Skill_Template.get_temp(900, -1);
+                        if (hq.temp != null && Skill_Template.learn_skill(hq)) {
+                            p.skill_point.add(hq);
+                            p.send_skill(); // Gui skill list cho client
+                            try { Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Quan Sát!"); } catch (Exception e) {}
+                        }
+                    } else if (p.haki_monster_killed == 15) {
+                        Skill_info hv = new Skill_info();
+                        hv.temp = Skill_Template.get_temp(901, -1);
+                        if (hv.temp != null && Skill_Template.learn_skill(hv)) {
+                            p.skill_point.add(hv);
+                            p.send_skill(); // Gui skill list cho client
+                            try { Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Vũ Trang!"); } catch (Exception e) {}
+                        }
+                    } else if (p.haki_monster_killed == 20) {
+                        Skill_info hb = new Skill_info();
+                        hb.temp = Skill_Template.get_temp(902, -1);
+                        if (hb.temp != null && Skill_Template.learn_skill(hb)) {
+                            p.skill_point.add(hb);
+                            p.send_skill(); // Gui skill list cho client
+                            try { Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Bá Vương!"); } catch (Exception e) {}
+                        }
+                    }
+                    for (Skill_info sk : p.skill_point) {
+                        if (sk.temp.indexSkillInServer >= 900 && sk.temp.indexSkillInServer <= 902) {
+                            if (sk.temp.Lv_RQ >= 1 && sk.temp.Lv_RQ <= Skill_info.EXP_HAKI.length) {
+                                sk.exp += 1;
+                                long exp_max = Skill_info.EXP_HAKI[sk.temp.Lv_RQ - 1];
+                                if (sk.exp >= exp_max) {
+                                    if (Skill_Template.upgrade_skill(sk, p.clazz)) {
+                                        sk.exp -= exp_max;
+                                        try {
+                                            Service.send_box_ThongBao_OK(p, "Kỹ năng " + sk.temp.name + " đã thăng cấp!");
+                                            // Gui cap nhat skill day du khi len cap
+                                            p.send_skill();
+                                        } catch (Exception e) {}
+                                    } else {
+                                        sk.exp = exp_max - 1;
+                                    }
+                                }
+                                // Gui cap nhat skill cho client (hien thi thanh exp)
+                                try {
+                                    activities.Learn_Skill.send_skill_percent(p, sk);
+                                } catch (Exception e) {}
+                            }
+                        }
+                    }
+                } else {
+                    if (exp_up[0] > 0) {
+                        p.update_exp(exp_up[0], true);
+                    }
+                    if (exp_up[1] > 0) {
+                        p.update_skill_exp(idSkill, exp_up[1]);
+                    }
                 }
             }
         }
@@ -4304,18 +4365,84 @@ public class Map implements Runnable {
                     try {
                         String[] parts = cmd.split(" ");
                         short effId = Short.parseShort(parts[1]);
+                        byte typemove = 0;
+                        byte loop = -1;
+                        if (parts.length > 2) typemove = Byte.parseByte(parts[2]);
+                        if (parts.length > 3) loop = Byte.parseByte(parts[3]);
+
+                        // Gửi message hiển thị effect cho tất cả players
                         Message mTest = new Message(74);
                         mTest.writer().writeByte(1);
                         mTest.writer().writeShort(p.index_map);
                         mTest.writer().writeShort(effId);
-                        mTest.writer().writeInt(10_000); // 10 giây
-                        mTest.writer().writeByte(0);
-                        mTest.writer().writeByte(20);
+                        mTest.writer().writeInt(3_600_000); // 1 tiếng
+                        mTest.writer().writeByte(typemove);
+                        mTest.writer().writeByte(loop);
                         this.send_msg_all_p(mTest, null, true);
                         mTest.cleanup();
-                        Service.send_box_ThongBao_OK(p, "Đang hiển thị Effect ID: " + effId + " (10 giây)");
+
+                        // Gửi dữ liệu effect cho mỗi client theo zoom level của họ
+                        for (Player p0 : this.players) {
+                            if (p0.conn != null) {
+                                byte zoomlv = p0.conn.zoomlv;
+                                byte[] data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + effId);
+                                byte[] data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + effId + ".png");
+                                
+                                // Fallback sang x4 nếu không có
+                                if (data1 == null) {
+                                    data1 = Util.loadfile("data/template/skill/x4/data/" + effId);
+                                    data2 = Util.loadfile("data/template/skill/x4/img/" + effId + ".png");
+                                }
+                                // Fallback sang danhhieu effect
+                                if (data1 == null) {
+                                    data1 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + effId);
+                                    data2 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
+                                }
+                                if (data1 == null) {
+                                    data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + effId);
+                                    data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + effId + ".png");
+                                }
+                                // Fallback sang nro data
+                                if (data1 == null) {
+                                    data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + effId);
+                                    data2 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
+                                }
+                                
+                                if (data1 != null && data2 != null) {
+                                    Message mData = new Message(74);
+                                    mData.writer().writeByte(0);
+                                    mData.writer().writeShort(effId);
+                                    mData.writer().writeShort(data1.length);
+                                    mData.writer().write(data1);
+                                    mData.writer().write(data2);
+                                    p0.conn.addmsg(mData);
+                                    mData.cleanup();
+                                } else {
+                                    System.out.println("[Admin Eff] Khong tim thay du lieu effect id=" + effId + " cho zoom=x" + zoomlv);
+                                }
+                            }
+                        }
+                        
+                        System.out.println("[Debug Admin] Sent eff command with id=" + effId + " to map. TypeMove: " + typemove + ", Loop: " + loop);
+                        Service.send_box_ThongBao_OK(p, "Đang hiển thị Effect ID: " + effId + " (TypeMove: " + typemove + ", Loop: " + loop + ")");
                     } catch (Exception e) {
-                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin eff <id>. VD: admin eff 37");
+                        e.printStackTrace();
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin eff <id> [typemove] [loop]. VD: admin eff 36 0 -1");
+                    }
+                } else if (cmd.startsWith("rmeff ")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        short effId = Short.parseShort(parts[1]);
+                        Message mTest = new Message(74);
+                        mTest.writer().writeByte(2); // 2 = Xóa effect
+                        mTest.writer().writeShort(p.index_map);
+                        mTest.writer().writeShort(effId);
+                        this.send_msg_all_p(mTest, null, true);
+                        mTest.cleanup();
+                        System.out.println("[Debug Admin] Sent rmeff command to remove id=" + effId);
+                        Service.send_box_ThongBao_OK(p, "Đã hủy hiển thị Effect ID: " + effId);
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin rmeff <id>. VD: admin rmeff 36");
                     }
                 } else if (cmd.startsWith("dh ")) {
                     try {
@@ -5088,6 +5215,8 @@ public class Map implements Runnable {
     }
 
     public void send_data(Player p) throws IOException {
+        // [DEBUG HAKI] Log khi gui map data
+        System.out.println("[DEBUG HAKI] send_data - mapId: " + this.template.id + ", zone: " + this.zone_id + ", player: " + p.name);
         Message m = new Message(0);
         m.writer().writeShort(this.template.id);
         m.writer().writeByte(this.zone_id);
@@ -5101,10 +5230,18 @@ public class Map implements Runnable {
         m.writer().writeByte(this.template.b);
         m.writer().writeByte(this.template.specMap);
         if (this.template.b == 1) {
-            m.writer().writeInt(this.template.data[0].length);
-            m.writer().write(this.template.data[0]);
-            m.writer().writeInt(this.template.data[1].length);
-            m.writer().write(this.template.data[1]);
+            if (this.template.data != null && this.template.data.length > 1
+                    && this.template.data[0] != null && this.template.data[1] != null) {
+                m.writer().writeInt(this.template.data[0].length);
+                m.writer().write(this.template.data[0]);
+                m.writer().writeInt(this.template.data[1].length);
+                m.writer().write(this.template.data[1]);
+            } else {
+                m.writer().writeInt(0);
+                m.writer().write(new byte[0]);
+                m.writer().writeInt(0);
+                m.writer().write(new byte[0]);
+            }
             boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
             if (this.template.id == 999
                     || (!isSingleDungeon && (this.map_dungeon != null || Map.is_map_dungeon(this.template.id)))) {
