@@ -91,6 +91,20 @@ public class MenuController {
         return;
       }
       switch (type) {
+        case -100: {
+          if (event.EventTet.isEvent()) {
+            send_dynamic_menu(p, type, "Sự kiện",
+                new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
+                    "Hang động", "Xếp hạng hang động", "Top pháo hoa", "Sự Kiện Tết" },
+                null);
+          } else {
+            send_dynamic_menu(p, type, "Sự kiện",
+                new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
+                    "Hang động", "Xếp hạng hang động", "Top pháo hoa" },
+                null);
+          }
+          break;
+        }
         case -154: {
           if (event.EventTrungThu.isEvent()) {
             send_dynamic_menu(p, type, "Chị Hằng",
@@ -274,13 +288,6 @@ public class MenuController {
           }
           break;
         }
-        case -100: {
-          send_dynamic_menu(p, type, "Sự kiện",
-              new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
-                  "Hang động", "Xếp hạng hang động", "Top pháo hoa" },
-              null);
-          break;
-        }
         case -37: {
           send_dynamic_menu(p, type, "Bếp trưởng", new String[] { "Học Skill", "Tẩy tiềm năng",
               "Xóa nội tại", "Người giới thiệu", "Đá hành trình" },
@@ -435,17 +442,28 @@ public class MenuController {
           break;
         }
         case -201: {
-          send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Nói chuyện", "Đến Đảo Ruby" }, null);
+          send_dynamic_menu(p, type, get_name_npc(type),
+              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn" }, null);
           break;
         }
         case -202: {
-          send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Nói chuyện", "Về Làng Cối Xay Gió" }, null);
+          if (p.map != null && p.map.template.id == event.EventTet.MAP_DAU_TRUONG) {
+            send_dynamic_menu(p, type, "Trọng Tài", new String[] { "Nói chuyện", "Rời Đấu Trường" }, null);
+          } else {
+            send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Nói chuyện", "Về Làng Cối Xay Gió" }, null);
+          }
           break;
         }
         case 120: {
-          send_dynamic_menu(p, type, "Bảng Xếp Hạng",
-              new String[] { "Cao thủ", "Thách đấu", "Băng hải tặc", "Truy nã", "Hang động", "Top Siêu Trùm" },
-              null);
+          if (p.map != null && p.map.template.id == event.EventTet.MAP_DAU_TRUONG) {
+            send_dynamic_menu(p, type, "Bảng Xếp Hạng",
+                new String[] { "Top Kill Đấu Trường" },
+                null);
+          } else {
+            send_dynamic_menu(p, type, "Bảng Xếp Hạng",
+                new String[] { "Cao thủ", "Thách đấu", "Băng hải tặc", "Truy nã", "Hang động", "Top Siêu Trùm" },
+                null);
+          }
           break;
         }
         case -133: {
@@ -568,7 +586,7 @@ public class MenuController {
       case -1:
         return "Trưởng làng";
       case -201:
-        return "Trưởng Làng Aru";
+        return "Tôn Ngộ Không";
       case -202:
         return "Sứ Giả Aru";
       case -146:
@@ -680,7 +698,8 @@ public class MenuController {
             case 0:
               // Sub-menu: Làm Bánh
               send_dynamic_menu(p, -1540, "Chị Hằng",
-                  new String[] { "Bánh Trung Thu", "Bánh Đậu Xanh", "Bánh Trứng Muối", "Bánh Hạt Sen", "Hộp Bánh", "Hộp Thượng Hạng" },
+                  new String[] { "Bánh Trung Thu", "Bánh Đậu Xanh", "Bánh Trứng Muối", "Bánh Hạt Sen", "Hộp Bánh",
+                      "Hộp Thượng Hạng" },
                   null);
               break;
             case 1:
@@ -696,25 +715,25 @@ public class MenuController {
             case 3:
               Service.send_box_ThongBao_OK(p,
                   "🎑 THÔNG TIN SỰ KIỆN TRUNG THU - ĐÊM RẰM HẢI TẶC\n\n"
-                  + "📍 Nguồn nguyên liệu thu thập:\n"
-                  + "• Đánh quái ±10 cấp → Bột Mì (tối đa 100/ngày)\n"
-                  + "• Làm NV Lặp hằng ngày → Đường (tối đa 100/ngày)\n"
-                  + "• Hoàn thành NV Băng / PvP / Truy Nã → Trứng Muối\n"
-                  + "• Phó Bản Nami Liên Tầng / Đá đít Mr.3 → Đèn Ông Sao\n"
-                  + "• Săn Boss Lân Sư Tử / Vận buôn → Giấy Gói Quà\n\n"
-                  + "📍 Chế tạo bánh:\n"
-                  + "• Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500k Beri\n"
-                  + "• Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1M Beri\n"
-                  + "• Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15M Beri\n"
-                  + "• Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2M Beri\n\n"
-                  + "📍 Ghép đèn:\n"
-                  + "• Đèn Kéo Quân: 3 Đèn Ông Sao + 2M Beri\n\n"
-                  + "📍 Ghép hộp bánh:\n"
-                  + "• Hộp Bánh: 4 loại bánh + 2M Beri + 50 Ruby\n"
-                  + "• Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2M Beri + 100 Ruby\n\n"
-                  + "📍 Boss Lân Sư Tử:\n"
-                  + "• Xuất hiện: 12h, 18h, 20h, 22h hàng ngày\n\n"
-                  + "Hãy gom đủ nguyên liệu để làm Bánh Trung Thu nhé! 🎑");
+                      + "📍 Nguồn nguyên liệu thu thập:\n"
+                      + "• Đánh quái ±10 cấp → Bột Mì (tối đa 100/ngày)\n"
+                      + "• Làm NV Lặp hằng ngày → Đường (tối đa 100/ngày)\n"
+                      + "• Hoàn thành NV Băng / PvP / Truy Nã → Trứng Muối\n"
+                      + "• Phó Bản Nami Liên Tầng / Đá đít Mr.3 → Đèn Ông Sao\n"
+                      + "• Săn Boss Lân Sư Tử / Vận buôn → Giấy Gói Quà\n\n"
+                      + "📍 Chế tạo bánh:\n"
+                      + "• Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500k Beri\n"
+                      + "• Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1M Beri\n"
+                      + "• Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15M Beri\n"
+                      + "• Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2M Beri\n\n"
+                      + "📍 Ghép đèn:\n"
+                      + "• Đèn Kéo Quân: 3 Đèn Ông Sao + 2M Beri\n\n"
+                      + "📍 Ghép hộp bánh:\n"
+                      + "• Hộp Bánh: 4 loại bánh + 2M Beri + 50 Ruby\n"
+                      + "• Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2M Beri + 100 Ruby\n\n"
+                      + "📍 Boss Lân Sư Tử:\n"
+                      + "• Xuất hiện: 12h, 18h, 20h, 22h hàng ngày\n\n"
+                      + "Hãy gom đủ nguyên liệu để làm Bánh Trung Thu nhé! 🎑");
               break;
           }
           break;
@@ -756,6 +775,22 @@ public class MenuController {
           switch (index) {
             case 0:
               event.TrungThuCraft.processCraft(p, 5); // Đèn Kéo Quân
+              break;
+          }
+          break;
+        }
+        case -1000: {
+          // Sub-menu: Làm Bánh Tết
+          if (!event.EventTet.isEvent()) {
+            Service.send_box_ThongBao_OK(p, "Sự kiện Tết chưa được kích hoạt!");
+            return;
+          }
+          switch (index) {
+            case 0:
+              event.TetCraft.processCraft(p, 1); // Bánh Chưng
+              break;
+            case 1:
+              event.TetCraft.processCraft(p, 2); // Bánh Giầy
               break;
           }
           break;
@@ -1460,7 +1495,7 @@ public class MenuController {
         case -201: {
           if (index == 0) {
             Service.send_box_ThongBao_OK(p,
-                "Trưởng Làng Aru: Xin chào! Ta tới Làng Cối Xay Gió giao lưu với các Hải Tặc!");
+                "Tôn Ngộ Không: Lão Tôn xin chào! Ngươi muốn vào Đảo Ruby hay tham gia Đấu Trường Sinh Tồn?");
           } else if (index == 1) {
             if (!map.Map.isRubyIslandOpen()) {
               Service.send_box_ThongBao_OK(p, "Đảo Ruby chỉ mở cửa từ 7h-8h sáng và 17h-19h tối hàng ngày!");
@@ -1475,12 +1510,51 @@ public class MenuController {
             } else {
               Service.send_box_ThongBao_OK(p, "Chưa mở Map Đảo Ruby!");
             }
+          } else if (index == 2) {
+            send_dynamic_menu(p, 9898, "Đấu Trường Sinh Tồn", new String[] { "Vào Map", "Bảng Xếp Hạng", "Nhận quà" },
+                null);
+          }
+          break;
+        }
+        case 9898: {
+          switch (index) {
+            case 0: { // Vào Map
+              if (!event.EventTet.getInstance().isDauTruongOpen()) {
+                Service.send_box_ThongBao_OK(p,
+                    "Đấu Trường Sinh Tồn chỉ mở vào Thứ 7 và Chủ Nhật hàng tuần:\n- Thời gian: 19:00 - 21:00 (kéo dài 120 phút)");
+                break;
+              }
+              Vgo vgo = new Vgo();
+              vgo.map_go = map.Map.get_map_by_id(event.EventTet.MAP_DAU_TRUONG);
+              if (vgo.map_go != null) {
+                vgo.xnew = 250;
+                vgo.ynew = 173;
+                p.goto_map(vgo);
+                event.EventTet.getInstance().onPlayerJoinDauTruong(p);
+              } else {
+                Service.send_box_ThongBao_OK(p, "Bản đồ Đấu Trường chưa được mở hoặc chưa cấu hình!");
+              }
+              break;
+            }
+            case 1: { // Bảng Xếp Hạng
+              event.EventTet.getInstance().showTopKillDauTruong(p);
+              break;
+            }
+            case 2: { // Nhận quà
+              event.EventTet.getInstance().claimDauTruongReward(p);
+              break;
+            }
           }
           break;
         }
         case -202: {
           if (index == 0) {
-            Service.send_box_ThongBao_OK(p, "Sứ Giả Aru: Ta có thể giúp ngươi trở về Làng Cối Xay Gió an toàn!");
+            if (p.map != null && p.map.template.id == event.EventTet.MAP_DAU_TRUONG) {
+              Service.send_box_ThongBao_OK(p,
+                  "Trọng Tài: Ngươi có muốn rời khỏi Đấu Trường Sinh Tồn để trở về Làng Cối Xay Gió?");
+            } else {
+              Service.send_box_ThongBao_OK(p, "Sứ Giả Aru: Ta có thể giúp ngươi trở về Làng Cối Xay Gió an toàn!");
+            }
           } else if (index == 1) {
             Vgo vgo = new Vgo();
             vgo.map_go = map.Map.get_map_by_id(1);
@@ -1493,6 +1567,12 @@ public class MenuController {
           break;
         }
         case 120: { // bhx - bảng xếp hạng
+          if (p.map != null && p.map.template.id == event.EventTet.MAP_DAU_TRUONG) {
+            if (index == 0) {
+              event.EventTet.getInstance().showTopKillDauTruong(p);
+            }
+            break;
+          }
           switch (index) {
             case 0: {
               BXH.send(p, 4, 0); // Top Cao Thủ (level)
@@ -1891,11 +1971,11 @@ public class MenuController {
               }
             }
             if (event.EventTrungThu.isEvent()) {
-                event.EventTrungThu.addMaterial(p, event.EventTrungThu.ITEM_GIAY_GOI_QUA, 1);
-                try {
-                    Service.send_box_ThongBao_OK(p, "Bạn nhận được 1 Giấy Gói Quà từ Vận buôn!");
-                } catch (Exception e) {
-                }
+              event.EventTrungThu.addMaterial(p, event.EventTrungThu.ITEM_GIAY_GOI_QUA, 1);
+              try {
+                Service.send_box_ThongBao_OK(p, "Bạn nhận được 1 Giấy Gói Quà từ Vận buôn!");
+              } catch (Exception e) {
+              }
             }
             p.name_ThoSanHaiTac = null;
             p.update_money();
@@ -2462,6 +2542,44 @@ public class MenuController {
       }
       case 7: { // Top Phao hoa
         BXH.sendTopPhaoHoa(p, 0);
+        break;
+      }
+      case 8: { // Sự kiện Tết
+        if (event.EventTet.isEvent()) {
+          Menu_Tet(p, (byte) 0);
+        } else {
+          Service.send_box_ThongBao_OK(p, "Sự kiện Tết chưa được kích hoạt!");
+        }
+        break;
+      }
+      default: {
+        Service.send_box_ThongBao_OK(p, "Chức năng đang được bảo trì");
+        break;
+      }
+    }
+  }
+
+  private static void Menu_Tet(Player p, byte index) throws IOException {
+    switch (index) {
+      case 0: {
+        // Làm Bánh - show submenu
+        send_dynamic_menu(p, -1000, "Làm Bánh Tết",
+            new String[] { "Bánh Chưng", "Bánh Giầy" }, null);
+        break;
+      }
+      case 1: {
+        // Ghép Chữ Vàng
+        event.TetCraft.processCraft(p, 3);
+        break;
+      }
+      case 2: {
+        // BXH Sự Kiện
+        event.EventTet.showLeaderboard(p);
+        break;
+      }
+      case 3: {
+        // Hướng dẫn
+        event.TetCraft.showCraftMenu(p);
         break;
       }
       default: {

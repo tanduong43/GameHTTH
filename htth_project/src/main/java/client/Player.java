@@ -127,6 +127,8 @@ public class Player {
     public int duongReceivedToday = 0;
     public int trungMuoiReceivedToday = 0;
     public int lanKills = 0; // Số lần giết boss Lân sự kiện Trung Thu
+    public int tetLanKills = 0; // Số lần giết boss Lân Sư Tử sự kiện Tết
+    public int dauTruongKills = 0; // Số kill trong Đấu Trường Mùa Xuân
     public byte time_can_hs;
     public List<FriendTemp> enemy_list;
     public TableTickOption tableTickOption;
@@ -200,6 +202,7 @@ public class Player {
     private int pvppoint;
     public int time_nvl;
     public long time_hs_little_garden;
+    public long time_danh_hieu_bat_bai = 0;
     public boolean isTachTB = false;
     public byte time_ttvt;
     public long time_skill_decrease;
@@ -3169,6 +3172,22 @@ public class Player {
     }
 
     public boolean check_id_danhhieu(int ids) {
+        if (ids == 4) { // Danh hiệu Bất Bại (7 ngày)
+            if (time_danh_hieu_bat_bai > 0 && System.currentTimeMillis() > time_danh_hieu_bat_bai) {
+                if (id_danh_hieu_da_so_huu != null) {
+                    id_danh_hieu_da_so_huu.remove(Integer.valueOf(4));
+                }
+                if (listDanhHieu != null) {
+                    listDanhHieu.remove(Integer.valueOf(4));
+                }
+                if (id_danh_hieu_su_dung == 4) {
+                    id_danh_hieu_su_dung = -1;
+                    idDanhHieu = -1;
+                    danhhieu = -1;
+                }
+                return false;
+            }
+        }
         if (id_danh_hieu_da_so_huu != null) {
             for (int idd : id_danh_hieu_da_so_huu) {
                 if (idd == ids) {

@@ -583,36 +583,38 @@ public class Session implements Runnable {
         this.coin = 0;
         this.status = 0;
         list_char = new ArrayList<>();
-        if (type == 0) {
-            Pattern p = Pattern.compile("^[a-zA-Z0-9@.]{1,30}$");
-            if (!p.matcher(user_).matches() || !p.matcher(pass_).matches()) {
-                login_notice("Ký tự không hợp lệ");
+        Pattern p = Pattern.compile("^[a-zA-Z0-9@.]{1,30}$");
+        if (!p.matcher(user_).matches() || !p.matcher(pass_).matches()) {
+            login_notice("Tài khoản hoặc mật khẩu chứa ký tự không hợp lệ");
+            return;
+        }
+        if (Manager.gI().server_admin) {
+            SessionManager.time_login.clear();
+        }
+        if (SessionManager.time_login.containsKey(user_) && !user_.equals("admin")) {
+            long time_login = SessionManager.time_login.get(user_);
+            if (time_login > System.currentTimeMillis()) {
+                long time_login_after = (time_login - System.currentTimeMillis()) / 1000;
+                if (time_login_after < 120) {
+                    login_after_time(time_login_after);
+                }
                 return;
             }
-            if (Manager.gI().server_admin) {
-                SessionManager.time_login.clear();
-            }
-            if (SessionManager.time_login.containsKey(user_) && !user_.equals("admin")) {
-                long time_login = SessionManager.time_login.get(user_);
-                if (time_login > System.currentTimeMillis()) {
-                    long time_login_after = (time_login - System.currentTimeMillis()) / 1000;
-                    if (time_login_after < 120) {
-                        login_after_time(time_login_after);
-                    }
-                    return;
-                }
-            }
-            //
-            Connection conn = null;
-            Statement st = null;
-            ResultSet rs = null;
-            try {
-                conn = SQL.gI().getCon();
-                st = conn.createStatement();
-                rs = st.executeQuery("SELECT * FROM `accounts` WHERE BINARY `user` = '" + user_
-                        + "' AND BINARY `pass` = '" + pass_ + "' LIMIT 1;");
-                if (!rs.next()) {
-                    login_notice("Tài khoản mật khẩu không chính xác" + (time_can_login_again > 0
+        }
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = SQL.gI().getCon();
+            ps = conn.prepareStatement("SELECT * FROM `accounts` WHERE BINARY `user` = ? LIMIT 1;");
+            ps.setString(1, user_);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                // Tài khoản ĐÃ TỒN TẠI -> Kiểm tra mật khẩu
+                String storedPass = rs.getString("pass");
+                if (!storedPass.equals(pass_)) {
+                    login_notice("Sai mật khẩu" + (time_can_login_again > 0
                             ? ".\nThử lại sau " + time_can_login_again + "s"
                             : ""));
                     if (!SessionManager.CLIENT_LOGIN_TIME.containsKey(user_)) {
@@ -631,103 +633,62 @@ public class Session implements Runnable {
                     this.claimed_milestones = "";
                 }
                 if (this.lock != 0) {
-                    login_notice("Tài khoản bị khóa để kiểm tra, liên hệ admin để biết chi tiết, "
-                            + "đừng spam tin nhắn kẻo bị t tắt thông báo!");
+                    login_notice("Tài khoản bị khóa, liên hệ admin để biết thêm chi tiết");
                     return;
                 }
-                //
-                JSONArray js = (JSONArray) JSONValue.parse(rs.getString("char"));
-                for (int i = 0; i < js.size(); i++) {
-                    list_char.add(js.get(i).toString());
+                String charData = rs.getString("char");
+                if (charData != null) {
+                    JSONArray js = (JSONArray) JSONValue.parse(charData);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            list_char.add(js.get(i).toString());
+                        }
+                    }
+                }
+            } else {
+                // Tài khoản CHƯA TỒN TẠI -> Tự động đăng ký tạo mới và vào thẳng game
+                rs.close();
+                ps.close();
+                ps = conn.prepareStatement("INSERT INTO `accounts` (`user`, `pass`, `lock`, `vip`, `coin`, `status`, `tichnap`, `sumamount`, `napthe`, `tongnap`, `claimed_milestones`, `char`) "
+                        + "VALUES (?, ?, 0, 0, 0, 0, 0, 0, 0, 2000000000, '', '[]')");
+                ps.setString(1, user_);
+                ps.setString(2, pass_);
+                ps.execute();
+                ps.close();
+
+                // Query lại account vừa tạo để khởi tạo session
+                ps = conn.prepareStatement("SELECT * FROM `accounts` WHERE BINARY `user` = ? LIMIT 1;");
+                ps.setString(1, user_);
+                rs = ps.executeQuery();
+                if (!rs.next()) {
+                    login_notice("Đăng ký thất bại, vui lòng thử lại");
+                    return;
+                }
+                this.vip = rs.getInt("vip");
+                this.coin = rs.getInt("coin");
+                this.status = rs.getByte("status");
+                this.lock = rs.getByte("lock");
+                this.tichnap = rs.getInt("tichnap");
+                this.claimed_milestones = "";
+                // list_char rỗng -> client sẽ tự động chuyển sang giao diện Tạo Nhân Vật!
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            login_notice("Lỗi hệ thống đăng nhập, vui lòng thử lại sau");
+            return;
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
-                return;
-            } finally {
-                try {
-                    if (rs != null) {
-                        rs.close();
-                    }
-                    if (st != null) {
-                        st.close();
-                    }
-                    if (conn != null) {
-                        conn.close();
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            if (user_.equals("") && pass_.equals("")) {
-                login_notice("Truy cập hanhtrinhhaitac.com để đăng ký");
-                return;
-                // user_ = "htth_truongbk_" + System.nanoTime();
-                // pass_ = "1";
-                // Connection conn = null;
-                // Statement st = null;
-                // try {
-                // conn = SQL.gI().getCon();
-                // st = conn.createStatement();
-                // st.execute("INSERT INTO `accounts` (`user`, `pass`,`lock`) VALUES ('" + user_
-                // + "', '1', 0)");
-                // } catch (SQLException e) {
-                // e.printStackTrace();
-                // return;
-                // } finally {
-                // try {
-                // if (st != null) {
-                // st.close();
-                // }
-                // if (conn != null) {
-                // conn.close();
-                // }
-                // } catch (SQLException e) {
-                // e.printStackTrace();
-                // }
-                // }
-            } else {
-                pass_ = "1";
-                Connection conn = null;
-                Statement st = null;
-                ResultSet rs = null;
-                try {
-                    conn = SQL.gI().getCon();
-                    st = conn.createStatement();
-                    rs = st.executeQuery("SELECT * FROM `accounts` WHERE BINARY `user` = '" + user_
-                            + "' AND BINARY `pass` = '" + pass_ + "' LIMIT 1;");
-                    if (!rs.next()) {
-                        login_notice("Tài khoản mật khẩu không chính xác");
-                        return;
-                    }
-                    this.lock = rs.getByte("lock");
-                    if (this.lock != 0) {
-                        login_notice("Tài khoản bị khóa, liên hệ admin để biết thêm chi tiết");
-                        return;
-                    }
-                    //
-                    JSONArray js = (JSONArray) JSONValue.parse(rs.getString("char"));
-                    for (int i = 0; i < js.size(); i++) {
-                        list_char.add(js.get(i).toString());
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    return;
-                } finally {
-                    try {
-                        if (rs != null) {
-                            rs.close();
-                        }
-                        if (st != null) {
-                            st.close();
-                        }
-                        if (conn != null) {
-                            conn.close();
-                        }
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
         }
         //

@@ -38,6 +38,7 @@ public class BXH {
     public static List<InfoMemList> HANGDONG = new ArrayList<>();
     public static List<InfoMemList> PHAO_HOA = new ArrayList<>();
     public static List<InfoMemList> LAN_KILLS = new ArrayList<>();
+    public static List<InfoMemList> DAU_TRUONG = new ArrayList<>();
     public static final java.util.Map<Integer, List<InfoMemList>> TOP_SIEU_TRUM_MAP = new java.util.concurrent.ConcurrentHashMap<>();
     public static final java.util.Map<Integer, List<Integer>> claimedTopBossRewards = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -267,6 +268,35 @@ public class BXH {
                 m.writer().writeByte(bound2 - bound1);
                 for (int i = bound1; i < bound2; i++) {
                     InfoMemList temp = BXH.LAN_KILLS.get(i);
+                    InfoMemList.WriteInfoMemList(m.writer(), temp);
+                }
+                break;
+            }
+            case 14: {
+                updateTopDauTruong();
+                int bound1 = 0;
+                int bound2 = BXH.DAU_TRUONG.size();
+                if (BXH.DAU_TRUONG.size() > 10) {
+                    if (((page + 1) * 10) > BXH.DAU_TRUONG.size()) {
+                        bound1 = 10 * page;
+                        bound2 = BXH.DAU_TRUONG.size();
+                        while (bound1 >= bound2) {
+                            bound1 -= 10;
+                            page--;
+                        }
+                    } else {
+                        bound1 = 10 * page;
+                        bound2 = bound1 + 10;
+                    }
+                } else {
+                    page = 0;
+                }
+                m.writer().writeByte(4);
+                m.writer().writeUTF("Top Đấu Trường");
+                m.writer().writeByte(page);
+                m.writer().writeByte(bound2 - bound1);
+                for (int i = bound1; i < bound2; i++) {
+                    InfoMemList temp = BXH.DAU_TRUONG.get(i);
                     InfoMemList.WriteInfoMemList(m.writer(), temp);
                 }
                 break;
@@ -598,6 +628,7 @@ public class BXH {
         updateThoSanBounty();
         updateHangDong();
         updateTopLanKills();
+        updateTopDauTruong();
     }
 
     private static void updateWanted() {
@@ -1103,6 +1134,58 @@ public class BXH {
                 System.out.println("Top " + (i + 1) + ": " + BXH.LAN_KILLS.get(i).name);
             }
         }
+    }
+
+    public static void updateTopDauTruong() {
+        List<InfoMemList> list_add = new ArrayList<>();
+        List<Player> playersInMatch = event.EventTet.getInstance().getDauTruongPlayers();
+        if (playersInMatch != null && !playersInMatch.isEmpty()) {
+            List<Player> sorted = new ArrayList<>(playersInMatch);
+            sorted.sort((p1, p2) -> Integer.compare(p2.dauTruongKills, p1.dauTruongKills));
+            for (int i = 0; i < sorted.size(); i++) {
+                Player p0 = sorted.get(i);
+                if (p0 == null || p0.dauTruongKills <= 0) continue;
+                InfoMemList temp = new InfoMemList();
+                temp.id = p0.id;
+                temp.name = p0.name;
+                temp.level = (short) p0.level;
+                temp.head = (short) p0.get_head();
+                temp.hair = (short) p0.get_hair();
+                temp.hat = p0.get_hat();
+                temp.info = "Hạ gục: " + p0.dauTruongKills;
+                temp.rank = (short) list_add.size();
+                list_add.add(temp);
+            }
+        } else {
+            List<event.EventTet.DauTruongTopRecord> lastRecords = event.EventTet.getInstance().getLastMatchTopList();
+            if (lastRecords != null && !lastRecords.isEmpty()) {
+                for (int i = 0; i < lastRecords.size(); i++) {
+                    event.EventTet.DauTruongTopRecord rec = lastRecords.get(i);
+                    InfoMemList temp = new InfoMemList();
+                    Player p0 = Map.get_player_by_name_allmap(rec.name);
+                    if (p0 != null) {
+                        temp.id = p0.id;
+                        temp.name = p0.name;
+                        temp.level = (short) p0.level;
+                        temp.head = (short) p0.get_head();
+                        temp.hair = (short) p0.get_hair();
+                        temp.hat = p0.get_hat();
+                    } else {
+                        temp.id = i + 1;
+                        temp.name = rec.name;
+                        temp.level = 1;
+                        temp.head = -1;
+                        temp.hair = -1;
+                        temp.hat = -1;
+                    }
+                    temp.info = "Hạ gục: " + rec.kills;
+                    temp.rank = (short) i;
+                    list_add.add(temp);
+                }
+            }
+        }
+        BXH.DAU_TRUONG.clear();
+        BXH.DAU_TRUONG.addAll(list_add);
     }
 
     private static void updateCaoThu() {

@@ -1116,6 +1116,18 @@ public class MessageHandler {
                 }
                 conn.p.dungeon = null;
             }
+            // Safety check: nếu out game khi đang trong Map Đấu Trường (2026) hoặc Đảo Ruby (1001) thì khi vào lại chuyển về Làng Cối Xay Gió (Map 1)
+            if (conn.p.map != null && (conn.p.map.template.id == 2026 || conn.p.map.template.id == 1001)) {
+                System.out.println("[MapRedirect] Login safety: player " + conn.p.name
+                        + " logged in while in map (" + conn.p.map.template.id + "), redirecting to Windmill Village (Map 1)");
+                map.Map[] villageMap = map.Map.get_map_by_id(1);
+                if (villageMap != null && villageMap.length > 0) {
+                    conn.p.map = villageMap[0];
+                    conn.p.x = 611;
+                    conn.p.y = 250;
+                }
+                conn.p.type_pk = -1;
+            }
             // === hết khối check ===
 
             Message m = new Message(-7); // update clock

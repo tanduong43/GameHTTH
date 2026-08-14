@@ -1535,9 +1535,15 @@ public class Map implements Runnable {
                     Service.start_combo(p0, 0);
                 }
                 //
-                if (this.template.id == 81 && this.map_little_garden != null) {
+                if ((this.template.id == 81 && this.map_little_garden != null) || this.template.id == 2026) {
                     if (p0.isdie && p0.time_hs_little_garden <= System.currentTimeMillis()) {
                         p0.isdie = false;
+                        p0.hp = p0.body.get_hp_max(true);
+                        p0.mp = p0.body.get_mp_max(true);
+                        if (this.template.id == 2026) {
+                            p0.x = 250;
+                            p0.y = 173;
+                        }
                         Service.use_potion(p0, 0, p0.body.get_hp_max(true));
                         Service.use_potion(p0, 1, p0.body.get_mp_max(true));
                     }
@@ -2098,6 +2104,9 @@ public class Map implements Runnable {
     }
 
     public void leave_map(Player p, int type) {
+        if (this.template.id == 2026 || this.template.id == 1001) {
+            p.type_pk = -1; // Tháo cờ khi rời Map Đấu Trường / Đảo Ruby
+        }
         if (this.template.id == 119) {
             Wanted.remove_player_wait(p);
         }
@@ -2693,7 +2702,8 @@ public class Map implements Runnable {
             Player p_target = list_target[i];
             if (p_target != null && p_target.index_map != p.index_map && !p_target.isdie && !p.isdie
                     && (p_target.time_can_mob_atk - 1000) < System.currentTimeMillis()) {
-                if (!((p.typePirate == 0 && p_target.typePirate == 2)
+                if (!(this.template.id == 2026
+                        || (p.typePirate == 0 && p_target.typePirate == 2)
                         || (p.typePirate == 2 && p_target.typePirate == 0)
                         || (p.typePirate == 1 && p_target.typePirate == 2)
                         || (p.typePirate == 2 && p_target.typePirate == 1)
@@ -3111,7 +3121,13 @@ public class Map implements Runnable {
                             core.BXH.updateThoSanBounty(); // Refresh ranking
                         }
                     }
-                    if (p.type_pk == 0 && p_target.type_pk != 0) {
+                    if (this.template.id == 2026) {
+                        event.EventTet.getInstance().onPlayerKillInDauTruong(p, p_target);
+                        p_target.time_hs_little_garden = System.currentTimeMillis() + 3_000L;
+                        Service.send_time_cool_down(p_target, p_target.time_hs_little_garden,
+                                "Hồi sinh", 3);
+                    }
+                    if (this.template.id != 2026 && p.type_pk == 0 && p_target.type_pk != 0) {
                         int delta = p.level / 10 - p_target.level / 10;
                         int plus = (p.pointPk > 0) ? (p.pointPk / 5) : 0;
                         if (delta > 0) {
@@ -5305,6 +5321,9 @@ public class Map implements Runnable {
                 mmove.writer().writeShort(p.y);
                 p.list_msg_cache.add(mmove);
                 mmove.cleanup();
+            }
+            if (this.template.id == 2026) {
+                this.change_flag(p, 3); // Tự động bật Cờ Đen khi vào Đấu Trường Sinh Tồn
             }
             // conn.p.map.enter_zone(conn.p);
             if (Map.is_map_save_revival(this.template.id)) {

@@ -13,6 +13,7 @@ import activities.*;
 import client.*;
 import event.TaiXiu;
 import event.EventTrungThu;
+import event.EventTet;
 import map.*;
 import map.Map;
 import org.json.simple.JSONArray;
@@ -98,7 +99,8 @@ public class Manager {
         }
         // load static class
         tx = new TaiXiu();
-        EventTrungThu.getInstance(); // Initialize Trung Thu event
+        EventTrungThu.getInstance();
+        EventTet.getInstance();
         a = Rebuild_Item.ID_SELL.length;
         a = Red_Line.KEY0.length;
         a = UpgradeItem.DATA.size();
@@ -1091,6 +1093,10 @@ public class Manager {
         // Event Trung Thu config
         if (configMap.containsKey("event-trung-thu")) {
             event.EventTrungThu.setEvent(Boolean.parseBoolean(configMap.get("event-trung-thu")));
+        }
+        // Event Tet config
+        if (configMap.containsKey("event-tet")) {
+            event.EventTet.setEvent(Boolean.parseBoolean(configMap.get("event-tet")));
         }
         // Server Event Rate Config (x2 EXP, x2 EXP Skill)
         if (configMap.containsKey("rate-exp")) {
