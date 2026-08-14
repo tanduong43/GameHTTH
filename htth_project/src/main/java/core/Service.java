@@ -2282,27 +2282,17 @@ public class Service {
         }
     }
 
-    public static void send_eff_haki_bavuong(Player p) throws IOException {
-        if (p == null || p.map == null) return;
-        short effId = 26;
-        // Gửi Message 74 hiển thị effect 26 cho tất cả người chơi trong map tại vị trí p.index_map
-        Message mTest = new Message(74);
-        mTest.writer().writeByte(1);
-        mTest.writer().writeShort(p.index_map);
-        mTest.writer().writeShort(effId);
-        mTest.writer().writeInt(3000); // 3 giây
-        mTest.writer().writeByte(0);   // typemove: 0 (tại chỗ)
-        mTest.writer().writeByte(1);   // loop: 1 (phát 1 lần)
-        p.map.send_msg_all_p(mTest, null, true);
-        mTest.cleanup();
+    public static void send_eff_haki(Player p, short effId) throws IOException {
+        if (p == null || p.map == null)
+            return;
 
-        // Gửi dữ liệu effect 26 cho các client nếu chưa có
+        // 1. Gửi dữ liệu effect trước cho các client trong map (nếu chưa có)
         for (Player p0 : p.map.players) {
             if (p0 != null && p0.conn != null) {
                 byte zoomlv = p0.conn.zoomlv;
                 byte[] data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + effId);
                 byte[] data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + effId + ".png");
-                
+
                 if (data1 == null) {
                     data1 = Util.loadfile("data/template/skill/x4/data/" + effId);
                     data2 = Util.loadfile("data/template/skill/x4/img/" + effId + ".png");
@@ -2319,7 +2309,7 @@ public class Service {
                     data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + effId);
                     data2 = Util.loadfile("data/nro/data/effect/x4/img/ImgEffect_" + effId + ".png");
                 }
-                
+
                 if (data1 != null && data2 != null) {
                     Message mData = new Message(74);
                     mData.writer().writeByte(0);
@@ -2332,6 +2322,22 @@ public class Service {
                 }
             }
         }
+
+        // 2. Gửi Message 74 hiển thị effect cho tất cả người chơi trong map tại vị trí
+        // p.index_map
+        Message mTest = new Message(74);
+        mTest.writer().writeByte(1);
+        mTest.writer().writeShort(p.index_map);
+        mTest.writer().writeShort(effId);
+        mTest.writer().writeInt(10000); // 10 giây
+        mTest.writer().writeByte(0); // typemove: 0 (tại chỗ)
+        mTest.writer().writeByte(1); // loop: 1 (phát 1 lần)
+        p.map.send_msg_all_p(mTest, null, true);
+        mTest.cleanup();
+    }
+
+    public static void send_eff_haki_bavuong(Player p) throws IOException {
+        send_eff_haki(p, (short) 26);
     }
 
     public static void send_eff_sword_splash(int id, Player p) throws IOException {

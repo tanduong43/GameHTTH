@@ -156,19 +156,27 @@ public class MessageHandler {
                                 .loadfile("data/template/skill/x" + conn.zoomlv + "/data/" + id);
                         byte[] data2 = Util.loadfile(
                                 "data/template/skill/x" + conn.zoomlv + "/img/" + id + ".png");
-                        if (data1 == null) {
+                        if (data1 == null || data2 == null) {
+                            data1 = Util.loadfile("data/template/skill/x4/data/" + id);
+                            data2 = Util.loadfile("data/template/skill/x4/img/" + id + ".png");
+                        }
+                        if (data1 == null || data2 == null) {
                             data1 = Util.loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
                             data2 = Util
                                     .loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
                         }
-                        if (data1 == null) {
+                        if (data1 == null || data2 == null) {
                             data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + id);
                             data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + id + ".png");
                         }
-                        if (data1 == null) {
+                        if (data1 == null || data2 == null) {
                             data1 = Util.loadfile("data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
                             data2 = Util
                                     .loadfile("data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
+                        }
+                        if (data1 == null || data2 == null) {
+                            data1 = Util.loadfile("data/nro/data/effect/x4/data/DataEffect_" + id);
+                            data2 = Util.loadfile("data/nro/data/effect/x4/img/ImgEffect_" + id + ".png");
                         }
                         if (data1 != null && data2 != null) {
                             m2.writer().writeShort(data1.length);

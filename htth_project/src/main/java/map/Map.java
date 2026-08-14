@@ -2418,8 +2418,12 @@ public class Map implements Runnable {
             Service.use_potion(p, 1, mp_);
 
             p.mp -= sk_temp.temp.manaLost;
-            if (sk_temp.temp.indexSkillInServer == 902) {
-                Service.send_eff_haki_bavuong(p);
+            if (sk_temp.temp.indexSkillInServer == 900) {
+                Service.send_eff_haki(p, (short) 21); // Haki Quan Sát (eff 21)
+            } else if (sk_temp.temp.indexSkillInServer == 901) {
+                Service.send_eff_haki(p, (short) 18); // Haki Vũ Trang (eff 18)
+            } else if (sk_temp.temp.indexSkillInServer == 902) {
+                Service.send_eff_haki(p, (short) 26); // Haki Bá Vương (eff 26)
             }
             long dame = p.body.get_dame(true);
             dame = (dame * p.body.get_dame_devil_percent()) / 100;
@@ -4373,42 +4377,35 @@ public class Map implements Runnable {
                         if (parts.length > 2) typemove = Byte.parseByte(parts[2]);
                         if (parts.length > 3) loop = Byte.parseByte(parts[3]);
 
-                        // Gửi message hiển thị effect cho tất cả players
-                        Message mTest = new Message(74);
-                        mTest.writer().writeByte(1);
-                        mTest.writer().writeShort(p.index_map);
-                        mTest.writer().writeShort(effId);
-                        mTest.writer().writeInt(3_600_000); // 1 tiếng
-                        mTest.writer().writeByte(typemove);
-                        mTest.writer().writeByte(loop);
-                        this.send_msg_all_p(mTest, null, true);
-                        mTest.cleanup();
-
-                        // Gửi dữ liệu effect cho mỗi client theo zoom level của họ
+                        // 1. Gửi dữ liệu effect cho mỗi client theo zoom level của họ TRƯỚC
                         for (Player p0 : this.players) {
-                            if (p0.conn != null) {
+                            if (p0 != null && p0.conn != null) {
                                 byte zoomlv = p0.conn.zoomlv;
                                 byte[] data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + effId);
                                 byte[] data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + effId + ".png");
                                 
                                 // Fallback sang x4 nếu không có
-                                if (data1 == null) {
+                                if (data1 == null || data2 == null) {
                                     data1 = Util.loadfile("data/template/skill/x4/data/" + effId);
                                     data2 = Util.loadfile("data/template/skill/x4/img/" + effId + ".png");
                                 }
                                 // Fallback sang danhhieu effect
-                                if (data1 == null) {
+                                if (data1 == null || data2 == null) {
                                     data1 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + effId);
                                     data2 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
                                 }
-                                if (data1 == null) {
+                                if (data1 == null || data2 == null) {
                                     data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + effId);
                                     data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + effId + ".png");
                                 }
                                 // Fallback sang nro data
-                                if (data1 == null) {
+                                if (data1 == null || data2 == null) {
                                     data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + effId);
                                     data2 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
+                                }
+                                if (data1 == null || data2 == null) {
+                                    data1 = Util.loadfile("data/nro/data/effect/x4/data/DataEffect_" + effId);
+                                    data2 = Util.loadfile("data/nro/data/effect/x4/img/ImgEffect_" + effId + ".png");
                                 }
                                 
                                 if (data1 != null && data2 != null) {
@@ -4425,6 +4422,17 @@ public class Map implements Runnable {
                                 }
                             }
                         }
+
+                        // 2. Gửi message hiển thị effect cho tất cả players
+                        Message mTest = new Message(74);
+                        mTest.writer().writeByte(1);
+                        mTest.writer().writeShort(p.index_map);
+                        mTest.writer().writeShort(effId);
+                        mTest.writer().writeInt(3_600_000); // 1 tiếng
+                        mTest.writer().writeByte(typemove);
+                        mTest.writer().writeByte(loop);
+                        this.send_msg_all_p(mTest, null, true);
+                        mTest.cleanup();
                         
                         System.out.println("[Debug Admin] Sent eff command with id=" + effId + " to map. TypeMove: " + typemove + ", Loop: " + loop);
                         Service.send_box_ThongBao_OK(p, "Đang hiển thị Effect ID: " + effId + " (TypeMove: " + typemove + ", Loop: " + loop + ")");

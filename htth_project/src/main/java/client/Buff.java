@@ -56,6 +56,13 @@ public class Buff {
             Service.use_potion(p, 1, -sk_info.temp.manaLost);
             Service.pet(p, p, false);
             Service.UpdateInfoMaincharInfo(p);
+            if (sk_info.temp.indexSkillInServer == 900) {
+                Service.send_eff_haki(p, (short) 21); // Haki Quan Sát (eff 21)
+            } else if (sk_info.temp.indexSkillInServer == 901) {
+                Service.send_eff_haki(p, (short) 18); // Haki Vũ Trang (eff 18)
+            } else if (sk_info.temp.indexSkillInServer == 902) {
+                Service.send_eff_haki(p, (short) 26); // Haki Bá Vương (eff 26)
+            }
             Message m = new Message(20);
             m.writer().writeByte(1);
             m.writer().writeShort(id);
