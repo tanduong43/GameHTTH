@@ -4273,6 +4273,34 @@ public class Map implements Runnable {
                                 list_gift.add(gift3);
                                 notice += "x1 " + it_stone.name + ", ";
                             }
+
+                            // 4. Gift 4: 100% roi Ruong do do cung he (ID 813 -> 822) cung cap voi Player
+                            int pLv = p.level;
+                            if (pLv < 10) {
+                                pLv = 10;
+                            }
+                            if (pLv > 100) {
+                                pLv = 100;
+                            }
+                            int redChestCungHeId = 813 + (pLv / 10) - 1;
+                            if (redChestCungHeId < 813) {
+                                redChestCungHeId = 813;
+                            }
+                            if (redChestCungHeId > 822) {
+                                redChestCungHeId = 822;
+                            }
+                            ItemTemplate4 it_rdo_cunghe = ItemTemplate4.get_it_by_id(redChestCungHeId);
+                            if (it_rdo_cunghe != null) {
+                                GiftBox giftRedCungHe = new GiftBox();
+                                giftRedCungHe.id = (short) redChestCungHeId;
+                                giftRedCungHe.type = 4;
+                                giftRedCungHe.name = it_rdo_cunghe.name;
+                                giftRedCungHe.icon = it_rdo_cunghe.icon;
+                                giftRedCungHe.num = 1;
+                                giftRedCungHe.color = 0;
+                                list_gift.add(giftRedCungHe);
+                                notice += "x1 " + it_rdo_cunghe.name + ", ";
+                            }
                             //
                             int beri_receiv = 0;
                             switch (mob_target.mob_template.mob_id) {
