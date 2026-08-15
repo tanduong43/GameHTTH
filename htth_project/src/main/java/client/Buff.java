@@ -53,6 +53,11 @@ public class Buff {
             }
         }
         if (sk_info != null && time_buff > 0 && cat == 0 && size == 1) {
+            // Override thời gian và cooldown cho Haki Quan Sát và Haki Vũ Trang
+            if (sk_info.temp.indexSkillInServer == 900 || sk_info.temp.indexSkillInServer == 901) {
+                time_buff = 20000; // 20 giây
+                sk_info.temp.timeDelay = 60000; // 60 giây cooldown
+            }
             Service.use_potion(p, 1, -sk_info.temp.manaLost);
             Service.pet(p, p, false);
             Service.UpdateInfoMaincharInfo(p);

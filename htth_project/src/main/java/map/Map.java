@@ -2413,8 +2413,13 @@ public class Map implements Runnable {
             if (p.time_sk[sk_temp.temp.ID] > System.currentTimeMillis()) {
                 return;
             }
-            p.time_sk[sk_temp.temp.ID] = System.currentTimeMillis() + sk_temp.temp.timeDelay
-                    - ((sk_temp.temp.timeDelay * p.body.get_agility(true)) / 1_000);
+            if (sk_temp.temp.indexSkillInServer == 902 || sk_temp.temp.ID == 902
+                    || (sk_temp.temp.name != null && sk_temp.temp.name.toLowerCase().contains("bá vương"))) {
+                p.time_sk[sk_temp.temp.ID] = System.currentTimeMillis() + sk_temp.temp.timeDelay;
+            } else {
+                p.time_sk[sk_temp.temp.ID] = System.currentTimeMillis() + sk_temp.temp.timeDelay
+                        - ((sk_temp.temp.timeDelay * p.body.get_agility(true)) / 1_000);
+            }
             if ((p.mp - sk_temp.temp.manaLost) < 0) {
                 Service.send_box_ThongBao_OK(p, "MP không đủ!");
                 return;
