@@ -1426,16 +1426,11 @@ public class Map implements Runnable {
                     }
                 }
                 boolean allLevelUp16 = true;
-                boolean allLevelUp20 = true;
                 for (int j = 0; j < 6; j++) {
                     Item_wear it = p0.item.it_body[j];
                     if (it == null || it.levelup < 16) {
                         allLevelUp16 = false;
-                        allLevelUp20 = false;
                         break;
-                    }
-                    if (it.levelup < 20) {
-                        allLevelUp20 = false;
                     }
                 }
                 if (allLevelUp16) {
@@ -1457,17 +1452,6 @@ public class Map implements Runnable {
                     m4.writer().writeByte(20); // loop
                     this.send_msg_all_p(m4, null, true);
                     m4.cleanup();
-                }
-                if (allLevelUp20) {
-                    Message m5 = new Message(74);
-                    m5.writer().writeByte(1);
-                    m5.writer().writeShort(p0.index_map);
-                    m5.writer().writeShort(4); // id Eff 4: Vòng xoáy lốc ma pháp dưới chân
-                    m5.writer().writeInt(5_000); // time
-                    m5.writer().writeByte(0); // type move
-                    m5.writer().writeByte(20); // loop
-                    this.send_msg_all_p(m5, null, true);
-                    m5.cleanup();
                 }
                 // up hp pet ship
                 if (p0.ship_pet != null && p0.ship_pet.time_buff_hp < System.currentTimeMillis()
