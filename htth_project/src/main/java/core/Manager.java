@@ -101,6 +101,7 @@ public class Manager {
         tx = new TaiXiu();
         EventTrungThu.getInstance();
         EventTet.getInstance();
+        event.GuildWarDaoHoa.getInstance().init();
         a = Rebuild_Item.ID_SELL.length;
         a = Red_Line.KEY0.length;
         a = UpgradeItem.DATA.size();

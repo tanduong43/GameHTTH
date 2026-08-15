@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import client.Player;
 import core.BXH;
 import core.Manager;
+import core.MenuController;
 import core.Service;
 import core.Util;
 import io.Message;
@@ -718,7 +719,7 @@ public class EventTet implements Runnable {
 
     // ================== GHÉP CHỮ VÀNG ==================
 
-    public void onLetterCombine(Player p, int itemId) throws IOException {
+    public void onLetterCombine(Player p) throws IOException {
         if (!isEvent()) {
             Service.send_box_ThongBao_OK(p, "Sự kiện Tết chưa được kích hoạt!");
             return;
@@ -732,32 +733,57 @@ public class EventTet implements Runnable {
         }
 
         if (count >= 5) {
-            // Xóa 5 chữ
-            for (int letter : letters) {
-                p.item.remove_item47(4, letter, 1);
+            // Lưu trạng thái đang chọn quà
+            p.data_yesno = new int[] { letters.length };
+            for (int i = 0; i < letters.length; i++) {
+                p.data_yesno[i] = letters[i];
             }
-            p.item.update_Inventory(-1, false);
-
-            // Random quà
-            List<GiftBox> rewards = new ArrayList<>();
-            int rand = Util.random(3);
-            switch (rand) {
-                case 0:
-                    rewards.add(createGiftBox(ITEM_HOP_TRANG_PHUC, 1));
-                    break;
-                case 1:
-                    rewards.add(createGiftBox(ITEM_RUONG_TET, 2));
-                    break;
-                case 2:
-                    rewards.add(createGiftBox(ITEM_BAO_LI_XI_TAN_NIEN, 10));
-                    break;
-            }
-
-            Service.send_gift(p, 0, "Chúc mừng! Bạn ghép thành công bộ chữ vàng!", "", rewards, true);
-            Manager.gI().chatKTG(0, "🎊 " + p.name + " đã ghép thành công bộ chữ CÙNG-VUI-ĐÓN-TẾT-TÂN NIÊN!", 5);
+            // Hiển thị menu cho người chơi tự chọn quà
+            MenuController.send_dynamic_menu(p, -1001, "Chọn Quà Ghép Chữ Vàng",
+                new String[] {
+                    "1 Hộp Trang Phục Tết",
+                    "1 Rương Tết",
+                    "10 Bao Lì Xì Tân Niên"
+                });
         } else {
             Service.send_box_ThongBao_OK(p, "Bạn cần đủ 5 chữ để ghép! (Còn thiếu " + (5 - count) + " chữ)");
         }
+    }
+
+    public void onLetterChooseReward(Player p, byte choice) throws IOException {
+        // Kiểm tra đã có trạng thái ghép chữ
+        if (p.data_yesno == null || p.data_yesno.length < 5) {
+            Service.send_box_ThongBao_OK(p, "Không có trạng thái ghép chữ!");
+            return;
+        }
+
+        // Xóa 5 chữ từ trạng thái đã lưu
+        for (int letter : p.data_yesno) {
+            p.item.remove_item47(4, letter, 1);
+        }
+        p.item.update_Inventory(-1, false);
+        p.data_yesno = null;
+
+        // Xử lý theo lựa chọn
+        List<GiftBox> rewards = new ArrayList<>();
+        switch (choice) {
+            case 0: // Hộp Trang Phục Tết
+                rewards.add(createGiftBox(ITEM_HOP_TRANG_PHUC, 1));
+                Service.send_gift(p, 0, "Chúc mừng! Bạn nhận được Hộp Trang Phục Tết!", "", rewards, true);
+                break;
+            case 1: // Rương Tết
+                rewards.add(createGiftBox(ITEM_RUONG_TET, 1));
+                Service.send_gift(p, 0, "Chúc mừng! Bạn nhận được Rương Tết!", "", rewards, true);
+                break;
+            case 2: // 10 Bao Lì Xì Tân Niên
+                rewards.add(createGiftBox(ITEM_BAO_LI_XI_TAN_NIEN, 10));
+                Service.send_gift(p, 0, "Chúc mừng! Bạn nhận được 10 Bao Lì Xì Tân Niên!", "", rewards, true);
+                break;
+            default:
+                Service.send_box_ThongBao_OK(p, "Lựa chọn không hợp lệ!");
+                return;
+        }
+        Manager.gI().chatKTG(0, "🎊 " + p.name + " đã ghép thành công bộ chữ CÙNG-VUI-ĐÓN-TẾT-TÂN NIÊN!", 5);
     }
 
     // ================== HỘP QUÀ TẾT ==================

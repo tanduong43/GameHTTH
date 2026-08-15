@@ -28,6 +28,7 @@ import client.Player;
 import database.SQL;
 import event.Doriki;
 import event.EventSpecial;
+import event.GuildWarDaoHoa;
 import event.LucThuc;
 import event.SucManhVatLy;
 import io.Message;
@@ -1070,6 +1071,57 @@ public class MenuController {
                 }
                 break;
               }
+              case 2: { // dang ky dai chien dao dao hoa
+                if (p.clan.map_create != null && p.clan.map_create.map_pvp_clan != null
+                    && p.clan.map_create.template.id == event.GuildWarDaoHoa.MAP_DAO_DAO_HOA) {
+                  if (p.clan.map_create.map_pvp_clan.clan1.equals(p.clan)) {
+                    p.type_pk = 4;
+                  } else {
+                    p.type_pk = 5;
+                  }
+                  Vgo vgo = new Vgo();
+                  vgo.map_go = new Map[1];
+                  vgo.map_go[0] = p.clan.map_create;
+                  vgo.xnew = (p.type_pk == 4) ? (short) 300 : (short) 900;
+                  vgo.ynew = 210;
+                  p.goto_map(vgo);
+                } else {
+                  boolean check_tt_tp = false;
+                  for (int i = 0; i < p.clan.members.size(); i++) {
+                    if (p.clan.members.get(i).name.equals(p.name)
+                        && (p.clan.members.get(i).levelInclan == 0
+                            || p.clan.members.get(i).levelInclan == 1)) {
+                      check_tt_tp = true;
+                      break;
+                    }
+                  }
+                  if (check_tt_tp) {
+                    if (p.tableTickOption == null) {
+                      p.tableTickOption = new TableTickOption();
+                      p.tableTickOption.listP = new ArrayList<>();
+                      p.tableTickOption.idDialog = 5; // 5 = Đại Chiến Đảo Đào Hoa
+                      p.tableTickOption.listP.add(p);
+                      for (int i = 0; i < p.clan.members.size(); i++) {
+                        Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
+                        if (p0 != null && p0.index_map != p.index_map && p0.map.equals(p.map)) {
+                          p.tableTickOption.listP.add(p0);
+                        }
+                      }
+                      p.tableTickOption.list_check = new byte[p.tableTickOption.listP.size()];
+                      p.tableTickOption.list_check[0] = 1;
+                      for (int i = 1; i < p.tableTickOption.list_check.length; i++) {
+                        p.tableTickOption.list_check[i] = 0;
+                      }
+                      TableTickOption.show_table(p, "Đại Chiến Đảo Đào Hoa");
+                    } else {
+                      Service.send_box_ThongBao_OK(p, "Băng đã đăng ký, đang chờ ghép đội!");
+                    }
+                  } else {
+                    Service.send_box_ThongBao_OK(p, "Bạn không phải thuyền trưởng hoặc thuyền phó");
+                  }
+                }
+                break;
+              }
             }
           }
           break;
@@ -1423,6 +1475,25 @@ public class MenuController {
         }
         case -100: {
           Menu_Robin(p, index);
+          break;
+        }
+        case -1001: {
+          event.EventTet.getInstance().onLetterChooseReward(p, index);
+          break;
+        }
+        case -1002: {
+          // BXH Sự kiện Tết
+          switch (index) {
+            case 0: // Top Săn Boss Lân Sư Tử
+              BXH.send(p, 15, 0);
+              break;
+            case 1: // Top Nấu Bánh Chưng
+              BXH.send(p, 16, 0);
+              break;
+            case 2: // Hướng dẫn
+              showEventHelp(p);
+              break;
+          }
           break;
         }
         case 997: {
@@ -2138,7 +2209,8 @@ public class MenuController {
         break;
       }
       case 2: {
-        send_dynamic_menu(p, 984, "Phó bản băng", new String[] { "Phó bản PVP", "Phó bản khổng lồ" },
+        send_dynamic_menu(p, 984, "Phó bản băng",
+            new String[] { "Phó bản PVP", "Phó bản khổng lồ", "Đại Chiến Đảo Đào Hoa" },
             null);
         break;
       }
@@ -2573,13 +2645,14 @@ public class MenuController {
         break;
       }
       case 2: {
-        // BXH Sự Kiện
-        event.EventTet.showLeaderboard(p);
+        // BXH Sự Kiện Tết - Sub menu
+        send_dynamic_menu(p, -1002, "BXH Sự Kiện Tết",
+            new String[] { "Top Săn Boss Lân Sư Tử", "Top Nấu Bánh Chưng" }, null);
         break;
       }
       case 3: {
         // Hướng dẫn
-        event.TetCraft.showCraftMenu(p);
+        showEventHelp(p);
         break;
       }
       default: {
@@ -2587,6 +2660,41 @@ public class MenuController {
         break;
       }
     }
+  }
+
+  private static void showEventHelp(Player p) throws IOException {
+    String help = "╔══════════════════════════════════════╗\n" +
+        "║       HƯỚNG DẪN SỰ KIỆN TẾT 2026        ║\n" +
+        "╠══════════════════════════════════════╣\n" +
+        "║ 📍 T/g x2 kỹ năng EXP:               ║\n" +
+        "║    Nhận x2 exp kỹ năng khi đánh quái ║\n" +
+        "║                                      ║\n" +
+        "║ 📍 T/g khóa exp:                     ║\n" +
+        "║    Khóa exp nhận được trong ngày     ║\n" +
+        "║                                      ║\n" +
+        "║ 📍 Tài xỉu:                          ║\n" +
+        "║    Chơi mini game đặt cược Ruby       ║\n" +
+        "║                                      ║\n" +
+        "║ 📍 Tích tiêu:                        ║\n" +
+        "║    Tích lũy Ruby để nhận quà         ║\n" +
+        "║                                      ║\n" +
+        "║ 📍 Làm Bánh Tết:                     ║\n" +
+        "║    Làm Bánh Chưng & Bánh Giầy        ║\n" +
+        "║    Để đổi quà từ NPC Trưởng Làng     ║\n" +
+        "║                                      ║\n" +
+        "║ 📍 Ghép Chữ Vàng:                    ║\n" +
+        "║    Thu thập chữ để ghép thành câu    ║\n" +
+        "║                                      ║\n" +
+        "║ 📍 BXH Sự Kiện Tết:                  ║\n" +
+        "║    - Top Săn Boss Lân Sư Tử           ║\n" +
+        "║    - Top Nấu Bánh Chưng              ║\n" +
+        "║                                      ║\n" +
+        "║ 📍 Đại Chiến Đảo Đào Hoa:            ║\n" +
+        "║    Chiến đấu clan vs clan            ║\n" +
+        "║    Thắng: 1000 EXP + 100 Ruby Bang   ║\n" +
+        "║    Thua: 500 EXP Bang                ║\n" +
+        "╚══════════════════════════════════════╝";
+    Service.send_box_ThongBao_OK(p, help);
   }
 
   private static void Menu_Learn_Skill(Player p, byte index) throws IOException {
@@ -3438,21 +3546,9 @@ public class MenuController {
     }
   }
 
-  private static void send_dynamic_menu(Player p, int idNPC, String title, String[] name)
-      throws IOException {
-    if (!p.isdie) {
-      Message m = new Message(-20);
-      m.writer().writeByte(2);
-      m.writer().writeShort(idNPC);
-      m.writer().writeByte(0);
-      m.writer().writeUTF(title);
-      m.writer().writeByte(name.length);
-      for (int i = 0; i < name.length; i++) {
-        m.writer().writeUTF(name[i]);
-      }
-      p.conn.addmsg(m);
-      m.cleanup();
-    }
+  public static void send_dynamic_menu(Player p, int id_npc, String name_npc,
+      String[] list_menu) throws IOException {
+    send_dynamic_menu(p, id_npc, name_npc, list_menu, (short[]) null);
   }
 
   private static void send_dynamic_menu(Player p, int idNPC, String title, int[] name)

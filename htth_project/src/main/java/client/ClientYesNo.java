@@ -1184,6 +1184,23 @@ public class ClientYesNo {
                     }
                     break;
                 }
+                case 2027: {
+                    if (p.tableTickOption != null && !p.tableTickOption.is_finish) {
+                        if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
+                            for (int i = 0; i < p.tableTickOption.listP.size(); i++) {
+                                Player p0 = Map.get_player_by_name_allmap(
+                                        p.tableTickOption.listP.get(i).name);
+                                if (p0 != null) {
+                                    Service.send_box_ThongBao_OK(p0,
+                                            "Đăng ký tham gia Đại Chiến Đảo Đào Hoa thành công, đang chờ ghép đội với Băng khác!");
+                                }
+                            }
+                            event.GuildWarDaoHoa.add_clan_wait(p.clan);
+                            p.tableTickOption.is_finish = true;
+                        }
+                    }
+                    break;
+                }
                 case 50: {
                     if (p.map.template.id == 1 && p.typePirate == 0 && p.id_ship_packet != -1) {
                         if (p.get_vang() < 10_000) {

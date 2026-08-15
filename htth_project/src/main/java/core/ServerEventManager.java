@@ -395,6 +395,112 @@ public class ServerEventManager {
                                 PvpClan.add_clan_wait(clan2);
                             }
                         }
+                        // Đại Chiến Đảo Đào Hoa Matching
+                        if (event.GuildWarDaoHoa.LIST_CLAN_WAIT.size() > 1) {
+                            int index = Util.random(event.GuildWarDaoHoa.LIST_CLAN_WAIT.size());
+                            Clan clan1 = event.GuildWarDaoHoa.LIST_CLAN_WAIT.get(index);
+                            event.GuildWarDaoHoa.remove_clan_wait(clan1);
+                            index = Util.random(event.GuildWarDaoHoa.LIST_CLAN_WAIT.size());
+                            Clan clan2 = event.GuildWarDaoHoa.LIST_CLAN_WAIT.get(index);
+                            event.GuildWarDaoHoa.remove_clan_wait(clan2);
+
+                            Player p1 = null;
+                            Player p2 = null;
+                            for (int i = 0; i < clan1.members.size(); i++) {
+                                if (clan1.members.get(i).levelInclan == 0
+                                        || clan1.members.get(i).levelInclan == 1) {
+                                    Player p0 = Map.get_player_by_name_allmap(clan1.members.get(i).name);
+                                    if (p0 != null) {
+                                        p1 = p0;
+                                        break;
+                                    }
+                                }
+                            }
+                            for (int i = 0; i < clan2.members.size(); i++) {
+                                if (clan2.members.get(i).levelInclan == 0
+                                        || clan2.members.get(i).levelInclan == 1) {
+                                    Player p0 = Map.get_player_by_name_allmap(clan2.members.get(i).name);
+                                    if (p0 != null) {
+                                        p2 = p0;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (p1 != null && p2 != null && p1.name.equals(p2.name)) {
+                                event.GuildWarDaoHoa.add_clan_wait(clan1);
+                            } else if (p1 != null && p2 != null) {
+                                Map[] mapArr = Map.get_map_by_id(event.GuildWarDaoHoa.MAP_DAO_DAO_HOA);
+                                Map mapTemplate = (mapArr != null && mapArr.length > 0) ? mapArr[0] : null;
+                                if (mapTemplate != null) {
+                                    Map map_dungeon = new Map();
+                                    map_dungeon.template = mapTemplate.template;
+                                    map_dungeon.zone_id = (byte) 0;
+                                    map_dungeon.list_mob = new int[0];
+                                    map_dungeon.map_pvp_clan = new Map_Pvp_Clan();
+                                    map_dungeon.map_pvp_clan.time_end = System.currentTimeMillis() + 60_000L * 60;
+                                    map_dungeon.map_pvp_clan.clan1 = clan1;
+                                    map_dungeon.map_pvp_clan.clan2 = clan2;
+
+                                    clan1.map_create = map_dungeon;
+                                    clan2.map_create = map_dungeon;
+                                    map_dungeon.start_map();
+                                    Map.add_map_plus(map_dungeon);
+
+                                    Message m38 = new Message(38);
+                                    try {
+                                        m38.writer().writeByte(1);
+                                        m38.writer().writeByte(2);
+                                        m38.writer().writeUTF(clan1.name);
+                                        m38.writer().writeUTF(clan2.name);
+                                        m38.writer().writeByte(2);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    Vgo vgo1 = new Vgo();
+                                    vgo1.map_go = new Map[1];
+                                    vgo1.map_go[0] = map_dungeon;
+                                    vgo1.xnew = (short) Util.random(250, 350);
+                                    vgo1.ynew = (short) 210;
+
+                                    Vgo vgo2 = new Vgo();
+                                    vgo2.map_go = new Map[1];
+                                    vgo2.map_go[0] = map_dungeon;
+                                    vgo2.xnew = (short) Util.random(850, 950);
+                                    vgo2.ynew = (short) 210;
+
+                                    List<Player> list_remove_table_tick = new ArrayList<>();
+                                    if (p1.tableTickOption != null && p1.tableTickOption.listP != null) {
+                                        for (int i = 0; i < p1.tableTickOption.listP.size(); i++) {
+                                            Player p0 = p1.tableTickOption.listP.get(i);
+                                            if (p0 != null && p0.conn != null && p1.tableTickOption.list_check[i] == 1) {
+                                                list_remove_table_tick.add(p0);
+                                                p0.type_pk = 4; // Cờ đỏ
+                                                try { p0.conn.addmsg(m38); } catch (Exception e) {}
+                                                try { p0.goto_map(vgo1); } catch (Exception e) {}
+                                            }
+                                        }
+                                    }
+                                    if (p2.tableTickOption != null && p2.tableTickOption.listP != null) {
+                                        for (int i = 0; i < p2.tableTickOption.listP.size(); i++) {
+                                            Player p0 = p2.tableTickOption.listP.get(i);
+                                            if (p0 != null && p0.conn != null && p2.tableTickOption.list_check[i] == 1) {
+                                                list_remove_table_tick.add(p0);
+                                                p0.type_pk = 5; // Cờ xanh
+                                                try { p0.conn.addmsg(m38); } catch (Exception e) {}
+                                                try { p0.goto_map(vgo2); } catch (Exception e) {}
+                                            }
+                                        }
+                                    }
+                                    list_remove_table_tick.forEach(l -> l.tableTickOption = null);
+                                    m38.cleanup();
+                                }
+                            } else if (p1 != null) {
+                                event.GuildWarDaoHoa.add_clan_wait(clan1);
+                            } else if (p2 != null) {
+                                event.GuildWarDaoHoa.add_clan_wait(clan2);
+                            }
+                        }
                     }
                     //
                     long time_sleep = 1000 - millis;

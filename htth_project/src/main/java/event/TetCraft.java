@@ -61,7 +61,7 @@ public class TetCraft {
                 craftBanhGiay(p);
                 break;
             case 3:
-                EventTet.getInstance().onLetterCombine(p, 0);
+                EventTet.getInstance().onLetterCombine(p);
                 break;
             default:
                 Service.send_box_ThongBao_OK(p, "Lựa chọn không hợp lệ!");
