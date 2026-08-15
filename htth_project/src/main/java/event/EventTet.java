@@ -205,8 +205,11 @@ public class EventTet implements Runnable {
     private void updateDauTruongSchedule() {
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        int timeInMinutes = hour * 60 + minute;
 
-        if (hour == 21) {
+        // Mở từ 19h00 (1140 phút) đến 19h45 (1185 phút) hằng ngày
+        if (timeInMinutes >= 1140 && timeInMinutes < 1185) {
             if (!dauTruongOpen) {
                 openDauTruong();
             }
@@ -222,16 +225,16 @@ public class EventTet implements Runnable {
     public void openDauTruong() {
         dauTruongOpen = true;
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 22);
-        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 19);
+        cal.set(Calendar.MINUTE, 45);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
         dauTruongEndTime = cal.getTimeInMillis();
         dauTruongKillCount = 0;
         dauTruongPlayers.clear();
         try {
-            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã chính thức mở cửa (21h00 - 22h00)! Hãy đến gặp Tôn Ngộ Không để tham gia!");
-            Manager.gI().chatKTG(0, "🔥 Đấu Trường Sinh Tồn đã mở cửa từ 21h00 đến 22h00! Hãy đến gặp Tôn Ngộ Không để tham gia!", 5);
+            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã chính thức mở cửa (19h00 - 19h45)! Hãy đến gặp Tôn Ngộ Không để tham gia!");
+            Manager.gI().chatKTG(0, "🔥 Đấu Trường Sinh Tồn đã mở cửa từ 19h00 đến 19h45! Hãy đến gặp Tôn Ngộ Không để tham gia!", 5);
         } catch (IOException e) {
             System.out.println("Error announcing dau truong open: " + e.getMessage());
         }

@@ -874,6 +874,8 @@ public class MessageHandler {
                         // sieu
                         // hang
                         conn.p.update_info_to_all();
+                    } else if (conn.p.map.map_pvp_clan != null) {
+                        activities.PvpClan.send_pvp_clan_score(conn.p, conn.p.map);
                     } else if (conn.p.map.template.id == 119) { // phong cho truy na
                         Wanted.show_table(conn.p);
                         Service.Wanted(conn.p, false);
@@ -1129,6 +1131,24 @@ public class MessageHandler {
                     conn.p.y = 250;
                 }
                 conn.p.type_pk = -1;
+            }
+
+            // Safety check: nếu out game khi đang trong Map Đảo Đào Hoa (2027) thì khi vào lại chuyển về Nhà hàng Baratie (Map 33)
+            if (conn.p.map != null && (conn.p.map.template.id == 2027 || conn.p.map.map_dao_hoa != null)) {
+                System.out.println("[MapRedirect] Login safety: player " + conn.p.name
+                        + " logged in while in Dao Dao Hoa (2027), redirecting to Baratie (Map 33)");
+                map.Map[] villageMap = map.Map.get_map_by_id(33);
+                if (villageMap != null && villageMap.length > 0) {
+                    conn.p.map = villageMap[0];
+                    conn.p.x = 710;
+                    conn.p.y = 320;
+                }
+                conn.p.type_pk = -1;
+                if (conn.p.isdie) {
+                    conn.p.isdie = false;
+                    conn.p.hp = conn.p.body.get_hp_max(true);
+                    conn.p.mp = conn.p.body.get_mp_max(true);
+                }
             }
             // === hết khối check ===
 

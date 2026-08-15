@@ -962,20 +962,27 @@ public class MenuController {
           // pho ban bang select
           if (p.clan != null) {
             switch (index) {
-              case 0: { // dang ky pho ban pvp bang
-                if (p.clan.map_create != null && p.clan.map_create.map_pvp_clan != null) { // enter map
-                  if (p.clan.map_create.map_pvp_clan.clan1.equals(p.clan)) {
-                    p.type_pk = 4;
-                  } else {
-                    p.type_pk = 5;
-                  }
+              case 0: { // dang ky pho ban pvp bang (Map 123)
+                if (p.clan.map_create != null && p.clan.map_create.map_pvp_clan != null
+                    && p.clan.map_create.template.id == activities.PvpClan.MAP_PVP_CLAN) { // enter map
                   Vgo vgo = new Vgo();
                   vgo.map_go = new Map[1];
                   vgo.map_go[0] = p.clan.map_create;
-                  vgo.xnew = 350;
-                  vgo.ynew = 260;
+                  if (p.clan.map_create.map_pvp_clan.clan1.equals(p.clan)) {
+                    p.type_pk = 4;
+                    vgo.xnew = 220;
+                  } else {
+                    p.type_pk = 5;
+                    vgo.xnew = 460;
+                  }
+                  vgo.ynew = 240;
                   p.goto_map(vgo);
+                  activities.PvpClan.send_pvp_clan_score(p, p.clan.map_create);
                 } else {
+                  if (!activities.PvpClan.is_open_pvp_clan()) {
+                    Service.send_box_ThongBao_OK(p, "Phó bản PVP Băng chỉ mở vào Thứ 2, 4, 6 từ 12h-13h và 20h-21h!");
+                    break;
+                  }
                   boolean check_tt_tp = false;
                   for (int i = 0; i < p.clan.members.size(); i++) {
                     if (p.clan.members.get(i).name.equals(p.name)
@@ -1071,10 +1078,10 @@ public class MenuController {
                 }
                 break;
               }
-              case 2: { // dang ky dai chien dao dao hoa
-                if (p.clan.map_create != null && p.clan.map_create.map_pvp_clan != null
+              case 2: { // dang ky dai chien dao dao hoa (Map 2027)
+                if (p.clan.map_create != null && p.clan.map_create.map_dao_hoa != null
                     && p.clan.map_create.template.id == event.GuildWarDaoHoa.MAP_DAO_DAO_HOA) {
-                  if (p.clan.map_create.map_pvp_clan.clan1.equals(p.clan)) {
+                  if (p.clan.map_create.map_dao_hoa.clan1.equals(p.clan)) {
                     p.type_pk = 4;
                   } else {
                     p.type_pk = 5;
@@ -1086,6 +1093,10 @@ public class MenuController {
                   vgo.ynew = 210;
                   p.goto_map(vgo);
                 } else {
+                  if (!event.GuildWarDaoHoa.is_open_dao_hoa()) {
+                    Service.send_box_ThongBao_OK(p, "Đại Chiến Đảo Đào Hoa chỉ mở vào Thứ 2, 4, 6 từ 20h30 đến 21h30!");
+                    break;
+                  }
                   boolean check_tt_tp = false;
                   for (int i = 0; i < p.clan.members.size(); i++) {
                     if (p.clan.members.get(i).name.equals(p.name)
@@ -1600,7 +1611,7 @@ public class MenuController {
             case 0: { // Vào Map
               if (!event.EventTet.getInstance().isDauTruongOpen()) {
                 Service.send_box_ThongBao_OK(p,
-                    "Đấu Trường Sinh Tồn mở cửa từ 21:00 đến 22:00 hằng ngày!");
+                    "Đấu Trường Sinh Tồn mở cửa từ 19:00 đến 19:45 hằng ngày!");
                 break;
               }
               Vgo vgo = new Vgo();

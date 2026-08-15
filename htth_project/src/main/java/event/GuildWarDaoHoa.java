@@ -17,21 +17,20 @@ import template.Item_wear;
 
 /**
  * HOẠT ĐỘNG: ĐẠI CHIẾN CHIẾM ĐẢO ĐÀO HOA
- * Guild War lãnh địa - Thứ 3, Thứ 5, Chủ Nhật (19:00 - 20:00)
+ * Guild War lãnh địa - Thứ 2, Thứ 4, Thứ 6 (20:30 - 21:30)
  */
 public class GuildWarDaoHoa implements Runnable {
 
     // ======== CẤU HÌNH SỰ KIỆN ========
     private static GuildWarDaoHoa instance;
-    public static boolean IS_OPEN = true; // Mở sẵn cho test 24/7
-    private static final boolean DEBUG_MODE = true;
+    public static boolean IS_OPEN = false;
 
     public static final int MAP_DAO_DAO_HOA = 2027;
 
-    private static final int START_HOUR = 19;
-    private static final int START_MINUTE = 0;
-    private static final int END_HOUR = 20;
-    private static final int END_MINUTE = 0;
+    public static final int START_HOUR = 20;
+    public static final int START_MINUTE = 30;
+    public static final int END_HOUR = 21;
+    public static final int END_MINUTE = 30;
 
     public static final int REWARD_WIN_CLAN_EXP = 1000;
     public static final int REWARD_WIN_CLAN_RUBY = 100;
@@ -56,6 +55,19 @@ public class GuildWarDaoHoa implements Runnable {
         }
     }
 
+    /**
+     * Kiểm tra thời gian mở Đại Chiến Đảo Đào Hoa:
+     * Thứ 2, Thứ 4, Thứ 6 từ 20h30 đến 21h30
+     * (Trong Joda-Time: 1 = Thứ 2, 3 = Thứ 4, 5 = Thứ 6)
+     */
+    public static boolean is_open_dao_hoa() {
+        org.joda.time.DateTime now = org.joda.time.DateTime.now();
+        int day = now.getDayOfWeek();
+        int timeInMinutes = now.getHourOfDay() * 60 + now.getMinuteOfHour();
+        // Thứ 2 (1), Thứ 4 (3), Thứ 6 (5) từ 20h30 (1230 phút) đến 21h30 (1290 phút)
+        return (day == 1 || day == 3 || day == 5) && (timeInMinutes >= 1230 && timeInMinutes <= 1290);
+    }
+
     private ScheduledExecutorService scheduler;
 
     public static GuildWarDaoHoa getInstance() {
@@ -76,23 +88,8 @@ public class GuildWarDaoHoa implements Runnable {
 
     @Override
     public void run() {
-        if (DEBUG_MODE) {
-            IS_OPEN = true;
-            return;
-        }
-
-        Calendar cal = Calendar.getInstance();
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-        int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
-
-        // Thứ 3 (3), Thứ 5 (5), Chủ Nhật (1)
-        boolean isEventDay = (dayOfWeek == Calendar.TUESDAY || dayOfWeek == Calendar.THURSDAY || dayOfWeek == Calendar.SUNDAY);
-
-        if (isEventDay && hour >= START_HOUR && hour < END_HOUR) {
-            IS_OPEN = true;
-        } else {
-            IS_OPEN = false;
+        IS_OPEN = is_open_dao_hoa();
+        if (!IS_OPEN) {
             LIST_CLAN_WAIT.clear();
         }
     }

@@ -240,7 +240,7 @@ public class Service {
     }
 
     public static void update_PK(Player p0, Player p, boolean save_cache) throws IOException {
-        if (!(p0.map.map_pvp != null || p0.map.template.id == 1000)) {
+        if (!(p0.map.map_pvp != null || p0.map.map_pvp_clan != null || p0.map.template.id == 1000 || p0.map.template.id == 123)) {
             if (p0.pointPk >= 400 && p0.type_pk == -1) {
                 p0.type_pk = 1;
             }
@@ -1869,6 +1869,10 @@ public class Service {
             //
             switch (temp.type) {
                 case 99: { // xp
+                    if (temp.id == -1) {
+                        // Hiển thị EXP Băng, không cộng vào exp cá nhân
+                        break;
+                    }
                     long exp_receiv = num_item;
                     int buff_percent = 100;
                     if (p.clan != null && p.clan.check_buff(0)) {

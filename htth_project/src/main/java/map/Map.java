@@ -37,6 +37,7 @@ import template.ItemTemplate7;
 import template.Item_wear;
 import template.Map_Little_Garden;
 import template.Map_Pvp_Clan;
+import template.Map_Dao_Hoa;
 import template.Map_ThuThachVeThan;
 import template.Map_clan_resource;
 import template.Map_pvp;
@@ -70,6 +71,7 @@ public class Map implements Runnable {
     public Map_clan_resource clan_resource;
     public Map_Little_Garden map_little_garden;
     public Map_Pvp_Clan map_pvp_clan;
+    public Map_Dao_Hoa map_dao_hoa;
     public activities.BossHunt map_bossHunt;
     public ItemMap[] list_it_map = new ItemMap[1_000];
     public boolean can_PK = true;
@@ -159,6 +161,7 @@ public class Map implements Runnable {
         update_map_pvp();
         update_map_little_garden();
         update_map_pvp_clan();
+        update_map_dao_hoa();
         update_map_ThuThachVeThan();
         update_map_Wanted();
         update_map_bossHunt();
@@ -603,84 +606,159 @@ public class Map implements Runnable {
 
     private void update_map_pvp_clan() {
         if (this.map_pvp_clan != null) {
-            if (this.map_pvp_clan.is_finish
-                    || this.map_pvp_clan.time_end < System.currentTimeMillis()) {
-                this.map_pvp_clan.is_finish = true;
+            long now = System.currentTimeMillis();
+
+            // 1. Tự động hồi sinh các player đã chết trong lúc trận đấu đang diễn ra
+            if (!this.map_pvp_clan.is_notified) {
+                for (int i = 0; i < players.size(); i++) {
+                    Player pl = players.get(i);
+                    if (pl != null && pl.isdie && pl.time_revive_pvp_clan > 0 && now >= pl.time_revive_pvp_clan) {
+                        pl.time_revive_pvp_clan = 0;
+                        pl.isdie = false;
+                        pl.hp = pl.body.get_hp_max(true);
+                        pl.mp = pl.body.get_mp_max(true);
+                        try {
+                            Service.use_potion(pl, 0, pl.hp);
+                            Service.use_potion(pl, 1, pl.mp);
+                        } catch (Exception e) {}
+                        pl.time_can_mob_atk = now + 2000L;
+                        pl.x = (pl.type_pk == 4) ? (short) 220 : (short) 460;
+                        pl.y = (short) 240;
+                        pl.xold = pl.x;
+                        pl.yold = pl.y;
+                        try {
+                            Message mmove = new Message(1);
+                            mmove.writer().writeByte(0);
+                            mmove.writer().writeShort(pl.index_map);
+                            mmove.writer().writeShort(pl.x);
+                            mmove.writer().writeShort(pl.y);
+                            send_msg_all_p(mmove, pl, true);
+                            mmove.cleanup();
+
+                            Message mRevive = new Message(-71);
+                            mRevive.writer().writeByte(1);
+                            mRevive.writer().writeShort(pl.index_map);
+                            mRevive.writer().writeByte(0);
+                            mRevive.writer().writeInt(60 * 30);
+                            send_msg_all_p(mRevive, pl, true);
+                            mRevive.cleanup();
+
+                            // Xóa đồng hồ đếm ngược hồi sinh (gửi 0 giây)
+                            activities.PvpClan.send_revive_countdown(pl, 0);
+                            // Gửi lại bảng điểm số Kill
+                            activities.PvpClan.send_pvp_clan_score(pl, this);
+                        } catch (Exception e) { e.printStackTrace(); }
+                    }
+                }
+            }
+
+            // 2. GIAI ĐOẠN 1: HẾT GIỜ 5 PHÚT -> Tính điểm, thưởng XP/Ruby Băng, hiện BẢNG NHẬN QUÀ, đếm ngược 8 giây về làng
+            if (!this.map_pvp_clan.is_notified && now >= this.map_pvp_clan.time_end) {
+                this.map_pvp_clan.is_notified = true;
+                this.map_pvp_clan.time_return_village = now + 8_000L; // Đếm ngược 8 giây
 
                 int xp1 = 1200;
                 int xp2 = 1200;
                 int rb1 = 300;
                 int rb2 = 300;
 
-                if (this.map_pvp_clan.score_clan1 > this.map_pvp_clan.score_clan2) {
+                int score1 = this.map_pvp_clan.score_clan1;
+                int score2 = this.map_pvp_clan.score_clan2;
+
+                if (score1 > score2) {
                     xp1 = 1800;
                     rb1 = 500;
                     xp2 = 1000;
                     rb2 = 250;
-                } else if (this.map_pvp_clan.score_clan2 > this.map_pvp_clan.score_clan1) {
+                } else if (score2 > score1) {
                     xp2 = 1800;
                     rb2 = 500;
                     xp1 = 1000;
                     rb1 = 250;
                 }
 
+                String clanName1 = (this.map_pvp_clan.clan1 != null) ? this.map_pvp_clan.clan1.name : "Băng 1";
+                String clanName2 = (this.map_pvp_clan.clan2 != null) ? this.map_pvp_clan.clan2.name : "Băng 2";
+                String result1 = (score1 > score2) ? "THẮNG" : (score1 < score2 ? "THUA" : "HÒA");
+                String result2 = (score2 > score1) ? "THẮNG" : (score2 < score1 ? "THUA" : "HÒA");
+
+                // Cập nhật XP + Ruby băng và gửi thông báo vào Chat Băng
                 if (this.map_pvp_clan.clan1 != null) {
                     this.map_pvp_clan.clan1.update_xp(xp1);
                     this.map_pvp_clan.clan1.update_ruby(rb1);
                     for (int i1 = 0; i1 < this.map_pvp_clan.clan1.members.size(); i1++) {
-                        Player p0 = Map.get_player_by_name_allmap(
-                                this.map_pvp_clan.clan1.members.get(i1).name);
+                        Player p0 = Map.get_player_by_name_allmap(this.map_pvp_clan.clan1.members.get(i1).name);
                         if (p0 != null) {
-                            try {
-                                Clan.set_data(p0, false);
-                                Clan.send_money(p0, false);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            try { Clan.set_data(p0, false); Clan.send_money(p0, false); } catch (IOException e) { e.printStackTrace(); }
                         }
                     }
-                    try {
-                        String resultTxt = (xp1 == 1800) ? "THẮNG" : (xp1 == 1000 ? "THUA" : "HÒA");
-                        this.map_pvp_clan.clan1.chat_on_board(
-                                this.map_pvp_clan.clan1.members.get(0).id,
-                                this.map_pvp_clan.clan1.members.get(0).name,
-                                ("Phó bản PVP Băng [" + resultTxt + "] với " + this.map_pvp_clan.clan2.name
-                                        + ": nhận được " + xp1 + " xp băng và " + rb1 + " ruby băng"),
-                                -3);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (!this.map_pvp_clan.clan1.members.isEmpty()) {
+                        try {
+                            this.map_pvp_clan.clan1.chat_on_board(
+                                    this.map_pvp_clan.clan1.members.get(0).id,
+                                    this.map_pvp_clan.clan1.members.get(0).name,
+                                    "Phó bản PVP Băng [" + result1 + "] với " + clanName2
+                                            + " (Tỷ số Kill: " + score1 + " - " + score2
+                                            + "): nhận được " + xp1 + " xp băng và " + rb1 + " ruby băng",
+                                    -3);
+                        } catch (IOException e) { e.printStackTrace(); }
                     }
-                    this.map_pvp_clan.clan1.map_create = null;
                 }
 
                 if (this.map_pvp_clan.clan2 != null) {
                     this.map_pvp_clan.clan2.update_xp(xp2);
                     this.map_pvp_clan.clan2.update_ruby(rb2);
                     for (int i1 = 0; i1 < this.map_pvp_clan.clan2.members.size(); i1++) {
-                        Player p0 = Map.get_player_by_name_allmap(
-                                this.map_pvp_clan.clan2.members.get(i1).name);
+                        Player p0 = Map.get_player_by_name_allmap(this.map_pvp_clan.clan2.members.get(i1).name);
                         if (p0 != null) {
-                            try {
-                                Clan.set_data(p0, false);
-                                Clan.send_money(p0, false);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            try { Clan.set_data(p0, false); Clan.send_money(p0, false); } catch (IOException e) { e.printStackTrace(); }
                         }
                     }
-                    try {
-                        String resultTxt = (xp2 == 1800) ? "THẮNG" : (xp2 == 1000 ? "THUA" : "HÒA");
-                        this.map_pvp_clan.clan2.chat_on_board(
-                                this.map_pvp_clan.clan2.members.get(0).id,
-                                this.map_pvp_clan.clan2.members.get(0).name,
-                                ("Phó bản PVP Băng [" + resultTxt + "] với " + this.map_pvp_clan.clan1.name
-                                        + ": nhận được " + xp2 + " xp băng và " + rb2 + " ruby băng"),
-                                -3);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (!this.map_pvp_clan.clan2.members.isEmpty()) {
+                        try {
+                            this.map_pvp_clan.clan2.chat_on_board(
+                                    this.map_pvp_clan.clan2.members.get(0).id,
+                                    this.map_pvp_clan.clan2.members.get(0).name,
+                                    "Phó bản PVP Băng [" + result2 + "] với " + clanName1
+                                            + " (Tỷ số Kill: " + score2 + " - " + score1
+                                            + "): nhận được " + xp2 + " xp băng và " + rb2 + " ruby băng",
+                                    -3);
+                        } catch (IOException e) { e.printStackTrace(); }
                     }
-                    this.map_pvp_clan.clan2.map_create = null;
                 }
+
+                // Hiển thị BẢNG NHẬN QUÀ (chỉ hiển thị quà của Clan) và đếm ngược 8s tới tất cả người chơi trong map
+                for (int i = 0; i < players.size(); i++) {
+                    Player pl = players.get(i);
+                    if (pl != null && pl.conn != null) {
+                        try {
+                            int xp = (score1 == score2) ? 1200 : ((score1 > score2) ? ((pl.type_pk == 4) ? xp1 : xp2) : ((pl.type_pk == 5) ? xp2 : xp1));
+                            int rb = (score1 == score2) ? 300 : ((score1 > score2) ? ((pl.type_pk == 4) ? rb1 : rb2) : ((pl.type_pk == 5) ? rb2 : rb1));
+                            int res = 0;
+                            if (score1 > score2) {
+                                res = (pl.type_pk == 4) ? 1 : -1;
+                            } else if (score2 > score1) {
+                                res = (pl.type_pk == 5) ? 1 : -1;
+                            }
+                            String resTitle = (res == 1) ? "Chiến Thắng" : ((res == -1) ? "Thất Bại" : "Hòa");
+                            List<template.GiftBox> gifts = activities.PvpClan.get_gift_pvp_clan(pl, xp, rb);
+                            core.Service.send_gift(pl, 1, "PVP Băng [" + resTitle + "]", "Tỷ số: " + score1 + " - " + score2, gifts, true);
+
+                            // Gửi đếm ngược 8 giây về làng
+                            activities.PvpClan.send_return_village_countdown(pl, 8);
+                        } catch (Exception e) { e.printStackTrace(); }
+                    }
+                }
+
+                if (this.map_pvp_clan.clan1 != null) this.map_pvp_clan.clan1.map_create = null;
+                if (this.map_pvp_clan.clan2 != null) this.map_pvp_clan.clan2.map_create = null;
+                this.map_pvp_clan.clan1 = null;
+                this.map_pvp_clan.clan2 = null;
+            }
+
+            // 3. GIAI ĐOẠN 2: HẾT 8 GIÂY ĐẾM NGƯỢC -> Đưa tất cả người chơi trong map về làng
+            if (this.map_pvp_clan.is_notified && !this.map_pvp_clan.is_finish && now >= this.map_pvp_clan.time_return_village) {
+                this.map_pvp_clan.is_finish = true;
 
                 Vgo vgo = new Vgo();
                 vgo.map_go = Map.get_map_by_id(33);
@@ -692,12 +770,121 @@ public class Map implements Runnable {
                 }
                 playerList.forEach(l -> {
                     try {
+                        l.isdie = false;
+                        l.hp = l.body.get_hp_max(true);
+                        l.mp = l.body.get_mp_max(true);
+                        l.time_revive_pvp_clan = 0;
                         l.type_pk = -1;
+                        activities.PvpClan.clear_pvp_clan_score(l);
+                        activities.PvpClan.send_return_village_countdown(l, 0);
                         l.goto_map(vgo);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 });
+                Map.remove_map_plus(this);
+                this.running = false;
+            }
+        }
+    }
+
+    private void update_map_dao_hoa() {
+        if (this.map_dao_hoa != null) {
+            long now = System.currentTimeMillis();
+
+            // 1. Tự động hồi sinh các player đã chết trong Đảo Đào Hoa (Map 2027)
+            if (!this.map_dao_hoa.is_notified) {
+                for (int i = 0; i < players.size(); i++) {
+                    Player pl = players.get(i);
+                    if (pl != null && pl.isdie && pl.time_revive_pvp_clan > 0 && now >= pl.time_revive_pvp_clan) {
+                        pl.time_revive_pvp_clan = 0;
+                        pl.isdie = false;
+                        pl.hp = pl.body.get_hp_max(true);
+                        pl.mp = pl.body.get_mp_max(true);
+                        try {
+                            Service.use_potion(pl, 0, pl.hp);
+                            Service.use_potion(pl, 1, pl.mp);
+                        } catch (Exception e) {}
+                        pl.time_can_mob_atk = now + 2000L;
+                        pl.x = (pl.type_pk == 4) ? (short) 300 : (short) 900;
+                        pl.y = (short) 210;
+                        pl.xold = pl.x;
+                        pl.yold = pl.y;
+                        try {
+                            Message mmove = new Message(1);
+                            mmove.writer().writeByte(0);
+                            mmove.writer().writeShort(pl.index_map);
+                            mmove.writer().writeShort(pl.x);
+                            mmove.writer().writeShort(pl.y);
+                            send_msg_all_p(mmove, pl, true);
+                            mmove.cleanup();
+
+                            Message mRevive = new Message(-71);
+                            mRevive.writer().writeByte(1);
+                            mRevive.writer().writeShort(pl.index_map);
+                            mRevive.writer().writeByte(0);
+                            mRevive.writer().writeInt(60 * 30);
+                            send_msg_all_p(mRevive, pl, true);
+                            mRevive.cleanup();
+
+                            activities.PvpClan.send_revive_countdown(pl, 0);
+                        } catch (Exception e) { e.printStackTrace(); }
+                    }
+                }
+            }
+
+            // 2. Giai đoạn kết thúc Đảo Đào Hoa
+            if (!this.map_dao_hoa.is_notified && now >= this.map_dao_hoa.time_end) {
+                this.map_dao_hoa.is_notified = true;
+                this.map_dao_hoa.time_return_village = now + 8_000L;
+
+                int score1 = this.map_dao_hoa.score_clan1;
+                int score2 = this.map_dao_hoa.score_clan2;
+                Clan winnerClan = (score1 > score2) ? this.map_dao_hoa.clan1 : ((score2 > score1) ? this.map_dao_hoa.clan2 : null);
+                Clan loserClan = (score1 > score2) ? this.map_dao_hoa.clan2 : ((score2 > score1) ? this.map_dao_hoa.clan1 : null);
+
+                event.GuildWarDaoHoa.finishWar(winnerClan, loserClan, this.players);
+
+                for (int i = 0; i < players.size(); i++) {
+                    Player pl = players.get(i);
+                    if (pl != null && pl.conn != null) {
+                        activities.PvpClan.send_return_village_countdown(pl, 8);
+                    }
+                }
+
+                if (this.map_dao_hoa.clan1 != null) this.map_dao_hoa.clan1.map_create = null;
+                if (this.map_dao_hoa.clan2 != null) this.map_dao_hoa.clan2.map_create = null;
+                this.map_dao_hoa.clan1 = null;
+                this.map_dao_hoa.clan2 = null;
+            }
+
+            // 3. Sau 8s đưa về làng
+            if (this.map_dao_hoa.is_notified && !this.map_dao_hoa.is_finish && now >= this.map_dao_hoa.time_return_village) {
+                this.map_dao_hoa.is_finish = true;
+
+                Vgo vgo = new Vgo();
+                vgo.map_go = Map.get_map_by_id(33);
+                vgo.xnew = 710;
+                vgo.ynew = 320;
+                List<Player> playerList = new ArrayList<>();
+                for (int i = 0; i < players.size(); i++) {
+                    playerList.add(players.get(i));
+                }
+                playerList.forEach(l -> {
+                    try {
+                        l.isdie = false;
+                        l.hp = l.body.get_hp_max(true);
+                        l.mp = l.body.get_mp_max(true);
+                        l.time_revive_pvp_clan = 0;
+                        l.type_pk = -1;
+                        activities.PvpClan.clear_pvp_clan_score(l);
+                        activities.PvpClan.send_return_village_countdown(l, 0);
+                        l.goto_map(vgo);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+                Map.remove_map_plus(this);
                 this.running = false;
             }
         }
@@ -2088,8 +2275,11 @@ public class Map implements Runnable {
     }
 
     public void leave_map(Player p, int type) {
-        if (this.template.id == 2026 || this.template.id == 1001) {
-            p.type_pk = -1; // Tháo cờ khi rời Map Đấu Trường / Đảo Ruby
+        if (this.template.id == 2026 || this.template.id == 1001 || this.map_pvp_clan != null || this.map_dao_hoa != null) {
+            p.type_pk = -1; // Tháo cờ khi rời Map Đấu Trường / Đảo Ruby / PVP Clan / Đảo Đào Hoa
+            if (this.map_pvp_clan != null) {
+                activities.PvpClan.clear_pvp_clan_score(p);
+            }
         }
         if (this.template.id == 119) {
             Wanted.remove_player_wait(p);
@@ -3079,6 +3269,18 @@ public class Map implements Runnable {
                         } else if (p_target.type_pk == 5) {
                             this.map_pvp_clan.score_clan1++;
                         }
+                        activities.PvpClan.send_pvp_clan_score(this);
+                        // Đặt thời gian tự hồi sinh sau 5 giây và gửi đồng hồ đếm ngược cho player chết
+                        p_target.time_revive_pvp_clan = System.currentTimeMillis() + 5_000L;
+                        activities.PvpClan.send_revive_countdown(p_target, 5);
+                    } else if (this.map_dao_hoa != null && !this.map_dao_hoa.is_finish) {
+                        if (p_target.type_pk == 4) {
+                            this.map_dao_hoa.score_clan2++;
+                        } else if (p_target.type_pk == 5) {
+                            this.map_dao_hoa.score_clan1++;
+                        }
+                        p_target.time_revive_pvp_clan = System.currentTimeMillis() + 5_000L;
+                        activities.PvpClan.send_revive_countdown(p_target, 5);
                     }
                     if (this.map_pvp != null) {
                         die_player(p_target, p);
@@ -5324,6 +5526,9 @@ public class Map implements Runnable {
             }
             if (this.template.id == 2026) {
                 this.change_flag(p, 3); // Tự động bật Cờ Đen khi vào Đấu Trường Sinh Tồn
+            }
+            if (this.map_pvp_clan != null) {
+                activities.PvpClan.send_pvp_clan_score(p, this);
             }
             // conn.p.map.enter_zone(conn.p);
             if (Map.is_map_save_revival(this.template.id)) {

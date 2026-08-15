@@ -1168,6 +1168,10 @@ public class ClientYesNo {
                     break;
                 }
                 case 151: {
+                    if (!PvpClan.is_open_pvp_clan()) {
+                        Service.send_box_ThongBao_OK(p, "Phó bản PVP Băng chỉ mở vào Thứ 2, 4, 6 từ 12h-13h và 20h-21h!");
+                        break;
+                    }
                     if (p.tableTickOption != null && !p.tableTickOption.is_finish) {
                         if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
                             for (int i = 0; i < p.tableTickOption.listP.size(); i++) {
@@ -1185,6 +1189,10 @@ public class ClientYesNo {
                     break;
                 }
                 case 2027: {
+                    if (!event.GuildWarDaoHoa.is_open_dao_hoa()) {
+                        Service.send_box_ThongBao_OK(p, "Đại Chiến Đảo Đào Hoa chỉ mở vào Thứ 2, 4, 6 từ 20h30 đến 21h30!");
+                        break;
+                    }
                     if (p.tableTickOption != null && !p.tableTickOption.is_finish) {
                         if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
                             for (int i = 0; i < p.tableTickOption.listP.size(); i++) {

@@ -207,6 +207,7 @@ public class Player {
     public byte time_ttvt;
     public long time_skill_decrease;
     public long time_can_mob_atk;
+    public long time_revive_pvp_clan = 0; // Thời gian tự hồi sinh trong Phó bản PVP Băng (ms)
     public boolean is_show_weapon;
     public Player targetFight;
     private int wanted_price;
@@ -1682,6 +1683,12 @@ public class Player {
                 }
                 if (this.dungeon instanceof activities.HangDong) {
                     Service.send_box_ThongBao_OK(this, "Không thể trở về làng trong Hang Động!");
+                    return;
+                }
+                if (this.map != null && ((this.map.map_pvp_clan != null && !this.map.map_pvp_clan.is_finish)
+                        || (this.map.map_dao_hoa != null && !this.map.map_dao_hoa.is_finish))) {
+                    // Trong PVP Băng / Đảo Đào Hoa: tự hồi sinh tại căn cứ sau 5 giây (không cho về làng thủ công)
+                    Service.send_box_ThongBao_OK(this, "Đang hồi sinh! Vui lòng chờ đếm ngược hồi sinh tự động.");
                     return;
                 }
                 this.isdie = false;
