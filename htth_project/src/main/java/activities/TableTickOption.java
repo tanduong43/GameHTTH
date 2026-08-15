@@ -113,6 +113,11 @@ public class TableTickOption {
                     case 4: { // pho ban pvp bang
                         if (type == 1) { // accept
                             if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
+                                if (activities.PvpClan.is_clan_reach_limit(p.clan)) {
+                                    Service.send_box_ThongBao_OK(p,
+                                            "Băng của bạn đã đạt giới hạn 5 lượt tham gia trong mốc thời gian này!");
+                                    return;
+                                }
                                 for (int i = 1; i < p.tableTickOption.list_check.length; i++) {
                                     if (p.tableTickOption.list_check[i] != 1) {
                                         Service.send_box_ThongBao_OK(p,
@@ -124,7 +129,13 @@ public class TableTickOption {
                                 String name_ok = "";
                                 for (int i = 0; i < p.tableTickOption.list_check.length; i++) {
                                     if (p.tableTickOption.list_check[i] == 1) {
-                                        name_ok += p.tableTickOption.listP.get(i).name + ", ";
+                                        String mName = p.tableTickOption.listP.get(i).name;
+                                        if (activities.PvpClan.is_player_reach_limit(mName)) {
+                                            Service.send_box_ThongBao_OK(p,
+                                                    "Thành viên " + mName + " đã đạt giới hạn 5 lượt tham gia trong mốc thời gian này!");
+                                            return;
+                                        }
+                                        name_ok += mName + ", ";
                                     }
                                 }
                                 Service.send_box_yesno(p, 151, "Thông báo",
@@ -257,11 +268,11 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không ở cùng bản đồ với bạn!");
                                         return;
                                     }
-                                    // if (member.time_tower >= 10) {
-                                    // Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                    // + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 10 lần)!");
-                                    // return;
-                                    // }
+                                    if (member.time_tower >= 5) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                                + " đã vượt giới hạn Vượt Liên Tầng hôm nay (tối đa 5 lần)!");
+                                        return;
+                                    }
                                     if (member.get_key_boss() < 2) {
                                         Service.send_box_ThongBao_OK(p,
                                                 "Thành viên " + member.name + " không đủ 2 chìa khóa!");
@@ -384,11 +395,11 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " đứng quá xa bạn!");
                                         return;
                                     }
-                                    // if (member.time_namie >= 10) {
-                                    // Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                    // + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 10 lần)!");
-                                    // return;
-                                    // }
+                                    if (member.time_namie >= 5) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                                + " đã vượt giới hạn Bảo vệ kho báu Namie hôm nay (tối đa 5 lần)!");
+                                        return;
+                                    }
                                     if (member.get_key_boss() < 2) {
                                         Service.send_box_ThongBao_OK(p,
                                                 "Thành viên " + member.name + " không đủ 2 chìa khóa!");
@@ -506,11 +517,11 @@ public class TableTickOption {
                                                 "Thành viên " + member.name + " không đủ 1 chìa khóa!");
                                         return;
                                     }
-                                    // if (member.time_hangdong >= 5) {
-                                    // Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                    // + " đã vượt giới hạn Hang Động hôm nay (tối đa 5 lần)!");
-                                    // return;
-                                    // }
+                                    if (member.time_hangdong >= 5) {
+                                        Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                                + " đã vượt giới hạn Hang Động hôm nay (tối đa 5 lần)!");
+                                        return;
+                                    }
                                 }
 
                                 java.util.List<Player> onlineMembers = new java.util.ArrayList<>();

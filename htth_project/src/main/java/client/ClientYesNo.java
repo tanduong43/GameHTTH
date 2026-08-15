@@ -412,12 +412,12 @@ public class ClientYesNo {
                                 ok = false;
                                 break;
                             }
-                            // if (member.time_tower >= 5) {
-                            //     ok = false;
-                            //     failReason = "Thành viên " + member.name
-                            //             + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!";
-                            //     break;
-                            // }
+                            if (member.time_tower >= 5) {
+                                ok = false;
+                                failReason = "Thành viên " + member.name
+                                        + " đã vượt giới hạn Vượt Liên Tầng hôm nay (tối đa 5 lần)!";
+                                break;
+                            }
                         }
                         if (!ok) {
                             Service.send_box_ThongBao_OK(p, failReason);
@@ -947,16 +947,16 @@ public class ClientYesNo {
                                     p.map_tele = null;
                                     return;
                                 }
-                                // if (member.time_tower >= 5) {
-                                //     System.out
-                                //             .println("[TowerChallenge] Registration failed: Party member " + member.name
-                                //                     + " has reached the daily limit: " + member.time_tower + "/5.");
-                                //     Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
-                                //             + " đã vượt giới hạn Vượt Liên Ải hôm nay (tối đa 5 lần)!");
-                                //     p.data_yesno = null;
-                                //     p.map_tele = null;
-                                //     return;
-                                // }
+                                if (member.time_tower >= 5) {
+                                    System.out
+                                            .println("[TowerChallenge] Registration failed: Party member " + member.name
+                                                    + " has reached the daily limit: " + member.time_tower + "/5.");
+                                    Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                            + " đã vượt giới hạn Vượt Liên Tầng hôm nay (tối đa 5 lần)!");
+                                    p.data_yesno = null;
+                                    p.map_tele = null;
+                                    return;
+                                }
                                 if (member.dungeon != null) {
                                     System.out.println("[TowerChallenge] Registration failed: Party member "
                                             + member.name + " is already inside another dungeon.");
@@ -1004,12 +1004,12 @@ public class ClientYesNo {
                                 p.map_tele = null;
                                 return;
                             }
-                            // if (p.time_single_dungeon >= 5) {
-                            //     Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn Vượt ải đơn hôm nay (tối đa 5 lần)!");
-                            //     p.data_yesno = null;
-                            //     p.map_tele = null;
-                            //     return;
-                            // }
+                            if (p.time_single_dungeon >= 5) {
+                                Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn Vượt ải đơn hôm nay (tối đa 5 lần)!");
+                                p.data_yesno = null;
+                                p.map_tele = null;
+                                return;
+                            }
                             if (p.get_key_boss() < 1) {
                                 Service.send_box_ThongBao_OK(p, "Không đủ 1 chìa khóa phó bản");
                                 p.data_yesno = null;
@@ -1114,11 +1114,24 @@ public class ClientYesNo {
                         Service.send_box_ThongBao_OK(p, "Bạn không đủ 1 chìa khóa phó bản!");
                         return;
                     }
-                    // if (p.time_hangdong >= 5) {
-                    //     Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn đi Hang Động hôm nay (tối đa 5 lần)!");
-                    //     return;
-                    // }
+                    if (p.time_hangdong >= 5) {
+                        Service.send_box_ThongBao_OK(p, "Bạn đã vượt giới hạn đi Hang Động hôm nay (tối đa 5 lần)!");
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
                     if (p.party != null) {
+                        for (int i = 0; i < p.party.list.size(); i++) {
+                            Player memInList = p.party.list.get(i);
+                            Player member = Map.get_player_by_name_allmap(memInList.name);
+                            if (member != null && member.time_hangdong >= 5) {
+                                Service.send_box_ThongBao_OK(p, "Thành viên " + member.name
+                                        + " đã vượt giới hạn đi Hang Động hôm nay (tối đa 5 lần)!");
+                                p.data_yesno = null;
+                                p.map_tele = null;
+                                return;
+                            }
+                        }
                         p.tableTickOption = new activities.TableTickOption();
                         p.tableTickOption.idDialog = 3;
                         p.tableTickOption.listP = new java.util.ArrayList<>();
@@ -1172,8 +1185,19 @@ public class ClientYesNo {
                         Service.send_box_ThongBao_OK(p, "Phó bản PVP Băng chỉ mở vào Thứ 2, 4, 6 từ 12h-13h và 20h-21h!");
                         break;
                     }
+                    if (activities.PvpClan.is_clan_reach_limit(p.clan)) {
+                        Service.send_box_ThongBao_OK(p, "Băng của bạn đã đạt giới hạn 5 lượt tham gia trong mốc thời gian này!");
+                        break;
+                    }
                     if (p.tableTickOption != null && !p.tableTickOption.is_finish) {
                         if (p.tableTickOption.listP.get(0).name.equals(p.name)) {
+                            for (int i = 0; i < p.tableTickOption.listP.size(); i++) {
+                                String memName = p.tableTickOption.listP.get(i).name;
+                                if (activities.PvpClan.is_player_reach_limit(memName)) {
+                                    Service.send_box_ThongBao_OK(p, "Thành viên " + memName + " đã đạt giới hạn 5 lượt tham gia trong mốc thời gian này!");
+                                    return;
+                                }
+                            }
                             for (int i = 0; i < p.tableTickOption.listP.size(); i++) {
                                 Player p0 = Map.get_player_by_name_allmap(
                                         p.tableTickOption.listP.get(i).name);

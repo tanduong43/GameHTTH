@@ -293,7 +293,11 @@ public class ServerEventManager {
                             }
                         }
                         // PVP Băng Matching (Thứ 2, 4, 6 từ 12h-13h và 20h-21h)
-                        if (PvpClan.is_open_pvp_clan() && PvpClan.LIST.size() > 1) {
+                        if (!PvpClan.is_open_pvp_clan()) {
+                            if (!PvpClan.LIST.isEmpty()) {
+                                PvpClan.LIST.clear();
+                            }
+                        } else if (PvpClan.LIST.size() > 1) {
                             int index = Util.random(PvpClan.LIST.size());
                             Clan clan1 = PvpClan.LIST.get(index);
                             PvpClan.remove_clan_wait(clan1);
@@ -301,25 +305,36 @@ public class ServerEventManager {
                             Clan clan2 = PvpClan.LIST.get(index);
                             PvpClan.remove_clan_wait(clan2);
 
+                            if (PvpClan.is_clan_reach_limit(clan1)) {
+                                clan1 = null;
+                            }
+                            if (PvpClan.is_clan_reach_limit(clan2)) {
+                                clan2 = null;
+                            }
+
                             Player p1 = null;
                             Player p2 = null;
-                            for (int i = 0; i < clan1.members.size(); i++) {
-                                if (clan1.members.get(i).levelInclan == 0
-                                        || clan1.members.get(i).levelInclan == 1) {
-                                    Player p0 = Map.get_player_by_name_allmap(clan1.members.get(i).name);
-                                    if (p0 != null) {
-                                        p1 = p0;
-                                        break;
+                            if (clan1 != null) {
+                                for (int i = 0; i < clan1.members.size(); i++) {
+                                    if (clan1.members.get(i).levelInclan == 0
+                                            || clan1.members.get(i).levelInclan == 1) {
+                                        Player p0 = Map.get_player_by_name_allmap(clan1.members.get(i).name);
+                                        if (p0 != null) {
+                                            p1 = p0;
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                            for (int i = 0; i < clan2.members.size(); i++) {
-                                if (clan2.members.get(i).levelInclan == 0
-                                        || clan2.members.get(i).levelInclan == 1) {
-                                    Player p0 = Map.get_player_by_name_allmap(clan2.members.get(i).name);
-                                    if (p0 != null) {
-                                        p2 = p0;
-                                        break;
+                            if (clan2 != null) {
+                                for (int i = 0; i < clan2.members.size(); i++) {
+                                    if (clan2.members.get(i).levelInclan == 0
+                                            || clan2.members.get(i).levelInclan == 1) {
+                                        Player p0 = Map.get_player_by_name_allmap(clan2.members.get(i).name);
+                                        if (p0 != null) {
+                                            p2 = p0;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -342,6 +357,9 @@ public class ServerEventManager {
                                     clan2.map_create = map_dungeon;
                                     map_dungeon.start_map();
                                     Map.add_map_plus(map_dungeon);
+
+                                    PvpClan.add_clan_count(clan1);
+                                    PvpClan.add_clan_count(clan2);
 
                                     Message m38 = new Message(38);
                                     try {
@@ -388,6 +406,9 @@ public class ServerEventManager {
                                                 try { p0.goto_map(vgo2); } catch (Exception e) {}
                                             }
                                         }
+                                    }
+                                    for (Player pl : list_remove_table_tick) {
+                                        PvpClan.add_player_count(pl.name);
                                     }
                                     list_remove_table_tick.forEach(l -> l.tableTickOption = null);
                                     m38.cleanup();

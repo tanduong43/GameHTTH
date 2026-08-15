@@ -28,6 +28,79 @@ public class PvpClan {
         }
     }
 
+    public static final int MAX_ENTRY_PER_SLOT = 5;
+    public static final java.util.Map<String, Integer> CLAN_SLOT_COUNT = new java.util.concurrent.ConcurrentHashMap<>();
+    public static final java.util.Map<String, Integer> PLAYER_SLOT_COUNT = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Lấy mốc thời gian hiện tại của Phó bản PVP Băng:
+     * - Mốc 1: 12h00 - 13h00 (Thứ 2, 4, 6) -> return 1
+     * - Mốc 2: 20h00 - 21h00 (Thứ 2, 4, 6) -> return 2
+     * - Đang đóng -> return 0
+     */
+    public static int get_current_slot() {
+        org.joda.time.DateTime now = org.joda.time.DateTime.now();
+        int day = now.getDayOfWeek();
+        int hour = now.getHourOfDay();
+        if (day == 1 || day == 3 || day == 5) {
+            if (hour == 12) return 1;
+            if (hour == 20) return 2;
+        }
+        return 0;
+    }
+
+    public static String get_clan_slot_key(Clan clan) {
+        if (clan == null) return "";
+        org.joda.time.DateTime now = org.joda.time.DateTime.now();
+        int slot = get_current_slot();
+        return clan.id + "_" + now.toString("yyyyMMdd") + "_" + slot;
+    }
+
+    public static String get_player_slot_key(String playerName) {
+        if (playerName == null) return "";
+        org.joda.time.DateTime now = org.joda.time.DateTime.now();
+        int slot = get_current_slot();
+        return playerName + "_" + now.toString("yyyyMMdd") + "_" + slot;
+    }
+
+    public static int get_clan_count(Clan clan) {
+        if (clan == null) return 0;
+        int slot = get_current_slot();
+        if (slot == 0) return 0;
+        return CLAN_SLOT_COUNT.getOrDefault(get_clan_slot_key(clan), 0);
+    }
+
+    public static int get_player_count(String playerName) {
+        if (playerName == null) return 0;
+        int slot = get_current_slot();
+        if (slot == 0) return 0;
+        return PLAYER_SLOT_COUNT.getOrDefault(get_player_slot_key(playerName), 0);
+    }
+
+    public static void add_clan_count(Clan clan) {
+        if (clan == null) return;
+        int slot = get_current_slot();
+        if (slot == 0) return;
+        String key = get_clan_slot_key(clan);
+        CLAN_SLOT_COUNT.put(key, CLAN_SLOT_COUNT.getOrDefault(key, 0) + 1);
+    }
+
+    public static void add_player_count(String playerName) {
+        if (playerName == null) return;
+        int slot = get_current_slot();
+        if (slot == 0) return;
+        String key = get_player_slot_key(playerName);
+        PLAYER_SLOT_COUNT.put(key, PLAYER_SLOT_COUNT.getOrDefault(key, 0) + 1);
+    }
+
+    public static boolean is_clan_reach_limit(Clan clan) {
+        return get_clan_count(clan) >= MAX_ENTRY_PER_SLOT;
+    }
+
+    public static boolean is_player_reach_limit(String playerName) {
+        return get_player_count(playerName) >= MAX_ENTRY_PER_SLOT;
+    }
+
     /**
      * Kiểm tra thời gian mở Phó bản PVP Băng:
      * Thứ 2, Thứ 4, Thứ 6 trong 2 khung giờ:
@@ -36,10 +109,7 @@ public class PvpClan {
      * (Trong Joda-Time: 1 = Thứ 2, 3 = Thứ 4, 5 = Thứ 6)
      */
     public static boolean is_open_pvp_clan() {
-        org.joda.time.DateTime now = org.joda.time.DateTime.now();
-        int day = now.getDayOfWeek();
-        int hour = now.getHourOfDay();
-        return (day == 1 || day == 3 || day == 5) && (hour == 12 || hour == 20);
+        return get_current_slot() != 0;
     }
 
     /**

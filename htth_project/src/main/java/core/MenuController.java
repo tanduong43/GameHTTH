@@ -983,6 +983,14 @@ public class MenuController {
                     Service.send_box_ThongBao_OK(p, "Phó bản PVP Băng chỉ mở vào Thứ 2, 4, 6 từ 12h-13h và 20h-21h!");
                     break;
                   }
+                  if (activities.PvpClan.is_clan_reach_limit(p.clan)) {
+                    Service.send_box_ThongBao_OK(p, "Băng của bạn đã đạt giới hạn 5 lượt tham gia trong mốc thời gian này!");
+                    break;
+                  }
+                  if (activities.PvpClan.is_player_reach_limit(p.name)) {
+                    Service.send_box_ThongBao_OK(p, "Bạn đã tham gia đủ 5 lượt PVP Băng trong mốc thời gian này!");
+                    break;
+                  }
                   boolean check_tt_tp = false;
                   for (int i = 0; i < p.clan.members.size(); i++) {
                     if (p.clan.members.get(i).name.equals(p.name)
