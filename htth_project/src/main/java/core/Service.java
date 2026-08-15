@@ -43,8 +43,12 @@ import template.Skill_info;
 public class Service {
     public static void send_msg_data(Session conn, int cmd, String path, boolean save_cache)
             throws IOException {
+        byte[] ab = Util.loadfile(path);
+        if (ab == null) {
+            return;
+        }
         Message m = new Message(cmd);
-        m.writer().write(Util.loadfile(path));
+        m.writer().write(ab);
         if (save_cache) {
             conn.p.list_msg_cache.add(m);
         } else {
@@ -2289,24 +2293,28 @@ public class Service {
         // 1. Gửi dữ liệu effect trước cho các client trong map (nếu chưa có)
         for (Player p0 : p.map.players) {
             if (p0 != null && p0.conn != null) {
-                byte zoomlv = p0.conn.zoomlv;
+                byte zoomlv = p0.conn.zoomlv <= 0 ? 4 : p0.conn.zoomlv;
                 byte[] data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + effId);
                 byte[] data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + effId + ".png");
 
-                if (data1 == null) {
+                if (data1 == null || data2 == null) {
                     data1 = Util.loadfile("data/template/skill/x4/data/" + effId);
                     data2 = Util.loadfile("data/template/skill/x4/img/" + effId + ".png");
                 }
-                if (data1 == null) {
+                if (data1 == null || data2 == null) {
                     data1 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + effId);
                     data2 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
                 }
-                if (data1 == null) {
+                if (data1 == null || data2 == null) {
                     data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + effId);
                     data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + effId + ".png");
                 }
-                if (data1 == null) {
+                if (data1 == null || data2 == null) {
                     data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + effId);
+                    data2 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
+                }
+                if (data1 == null || data2 == null) {
+                    data1 = Util.loadfile("data/nro/data/effect/x4/data/DataEffect_" + effId);
                     data2 = Util.loadfile("data/nro/data/effect/x4/img/ImgEffect_" + effId + ".png");
                 }
 

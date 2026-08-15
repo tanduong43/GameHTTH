@@ -152,27 +152,28 @@ public class MessageHandler {
                         Message m2 = new Message(74);
                         m2.writer().writeByte(0);
                         m2.writer().writeShort(id);
+                        byte zoomlv = conn.zoomlv <= 0 ? 4 : conn.zoomlv;
                         byte[] data1 = Util
-                                .loadfile("data/template/skill/x" + conn.zoomlv + "/data/" + id);
+                                .loadfile("data/template/skill/x" + zoomlv + "/data/" + id);
                         byte[] data2 = Util.loadfile(
-                                "data/template/skill/x" + conn.zoomlv + "/img/" + id + ".png");
+                                "data/template/skill/x" + zoomlv + "/img/" + id + ".png");
                         if (data1 == null || data2 == null) {
                             data1 = Util.loadfile("data/template/skill/x4/data/" + id);
                             data2 = Util.loadfile("data/template/skill/x4/img/" + id + ".png");
                         }
                         if (data1 == null || data2 == null) {
-                            data1 = Util.loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
+                            data1 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + id);
                             data2 = Util
-                                    .loadfile("data/danhhieu/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
+                                    .loadfile("data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + id + ".png");
                         }
                         if (data1 == null || data2 == null) {
                             data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + id);
                             data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + id + ".png");
                         }
                         if (data1 == null || data2 == null) {
-                            data1 = Util.loadfile("data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id);
+                            data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + id);
                             data2 = Util
-                                    .loadfile("data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png");
+                                    .loadfile("data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + id + ".png");
                         }
                         if (data1 == null || data2 == null) {
                             data1 = Util.loadfile("data/nro/data/effect/x4/data/DataEffect_" + id);
@@ -191,32 +192,33 @@ public class MessageHandler {
                     System.out.println("[DanhHieu Log] Client " + conn.p.name + " requested title effect id=" + id
                             + ", zoom=x" + conn.zoomlv);
                     try {
-                        String dataPath = "data/danhhieu/effect/x" + conn.zoomlv + "/data/DataEffect_" + id;
-                        String imgPath = "data/danhhieu/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png";
+                        byte zoomlv = conn.zoomlv <= 0 ? 4 : conn.zoomlv;
+                        String dataPath = "data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + id;
+                        String imgPath = "data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + id + ".png";
                         if (!new java.io.File(dataPath).exists()) {
                             dataPath = "data/danhhieu/effect/x4/data/DataEffect_" + id;
                             imgPath = "data/danhhieu/effect/x4/img/ImgEffect_" + id + ".png";
                         }
                         if (!new java.io.File(dataPath).exists()) {
-                            dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + id;
-                            imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + id + ".png";
+                            dataPath = "data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + id;
+                            imgPath = "data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + id + ".png";
                         }
                         if (!new java.io.File(dataPath).exists() && id >= 3000) {
-                            dataPath = "data/nro/data/effect/x" + conn.zoomlv + "/data/DataEffect_" + (id - 3000);
-                            imgPath = "data/nro/data/effect/x" + conn.zoomlv + "/img/ImgEffect_" + (id - 3000) + ".png";
+                            dataPath = "data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + (id - 3000);
+                            imgPath = "data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + (id - 3000) + ".png";
                         }
                         byte[] data1 = Util.loadfile(dataPath);
                         byte[] data2 = Util.loadfile(imgPath);
                         if (data2 == null) {
                             data2 = Util.loadfile(
-                                    "data/icon/x" + conn.zoomlv + "/ImgEffect_" + id + ".png");
+                                    "data/icon/x" + zoomlv + "/ImgEffect_" + id + ".png");
                         }
                         
                         // Fallback: Nếu không có DataEffect, thử tìm trong data skill (do admin eff có thể gọi id skill)
                         if (data1 == null) {
                             System.out.println("[Debug Admin] DataEffect_" + id + " not found, falling back to skill data...");
-                            data1 = Util.loadfile("data/template/skill/x" + conn.zoomlv + "/data/" + id);
-                            data2 = Util.loadfile("data/template/skill/x" + conn.zoomlv + "/img/" + id + ".png");
+                            data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + id);
+                            data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + id + ".png");
                             if (data1 == null) {
                                 data1 = Util.loadfile("data/template/skill/x4/data/" + id);
                                 data2 = Util.loadfile("data/template/skill/x4/img/" + id + ".png");

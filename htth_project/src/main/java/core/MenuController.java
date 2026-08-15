@@ -1600,7 +1600,7 @@ public class MenuController {
             case 0: { // Vào Map
               if (!event.EventTet.getInstance().isDauTruongOpen()) {
                 Service.send_box_ThongBao_OK(p,
-                    "Đấu Trường Sinh Tồn chỉ mở vào Thứ 7 và Chủ Nhật hàng tuần:\n- Thời gian: 19:00 - 21:00 (kéo dài 120 phút)");
+                    "Đấu Trường Sinh Tồn mở cửa từ 21:00 đến 22:00 hằng ngày!");
                 break;
               }
               Vgo vgo = new Vgo();

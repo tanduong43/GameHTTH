@@ -2,6 +2,7 @@ package core;
 
 import org.joda.time.DateTime;
 import template.Top_Dame;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -16,16 +17,33 @@ import java.util.Random;
 public class Util {
     private static final Random random = new Random();
 
-    public synchronized static byte[] loadfile(String url) throws IOException {
+    public synchronized static byte[] loadfile(String url) {
+        if (url == null || url.isEmpty()) {
+            return null;
+        }
+        File f = new File(url);
+        if (!f.exists() || !f.isFile()) {
+            return null;
+        }
         FileInputStream fis = null;
         try {
-            fis = new FileInputStream(url);
-            byte[] ab = new byte[fis.available()];
-            fis.read(ab, 0, ab.length);
+            fis = new FileInputStream(f);
+            byte[] ab = new byte[(int) f.length()];
+            int bytesRead = 0;
+            while (bytesRead < ab.length) {
+                int read = fis.read(ab, bytesRead, ab.length - bytesRead);
+                if (read == -1) break;
+                bytesRead += read;
+            }
             return ab;
+        } catch (Exception e) {
+            return null;
         } finally {
             if (fis != null) {
-                fis.close();
+                try {
+                    fis.close();
+                } catch (IOException ignored) {
+                }
             }
         }
     }

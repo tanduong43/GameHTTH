@@ -112,7 +112,11 @@ public class DanhHieu {
                     break;
                 }
                 case 3: {
-                    byte[] data = Util.loadfile("data/danhhieu/x" + p.conn.zoomlv + "/" + id + ".png");
+                    byte zoomlv = (p.conn != null && p.conn.zoomlv > 0) ? p.conn.zoomlv : 4;
+                    byte[] data = Util.loadfile("data/danhhieu/x" + zoomlv + "/" + id + ".png");
+                    if (data == null) {
+                        data = Util.loadfile("data/danhhieu/x4/" + id + ".png");
+                    }
                     if (data != null) {
                         Message msg = new Message(-102);
                         msg.writer().writeByte(3);

@@ -3346,6 +3346,12 @@ public class Map implements Runnable {
                     dame_inf.dameM = 0;
                     EventTrungThu.getInstance().onBossDamaged(p, 1);
                 }
+                if (event.EventTet.isEvent() && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU && dame_to_target > 0) {
+                    dame_to_target = 1;
+                    dame_inf.dameP = 1;
+                    dame_inf.dameM = 0;
+                    event.EventTet.getInstance().onBossDamaged(p, 1);
+                }
                 if (mob_target.boss_info != null && dame_to_target > 0) {
                     Top_Dame topdame = null;
                     for (int j = 0; j < mob_target.boss_info.TopDame.size(); j++) {
@@ -3376,7 +3382,8 @@ public class Map implements Runnable {
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
                             && mob_target.mob_template.mob_id != 121
                             && mob_target.boss_info.thegioi != 2
-                            && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN) {
+                            && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN
+                            && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU) {
                         // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) và Boss Lân chỉ nhận quà khi giết
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
@@ -3714,6 +3721,9 @@ public class Map implements Runnable {
                     if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN) {
                         EventTrungThu.getInstance().onBossKilled(p);
                     }
+                    if (event.EventTet.isEvent() && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU) {
+                        event.EventTet.getInstance().onBossKilled(p);
+                    }
                     // update quest relative to
                     if (!id_mob_die.containsKey((int) mob_target.mob_template.mob_id)) {
                         id_mob_die.put((int) mob_target.mob_template.mob_id, 1);
@@ -3729,9 +3739,10 @@ public class Map implements Runnable {
                             event.EventTrungThu.rewardLienTangMr3(p);
                         }
                     }
-                    // boss (loại trừ Boss Lân - xử lý riêng trong EventTrungThu)
+                    // boss (loại trừ Boss Lân - xử lý riêng trong EventTrungThu & EventTet)
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
-                            && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN) {
+                            && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN
+                            && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU) {
                         Boss boss = mob_target.boss_info;
                         boss.timeDeath = System.currentTimeMillis();
                         core.BXH.updateTopBoss(boss);
@@ -4396,7 +4407,7 @@ public class Map implements Runnable {
                         // 1. Gửi dữ liệu effect cho mỗi client theo zoom level của họ TRƯỚC
                         for (Player p0 : this.players) {
                             if (p0 != null && p0.conn != null) {
-                                byte zoomlv = p0.conn.zoomlv;
+                                byte zoomlv = p0.conn.zoomlv <= 0 ? 4 : p0.conn.zoomlv;
                                 byte[] data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + effId);
                                 byte[] data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + effId + ".png");
                                 

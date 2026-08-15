@@ -203,8 +203,17 @@ public class EventTet implements Runnable {
     }
 
     private void updateDauTruongSchedule() {
-        if (!dauTruongOpen) {
-            openDauTruong();
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+
+        if (hour == 21) {
+            if (!dauTruongOpen) {
+                openDauTruong();
+            }
+        } else {
+            if (dauTruongOpen) {
+                closeDauTruong();
+            }
         }
     }
 
@@ -212,7 +221,20 @@ public class EventTet implements Runnable {
 
     public void openDauTruong() {
         dauTruongOpen = true;
-        dauTruongEndTime = System.currentTimeMillis() + 365L * 24 * 60 * 60 * 1000L; // Mở full ngày 24/7 để test
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 22);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        dauTruongEndTime = cal.getTimeInMillis();
+        dauTruongKillCount = 0;
+        dauTruongPlayers.clear();
+        try {
+            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã chính thức mở cửa (21h00 - 22h00)! Hãy đến gặp Tôn Ngộ Không để tham gia!");
+            Manager.gI().chatKTG(0, "🔥 Đấu Trường Sinh Tồn đã mở cửa từ 21h00 đến 22h00! Hãy đến gặp Tôn Ngộ Không để tham gia!", 5);
+        } catch (IOException e) {
+            System.out.println("Error announcing dau truong open: " + e.getMessage());
+        }
     }
 
     public void closeDauTruong() {
@@ -224,8 +246,8 @@ public class EventTet implements Runnable {
         processDauTruongRewards();
 
         try {
-            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã kết thúc và phát thưởng Top Kill qua Hòm Thư!");
-            Manager.gI().chatKTG(0, "🏆 Đấu Trường Sinh Tồn đã kết thúc! Phần thưởng Top Kill đã được gửi qua Hòm Thư!", 5);
+            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã kết thúc! Hãy gặp Tôn Ngộ Không để nhận quà Top!");
+            Manager.gI().chatKTG(0, "🏆 Đấu Trường Sinh Tồn đã kết thúc! Các dũng sĩ đạt Top hãy đến gặp Tôn Ngộ Không nhận thưởng!", 5);
         } catch (IOException e) {
             System.out.println("Error announcing dau truong close: " + e.getMessage());
         }
@@ -249,10 +271,11 @@ public class EventTet implements Runnable {
                 }
             }
         }
+        dauTruongPlayers.clear();
     }
 
     public boolean isDauTruongOpen() {
-        return true; // Mở full ngày để test
+        return dauTruongOpen;
     }
 
     public void onPlayerJoinDauTruong(Player p) {

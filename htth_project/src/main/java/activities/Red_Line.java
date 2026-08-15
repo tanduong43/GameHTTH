@@ -38,7 +38,7 @@ public class Red_Line {
                     File f = files[i];
                     Red_Line.KEY2[i] = Util.loadfile(f.getAbsolutePath());
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(0);
             }
@@ -61,7 +61,7 @@ public class Red_Line {
                     File f = files[i];
                     Red_Line.KEY0[i] = Util.loadfile(f.getAbsolutePath());
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(0);
             }
@@ -84,7 +84,7 @@ public class Red_Line {
                     File f = files[i];
                     Red_Line.KEY3[i] = Util.loadfile(f.getAbsolutePath());
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(0);
             }
@@ -107,7 +107,7 @@ public class Red_Line {
                     File f = files[i];
                     Red_Line.KEY4[i] = Util.loadfile(f.getAbsolutePath());
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(0);
             }
