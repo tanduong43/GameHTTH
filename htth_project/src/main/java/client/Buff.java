@@ -6,6 +6,7 @@ import java.util.List;
 import core.Service;
 import core.Util;
 import io.Message;
+import map.Mob;
 import template.EffTemplate;
 import template.Skill_info;
 /**
@@ -52,12 +53,14 @@ public class Buff {
                 break;
             }
         }
-        if (sk_info != null && time_buff > 0 && cat == 0 && size == 1) {
-            // Override thời gian và cooldown cho Haki Quan Sát và Haki Vũ Trang
-            if (sk_info.temp.indexSkillInServer == 900 || sk_info.temp.indexSkillInServer == 901) {
+        // Override thời gian và cooldown cho Haki Quan Sát, Haki Vũ Trang và Haki Bá Vương
+        if (sk_info != null && (sk_info.temp.indexSkillInServer >= 900 && sk_info.temp.indexSkillInServer <= 902)) {
+            if (time_buff <= 0) {
                 time_buff = 20000; // 20 giây
-                sk_info.temp.timeDelay = 60000; // 60 giây cooldown
             }
+            sk_info.temp.timeDelay = 60000; // 60 giây cooldown
+        }
+        if (sk_info != null && time_buff > 0 && cat == 0 && size == 1) {
             Service.use_potion(p, 1, -sk_info.temp.manaLost);
             Service.pet(p, p, false);
             Service.UpdateInfoMaincharInfo(p);
@@ -67,6 +70,7 @@ public class Buff {
                 Service.send_eff_haki(p, (short) 18); // Haki Vũ Trang (eff 18)
             } else if (sk_info.temp.indexSkillInServer == 902) {
                 Service.send_eff_haki(p, (short) 26); // Haki Bá Vương (eff 26)
+                apply_haki_bavuong_stun(p, 5, 250, 5000);
             }
             Message m = new Message(20);
             m.writer().writeByte(1);
@@ -365,5 +369,128 @@ public class Buff {
         m.writer().writeShort(time / 100);
         p.map.send_msg_all_p(m, p, true);
         m.cleanup();
+    }
+
+    public static void send_choang_mob(Player p, Mob mob, int time) throws IOException {
+        mob.time_skill = System.currentTimeMillis() + time;
+        Message m = new Message(28);
+        m.writer().writeShort(mob.index);
+        m.writer().writeByte(1);
+        m.writer().writeInt(mob.hp);
+        m.writer().writeInt(mob.hp_max);
+        m.writer().writeShort(1);
+        m.writer().writeShort(time / 100);
+        p.map.send_msg_all_p(m, p, true);
+        m.cleanup();
+    }
+
+    public static void apply_haki_bavuong_stun(Player p, int maxTargets, int range, int timeStun) throws IOException {
+        if (p == null || p.map == null) {
+            return;
+        }
+        int targetCount = 0;
+
+        // 1. Quét người chơi khác trong tầm
+        if (p.map.players != null) {
+            for (int i = 0; i < p.map.players.size(); i++) {
+                if (targetCount >= maxTargets) {
+                    break;
+                }
+                Player p2 = p.map.players.get(i);
+                if (p2 == null || p2.equals(p) || p2.isdie) {
+                    continue;
+                }
+                if (Math.abs(p2.x - p.x) <= range && Math.abs(p2.y - p.y) <= range) {
+                    boolean canPK = (p.map.template.id == 2026)
+                            || (p.typePirate == 0 && p2.typePirate == 2)
+                            || (p.typePirate == 2 && p2.typePirate == 0)
+                            || (p.typePirate == 1 && p2.typePirate == 2)
+                            || (p.typePirate == 2 && p2.typePirate == 1)
+                            || (p.type_pk == 14 && p2.type_pk == 15)
+                            || (p.type_pk == 15 && p2.type_pk == 14)
+                            || (p.typePirate == 2 && p2.typePirate == 2) || (p.type_pk == 0)
+                            || (p2.type_pk == 1) || (p.type_pk == 3 && p2.type_pk == 3)
+                            || (p2.type_pk == 0)
+                            || (p.type_pk == 3 && p2.type_pk >= 4 && p2.type_pk <= 8)
+                            || (p2.type_pk == 3 && p.type_pk >= 4 && p.type_pk <= 8)
+                            || (p.type_pk >= 4 && p.type_pk <= 8 && p2.type_pk >= 4
+                                    && p2.type_pk <= 8 && p.type_pk != p2.type_pk);
+                    if (canPK) {
+                        EffTemplate eff = p2.get_eff(205);
+                        if (eff == null) {
+                            p2.add_new_eff(205, 1, timeStun);
+                        } else {
+                            eff.time = System.currentTimeMillis() + timeStun;
+                        }
+                        send_choang(p, p2, timeStun);
+                        targetCount++;
+                    }
+                }
+            }
+        }
+
+        // 2. Quét quái trong map thường
+        if (targetCount < maxTargets && p.map.list_mob != null) {
+            for (int i = 0; i < p.map.list_mob.length; i++) {
+                if (targetCount >= maxTargets) {
+                    break;
+                }
+                Mob mob = Mob.ENTRYS.get(p.map.list_mob[i]);
+                if (mob != null && !mob.isdie && Math.abs(mob.x - p.x) <= range && Math.abs(mob.y - p.y) <= range) {
+                    send_choang_mob(p, mob, timeStun);
+                    targetCount++;
+                }
+            }
+        }
+
+        // 3. Quét quái trong dungeon / boss hunt / little garden nếu có
+        if (targetCount < maxTargets && p.map.map_dungeon != null && p.map.map_dungeon.mobs != null) {
+            for (int i = 0; i < p.map.map_dungeon.mobs.size(); i++) {
+                if (targetCount >= maxTargets) {
+                    break;
+                }
+                Mob mob = p.map.map_dungeon.mobs.get(i);
+                if (mob != null && !mob.isdie && Math.abs(mob.x - p.x) <= range && Math.abs(mob.y - p.y) <= range) {
+                    send_choang_mob(p, mob, timeStun);
+                    targetCount++;
+                }
+            }
+        }
+        if (targetCount < maxTargets && p.dungeon != null && p.dungeon.mobs != null) {
+            for (int i = 0; i < p.dungeon.mobs.size(); i++) {
+                if (targetCount >= maxTargets) {
+                    break;
+                }
+                Mob mob = p.dungeon.mobs.get(i);
+                if (mob != null && !mob.isdie && Math.abs(mob.x - p.x) <= range && Math.abs(mob.y - p.y) <= range) {
+                    send_choang_mob(p, mob, timeStun);
+                    targetCount++;
+                }
+            }
+        }
+        if (targetCount < maxTargets && p.map.map_little_garden != null && p.map.map_little_garden.mobs != null) {
+            for (int i = 0; i < p.map.map_little_garden.mobs.size(); i++) {
+                if (targetCount >= maxTargets) {
+                    break;
+                }
+                Mob mob = p.map.map_little_garden.mobs.get(i);
+                if (mob != null && !mob.isdie && Math.abs(mob.x - p.x) <= range && Math.abs(mob.y - p.y) <= range) {
+                    send_choang_mob(p, mob, timeStun);
+                    targetCount++;
+                }
+            }
+        }
+        if (targetCount < maxTargets && p.map.map_bossHunt != null && p.map.map_bossHunt.mobs != null) {
+            for (int i = 0; i < p.map.map_bossHunt.mobs.size(); i++) {
+                if (targetCount >= maxTargets) {
+                    break;
+                }
+                Mob mob = p.map.map_bossHunt.mobs.get(i);
+                if (mob != null && !mob.isdie && Math.abs(mob.x - p.x) <= range && Math.abs(mob.y - p.y) <= range) {
+                    send_choang_mob(p, mob, timeStun);
+                    targetCount++;
+                }
+            }
+        }
     }
 }

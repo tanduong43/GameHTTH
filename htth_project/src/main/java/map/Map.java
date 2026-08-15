@@ -2612,6 +2612,7 @@ public class Map implements Runnable {
                 Service.send_eff_haki(p, (short) 18); // Haki Vũ Trang (eff 18)
             } else if (sk_temp.temp.indexSkillInServer == 902) {
                 Service.send_eff_haki(p, (short) 26); // Haki Bá Vương (eff 26)
+                Buff.apply_haki_bavuong_stun(p, 5, 250, 5000);
             }
             long dame = p.body.get_dame(true);
             dame = (dame * p.body.get_dame_devil_percent()) / 100;
