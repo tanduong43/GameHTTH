@@ -36,6 +36,7 @@ import io.SessionManager;
 import map.Map;
 import map.Npc;
 import map.Vgo;
+import map.VillageProgression;
 import template.Clan_member;
 import template.DaThanThoai;
 import template.EffTemplate;
@@ -2479,8 +2480,14 @@ public class MenuController {
   }
 
   private static void Select_Map_Tele(Player p, byte index) throws IOException {
-    if (p.map_tele != null) {
-      Map[] map_go = Map.get_map_by_id(p.map_tele[index]);
+    if (p.map_tele != null && index < p.map_tele.length) {
+      int targetMapId = p.map_tele[index];
+      if (!map.VillageProgression.canAccessMap(p, targetMapId)) {
+        Service.send_box_ThongBao_OK(p, map.VillageProgression.getBlockMessage(targetMapId));
+        p.map_tele = null;
+        return;
+      }
+      Map[] map_go = Map.get_map_by_id(targetMapId);
       if (p.map.template.id == map_go[0].template.id) {
         Service.send_box_ThongBao_OK(p, "Đang ở map này rồi!");
       } else {
@@ -2510,6 +2517,12 @@ public class MenuController {
 
   private static void Select_Map_Tele_world(Player p, byte index) throws IOException {
     if (p.map_tele != null && index < p.map_tele.length) {
+      int targetMapId = p.map_tele[index];
+      if (!map.VillageProgression.canAccessMap(p, targetMapId)) {
+        Service.send_box_ThongBao_OK(p, map.VillageProgression.getBlockMessage(targetMapId));
+        p.map_tele = null;
+        return;
+      }
       p.data_yesno = new int[] { index };
       Service.send_box_yesno(
           p, 5, "", "Bạn có muốn dịch chuyển qua "
@@ -3592,10 +3605,24 @@ public class MenuController {
         Map map = Map.get_map_by_id(name[i])[0];
         m.writer().writeUTF(map.template.name);
 
-        // Always render as unlocked (2 = unlocked, 4 = current map)
-        m.writer().writeByte(map.template.id == p.map.template.id ? 4 : 2);
+        boolean isCurrent = (map.template.id == p.map.template.id);
+        boolean canAccess = VillageProgression.canAccessMap(p, map.template.id);
 
-        m.writer().writeByte(7);
+        byte frameIcon;
+        byte textColor;
+        if (isCurrent) {
+          frameIcon = 4; // Map hiện tại
+          textColor = 7;
+        } else if (canAccess) {
+          frameIcon = 2; // Dấu Tick xanh (Đã mở khóa)
+          textColor = 7;
+        } else {
+          frameIcon = 1; // Dấu X đỏ (Chưa qua được / Khóa)
+          textColor = 6; // Chữ đỏ
+        }
+
+        m.writer().writeByte(frameIcon);
+        m.writer().writeByte(textColor);
       }
       p.conn.addmsg(m);
       m.cleanup();

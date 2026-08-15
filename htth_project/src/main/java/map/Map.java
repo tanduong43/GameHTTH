@@ -3524,13 +3524,6 @@ public class Map implements Runnable {
                 if (dame2 > 0) {
                     dame2 -= (dame2 * Util.random(10)) / 100;
                 }
-                // Chỉ boss làng: player lệch quá ±6 cấp thì dame = 0
-                if (mob_target.boss_info != null
-                        && mob_target.boss_info.thegioi == 2
-                        && Math.abs(p.level - mob_target.level) > 6) {
-                    dame2 = 0;
-                    dame_inf.dameM = 0;
-                }
                 long dame_to_target = dame2 + dame_inf.dameM;
                 if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN && dame_to_target > 0) {
                     dame_to_target = 1;
@@ -3952,6 +3945,9 @@ public class Map implements Runnable {
                                 + " | LevelBoss: " + boss.levelBoss
                                 + " | Village/Map ID: " + this.template.id);
 
+                        // Kích hoạt tiến trình mở khóa làng khi tiêu diệt boss
+                        VillageProgression.onBossKilled(p, mob_target, this);
+
                         String notice = "Tiêu diệt siêu trùm nhận: ";
                         List<GiftBox> list_gift = new ArrayList<>();
 
@@ -4098,6 +4094,34 @@ public class Map implements Runnable {
                                 giftStone.color = 0;
                                 list_gift.add(giftStone);
                                 notice += "x1 " + itemStone.name + ", ";
+                            }
+
+                            // 4. Ruong do do cung cap voi Boss (ID 803 -> 812)
+                            int bossLv = mob_target.level;
+                            if (bossLv < 10) {
+                                bossLv = 10;
+                            }
+                            if (bossLv > 100) {
+                                bossLv = 100;
+                            }
+                            int redChestId = 803 + (bossLv / 10) - 1;
+                            if (redChestId < 803) {
+                                redChestId = 803;
+                            }
+                            if (redChestId > 812) {
+                                redChestId = 812;
+                            }
+                            ItemTemplate4 it_rdo = ItemTemplate4.get_it_by_id(redChestId);
+                            if (it_rdo != null) {
+                                GiftBox giftRedChest = new GiftBox();
+                                giftRedChest.id = (short) redChestId;
+                                giftRedChest.type = 4;
+                                giftRedChest.name = it_rdo.name;
+                                giftRedChest.icon = it_rdo.icon;
+                                giftRedChest.num = 1;
+                                giftRedChest.color = 0;
+                                list_gift.add(giftRedChest);
+                                notice += "x1 " + it_rdo.name + ", ";
                             }
                         } else if (boss.thegioi == 4) {
                             boss.status = Boss.STATUS_DEAD;

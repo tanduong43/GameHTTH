@@ -33,6 +33,7 @@ import map.Map;
 import map.MapCanGoTo;
 import map.Npc;
 import map.Vgo;
+import map.VillageProgression;
 import template.DataTemplate;
 import template.EffTemplate;
 import template.FriendTemp;
@@ -121,6 +122,7 @@ public class Player {
     public byte time_tower;
     public byte time_single_dungeon;
     public byte time_hangdong;
+    public byte village_tier = 1;
     public int[] daily_achievements = new int[8];
     public boolean[] daily_achievements_claimed = new boolean[8];
     public int botMiReceivedToday = 0;
@@ -401,6 +403,16 @@ public class Player {
                     haki_monster_killed = Integer.parseInt(js.get(24).toString());
                 } catch (Exception e) {
                 }
+            }
+            if (js.size() > 25 && js.get(25) != null) {
+                try {
+                    village_tier = safeByteFromJson(js.get(25));
+                    if (village_tier < 1) village_tier = 1;
+                } catch (Exception e) {
+                    village_tier = 1;
+                }
+            } else {
+                village_tier = 1;
             }
             this.claimedMilestones = new ArrayList<>();
             if (this.conn != null && this.conn.claimed_milestones != null && !this.conn.claimed_milestones.isEmpty()) {
@@ -1071,6 +1083,7 @@ public class Player {
             js.add(p.trungMuoiReceivedToday);
             js.add(p.lanKills);
             js.add(p.haki_monster_killed);
+            js.add(p.village_tier);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -1399,6 +1412,12 @@ public class Player {
             // [DEBUG HAKI] map_go is null - nguyen nhan man hinh den
             System.err.println("[DEBUG HAKI] goto_map FAILED - map_go is NULL! vgo.id_map_go: " + vgo.id_map_go);
             Service.send_box_ThongBao_OK(this, "Chưa thể đi đến map này!");
+            return;
+        }
+        if (!VillageProgression.canAccessMap(this, map_go[0].template.id)) {
+            this.wait_change_map = false;
+            this.ischangemap = true;
+            Service.send_box_ThongBao_OK(this, VillageProgression.getBlockMessage(map_go[0].template.id));
             return;
         }
         int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];

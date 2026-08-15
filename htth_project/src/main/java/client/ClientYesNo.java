@@ -26,6 +26,7 @@ import map.MapCanGoTo;
 import map.Mob;
 import map.Npc;
 import map.Vgo;
+import map.VillageProgression;
 import template.Clan_member;
 import template.DataTemplate;
 import template.ItemBag47;
@@ -3276,32 +3277,18 @@ public class ClientYesNo {
                         if (p.map_tele != null && p.data_yesno != null && p.data_yesno.length == 1
                                 && p.data_yesno[0] < p.map_tele.length) {
                             Map[] map_go = Map.get_map_by_id(p.map_tele[p.data_yesno[0]]);
-                            //
-                            int idMap = MapCanGoTo.idMap[MapCanGoTo.idMap.length - 1];
-                            int idMapPb = MapCanGoTo.idMapPb[MapCanGoTo.idMapPb.length - 1];
-                            //
-                            // Bypass map progression check
-                            // QuestP quest_select = p.list_quest.get(0);
-                            // if (quest_select != null) {
-                            //     for (int i = 0; i < MapCanGoTo.idQuest.length; i++) {
-                            //         if (MapCanGoTo.idQuest[i] > quest_select.template.id) {
-                            //             idMap = MapCanGoTo.idMap[i - 1];
-                            //             break;
-                            //         }
-                            //     }
-                            // }
-                            // if (map_go[0].template.id != 119 && map_go[0].template.id != 120
-                            //         && map_go[0].template.id != 122 && map_go[0].template.id != 123
-                            //         && map_go[0].template.id != 54 && map_go[0].template.id != 58
-                            //         && map_go[0].template.id != 59 && map_go[0].template.id != 123
-                            //         && map_go[0].template.id != 984 && map_go[0].template.id != 1000
-                            //         && map_go[0].template.id != 127 && !Map.is_map_dungeon(map_go[0].template.id)
-                            //         && map_go[0].template.id > idMap) {
-                            //     Service.send_box_ThongBao_OK(p,
-                            //             "Chưa thể đi đến map này khi chưa hoàn thành nhiệm vụ!");
-                            //     return;
-                            // }
-                            //
+                            if (map_go == null) {
+                                Service.send_box_ThongBao_OK(p, "Chưa mở bản đồ này!");
+                                p.data_yesno = null;
+                                p.map_tele = null;
+                                return;
+                            }
+                            if (!map.VillageProgression.canAccessMap(p, map_go[0].template.id)) {
+                                Service.send_box_ThongBao_OK(p, map.VillageProgression.getBlockMessage(map_go[0].template.id));
+                                p.data_yesno = null;
+                                p.map_tele = null;
+                                return;
+                            }
                             if (p.map.template.id == map_go[0].template.id) {
                                 Service.send_box_ThongBao_OK(p, "Đang ở map này rồi!");
                             } else if (p.get_vang() >= 20) {
