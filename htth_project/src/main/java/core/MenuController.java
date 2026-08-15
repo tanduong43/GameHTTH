@@ -1477,6 +1477,14 @@ public class MenuController {
           Menu_Robin(p, index);
           break;
         }
+        case -1003: {
+          if (!event.EventTet.isEvent()) {
+            Service.send_box_ThongBao_OK(p, "Sự kiện Tết chưa được kích hoạt!");
+            return;
+          }
+          Menu_Tet(p, index);
+          break;
+        }
         case -1001: {
           event.EventTet.getInstance().onLetterChooseReward(p, index);
           break;
@@ -2618,7 +2626,8 @@ public class MenuController {
       }
       case 8: { // Sự kiện Tết
         if (event.EventTet.isEvent()) {
-          Menu_Tet(p, (byte) 0);
+          send_dynamic_menu(p, -1003, "Sự Kiện Tết",
+              new String[] { "Làm Bánh", "Ghép Chữ Vàng", "BXH Sự Kiện Tết", "Hướng dẫn" }, null);
         } else {
           Service.send_box_ThongBao_OK(p, "Sự kiện Tết chưa được kích hoạt!");
         }
@@ -2666,18 +2675,6 @@ public class MenuController {
     String help = "╔══════════════════════════════════════╗\n" +
         "║       HƯỚNG DẪN SỰ KIỆN TẾT 2026        ║\n" +
         "╠══════════════════════════════════════╣\n" +
-        "║ 📍 T/g x2 kỹ năng EXP:               ║\n" +
-        "║    Nhận x2 exp kỹ năng khi đánh quái ║\n" +
-        "║                                      ║\n" +
-        "║ 📍 T/g khóa exp:                     ║\n" +
-        "║    Khóa exp nhận được trong ngày     ║\n" +
-        "║                                      ║\n" +
-        "║ 📍 Tài xỉu:                          ║\n" +
-        "║    Chơi mini game đặt cược Ruby       ║\n" +
-        "║                                      ║\n" +
-        "║ 📍 Tích tiêu:                        ║\n" +
-        "║    Tích lũy Ruby để nhận quà         ║\n" +
-        "║                                      ║\n" +
         "║ 📍 Làm Bánh Tết:                     ║\n" +
         "║    Làm Bánh Chưng & Bánh Giầy        ║\n" +
         "║    Để đổi quà từ NPC Trưởng Làng     ║\n" +

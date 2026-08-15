@@ -725,16 +725,19 @@ public class EventTet implements Runnable {
             return;
         }
 
-        // Kiểm tra đủ 5 chữ
+        // Kiểm tra đủ 5 chữ khác nhau
         int[] letters = { ITEM_CHU_CUNG, ITEM_CHU_VUI, ITEM_CHU_DON, ITEM_CHU_TET, ITEM_CHU_TAN_NIEN };
-        int count = 0;
+        boolean hasAll = true;
         for (int letter : letters) {
-            count += p.item.total_item_bag_by_id(4, letter);
+            if (p.item.total_item_bag_by_id(4, letter) < 1) {
+                hasAll = false;
+                break;
+            }
         }
 
-        if (count >= 5) {
+        if (hasAll) {
             // Lưu trạng thái đang chọn quà
-            p.data_yesno = new int[] { letters.length };
+            p.data_yesno = new int[letters.length];
             for (int i = 0; i < letters.length; i++) {
                 p.data_yesno[i] = letters[i];
             }
@@ -746,7 +749,7 @@ public class EventTet implements Runnable {
                     "10 Bao Lì Xì Tân Niên"
                 });
         } else {
-            Service.send_box_ThongBao_OK(p, "Bạn cần đủ 5 chữ để ghép! (Còn thiếu " + (5 - count) + " chữ)");
+            Service.send_box_ThongBao_OK(p, "Bạn cần thu thập đủ bộ 5 chữ:\nCùng - Vui - Đón - Tết - Tân Niên để ghép!");
         }
     }
 
