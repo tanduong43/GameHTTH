@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+
 /**
  *
  * @author Truongbk
@@ -32,7 +33,8 @@ public class Util {
             int bytesRead = 0;
             while (bytesRead < ab.length) {
                 int read = fis.read(ab, bytesRead, ab.length - bytesRead);
-                if (read == -1) break;
+                if (read == -1)
+                    break;
                 bytesRead += read;
             }
             return ab;
@@ -99,12 +101,34 @@ public class Util {
     }
 
     public synchronized static List<Top_Dame> sort(List<Top_Dame> list_select) {
-    List<Top_Dame> result = new ArrayList<Top_Dame>(list_select);
-    result.sort((a, b) -> Long.compare(b.dame, a.dame)); // dame cao nhất lên đầu
-    return result;
-}
+        List<Top_Dame> result = new ArrayList<Top_Dame>(list_select);
+        result.sort((a, b) -> Long.compare(b.dame, a.dame)); // dame cao nhất lên đầu
+        return result;
+    }
 
     public static String number_format(long n) {
         return (NumberFormat.getInstance(Locale.ITALY).format(n));
+    }
+
+    public static String format_short(long n) {
+        boolean isNegative = n < 0;
+        long val = isNegative ? -n : n;
+        String res;
+        if (val >= 1_000_000_000L) {
+            long b = val / 1_000_000_000L;
+            long dec = (val % 1_000_000_000L) / 100_000_000L;
+            res = (dec > 0 && b < 100) ? (b + "." + dec + "B") : (b + "B");
+        } else if (val >= 1_000_000L) {
+            long m = val / 1_000_000L;
+            long dec = (val % 1_000_000L) / 100_000L;
+            res = (dec > 0 && m < 100) ? (m + "." + dec + "M") : (m + "M");
+        } else if (val >= 1_000L) {
+            long k = val / 1_000L;
+            long dec = (val % 1_000L) / 100L;
+            res = (dec > 0 && k < 10) ? (k + "." + dec + "K") : (k + "K");
+        } else {
+            res = String.valueOf(val);
+        }
+        return isNegative ? "-" + res : res;
     }
 }

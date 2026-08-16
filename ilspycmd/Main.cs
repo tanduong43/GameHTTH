@@ -211,6 +211,7 @@ public class Main : MonoBehaviour
 
 	private void FixedUpdate()
 	{
+		Time.Update();
 		Rms.update();
 		count++;
 		if (count < 10)

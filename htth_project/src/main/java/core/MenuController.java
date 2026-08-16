@@ -67,8 +67,14 @@ public class MenuController {
       // System.out.println("npc id " + type);
       boolean in_map = false;
       for (int i = 0; i < p.map.template.npcs.size(); i++) {
-        if (type == p.map.template.npcs.get(i).iditem) {
+        Npc mapNpc = p.map.template.npcs.get(i);
+        if (type == mapNpc.iditem) {
           in_map = true;
+          if (mapNpc.name != null && (mapNpc.name.equalsIgnoreCase("Ngân hàng") || mapNpc.name.equalsIgnoreCase("ATM")
+              || mapNpc.name.equalsIgnoreCase("Ngân Hàng"))) {
+            activities.Bank.sendMainMenu(p, type);
+            return;
+          }
           break;
         }
       }
@@ -93,6 +99,10 @@ public class MenuController {
         return;
       }
       switch (type) {
+        case -205: {
+          activities.Bank.sendMainMenu(p, type);
+          break;
+        }
         case -100: {
           if (event.EventTet.isEvent()) {
             send_dynamic_menu(p, type, "Sự kiện",
@@ -432,13 +442,13 @@ public class MenuController {
                 p, type, get_name_npc(type), new String[] { "Kích Hoạt Tài Khoản", "Thách đấu",
                     "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình",
                     /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip,
-                    "Vị trí Boss", "Top Siêu Trùm" },
+                    "Vị trí Boss", "Top Siêu Trùm", "Top Nạp" },
                 null);
           } else {
             send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Thách đấu", "Cao thủ",
                 "Băng hải tặc", "Truy nã", "Đá hành trình", /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip,
                 "Vị trí Boss",
-                "Top Siêu Trùm" },
+                "Top Siêu Trùm", "Top Nạp" },
                 null);
           }
           break;
@@ -591,6 +601,8 @@ public class MenuController {
         return "Tôn Ngộ Không";
       case -202:
         return "Sứ Giả Aru";
+      case -205:
+        return "Ngân hàng";
       case -146:
         return "Paule";
       case -147:
@@ -662,6 +674,18 @@ public class MenuController {
       // System.out.println("idNPC " + idNPC);
       // System.out.println("idMenu " + idMenu);
       switch (idNPC) {
+        case -205: {
+          activities.Bank.handleMenu(p, idNPC, index);
+          break;
+        }
+        case activities.Bank.MENU_ID_ADMIN_DUYET_NAP: {
+          activities.Bank.handleSelectPendingRecharge(p, index);
+          break;
+        }
+        case activities.Bank.MENU_ID_BANK_INFO: {
+          activities.Bank.handleInfoMenu(p, index);
+          break;
+        }
         case 9915: {
           // Rương Đá Thần Thoại Tự Chọn (id=1004) - menu response
           if (p.data_yesno != null && p.data_yesno[0] == 10040 && p.data_yesno[1] == 1004) {
@@ -985,7 +1009,8 @@ public class MenuController {
                     break;
                   }
                   if (activities.PvpClan.is_clan_reach_limit(p.clan)) {
-                    Service.send_box_ThongBao_OK(p, "Băng của bạn đã đạt giới hạn 5 lượt tham gia trong mốc thời gian này!");
+                    Service.send_box_ThongBao_OK(p,
+                        "Băng của bạn đã đạt giới hạn 5 lượt tham gia trong mốc thời gian này!");
                     break;
                   }
                   if (activities.PvpClan.is_player_reach_limit(p.name)) {
@@ -2974,6 +2999,10 @@ public class MenuController {
           }
         }
         send_dynamic_menu(p, 970, "Top Siêu Trùm", bossNames, null);
+        break;
+      }
+      case 9: { // Top Nạp
+        BXH.send(p, 17, 0);
         break;
       }
     }

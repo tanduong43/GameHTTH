@@ -41,6 +41,7 @@ public class BXH {
     public static List<InfoMemList> DAU_TRUONG = new ArrayList<>();
     public static List<InfoMemList> TOP_SAN_BOSS_LAN = new ArrayList<>();
     public static List<InfoMemList> TOP_NAU_BANH = new ArrayList<>();
+    public static List<InfoMemList> TOP_NAP = new ArrayList<>();
     public static final java.util.Map<Integer, List<InfoMemList>> TOP_SIEU_TRUM_MAP = new java.util.concurrent.ConcurrentHashMap<>();
     public static final java.util.Map<Integer, List<Integer>> claimedTopBossRewards = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -357,6 +358,35 @@ public class BXH {
                 m.writer().writeByte(bound2 - bound1);
                 for (int i = bound1; i < bound2; i++) {
                     InfoMemList temp = BXH.TOP_NAU_BANH.get(i);
+                    InfoMemList.WriteInfoMemList(m.writer(), temp);
+                }
+                break;
+            }
+            case 17: {
+                updateTopNap();
+                int bound1 = 0;
+                int bound2 = BXH.TOP_NAP.size();
+                if (BXH.TOP_NAP.size() > 10) {
+                    if (((page + 1) * 10) > BXH.TOP_NAP.size()) {
+                        bound1 = 10 * page;
+                        bound2 = BXH.TOP_NAP.size();
+                        while (bound1 >= bound2) {
+                            bound1 -= 10;
+                            page--;
+                        }
+                    } else {
+                        bound1 = 10 * page;
+                        bound2 = bound1 + 10;
+                    }
+                } else {
+                    page = 0;
+                }
+                m.writer().writeByte(4);
+                m.writer().writeUTF("Top Nạp");
+                m.writer().writeByte(page);
+                m.writer().writeByte(bound2 - bound1);
+                for (int i = bound1; i < bound2; i++) {
+                    InfoMemList temp = BXH.TOP_NAP.get(i);
                     InfoMemList.WriteInfoMemList(m.writer(), temp);
                 }
                 break;
@@ -1790,6 +1820,184 @@ public class BXH {
             }
             BXH.TOP_NAU_BANH.clear();
             BXH.TOP_NAU_BANH.addAll(list_add);
+            list_add.clear();
+        }
+    }
+
+    public static void updateTopNap() {
+        List<InfoMemList> list_add = new ArrayList<>();
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = SQL.gI().getCon();
+            ps = connection.prepareStatement(
+                    "SELECT `id`, `user`, `char`, `sumamount`, `tichnap`, `tongnap`, `vip` "
+                            + "FROM `accounts` "
+                            + "WHERE `sumamount` > 0 OR `tichnap` > 0 OR `tongnap` > 0 "
+                            + "ORDER BY GREATEST(COALESCE(`sumamount`, 0), COALESCE(`tichnap`, 0), COALESCE(`tongnap`, 0)) DESC "
+                            + "LIMIT 50;");
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                String charName = null;
+                try {
+                    String charStr = rs.getString("char");
+                    if (charStr != null && !charStr.trim().isEmpty()) {
+                        JSONArray jsChar = (JSONArray) JSONValue.parse(charStr);
+                        if (jsChar != null && jsChar.size() > 0) {
+                            charName = jsChar.get(0).toString();
+                        }
+                    }
+                } catch (Exception e) {}
+
+                if (charName == null || charName.trim().isEmpty()) {
+                    charName = rs.getString("user");
+                }
+
+                long sumamount = rs.getLong("sumamount");
+                long tichnap = rs.getLong("tichnap");
+                long tongnap = rs.getLong("tongnap");
+                long amount = Math.max(sumamount, Math.max(tichnap, tongnap));
+                int vip = rs.getInt("vip");
+
+                InfoMemList temp = new InfoMemList();
+                temp.name = charName;
+                temp.thongthao = amount;
+                temp.level = 1;
+                temp.head = 0;
+                temp.hair = 0;
+                temp.hat = -1;
+                temp.info = "Tổng nạp: " + Util.format_short(amount);
+
+                Player pOnline = Map.get_player_by_name_allmap(charName);
+                if (pOnline != null) {
+                    temp.id = pOnline.id;
+                    temp.level = (short) pOnline.level;
+                    temp.head = (short) pOnline.get_head();
+                    temp.hair = (short) pOnline.get_hair();
+                    temp.hat = pOnline.get_hat();
+                } else {
+                    PreparedStatement psPlayer = null;
+                    ResultSet rsPlayer = null;
+                    try {
+                        psPlayer = connection.prepareStatement(
+                                "SELECT `id`, `level`, `body`, `it_body`, `fashion`, `site` FROM `players` WHERE BINARY `name` = ? LIMIT 1;");
+                        psPlayer.setString(1, charName);
+                        rsPlayer = psPlayer.executeQuery();
+                        if (rsPlayer.next()) {
+                            temp.id = rsPlayer.getInt("id");
+                            try {
+                                JSONArray jsLevel = (JSONArray) JSONValue.parse(rsPlayer.getString("level"));
+                                if (jsLevel != null && jsLevel.size() > 0) {
+                                    temp.level = Short.parseShort(jsLevel.get(0).toString());
+                                }
+                            } catch (Exception ex) {}
+
+                            List<ItemFashionP2> fashion = new ArrayList<>();
+                            List<ItemFashionP> itfashionP = new ArrayList<>();
+                            try {
+                                JSONArray js0 = (JSONArray) JSONValue.parse(rsPlayer.getString("fashion"));
+                                JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js0.get(0).toString());
+                                for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                                    JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                                    ItemFashionP tempf = new ItemFashionP();
+                                    tempf.category = Byte.parseByte(js_temp.get(0).toString());
+                                    tempf.id = Short.parseShort(js_temp.get(1).toString());
+                                    tempf.icon = Short.parseShort(js_temp.get(2).toString());
+                                    tempf.is_use = Byte.parseByte(js_temp.get(3).toString()) == 1;
+                                    itfashionP.add(tempf);
+                                }
+                                js_temp_2.clear();
+                                js_temp_2 = (JSONArray) JSONValue.parse(js0.get(1).toString());
+                                for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                                    JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                                    ItemFashionP2 tempf = new ItemFashionP2();
+                                    tempf.id = Short.parseShort(js_temp.get(0).toString());
+                                    tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
+                                    fashion.add(tempf);
+                                }
+                            } catch (Exception ex) {}
+
+                            short hair_ = -1;
+                            short head_ = -1;
+                            short[] fashion_ = null;
+                            for (int i0 = 0; i0 < fashion.size(); i0++) {
+                                if (fashion.get(i0).is_use) {
+                                    ItemFashion tempF = ItemFashion.get_item(fashion.get(i0).id);
+                                    if (tempF != null) {
+                                        fashion_ = tempF.mWearing;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (fashion_ != null && fashion_[6] != -1) {
+                                hair_ = -2;
+                                head_ = fashion_[6];
+                            } else {
+                                for (int i0 = 0; i0 < itfashionP.size(); i0++) {
+                                    if (itfashionP.get(i0).category == 103 && itfashionP.get(i0).is_use) {
+                                        hair_ = itfashionP.get(i0).icon;
+                                    }
+                                    if (itfashionP.get(i0).category == 108 && itfashionP.get(i0).is_use) {
+                                        head_ = itfashionP.get(i0).icon;
+                                    }
+                                }
+                            }
+                            try {
+                                JSONArray js = (JSONArray) JSONValue.parse(rsPlayer.getString("body"));
+                                temp.head = (head_ != -1) ? head_ : Short.parseShort(js.get(0).toString());
+                                temp.hair = (hair_ != -1) ? hair_ : Short.parseShort(js.get(1).toString());
+                            } catch (Exception ex) {}
+
+                            try {
+                                Item_wear[] it = new Item_wear[8];
+                                JSONArray js = (JSONArray) JSONValue.parse(rsPlayer.getString("it_body"));
+                                for (int i1 = 0; i1 < js.size(); i1++) {
+                                    JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
+                                    Item_wear temp2 = new Item_wear();
+                                    Item.readUpdateItem(js2.toString(), temp2);
+                                    if (temp2.template != null) {
+                                        it[temp2.index] = temp2;
+                                    }
+                                }
+                                JSONArray jsSite = (JSONArray) JSONValue.parse(rsPlayer.getString("site"));
+                                boolean is_show_hat = Byte.parseByte(jsSite.get(6).toString()) == 1;
+                                if (!is_show_hat || it[1] == null) {
+                                    temp.hat = -1;
+                                } else if (fashion_ != null && fashion_[1] != -1) {
+                                    temp.hat = fashion_[1];
+                                } else {
+                                    temp.hat = ItemTemplate3.get_it_by_id(it[1].template.id).part;
+                                }
+                            } catch (Exception ex) {}
+                        }
+                    } catch (Exception ex) {
+                    } finally {
+                        if (rsPlayer != null) try { rsPlayer.close(); } catch (Exception e) {}
+                        if (psPlayer != null) try { psPlayer.close(); } catch (Exception e) {}
+                    }
+                }
+                list_add.add(temp);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            list_add.clear();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (list_add.size() > 0) {
+            for (int i = 0; i < list_add.size(); i++) {
+                list_add.get(i).rank = (short) i;
+                list_add.get(i).id = i + 1;
+            }
+            BXH.TOP_NAP.clear();
+            BXH.TOP_NAP.addAll(list_add);
             list_add.clear();
         }
     }

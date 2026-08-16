@@ -38,6 +38,14 @@ public class ClientInput {
             name[i] = m2.reader().readUTF();
         }
         switch (id) {
+            case activities.Bank.INPUT_ID_BANK_DEPOSIT: {
+                activities.Bank.processDepositInput(p, name);
+                break;
+            }
+            case activities.Bank.INPUT_ID_BANK_EXCHANGE_COIN: {
+                activities.Bank.processExchangeCoinInput(p, name);
+                break;
+            }
             case Fight.INPUT_ID_FIGHT_RUBY: { // Nhập số ruby cược cho thách đấu siêu hạng
                 if (name.length == 1) {
                     if (!Util.isnumber(name[0])) {

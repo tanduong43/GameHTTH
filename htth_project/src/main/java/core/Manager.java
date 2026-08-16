@@ -306,6 +306,37 @@ public class Manager {
                         System.err.println("[DEBUG HAKI] Skip invalid NPC entry in map " + id_map + ": " + e.getMessage());
                     }
                 }
+                // Tự động kiểm tra và thêm NPC Ngân Hàng vào Làng Cối Xay Gió (Map 1) nếu chưa có
+                if (id_map == 1) {
+                    boolean hasBank = false;
+                    for (int nIdx = 0; nIdx < map_temp.npcs.size(); nIdx++) {
+                        Npc n = map_temp.npcs.get(nIdx);
+                        if (n.iditem == activities.Bank.NPC_ID_BANK
+                                || (n.name != null && (n.name.equalsIgnoreCase("Ngân hàng") || n.name.equalsIgnoreCase("ATM") || n.name.equalsIgnoreCase("Ngân Hàng")))) {
+                            hasBank = true;
+                            break;
+                        }
+                    }
+                    if (!hasBank) {
+                        Npc bankNpc = new Npc();
+                        bankNpc.iditem = activities.Bank.NPC_ID_BANK;
+                        bankNpc.name = "Ngân hàng";
+                        bankNpc.namegt = "Giao dịch";
+                        bankNpc.chat = "Ngân hàng nạp tiền và đổi coin tự động 24/7!";
+                        bankNpc.x = 420;
+                        bankNpc.y = 173;
+                        bankNpc.isPerson = 0;
+                        bankNpc.typeIcon = 0;
+                        bankNpc.wBlock = 0;
+                        bankNpc.hBlock = 0;
+                        bankNpc.b3 = 0;
+                        bankNpc.dataFrame = new byte[] { 71, 2 };
+                        bankNpc.head = 0;
+                        bankNpc.hair = 0;
+                        bankNpc.wearing = new short[0];
+                        map_temp.npcs.add(bankNpc);
+                    }
+                }
                 js_npc.clear();
                 String boatStr = rs.getString("boat");
                 js_npc = (boatStr != null && !boatStr.trim().isEmpty() && !boatStr.equals("null"))
