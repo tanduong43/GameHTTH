@@ -2417,7 +2417,15 @@ public class Service {
         if (p == null || p.map == null)
             return;
 
-        // 1. Gửi Message 74 hiển thị effect trước (để client khởi tạo EffectData trong ALL_EFF_DATA)
+        // 1. Gửi dữ liệu effect DATA trước để client có sẵn trong ALL_EFF_DATA
+        //    (phải gửi trước lệnh play, nếu không client nhận lệnh play mà chưa có data sẽ bỏ qua effect)
+        for (Player p0 : p.map.players) {
+            if (p0 != null && p0.conn != null) {
+                send_effect_data(p0.conn, effId);
+            }
+        }
+
+        // 2. Gửi Message 74 type=1 để HIỂN THỊ effect (sau khi data đã được queue trước)
         Message mTest = new Message(74);
         mTest.writer().writeByte(1);
         mTest.writer().writeShort(p.index_map);
@@ -2427,13 +2435,6 @@ public class Service {
         mTest.writer().writeByte(-1); // loop: -1 (lặp liên tục trong suốt thời gian time)
         p.map.send_msg_all_p(mTest, null, true);
         mTest.cleanup();
-
-        // 2. Gửi dữ liệu effect cho tất cả người chơi trong map
-        for (Player p0 : p.map.players) {
-            if (p0 != null && p0.conn != null) {
-                send_effect_data(p0.conn, effId);
-            }
-        }
     }
 
     public static void send_eff_haki(Player p, short effId) throws IOException {
