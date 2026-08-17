@@ -65,11 +65,11 @@ public class Buff {
             Service.pet(p, p, false);
             Service.UpdateInfoMaincharInfo(p);
             if (sk_info.temp.indexSkillInServer == 900) {
-                Service.send_eff_haki(p, (short) 21); // Haki Quan Sát (eff 21)
+                Service.send_eff_haki(p, (short) 21, time_buff); // Haki Quan Sát (eff 21)
             } else if (sk_info.temp.indexSkillInServer == 901) {
-                Service.send_eff_haki(p, (short) 18); // Haki Vũ Trang (eff 18)
+                Service.send_eff_haki(p, (short) 18, time_buff); // Haki Vũ Trang (eff 18)
             } else if (sk_info.temp.indexSkillInServer == 902) {
-                Service.send_eff_haki(p, (short) 26); // Haki Bá Vương (eff 26)
+                Service.send_eff_haki(p, (short) 26, time_buff); // Haki Bá Vương (eff 26)
                 apply_haki_bavuong_stun(p, 5, 250, 5000);
             }
             Message m = new Message(20);

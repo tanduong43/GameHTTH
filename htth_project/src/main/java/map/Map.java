@@ -4648,53 +4648,7 @@ public class Map implements Runnable {
                         if (parts.length > 2) typemove = Byte.parseByte(parts[2]);
                         if (parts.length > 3) loop = Byte.parseByte(parts[3]);
 
-                        // 1. Gửi dữ liệu effect cho mỗi client theo zoom level của họ TRƯỚC
-                        for (Player p0 : this.players) {
-                            if (p0 != null && p0.conn != null) {
-                                byte zoomlv = p0.conn.zoomlv <= 0 ? 4 : p0.conn.zoomlv;
-                                byte[] data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + effId);
-                                byte[] data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + effId + ".png");
-                                
-                                // Fallback sang x4 nếu không có
-                                if (data1 == null || data2 == null) {
-                                    data1 = Util.loadfile("data/template/skill/x4/data/" + effId);
-                                    data2 = Util.loadfile("data/template/skill/x4/img/" + effId + ".png");
-                                }
-                                // Fallback sang danhhieu effect
-                                if (data1 == null || data2 == null) {
-                                    data1 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + effId);
-                                    data2 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
-                                }
-                                if (data1 == null || data2 == null) {
-                                    data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + effId);
-                                    data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + effId + ".png");
-                                }
-                                // Fallback sang nro data
-                                if (data1 == null || data2 == null) {
-                                    data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + effId);
-                                    data2 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
-                                }
-                                if (data1 == null || data2 == null) {
-                                    data1 = Util.loadfile("data/nro/data/effect/x4/data/DataEffect_" + effId);
-                                    data2 = Util.loadfile("data/nro/data/effect/x4/img/ImgEffect_" + effId + ".png");
-                                }
-                                
-                                if (data1 != null && data2 != null) {
-                                    Message mData = new Message(74);
-                                    mData.writer().writeByte(0);
-                                    mData.writer().writeShort(effId);
-                                    mData.writer().writeShort(data1.length);
-                                    mData.writer().write(data1);
-                                    mData.writer().write(data2);
-                                    p0.conn.addmsg(mData);
-                                    mData.cleanup();
-                                } else {
-                                    System.out.println("[Admin Eff] Khong tim thay du lieu effect id=" + effId + " cho zoom=x" + zoomlv);
-                                }
-                            }
-                        }
-
-                        // 2. Gửi message hiển thị effect cho tất cả players
+                        // 1. Gửi lệnh hiển thị effect cho tất cả players TRƯỚC (để client khởi tạo EffectData trong ALL_EFF_DATA)
                         Message mTest = new Message(74);
                         mTest.writer().writeByte(1);
                         mTest.writer().writeShort(p.index_map);
@@ -4704,6 +4658,13 @@ public class Map implements Runnable {
                         mTest.writer().writeByte(loop);
                         this.send_msg_all_p(mTest, null, true);
                         mTest.cleanup();
+
+                        // 2. Gửi dữ liệu effect cho mỗi client theo zoom level của họ
+                        for (Player p0 : this.players) {
+                            if (p0 != null && p0.conn != null) {
+                                Service.send_effect_data(p0.conn, effId);
+                            }
+                        }
                         
                         System.out.println("[Debug Admin] Sent eff command with id=" + effId + " to map. TypeMove: " + typemove + ", Loop: " + loop);
                         Service.send_box_ThongBao_OK(p, "Đang hiển thị Effect ID: " + effId + " (TypeMove: " + typemove + ", Loop: " + loop + ")");

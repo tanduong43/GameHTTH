@@ -1,0 +1,643 @@
+id,info
+0,…
+1,Hồi phục 600 HP trong 10s.
+2,Hồi phục 1200 HP trong 10s.
+3,Hồi phục 20 MP trong 10s.
+4,Hồi phục 40 MP trong 10s.
+5,Dùng để thực hiện nhiệm vụ lặp ở mọi khu vực.
+6,Hãy mở rương để tìm kho báu bất ngờ bên trong.
+7,Đây là một trong những chiếc rương bí ẩn nhất.
+8,Được mệnh danh là kho báu quý hiếm nhất trên thế giới.
+9,Khi sử dụng sẽ được xóa 200 điểm PK.
+10,Khi ăn trái ác quỹ này sẽ có kĩ năng đặc biệt.
+11,Vé này dùng để ghi danh vào Đấu Trường.
+12,Nhận được 30.000 Beri. Tăng 50% cho các làng tiếp theo và tối đa 100%.
+13,Nhận được 100.000 Beri. Tăng 50% cho các làng tiếp theo và tối đa 100%.
+14,Nhận được 200.000 Beri. Tăng 50% cho các làng tiếp theo và tối đa 100%.
+15,Nhận được 400.000 Beri. Tăng 50% cho các làng tiếp theo và tối đa 100%.
+16,"Dùng để đăng ký vào khu vực săn Boss, Phó bản."
+17,Dùng để vào Khu vực luyện tập thời hạn 3 ngày.
+18,Dùng để vào Khu vực luyện tập thời hạn 7 ngày.
+19,Vé này dùng để tham gia các trận đấu PvP.
+20,"Tăng phòng thủ 2%
+Dùng để khảm vào Trang phục."
+21,"Tăng phòng thủ 3%
+Dùng để khảm vào Trang phục."
+22,"Tăng phòng thủ 4%
+Dùng để khảm vào Trang phục."
+23,"Tăng phòng thủ 6%
+Dùng để khảm vào Trang phục."
+24,"Tăng phòng thủ 9%
+Dùng để khảm vào Trang phục."
+25,"Tăng phòng thủ 14%
+Dùng để khảm vào Trang phục."
+26,"Tăng tấn công 5%
+Dùng để khảm vào Vũ khí"
+27,"Tăng tấn công 7%
+Dùng để khảm vào Vũ khí"
+28,"Tăng tấn công 9%
+Dùng để khảm vào Vũ khí"
+29,"Tăng tấn công 12%
+Dùng để khảm vào Vũ khí"
+30,"Tăng tấn công 16%
+Dùng để khảm vào Vũ khí"
+31,"Tăng tấn công 22%
+Dùng để khảm vào Vũ khí"
+32,"Tăng Chí mạng 1%
+Dùng để khảm vào Đồ trang sức."
+33,"Tăng Chí mạng 2%
+Dùng để khảm vào Đồ trang sức."
+34,"Tăng Chí mạng 3%
+Dùng để khảm vào Đồ trang sức."
+35,"Tăng Chí mạng 4%
+Dùng để khảm vào Đồ trang sức."
+36,"Tăng Chí mạng 5%
+Dùng để khảm vào Đồ trang sức."
+37,"Tăng Chí mạng 6%
+Dùng để khảm vào Đồ trang sức."
+38,"Xuyên giáp 1%
+Dùng để khảm vào Đồ trang sức."
+39,"Xuyên giáp 2%
+Dùng để khảm vào Đồ trang sức."
+40,"Xuyên giáp 3%
+Dùng để khảm vào Đồ trang sức."
+41,"Xuyên giáp 4%
+Dùng để khảm vào Đồ trang sức."
+42,"Xuyên giáp 6%
+Dùng để khảm vào Đồ trang sức."
+43,"Xuyên giáp 9%
+Dùng để khảm vào Đồ trang sức."
+44,"Kháng vật lý 1% + kháng phép 1%
+Dùng để khảm vào Trang phục."
+45,"Kháng vật lý 2% + kháng phép 2%
+Dùng để khảm vào Trang phục."
+46,"Kháng vật lý 3% + kháng phép 3%
+Dùng để khảm vào Trang phục."
+47,"Kháng vật lý 4% + kháng phép 4%
+Dùng để khảm vào Trang phục."
+48,"Kháng vật lý 6% + kháng phép 6%
+Dùng để khảm vào Trang phục."
+49,"Kháng vật lý 9% + kháng phép 9%
+Dùng để khảm vào Trang phục."
+50,"Phản đòn 1%
+Dùng để khảm vào Đồ trang sức."
+51,"Phản đòn 2%
+Dùng để khảm vào Đồ trang sức."
+52,"Phản đòn 3%
+Dùng để khảm vào Đồ trang sức."
+53,"Phản đòn 4%
+Dùng để khảm vào Đồ trang sức."
+54,"Phản đòn 6%
+Dùng để khảm vào Đồ trang sức."
+55,"Phản đòn 9%
+Dùng để khảm vào Đồ trang sức."
+56,Nhân đôi kinh nghiệm khi trả nhiệm vụ lặp và săn quái trong 2 giờ.
+57,Hồi sức nhanh chóng 25% HP cho nhân vật.
+58,Hồi sức nhanh chóng 50% HP cho nhân vật.
+59,Hồi sức nhanh chóng toàn bộ HP cho nhân vật.
+60,"Thu thập để đổi quà, vật phẩm sự kiện 2016."
+61,Hồi phục 2000 HP trong 10s.
+62,Vé Tự động hồi sinh và được bảo vệ 30 phút khi bị giết.
+63,Thổi bay tất cả Thành Viên của Băng đối thủ về thế giới bên kia.
+64,Hồi máu tất cả Thành Viên trong Băng khi tham gia Phó Bản Khổng Lồ.
+65,Đặt bẫy giảm 25% máu của chiến binh đối thủ.
+66,Cổ vũ cho chiến binh tấn công liên tiếp 3 lần.
+67,Hồi 25% máu cho chiến binh Khổng Lồ.
+68,Tăng 200 năng lượng cho khổng lồ.
+69,Hồi 500 máu cho khổng lồ.
+70,Cộng 50.000 XP đấu trường tự do (chỉ sử dụng được khi XP đấu trường bằng 0).
+71,Giúp nhân 2 Xp nhận được từ các phần thưởng phó bảng (dùng tự động và tối đa 100.000xp).
+72,Giảm giá 20% khi mua đồ thời trang (dùng tự động).
+73,Giảm giá 50% khi mua đồ thời trang (dùng tự động).
+74,Kho báu mà hải tặc nào cũng muốn sở hữu (100% nhận được vật phẩm cam).
+75,Kho báu chỉ dành riêng cho những huyền thoại (100% nhận được vật phẩm cam cùng Hệ).
+76,Nguyên liệu để tạo ra Lồng Đèn
+77,Dùng để đổi đồ thời trang có thời hạn ở NPC
+78,Vé tăng kinh nghiệm nhận vàonnx3 cho level 1 - 30nnx2.5 cho Level 31 - 60nnx2 cho level từ 61 trở lên nnÁp dụng cho nhiệm vụ lặp và đánh quáinnTác dụng trong 2 giờ online.
+79,Dùng để cường hóa rương ác quỷ hoặc nâng cấp Kỹ nâng.
+80,Dùng để ghép thành đá ác quỷ.
+81,Kho báu mà rất nhiều người sẵn đuổi (100% nhận được vật phẩm tím).
+82,Kho báu dành riêng cho các anh hùng (100% nhận được vật phẩm tím cùng Hệ).
+83,Nếu rương ác quỷ đã hiếm thì nó còn hiếm hơn gấp nhiều lần.
+84,Giúp nhận thêm 200% kinh nghiệm từ việc thi triển chiêu thức trong 2 giờ.
+85,Mãnh ghép sự kiện tết 2017
+86,Vật phẩm sự kiện 2022
+87,Khi mở Bạn sẽ nhận được nhiều phần quà giá trị
+88,Hồi phục 5% tổng máu trong 10s.( Tối đa 10000 máu)
+89,Hồi phục 60 MP trong 10s.
+90,Tăng 5% sát thương trong 10 phút.
+91,X2 khả năng hồi phục của bản thân trong 10 phút.
+92,Tăng 10% giáp trong 10 phút.
+93,Giảm 10% thời gian hiệu ứng nhận vào trong 10 phút.
+94,Tăng 5% máu tối đa trong 10 phút.
+95,Dùng để bắt pokemon thời gian hồi sau mỗi lần ném 5s.
+96,Dùng để bắt pokemon thời gian hồi sau mỗi lần ném 4s.
+97,Dùng để bắt pokemon thời gian hồi sau mỗi lần ném 2.5s.
+98,Huy hiệu Pokemon.
+99,Radar truy tìm pokemon.
+100,"Bộ vật phẩm bao gốm 10 quả cầu đặc biệt, 1 radar, 1 huy hiệu đặc biệt."
+101,Triệu hồi pokemon.
+102,Dùng để đổi quà sự kiện 1-6
+103,Dùng để định hướng đến dòng hải lưu lên trời.
+104,Giỏ gồm 50 ổ bánh mì.
+105,Dùng để đổi vật phẩm
+106,Giảm giá 500 ruby khi mua đồ thời trang.
+107,Khi mua 1 bộ tương đương với 10 cánh Hoa Phượng
+108,Nguyên liệu làm bánh Trung Thu
+109,Bánh Trung Thu cho Sự kiện Trung Thu
+110,Hộp 4 Bánh Trung Thu
+111,Dùng để đổi 1 bộ trang phục hóa trang halloween ngẫu nhiên
+112,Dùng để đổi một phần quà ngẫu nhiên trong sự kiện Halloween 2017
+113,Dùng để tẩy điểm tiềm năng của nhân vật về ban đầu
+114,Rương đấu trường
+115,Dùng để nâng cấp đồ hoàn mỹ
+116,Mở ngẫu nhiên ra các phần quá có giá trị
+117,Dùng để đổi 1 bộ trang phục Noel ngẫu nhiên
+118,Dùng để đổi Vé đổi trang phục Noel tại Ông già Noel hoặc trang trí cây thông Băng hải tặc
+119,Mở ra những phần quà giá trị
+120,Dùng để quay vòng xoay kho báu
+121,Dùng để thu phục linh vật. 10% tỉ lệ thành công.
+122,Sự kiện Tết 2018
+123,"Defense + 14%
+Attack Percent HP 2%
+"
+124,"Defense + 14%
+Enemy Critical - 4%
+"
+125,"Defense + 14%
+Enemy Pierce - 4%
+"
+126,"Defense + 14%
+Enemy Evasion - 4%
+"
+127,"Defense + 14%
+Enemy Reflection - 4%
+"
+128,"Attack + 22%
+Enemy Effective - 4%
+"
+129,"Attack + 22%
+Enemy Critical - 4%
+"
+130,"Attack + 22%
+Enemy Pierce - 4%
+"
+131,"Attack + 22%
+Enemy Evasion - 4%
+"
+132,"Attack + 22%
+Enemy Reflection - 4%
+"
+133,"Critical + 6%
+Enemy Effective - 4%
+"
+134,"Critical + 6%
+Attack Percent HP 2%
+"
+135,"Critical + 6%
+Enemy Pierce - 4%
+"
+136,"Critical + 6%
+Enemy Evasion - 4%
+"
+137,"Critical + 6%
+Enemy Reflection - 4%
+"
+138,"Pierce 9%
+Enemy Effective - 4%
+"
+139,"Pierce 9%
+Attack Percent HP 2%
+"
+140,"Pierce 9%
+Enemy Critical - 4%
+"
+141,"Pierce 9%
+Enemy Evasion - 4%
+"
+142,"Pierce 9%
+Enemy Reflection - 4%
+"
+143,"Physical/Elemental Resist 9%
+Enemy Effective - 4%
+"
+144,"Physical/Elemental Resist 9%
+Attack Percent HP 2%
+"
+145,"Physical/Elemental Resist 9%
+Enemy Critical - 4%
+"
+146,"Physical/Elemental Resist 9%
+Enemy Pierce - 4%
+"
+147,"Physical/Elemental Resist 9%
+Enemy Reflection - 4%
+"
+148,"Reflection 9%
+Enemy Effective - 4%
+"
+149,"Reflection 9%
+Attack Percent HP 2%
+"
+150,"Reflection 9%
+Enemy Critical - 4%
+"
+151,"Reflection 9%
+Enemy Pierce - 4%
+"
+152,"Reflection 9%
+Enemy Evasion - 4%
+"
+153,Dùng để thu phục linh vật. 20% tỉ lệ thành công.
+154,Dùng để thu phục linh vật. 40% tỉ lệ thành công.
+155,Thay đổi tên nhân vật của bạn
+156,Gói 100 đá khảm cấp 3.
+157,Huy hiệu sắc màu
+158,Chìa khóa mở rương sắc màu
+159,Kết hợp cùng chìa khóa sắc màu mở ra những phần quà bất ngờ
+160,Gói kết hợp cả rương và chìa khóa sắc màu. Nhận 1 rương sắc màu và 1 khóa sắc màu.
+162,Sự kiện hè - WC 2018
+163,Dùng để ghép ra trang phục 9x.
+164,Dùng để ghép ra trang sức 9x.
+165,Dùng để ghép ra vũ khí 9x.
+166,Sự kiện chào mừng năm học mới.
+167,Bộ 6 viên đá khảm cấp 1.
+168,Ngẩu nhiên ra 1 trái ác quỷ trung cấp hoặc sơ cấp.
+169,Đục thêm một lổ trên trang bị để khảm đá.
+170,"giảm 4% chí mạng đối thủ
+giảm 4% xuyên giáp đối thủ
+giảm 4% phản đòn đối thủ
+giảm 4% né đòn đối thủ
+giảm 4% hiệu ứng đối thủ
+2% sát thương % máu. 
+"
+171,"Tăng 7% tấn công
+11% phòng thủ
+3% chí mạng
+5% xuyên giáp
+phản đòn 5%
+5% giáp v/l, 5% giáp phép
+"
+172,"Tăng 14% tấn công
+22% phòng thủ
+6% chí mạng
+9% xuyên giáp
+phản đòn 9%
+9% giáp v/l, 9% giáp phép
+"
+173,Ngẩu nhiên ra 1 viên đá khảm cấp 1
+174,Sự kiện tết trung thu
+175,Mở ra bạn sẽ nhận 1 giấy gián cùng với 1 nguyên liệu ngẩu nhiên.
+176,Mang đến điều ước cho tất cả mọi người trong khu vực.
+177,Khi sử dụng sẽ được tăng exp 3 kỹ năng cơ bản ngẫu nhiên từ 500 đến 1000 exp.
+178,Khi sử dụng sẽ được tăng exp 3 kỹ năng cơ bản ngẫu nhiên từ 1000 đến 2000 exp.
+179,Khi sử dụng sẽ được tăng exp 3 kỹ năng cơ bản ngẫu nhiên từ 2000 đến 3000 exp.
+180,Khi sử dụng sẽ được tăng exp 3 kỹ năng cơ bản ngẫu nhiên từ 3000 đến 5000 exp.
+181,Khi sử dụng sẽ được tăng exp 3 kỹ năng cơ bản ngẫu nhiên từ 5000 đến 10000 exp.
+182,Khi sử dụng sẽ giúp vật phẩm có khả năng đục thêm 1 lỗ khảm. Tỉ lệ thành công ngẫu nhiên. Mất điểm chế tác sau mỗi lần đập.
+183,Bên trong có chứa các nguyên liệu dùng để trang trí Giáng sinh
+184,Khi sử dụng tạo ra 1 người tuyết. Đánh tan nó sẽ nhận được các phần quà hấp dẫn.
+185,Mở ra nhận ngẫu nhiên 1 lượng beri.
+186,New Year 2020 Event
+187,Mở ra sẽ được chọn 1 trong 3 trang phục vĩnh viễn Đấn - Bão tố - Chấn động
+188,Mở ra sẽ nhận ngay quà mừng tuổi hấp dẫn
+189,Mở ra sẽ nhận thời trang tết 30 ngày
+190,Đốt pháo hoa mang lại cho mọi người trong khu 1 phần quà ngày tết.
+191,Với mỗi 1 vé bạn có thể chuyển 10 ruby của bản thân cho người khác.
+192,Sử dụng để có thể đổi hàng vận buôn
+193,"Tăng né tránh 1%
+Dùng để khảm vào Trang phục.
+"
+194,"Tăng né tránh 2%
+Dùng để khảm vào Trang phục.
+"
+195,"Tăng né tránh 3%
+Dùng để khảm vào Trang phục.
+"
+196,"Tăng né tránh 4%
+Dùng để khảm vào Trang phục.
+"
+197,"Tăng né tránh 5%
+Dùng để khảm vào Trang phục.
+"
+198,"Tăng né tránh 6%
+Dùng để khảm vào Trang phục.
+"
+199,"Tăng né tránh 6%
+Giảm 4% hiệu ứng đối thủ
+"
+200,"Tăng né tránh 6%
+2% sát thương % máu
+"
+201,"Tăng né tránh 6%
+Giảm 4% chí mạng đối thủ
+"
+202,"Tăng né tránh 6%
+Giảm 4% xuyên giáp đối thủ
+"
+203,"Tăng né tránh 6%
+Giảm 4% né đòn đối thủ
+"
+204,"Tăng né tránh 6%
+Giảm 4% phản đòn đối thủ
+"
+205,Sự kiện giổ tổ
+206,Sự kiện hè 2019
+207,Radar truy tìm vị trí của người khác
+208,Sự kiện tìm trẻ lạc
+209,Bánh thường thấy trong ngày Tết Trung thu
+210,Sử dụng sẽ nhận 1 Đá khảm cấp 1
+211,Sử dụng sẽ nhận 1 Đá khảm cấp 2
+212,Sử dụng sẽ nhận 1 Đá khảm cấp 3
+213,1 ngày có thể sử dụng tối đa 20 cái
+214,1 ngày có thể sử dụng tối đa 50 cái
+215,1 ngày có thể sử dụng tối đa 10 cái
+216,Sử dụng sẽ nhận ngẫu nhiên 1 Đá khảm cấp 4
+217,Sử dụng sẽ nhận 1 Rương ác quỷ
+218,Nhân vật dưới Lv 30 sử dụng sẽ tăng trực tiếp lên Lv 30
+219,Kỹ năng dưới Lv 20 sử dụng sẽ tăng 1 Lv Skill cho 4 Skill cơ bản
+220,Nhân vật dưới Lv 99 sử dụng sẽ tăng lên 1 Lv
+221,Bạn có thể đục 1 ô trong túi đồ.
+222,Sử dụng để nhận kinh nghiệm kỹ năng
+223,Sử dụng để nhận kinh nghiệm bản thân
+224,"Sử dụng để nhận
+1 Vé XP Skill
+20 Huy hiệu Sói hoặc Dracula
+Mua tối đa 20 lần trong ngày
+"
+225,Sử dụng để nhận quà Haloween
+226,"Sử dụng để nhận
+3 Vé vòng xoay may mắn
+6 Bí ngô ma quái
+Mua tối đa 15 lần trong ngày.
+"
+227,"Sử dụng để nhận
+1 Rương ác quỷ
+50 Bí ngô ma quái
+Mua duy nhất 1 lần trong ngày.
+"
+228,"Giá bán: 100.000 Bery
+Sử dụng để nhận
+10 Huy hiệu Sói
+10 Huy hiệu Dracula
+1 Bí ngô ma quái
+Mua tối đa 5 lần trong ngày.
+"
+230,Happy New Year 2020! Use to receive special gift
+231,Sử dụng để trang trí hộp quà Valentine
+232,Sử dụng để mở các vật phẩm Valentine
+233,Sử dụng để quay vòng xoay Ốc Sên
+234,Món quà tình yêu.
+235,Sử dụng để ghép bản đồ kho báu
+236,Vật phẩm sự kiện. Sử dụng để vào bản đồ săn quái
+237,Bạn cần phải có vé này mới có thể mua được biểu tượng Băng VIP. Có thể giao dịch
+238,Sử dụng để ghép thành sách công thức
+239,Ghi chép công thức chế tạo ra các vật phẩm hiếm
+240,Nguyên liệu để chế tạo DIAL
+241,Mảnh vở để ghép thành Vỏ ốc
+243,Mở ra sẽ được chọn 1 trong 3 trang phục vĩnh viễn Đấn - Bão tố - Chấn động - Râu đen - Spiderman iron
+244,Khi sử dụng sẽ giúp Dial có khả năng đục thêm 1 lổ khảm. Tỉ lệ thành công ngẫu nhiên.
+245,Sự kiện Tết Sâu Bọ
+246,Mở rương sẽ nhận được Kẹo giáng sinh hoặc Hộp quà giáng sinh
+247,Nguyên liệu sự kiện
+248,Khi mở ra bạn sẽ nhận được những vật phẩm kì bí
+249,Vật phẩm sự kiện
+250,Sử dụng để vào hang động kì bí
+251,Tương truyên Đào Tiên ăn 1 quả sẽ trường sinh bất tử
+252,Hãy thu thập để ghép lại thành Thẻ thời trang Ngộ Không
+253,Sử dụng để nhận ngay bộ thời trang Ngộ Không kì bí
+254,Mở ra sẽ được chọn 1 trong 3 trang phục vĩnh viễn
+255,Lồng đèn trung thu
+256,Sử dụng để trang trí lồng đèn ông sao
+257,Sử dụng để nhận được thời trang Trung Thu Chú cuội / Chị Hằng Vĩnh viễn
+258,Sử dụng để kháng lại hiệu ứng zoombie trong 24h
+259,Vật phẩm sự kiện
+260,Mở ra sẽ nhận được trang phục Halloween đặc biệt
+261,Mở ra bạn sẽ nhận được 1 trong 3 trái ác quỷ cao cấp
+262,Mở ra bạn sẽ nhận được trang phục Halloween hoặc thú nuôi
+263,Sử dụng để nhận 200 exp kỹ năng và 1000 exp bản thân
+264,Sử dụng sẽ nhận được phần thưởng giá trị. Có cơ hội nhận Rương đại ác quỷ
+265,Sử dụng để bắt Tuần Lộc
+266,Sử dụng để bắt Tuần Lộc. Tỉ lệ bắt được cao
+267,Mang đến cho Ông già Noel để Trang trí giáng sinh
+268,Tăng điểm kinh nghiệm khi đánh quái 2%
+269,Tăng điểm kinh nghiệm skill khi đánh quái 2%
+270,Tăng HP cuối cho bản thân 2%
+271,Tăng MP cho bản thân 2%
+272,Có tỉ lệ 2% ngăn đối phương không sử dụng thức ăn
+273,Có tỉ lệ 2% ngăn đối phương không sử dụng nước uống
+274,Giảm sát thương chí mạng đối phương 2%
+275,Giảm tỉ lệ Chí mạng của đổi phương 2%
+276,Giảm né tránh đối phương 2%
+277,Giảm Xuyên giáp đối phương 2%
+278,Giảm Phản đòn đối phương 2%
+279,Giảm Miễn thương đối phương 2%
+280,Tăng thời gian hồi chiêu của đối phương 2%
+281,Kháng hiệu ứng 5%
+282,Giảm tổng phòng thủ đối phương 5%
+283,Tiềm năng sức mạnh tăng 2 điểm
+284,Tiềm năng phòng thủ tăng 2 điểm
+285,Tiềm năng thể lực tăng 2 điểm
+286,Tiềm năng tinh thần tăng 2 điểm
+287,Tiềm năng nhanh nhẹn tăng 2 điểm
+288,Beri nhận được khi train quái tăng 5%
+289,Chuyển hóa sát thương thành HP 2%
+290,Chuyển hóa sát thương thành MP 2%
+291,Tăng tỉ lệ Choáng 1%
+292,Tăng tỉ lệ Chính xác 1%
+293,Sử dụng để nhận nguyên liệu tết 2021
+294,Sự kiện tết 2021
+295,Mở ra sẽ nhận ngẫu nhiên đá hành trình
+296,Mở ra sẽ có tỉ lệ nhận được thời trang franky
+297,Thu thập các mảnh để ghép lại thành thẻ TT Franky
+298,Mở ra nhận được thời trang Franky lịch lãm
+299,Vật phẩm sự kiện
+300,Sử dụng để nhận nguyên liệu sự kiện
+302,Dùng để ghép ra trang phục 10x.
+303,Dùng để ghép ra trang sức 10x.
+304,Dùng để ghép ra vũ khí 10x.
+305,Ngăn không nhận exp khi đánh quái trong vòng 2h
+306,Bảo hiểm không bị rớt cấp cường hoá khi chuyển hóa đồ có cấp cường hóa +10 +11 +12
+307,Bảo hiểm không bị rớt cấp cường hoá khi chuyển hóa đồ có cấp cường hóa +13 +14
+308,Bảo hiểm không bị rớt cấp cường hoá khi chuyển hóa đồ có cấp cường hóa +15
+309,Sự kiện Hè - Euro 2020
+310,Nhận thời trang đội vô địch Euro 2020
+311,Dùng để gói thành Hộp bánh trung thu thượng hạng
+312,Hộp 4 bánh trung thu thượng hạng
+314,"Mở ngẫu nhiên ra các phần quá có giá trị
+Có tỉ lệ nhận được thời trang One Punch Man / Perona vĩnh viễn
+"
+315,Sử dụng để nhận thời trang chopper khổng lồ
+316,Sử dụng để ghép thành xu hành trình
+317,Cống nạp vào Băng để có cơ hội mở ra hoặc trao đổi được các vật phẩm đặc biệt
+318,Mở hộp quà sẽ nhận ngẫu nhiên các phần thưởng giá trị
+319,"Mở hộp quà sẽ nhận được 1 trong 3 món quà gồm:
+Rương đại ác quỷ
+Bảo hiểm chuyển hoá sơ
+1 Viên đá cấp 6 tuỳ chọn
+"
+320,Sử dụng để nhận 1 viên đá cấp 6 tuỳ chọn
+321,Mở ra ngẫu nhiên 6 bộ thời trang Raid Suit của Germa 66
+325,"Bộ quà tặng
+3.000.000 Bery
+30 Ruby
+1v Hải thạch c4
+1 đá khảm Lv6 tự chọn
+5 Vé x3 skill
+"
+326,"Bộ quà tặng
+5.000.000 Bery
+50 Ruby
+1v Hải thạch c5
+1 đá khảm Lv6 tự chọn
+10 Vé x3 skill
+"
+327,"Bộ quà tặng
+10.000.000 Bery
+100 Ruby
+1v Hải thạch c5
+1 đá khảm Lv6 tự chọn
+15 Vé x3 skill
+1 Rương đại ác quỷ
+"
+328,"Bộ quà tặng
+10.000.000 Bery
+100 Ruby
+2v Hải thạch c6
+20 Vé x3 skill
+1 Rương đại ác quỷ
+5 vé Khóa exp
+2 Xu hành trình
+"
+329,"Bộ quà tặng
+20.000.000 Bery
+200 Ruby
+3v Hải thạch c6
+1 Rương đại ác quỷ
+20 vé X3 Skill
+20 vé khóa exp
+2 Xu hành trình
+1 Sao 8 cánh
+"
+330,Sử dụng để nhận thời trang Trọng Tài Worldcup 2022
+331,Sự kiện Worldcup 2022
+332,Ăn mừng chiến thắng Worldcup và bạn sẽ nhận được quà.
+333,Vật phẩm sự kiện giáng sinh 2022
+334,Sử dụng bóng tuyết để ném vào quái vật tuyết
+335,Nhà vô địch World cup Qatar 2022
+336,Khi sử dụng sẽ được xóa 20% Phản Sư
+337,Rớt ngẫu nhiên ở siêu boss
+338,Dùng để lên cấp bậc hàm sư phụ
+339,Phát lộc đầu năm cho toàn bộ người chơi trong khu
+340,Vật phẩm sự kiện tết
+341,Nhận được trang phục Kỷ Hợi hoặc Sắc Đỏ Nam
+342,Nhận được trang phục Hổ Vằn hoặc Franky
+343,Chưa có thông tin
+348,"Tăng phòng thủ 25%
+3% sát thương % máu
+"
+349,"Tăng phòng thủ 25%
+Giảm 6% chí mạng đối thủ
+"
+350,"Tăng phòng thủ 25%
+Giảm 6% xuyên giáp đối thủ
+"
+351,"Tăng phòng thủ 25%
+Giảm 6% né đòn đối thủ
+"
+352,"Tăng phòng thủ 25%
+Giảm 6% phản đòn đối thủ
+"
+353,"Tăng tấn công 32%
+Giảm 6% hiệu ứng đối thủ
+"
+354,"Tăng tấn công 32%
+Giảm 6% chí mạng đối thủ
+"
+355,"Tăng tấn công 32%
+Giảm 6% xuyên giáp đối thủ
+"
+356,"Tăng tấn công 32%
+Giảm 6% né đòn đối thủ
+"
+357,"Tăng tấn công 32%
+Giảm 6% phản đòn đối thủ
+"
+358,"Tăng Chí mạng 10%
+Giảm 6% hiệu ứng đối thủ
+"
+359,"Tăng Chí mạng 10%
+3% sát thương % máu
+"
+360,"Tăng Chí mạng 10%
+Giảm 6% xuyên giáp đối thủ
+"
+361,"Tăng Chí mạng 10%
+Giảm 6% né đòn đối thủ
+"
+362,"Tăng Chí mạng 10%
+Giảm 6% phản đòn đối thủ
+"
+363,"Xuyên giáp 15%
+Giảm 6% hiệu ứng đối thủ
+"
+364,"Xuyên giáp 15%
+3% sát thương % máu
+"
+365,"Xuyên giáp 15%
+Giảm 6% chí mạng đối thủ
+"
+366,"Xuyên giáp 15%
+Giảm 6% né đòn đối thủ
+"
+367,"Xuyên giáp 15%
+Giảm 6% phản đòn đối thủ
+"
+368,"Kháng v/l, phép 15%
+Giảm 6% hiệu ứng đối thủ
+"
+369,"Kháng v/l, phép 15%
+3% sát thương % máu
+"
+370,"Kháng v/l, phép 15%
+Giảm 6% chí mạng đối thủ
+"
+371,"Kháng v/l, phép 15%
+Giảm 6% xuyên giáp đối thủ
+"
+372,"Kháng v/l, phép 15%
+Giảm 6% phản đòn đối thủ
+"
+373,"Phản đòn 15%
+Giảm 6% hiệu ứng đối thủ
+"
+374,"Phản đòn 15%
+3% sát thương % máu
+"
+375,"Phản đòn 15%
+Giảm 6% chí mạng đối thủ
+"
+376,"Phản đòn 15%
+Giảm 6% xuyên giáp đối thủ
+"
+377,"Phản đòn 15%
+Giảm 6% né đòn đối thủ
+"
+378,"Tăng né tránh 9%
+Giảm 6% hiệu ứng đối thủ
+"
+379,"Tăng né tránh 9%
+3% sát thương % máu
+"
+380,"Tăng né tránh 9%
+Giảm 6% chí mạng đối thủ
+"
+381,"Tăng né tránh 9%
+Giảm 6% xuyên giáp đối thủ
+"
+382,"Tăng né tránh 9%
+Giảm 6% né đòn đối thủ
+"
+383,"Tăng né tránh 9%
+Giảm 6% phản đòn đối thủ
+"

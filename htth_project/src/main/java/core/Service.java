@@ -469,16 +469,43 @@ public class Service {
                 if (id_request > 4912 && id_request < 4935) { // icon kich an
                     id_request = 4912;
                 }
-                Message m2 = new Message(-51);
-                m2.writer().writeShort(id);
-                path = "data/icon/x" + conn.zoomlv + "/" + id_request + ".png";
-                m2.writer().write(Util.loadfile(path));
-                conn.addmsg(m2);
-                m2.cleanup();
-            } catch (IOException e) {
+                byte zoomlv = conn.zoomlv <= 0 ? 2 : conn.zoomlv;
+                path = "data/icon/x" + zoomlv + "/" + id_request + ".png";
+                byte[] data = Util.loadfile(path);
+                if (data == null) {
+                    if (zoomlv != 4) {
+                        data = Util.loadfile("data/icon/x4/" + id_request + ".png");
+                    }
+                    if (data == null && zoomlv != 2) {
+                        data = Util.loadfile("data/icon/x2/" + id_request + ".png");
+                    }
+                    if (data == null && zoomlv != 1) {
+                        data = Util.loadfile("data/icon/x1/" + id_request + ".png");
+                    }
+                    if (data == null && zoomlv != 3) {
+                        data = Util.loadfile("data/icon/x3/" + id_request + ".png");
+                    }
+                    if (data == null && zoomlv != 0) {
+                        data = Util.loadfile("data/icon/x0/" + id_request + ".png");
+                    }
+                    if (data == null) {
+                        data = Util.loadfile("data/icon/" + id_request + ".png");
+                    }
+                }
+                if (data != null) {
+                    Message m2 = new Message(-51);
+                    m2.writer().writeShort(id);
+                    m2.writer().write(data);
+                    conn.addmsg(m2);
+                    m2.cleanup();
+                } else {
+                    if (Manager.gI().server_admin) {
+                        System.out.println("icon id not found " + path);
+                    }
+                }
+            } catch (Exception e) {
                 if (Manager.gI().server_admin) {
-                    System.out.println("icon id not found " + path);
-                    // Manager.gI().add_icon_fail(path);
+                    System.out.println("icon error " + path + ": " + e.getMessage());
                 }
             }
         }
@@ -490,27 +517,36 @@ public class Service {
         // System.out.println("type " + type);
         // System.out.println("id " + id);
         if (type == 98) {
-            Message m2 = new Message(48);
-            m2.writer().writeByte(98);
-            m2.writer().writeShort(id);
-            m2.writer().write(Util.loadfile("data/template/98/" + id));
-            p.conn.addmsg(m2);
-            m2.cleanup();
+            byte[] data = Util.loadfile("data/template/98/" + id);
+            if (data != null) {
+                Message m2 = new Message(48);
+                m2.writer().writeByte(98);
+                m2.writer().writeShort(id);
+                m2.writer().write(data);
+                p.conn.addmsg(m2);
+                m2.cleanup();
+            }
         } else if (type == 1) {
-            Message m2 = new Message(48);
-            m2.writer().writeByte(1);
-            m2.writer().writeShort(id);
-            m2.writer().write(Util.loadfile("data/template/1/" + id));
-            p.conn.addmsg(m2);
-            m2.cleanup();
+            byte[] data = Util.loadfile("data/template/1/" + id);
+            if (data != null) {
+                Message m2 = new Message(48);
+                m2.writer().writeByte(1);
+                m2.writer().writeShort(id);
+                m2.writer().write(data);
+                p.conn.addmsg(m2);
+                m2.cleanup();
+            }
         } else if (type == 97) {
             // System.out.println("temp97 "+id);
-            Message m2 = new Message(48);
-            m2.writer().writeByte(97);
-            m2.writer().writeShort(id);
-            m2.writer().write(Util.loadfile("data/template/97/" + id));
-            p.conn.addmsg(m2);
-            m2.cleanup();
+            byte[] data = Util.loadfile("data/template/97/" + id);
+            if (data != null) {
+                Message m2 = new Message(48);
+                m2.writer().writeByte(97);
+                m2.writer().writeShort(id);
+                m2.writer().write(data);
+                p.conn.addmsg(m2);
+                m2.cleanup();
+            }
         } else if (type == 96 && id < DataTemplate.AttriKichAn.length) {
             Message m2 = new Message(48);
             m2.writer().writeByte(96);
@@ -2290,66 +2326,122 @@ public class Service {
         }
     }
 
-    public static void send_eff_haki(Player p, short effId) throws IOException {
-        if (p == null || p.map == null)
-            return;
+    public static byte[][] get_effect_data_bytes(short effId, byte zoomlv) {
+        if (zoomlv <= 0) {
+            zoomlv = 4;
+        }
+        byte[] data1 = null;
+        byte[] data2 = null;
+        byte[] testZoom = new byte[]{zoomlv, 4, 2, 1, 3, 0};
 
-        // 1. Gửi dữ liệu effect trước cho các client trong map (nếu chưa có)
-        for (Player p0 : p.map.players) {
-            if (p0 != null && p0.conn != null) {
-                byte zoomlv = p0.conn.zoomlv <= 0 ? 4 : p0.conn.zoomlv;
-                byte[] data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + effId);
-                byte[] data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + effId + ".png");
+        // 1. Check skill template (data/template/skill/x{zoom}/data/{id} & img/{id}.png)
+        for (byte z : testZoom) {
+            data1 = Util.loadfile("data/template/skill/x" + z + "/data/" + effId);
+            data2 = Util.loadfile("data/template/skill/x" + z + "/img/" + effId + ".png");
+            if (data1 != null && data2 != null) {
+                return new byte[][]{data1, data2};
+            }
+        }
 
-                if (data1 == null || data2 == null) {
-                    data1 = Util.loadfile("data/template/skill/x4/data/" + effId);
-                    data2 = Util.loadfile("data/template/skill/x4/img/" + effId + ".png");
-                }
-                if (data1 == null || data2 == null) {
-                    data1 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + effId);
-                    data2 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
-                }
-                if (data1 == null || data2 == null) {
-                    data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + effId);
-                    data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + effId + ".png");
-                }
-                if (data1 == null || data2 == null) {
-                    data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + effId);
-                    data2 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + effId + ".png");
-                }
-                if (data1 == null || data2 == null) {
-                    data1 = Util.loadfile("data/nro/data/effect/x4/data/DataEffect_" + effId);
-                    data2 = Util.loadfile("data/nro/data/effect/x4/img/ImgEffect_" + effId + ".png");
-                }
+        // 2. Check danhhieu effect (data/danhhieu/effect/x{zoom}/data/DataEffect_{id} & img/ImgEffect_{id}.png)
+        for (byte z : testZoom) {
+            data1 = Util.loadfile("data/danhhieu/effect/x" + z + "/data/DataEffect_" + effId);
+            data2 = Util.loadfile("data/danhhieu/effect/x" + z + "/img/ImgEffect_" + effId + ".png");
+            if (data1 != null && data2 != null) {
+                return new byte[][]{data1, data2};
+            }
+        }
 
+        // 3. Check nro effect (data/nro/data/effect/x{zoom}/data/DataEffect_{id} & img/ImgEffect_{id}.png)
+        for (byte z : testZoom) {
+            data1 = Util.loadfile("data/nro/data/effect/x" + z + "/data/DataEffect_" + effId);
+            data2 = Util.loadfile("data/nro/data/effect/x" + z + "/img/ImgEffect_" + effId + ".png");
+            if (data1 != null && data2 != null) {
+                return new byte[][]{data1, data2};
+            }
+        }
+
+        // 4. If effId >= 3000, check nro with effId - 3000
+        if (effId >= 3000) {
+            short subId = (short) (effId - 3000);
+            for (byte z : testZoom) {
+                data1 = Util.loadfile("data/nro/data/effect/x" + z + "/data/DataEffect_" + subId);
+                data2 = Util.loadfile("data/nro/data/effect/x" + z + "/img/ImgEffect_" + subId + ".png");
                 if (data1 != null && data2 != null) {
-                    Message mData = new Message(74);
-                    mData.writer().writeByte(0);
-                    mData.writer().writeShort(effId);
-                    mData.writer().writeShort(data1.length);
-                    mData.writer().write(data1);
-                    mData.writer().write(data2);
-                    p0.conn.addmsg(mData);
-                    mData.cleanup();
+                    return new byte[][]{data1, data2};
                 }
             }
         }
 
-        // 2. Gửi Message 74 hiển thị effect cho tất cả người chơi trong map tại vị trí
-        // p.index_map
+        // 5. Fallback for img if data1 was found
+        if (data1 != null && data2 == null) {
+            for (byte z : testZoom) {
+                data2 = Util.loadfile("data/icon/x" + z + "/ImgEffect_" + effId + ".png");
+                if (data2 == null) {
+                    data2 = Util.loadfile("data/icon/x" + z + "/" + effId + ".png");
+                }
+                if (data2 != null) {
+                    return new byte[][]{data1, data2};
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public static void send_effect_data(Session conn, short effId) {
+        if (conn == null) {
+            return;
+        }
+        try {
+            byte zoomlv = conn.zoomlv <= 0 ? 4 : conn.zoomlv;
+            byte[][] datas = get_effect_data_bytes(effId, zoomlv);
+            if (datas != null && datas[0] != null && datas[1] != null) {
+                Message mData = new Message(74);
+                mData.writer().writeByte(0);
+                mData.writer().writeShort(effId);
+                mData.writer().writeShort(datas[0].length);
+                mData.writer().write(datas[0]);
+                mData.writer().write(datas[1]);
+                conn.addmsg(mData);
+                mData.cleanup();
+            } else {
+                System.out.println("[Effect Error] Khong tim thay du lieu effect id=" + effId + " (zoom=x" + zoomlv + ")");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void send_eff_haki(Player p, short effId, int time) throws IOException {
+        if (p == null || p.map == null)
+            return;
+
+        // 1. Gửi Message 74 hiển thị effect trước (để client khởi tạo EffectData trong ALL_EFF_DATA)
         Message mTest = new Message(74);
         mTest.writer().writeByte(1);
         mTest.writer().writeShort(p.index_map);
         mTest.writer().writeShort(effId);
-        mTest.writer().writeInt(10000); // 10 giây
+        mTest.writer().writeInt(time > 0 ? time : 20000); // thời gian buff Haki
         mTest.writer().writeByte(0); // typemove: 0 (tại chỗ)
-        mTest.writer().writeByte(1); // loop: 1 (phát 1 lần)
+        mTest.writer().writeByte(-1); // loop: -1 (lặp liên tục trong suốt thời gian time)
         p.map.send_msg_all_p(mTest, null, true);
         mTest.cleanup();
+
+        // 2. Gửi dữ liệu effect cho tất cả người chơi trong map
+        for (Player p0 : p.map.players) {
+            if (p0 != null && p0.conn != null) {
+                send_effect_data(p0.conn, effId);
+            }
+        }
+    }
+
+    public static void send_eff_haki(Player p, short effId) throws IOException {
+        send_eff_haki(p, effId, 20000);
     }
 
     public static void send_eff_haki_bavuong(Player p) throws IOException {
-        send_eff_haki(p, (short) 26);
+        send_eff_haki(p, (short) 26, 20000);
     }
 
     public static void send_eff_sword_splash(int id, Player p) throws IOException {

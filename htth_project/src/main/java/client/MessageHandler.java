@@ -146,103 +146,8 @@ public class MessageHandler {
             case 74: {
                 byte type = m.reader().readByte();
                 short id = m.reader().readShort();
-                if (conn.p != null && type == 0) {
-                    // System.out.println("request skill: " + id);
-                    try {
-                        Message m2 = new Message(74);
-                        m2.writer().writeByte(0);
-                        m2.writer().writeShort(id);
-                        byte zoomlv = conn.zoomlv <= 0 ? 4 : conn.zoomlv;
-                        byte[] data1 = Util
-                                .loadfile("data/template/skill/x" + zoomlv + "/data/" + id);
-                        byte[] data2 = Util.loadfile(
-                                "data/template/skill/x" + zoomlv + "/img/" + id + ".png");
-                        if (data1 == null || data2 == null) {
-                            data1 = Util.loadfile("data/template/skill/x4/data/" + id);
-                            data2 = Util.loadfile("data/template/skill/x4/img/" + id + ".png");
-                        }
-                        if (data1 == null || data2 == null) {
-                            data1 = Util.loadfile("data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + id);
-                            data2 = Util
-                                    .loadfile("data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + id + ".png");
-                        }
-                        if (data1 == null || data2 == null) {
-                            data1 = Util.loadfile("data/danhhieu/effect/x4/data/DataEffect_" + id);
-                            data2 = Util.loadfile("data/danhhieu/effect/x4/img/ImgEffect_" + id + ".png");
-                        }
-                        if (data1 == null || data2 == null) {
-                            data1 = Util.loadfile("data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + id);
-                            data2 = Util
-                                    .loadfile("data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + id + ".png");
-                        }
-                        if (data1 == null || data2 == null) {
-                            data1 = Util.loadfile("data/nro/data/effect/x4/data/DataEffect_" + id);
-                            data2 = Util.loadfile("data/nro/data/effect/x4/img/ImgEffect_" + id + ".png");
-                        }
-                        if (data1 != null && data2 != null) {
-                            m2.writer().writeShort(data1.length);
-                            m2.writer().write(data1);
-                            m2.writer().write(data2);
-                            conn.addmsg(m2);
-                            m2.cleanup();
-                        }
-                    } catch (Exception e) {
-                    }
-                } else if (conn.p != null && type == 1) {
-                    System.out.println("[DanhHieu Log] Client " + conn.p.name + " requested title effect id=" + id
-                            + ", zoom=x" + conn.zoomlv);
-                    try {
-                        byte zoomlv = conn.zoomlv <= 0 ? 4 : conn.zoomlv;
-                        String dataPath = "data/danhhieu/effect/x" + zoomlv + "/data/DataEffect_" + id;
-                        String imgPath = "data/danhhieu/effect/x" + zoomlv + "/img/ImgEffect_" + id + ".png";
-                        if (!new java.io.File(dataPath).exists()) {
-                            dataPath = "data/danhhieu/effect/x4/data/DataEffect_" + id;
-                            imgPath = "data/danhhieu/effect/x4/img/ImgEffect_" + id + ".png";
-                        }
-                        if (!new java.io.File(dataPath).exists()) {
-                            dataPath = "data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + id;
-                            imgPath = "data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + id + ".png";
-                        }
-                        if (!new java.io.File(dataPath).exists() && id >= 3000) {
-                            dataPath = "data/nro/data/effect/x" + zoomlv + "/data/DataEffect_" + (id - 3000);
-                            imgPath = "data/nro/data/effect/x" + zoomlv + "/img/ImgEffect_" + (id - 3000) + ".png";
-                        }
-                        byte[] data1 = Util.loadfile(dataPath);
-                        byte[] data2 = Util.loadfile(imgPath);
-                        if (data2 == null) {
-                            data2 = Util.loadfile(
-                                    "data/icon/x" + zoomlv + "/ImgEffect_" + id + ".png");
-                        }
-                        
-                        // Fallback: Nếu không có DataEffect, thử tìm trong data skill (do admin eff có thể gọi id skill)
-                        if (data1 == null) {
-                            System.out.println("[Debug Admin] DataEffect_" + id + " not found, falling back to skill data...");
-                            data1 = Util.loadfile("data/template/skill/x" + zoomlv + "/data/" + id);
-                            data2 = Util.loadfile("data/template/skill/x" + zoomlv + "/img/" + id + ".png");
-                            if (data1 == null) {
-                                data1 = Util.loadfile("data/template/skill/x4/data/" + id);
-                                data2 = Util.loadfile("data/template/skill/x4/img/" + id + ".png");
-                            }
-                        }
-
-                        if (data1 != null && data2 != null) {
-                            System.out.println("[Debug Admin] Successfully loaded data for effect id=" + id + ". Sending to client...");
-                            Message m2 = new Message(74);
-                            m2.writer().writeByte(1);
-                            m2.writer().writeShort(id);
-                            m2.writer().writeShort(data1.length);
-                            m2.writer().write(data1);
-                            m2.writer().write(data2);
-                            conn.addmsg(m2);
-                            m2.cleanup();
-                        } else {
-                            System.out.println("[Debug Admin] FAILED to load any data for effect id=" + id + " (zoom=x" + conn.zoomlv + ")");
-                            System.out.println("[DanhHieu Log] Client request failed id=" + id + ", zoom=x"
-                                    + conn.zoomlv + ", data=" + (data1 != null) + ", img=" + (data2 != null));
-                        }
-                    } catch (Exception e) {
-                        System.out.println("[DanhHieu Log] Client request error id=" + id + ": " + e.getMessage());
-                    }
+                if (conn.p != null) {
+                    Service.send_effect_data(conn, id);
                 }
                 break;
             }
@@ -250,8 +155,6 @@ public class MessageHandler {
                 if (conn.p != null) {
                     byte type = m.reader().readByte();
                     byte value = m.reader().readByte();
-                    // System.out.println(type);
-                    // System.out.println(value);
                     if (type == 0) {
                         if (value == 1 || value == 0) {
                             conn.p.is_show_hat = !conn.p.is_show_hat;

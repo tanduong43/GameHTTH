@@ -61,9 +61,9 @@ public class ListTichTieu {
         // MỐC 6: 30000 Ruby
         t = new ListTichTieu();
         t.num = 30_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131 };
-        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50 };
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 105 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 77 };
+        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 1 };
         ENTRY.add(t);
 
         // MỐC 7: 50000 Ruby
@@ -77,9 +77,9 @@ public class ListTichTieu {
         // MỐC 8: 100000 Ruby
         t = new ListTichTieu();
         t.num = 100_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 4, 4 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 414, 367 };
-        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 10, 1, 20, 1, 10 };
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 4, 4, 105 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 414, 367, 112 };
+        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 10, 1, 20, 1, 10, 1 };
         ENTRY.add(t);
     }
 
@@ -112,7 +112,17 @@ public class ListTichTieu {
             m.writer().writeByte(i);
             m.writer().writeInt(t.num);
             m.writer().writeByte(status);
-            m.writer().writeShort(t.cat.length);
+            m.writer().writeShort(t.cat.length + (i == 7 ? 1 : 0)); // +1 danh hiệu cho mốc 100k
+
+            // Gửi danh hiệu cho mốc 100,000 Ruby (id = 7)
+            if (i == 7) {
+                m.writer().writeUTF("Danh hiệu Trùm Ve Chai");
+                m.writer().writeByte(4); // cat 4 (item thường cho danh hiệu)
+                m.writer().writeShort(147); // icon danh hiệu
+                m.writer().writeShort(1); // số lượng
+                m.writer().writeByte(0); // option
+            }
+
             for (int j = 0; j < t.cat.length; j++) {
                 if (t.cat[j] == 4) {
                     ItemTemplate4 itTemp4Select = ItemTemplate4.get_it_by_id(t.id[j]);
@@ -294,6 +304,11 @@ public class ListTichTieu {
             Service.send_gift(p, 1, "Phần thưởng", "Phần thưởng", listGift, true);
         }
 
+        // Cấp danh hiệu cho mốc 100,000 Ruby (id = 7)
+        if (id == 7) {
+            p.add_danh_hieu(17);
+        }
+
         p.update_money();
         p.item.update_Inventory(-1, false);
 
@@ -321,6 +336,12 @@ public class ListTichTieu {
         }
         ListTichTieu t = ENTRY.get(index);
         List<String> menuItems = new ArrayList<>();
+
+        // Thêm danh hiệu cho mốc 100,000 Ruby (index = 7)
+        if (index == 7) {
+            menuItems.add("Danh hiệu: Trùm Ve Chai");
+        }
+
         for (int j = 0; j < t.cat.length; j++) {
             if (t.cat[j] == 4) {
                 ItemTemplate4 itTemp4Select = ItemTemplate4.get_it_by_id(t.id[j]);

@@ -1,0 +1,684 @@
+﻿
+id  name                            
+--  ----                            
+0   beri                            
+1   ruby                            
+2   Thịt heo                        
+3   Gà nướng                        
+4   Sữa                             
+5   Cola                            
+6   Bánh mì                         
+7   Rương châu báu                  
+8   Rương châu báu lv10             
+9   Rương châu báu lv20             
+10  Rương châu báu lv30             
+11  Rương châu báu lv40             
+12  Rương châu báu lv50             
+13  Rương châu báu lv60             
+14  Rương châu báu lv70             
+15  Rương châu báu lv80             
+16  Rương châu báu lv90             
+17  Rương châu báu lv100            
+18  Rương huyền bí                  
+19  Rương huyền bí lv10             
+20  Rương huyền bí lv20             
+21  Rương huyền bí lv30             
+22  Rương huyền bí lv40             
+23  Rương huyền bí lv50             
+24  Rương huyền bí lv60             
+25  Rương huyền bí lv70             
+26  Rương huyền bí lv80             
+27  Rương huyền bí lv90             
+28  Rương huyền bí lv100            
+29  Rương ác quỷ                    
+30  XP                              
+31  Bùa xóa tội                     
+32  Trái Lửa                        
+33  Trái Cao Su                     
+34  Trái Tuần Lộc                   
+35  Vé tham gia Đấu Trường          
+36  Trái cây                        
+37  Vũ khí                          
+38  Đồ cổ                           
+39  Đá quý                          
+40  Chìa khóa Phó Bản               
+41  Vé vào khu luyện tập (3 ngày)   
+42  Vé vào khu luyện tập (7 ngày)   
+43  Vé PvP                          
+44  Cẩm thạch cấp 1                 
+45  Cẩm thạch cấp 2                 
+46  Cẩm thạch cấp 3                 
+47  Cẩm thạch cấp 4                 
+48  Cẩm thạch cấp 5                 
+49  Cẩm thạch cấp 6                 
+50  Đá Topaz cấp 1                  
+51  Đá Topaz cấp 2                  
+52  Đá Topaz cấp 3                  
+53  Đá Topaz cấp 4                  
+54  Đá Topaz cấp 5                  
+55  Đá Topaz cấp 6                  
+56  Tinh thể ruby cấp 1             
+57  Tinh thể ruby cấp 2             
+58  Tinh thể ruby cấp 3             
+59  Tinh thể ruby cấp 4             
+60  Tinh thể ruby cấp 5             
+61  Tinh thể ruby cấp 6             
+62  Ngọc lục bảo cấp 1              
+63  Ngọc lục bảo cấp 2              
+64  Ngọc lục bảo cấp 3              
+65  Ngọc lục bảo cấp 4              
+66  Ngọc lục bảo cấp 5              
+67  Ngọc lục bảo cấp 6              
+68  Đá Saphia cấp 1                 
+69  Đá Saphia cấp 2                 
+70  Đá Saphia cấp 3                 
+71  Đá Saphia cấp 4                 
+72  Đá Saphia cấp 5                 
+73  Đá Saphia cấp 6                 
+74  Thạch anh tím cấp 1             
+75  Thạch anh tím cấp 2             
+76  Thạch anh tím cấp 3             
+77  Thạch anh tím cấp 4             
+78  Thạch anh tím cấp 5             
+79  Thạch anh tím cấp 6             
+80  Kinh nghiệm X2                  
+81  Lọ hồi sức 25%                  
+82  Lọ hồi sức 50%                  
+83  Lọ hồi sức 100%                 
+84  Tượng khỉ vàng                  
+85  Súp baratie                     
+86  Trái Ác Quỷ                     
+87  Trái Ác Quỷ Trung Cấp           
+88  Trái Khói                       
+89  Vé Hồi Sinh                     
+90  Trái bò tót                     
+91  Trái vẽ vẽ                      
+92  Trái băng                       
+93  Trái cát                        
+94  Bùa cuồng phong                 
+95  Bùa hồi sức băng                
+96  Vỏ chuối khổng lồ               
+97  Bình rượu vàng                  
+98  Miếng thịt khổng lồ             
+99  Thùng rượu                      
+100 Thịt khủng long                 
+101 Thẻ XP đấu trường               
+102 XP x2 Phó bảng                  
+103 Phiếu giảm 20%                  
+104 Phiếu giảm 50%                  
+105 Rương báu vật                   
+106 Rương huyền thoại               
+107 Đèn cầy                         
+108 Que Diêm                        
+109 Nang Tre                        
+110 Giấy Dán                        
+111 Lồng Đen                        
+112 Rương Đồ Cam Lv10               
+113 Rương Đồ Cam Lv20               
+114 Rương Đồ Cam Lv30               
+115 Rương Đồ Cam Lv40               
+116 Rương Đồ Cam Lv50               
+117 Rương Đồ Cam Lv60               
+118 Rương Đồ Cam Lv70               
+119 Rương Đồ Cam Lv80               
+120 Rương Đồ Cam Lv90               
+121 Rương Đồ Cam Lv100              
+122 Rương Cam Cùng Hệ Lv10          
+123 Rương Cam Cùng Hệ Lv20          
+124 Rương Cam Cùng Hệ Lv30          
+125 Rương Cam Cùng Hệ Lv40          
+126 Rương Cam Cùng Hệ Lv50          
+127 Rương Cam Cùng Hệ Lv60          
+128 Rương Cam Cùng Hệ Lv70          
+129 Rương Cam Cùng Hệ Lv80          
+130 Rương Cam Cùng Hệ Lv90          
+131 Rương Cam Cùng Hệ Lv100         
+132 Vé đổi đồ thời trang            
+133 Vé kinh nghiệm đặc biệt         
+134 Đá Ác Quỷ                       
+135 Tinh thể đá                     
+136 Rương tím                       
+137 Rương tím Lv10                  
+138 Rương tím Lv20                  
+139 Rương tím Lv30                  
+140 Rương tím Lv40                  
+141 Rương tím Lv50                  
+142 Rương tím Lv60                  
+143 Rương tím Lv70                  
+144 Rương tím Lv80                  
+145 Rương tím Lv90                  
+146 Rương tím Lv100                 
+147 Rương anh hùng                  
+148 Rương anh hùng Lv10             
+149 Rương anh hùng Lv20             
+150 Rương anh hùng Lv30             
+151 Rương anh hùng Lv40             
+152 Rương anh hùng Lv50             
+153 Rương anh hùng Lv60             
+154 Rương anh hùng Lv70             
+155 Rương anh hùng Lv80             
+156 Rương anh hùng Lv90             
+157 Rương anh hùng Lv100            
+158 Rương đại ác quỷ                
+159 Xp Chiêu thức                   
+160 Trái sét                        
+161 Trái nham thạch                 
+162 Mảnh ghép *Cùng*                
+163 Mảnh ghép *Vui*                 
+164 Mảnh ghép *Đón*                 
+165 Mảnh ghép *Tết*                 
+166 Mảnh ghép *2017*                
+167 Huy hiệu tết 2017               
+168 Vé triệu hồi quái tuyết         
+169 Bao Lì Xì                       
+170 Rương Tết                       
+171 Hộp Quà 8.3                     
+172 Rương Vua Hùng                  
+173 Cơm hộp hải tặc                 
+174 Quả Conache                     
+175 Nước tăng lực                   
+176 Thuốc hồi sức                   
+177 Dược phẩm cứng cáp              
+178 Vacxin kháng khuẩn              
+179 Bản nhạc kích lệ                
+180 Quả cầu pokemon thường          
+181 Quả cầu pokemon hiếm            
+182 Quả cầu pokemon đặc biệt        
+183 Huy Hiệu Cỏ                     
+184 Huy Hiệu Lửa                    
+185 Huy Hiệu Nước                   
+186 Huy Hiệu Đá                     
+187 Huy hiệu Điện                   
+188 Huy hiệu đặc biệt               
+189 Radar Tìm pokemon               
+190 Bộ vật phẩm pokemon             
+191 Vé triệu hồi Pokemon            
+192 Vé về tuổi thơ                  
+193 Quả cầu băng hải tặc            
+194 Chim phương nam                 
+195 Giỏ bánh mì                     
+196 Cánh Hoa Phượng                 
+197 Phiếu giảm 500 ruby             
+198 10 cánh hoa Phượng              
+199 Bột Nếp                         
+200 Đường                           
+201 Đậu Xanh                        
+202 Bột Mì                          
+203 Trứng Muối                      
+204 Mứt Bí                          
+205 Khoai Môn                       
+206 Thịt                            
+207 Bánh Trung Thu                  
+208 Bánh Đậu Xanh                   
+209 Bánh Trứng Muối                 
+210 Bánh Hạt Sen                    
+211 Hộp Bánh Trung Thu              
+212 Vé Ma Quỷ                       
+213 Hộp quà ma quái                 
+214 Vé tẩy tiềm năng                
+215 Rương ma thuật                  
+216 Rương khổng lồ                  
+217 Rương Siêu ma thuật             
+218 Rương thần thoại                
+219 Trái Báo Đốm                    
+220 Trái Chim Ưng                   
+221 Đá Hải Thạch cấp 1              
+222 Đá Hải Thạch cấp 2              
+223 Đá Hải Thạch cấp 3              
+224 Đá Hải Thạch cấp 4              
+225 Đá Hải Thạch cấp 5              
+226 Đá Hải Thạch cấp 6              
+227 Hộp quà Noel                    
+228 Rương trang phục                
+229 Vé đổi trang phục Noel          
+230 Vé Noel                         
+231 Hộp quà sinh nhật               
+232 Vé vòng xoay may mắn            
+233 Khúc xương sụn                  
+234 Khúc xương sườn                 
+235 Khúc xương ống                  
+236 Phong bao đỏ                    
+237 Nhánh mai vàng                  
+238 Cành Đào hồng                   
+239 Rương Tết 2018                  
+240 Trái Chấn Thiên                 
+241 Cẩm thạch - Topaz siêu cấp      
+242 Cẩm thạch - Ruby siêu cấp       
+243 Cẩm thạch - Ngọc siêu cấp       
+244 Cẩm thạch - Saphia siêu cấp     
+245 Cẩm thạch - Thạch anh siêu cấp  
+246 Topaz - Cẩm thạch siêu cấp      
+247 Topaz - Ruby siêu cấp           
+248 Topaz - Ngọc siêu cấp           
+249 Topaz - Saphia siêu cấp         
+250 Topaz - Thạch Anh siêu cấp      
+251 Ruby - Cẩm thạch siêu cấp       
+252 Ruby - Topaz siêu cấp           
+253 Ruby - Ngọc siêu cấp            
+254 Ruby - Saphia siêu cấp          
+255 Ruby - Thạch anh siêu cấp       
+256 Ngọc - Cẩm thạch siêu cấp       
+257 Ngọc - Topaz siêu cấp           
+258 Ngọc - Ruby siêu cấp            
+259 Ngọc - Saphia siêu cấp          
+260 Ngọc - Thạch anh siêu cấp       
+261 Saphia - Cẩm thạch siêu cấp     
+262 Saphia - Topaz siêu cấp         
+263 Saphia - Ruby siêu cấp          
+264 Saphia - Ngọc siêu cấp          
+265 Saphia - Thạch anh siêu cấp     
+266 Thạch anh - Cẩm thạch siêu cấp  
+267 Thạch anh - Topaz siêu cấp      
+268 Thạch anh - Ruby siêu cấp       
+269 Thạch anh - Ngọc siêu cấp       
+270 Thạch anh - Saphia siêu cấp     
+271 Thẻ đổi tên                     
+272 100 cẩm thạch cấp 3             
+273 100 đá topaz cấp 3              
+274 100 tinh thể ruby cấp 3         
+275 100 ngọc lục bảo cấp 3          
+276 100 đá saphia cấp 3             
+277 100 thạch anh tím cấp 3         
+278 Huy hiệu đỏ                     
+279 Huy hiệu vàng                   
+280 Huy hiệu lam                    
+281 Huy hiệu trắng                  
+282 Huy hiệu lục                    
+283 Huy hiệu cầu vòng               
+284 Chìa khóa sắc màu               
+285 Rương sắc màu                   
+286 Rương và khóa sắc màu           
+287 Thời trang Râu Trắng            
+288 Dự đoán Nga                     
+289 Dự đoán Uruguay                 
+290 Dự đoán Bồ Đào Nha              
+291 Dự đoán Tây Ban Nha             
+292 Dự đoán Pháp                    
+293 Dự đoán Đan Mạch                
+294 Dự đoán Argentina               
+295 Dự đoán Croatia                 
+296 Dự đoán Brasil                  
+297 Dự đoán Thụy Sĩ                 
+298 Dự đoán Đức                     
+299 Dự đoán Mexico                  
+300 Dự đoán Anh                     
+301 Dự đoán Bỉ                      
+302 Dự đoán Nhật Bản                
+303 Dự đoán Colombia                
+304 Mảnh trang phục 9x trắng        
+305 Mảnh trang sức 9x trắng         
+306 Mảnh vũ khí 9x trắng            
+307 Mảnh trang phục 9x xanh         
+308 Mảnh trang sức 9x xanh          
+309 Mảnh vũ khí 9x xanh             
+310 Mảnh trang phục 9x tím          
+311 Mảnh trang sức 9x tím           
+312 Mảnh vũ khí 9x tím              
+313 Mảnh trang phục 9x cam          
+314 Mảnh trang sức 9x cam           
+315 Mảnh vũ khí 9x cam              
+316 Trái sáp                        
+317 Trái dao                        
+318 Trái kilo                       
+319 Điểm 10                         
+320 Quà khai giảng                  
+321 6 đá khảm                       
+322 Trái ác quỷ trung - sơ          
+323 Búa siêu cấp                    
+324 Đá khảm vô cực                  
+325 Đá khảm siêu cấp S              
+326 Đá khảm vô cực S                
+327 Đá khảm ngẩu nhiên              
+328 Đèn ngôi sao                    
+329 Đèn cá chép                     
+330 Đèn bươm bướm                   
+331 Hộp nguyên liệu                 
+332 Đèn trời                        
+333 XP Skill                        
+334 Rumble trắng                    
+335 Rumble lục                      
+336 Rumble tím                      
+337 Rumble cam                      
+338 Rumble đỏ                       
+339 Búa sơ cấp                      
+340 Thiệp giáng sinh                
+341 Nắm tuyết                       
+342 Cúc áo                          
+343 Cuộn len                        
+344 Cà rốt                          
+345 Thiệp năm mới                   
+346 Nhánh cây                       
+347 Nón giáng sinh                  
+348 Triệu hồi tuyết nhỏ             
+349 Túi beri                        
+350 Bánh chưng                      
+351 Lá dong                         
+352 Đậu xanh                        
+353 Gạo nếp                         
+354 Thịt heo                        
+355 Rương nguyên liệu tết           
+356 Hộp trang phục                  
+357 Bao lì xì Canh Tý               
+358 Thời trang tết 30 ngày          
+359 Phóa hoa                        
+360 Vé tặng 10 ruby                 
+361 Vé đổi hàng                     
+362 Hổ phách cấp 1                  
+363 Hổ phách cấp 2                  
+364 Hổ phách cấp 3                  
+365 Hổ phách cấp 4                  
+366 Hổ phách cấp 5                  
+367 Hổ phách cấp 6                  
+368 Hổ phách - Cẩm thạch siêu cấp   
+369 Hổ phách - Topaz siêu cấp       
+370 Hổ phách - Ruby siêu cấp        
+371 Hổ phách - Ngọc siêu cấp        
+372 Hổ phách - Saphia siêu cấp      
+373 Hổ phách - Thạch anh siêu cấp   
+374 Huy hiệu voi                    
+375 Huy hiệu gà                     
+376 Huy hiệu ngựa                   
+377 Vé săn quà                      
+378 Táo                             
+379 Lê                              
+380 Cam                             
+381 Vé mời                          
+382 Thiệp mời                       
+383 Đồng xu cổ                      
+384 Vé săn heo                      
+385 Vé săn heo mọi                  
+386 Hạt giống                       
+387 Hạt giống thần kỳ               
+388 Hạt giống may mắn               
+389 Phân bón                        
+390 Bình nước                       
+391 Dâu                             
+392 Xoài                            
+393 Thanh long                      
+394 Mận                             
+395 Bưởi                            
+396 Giỏ trái cây                    
+397 Điểm hoạt động                  
+398 Radar truy tìm                  
+399 Bánh qui                        
+400 Kẹo 7 màu                       
+401 Kem tươi                        
+402 Singum                          
+403 Túi bánh ngọt                   
+404 Túi bi thủy tinh                
+405 Kẹo bông gòn                    
+406 Vụn chocolate                   
+407 Bánh thập cẩm                   
+408 Bánh đặc biệt                   
+409 Dây Kẽm                         
+410 Đèn kéo quân                    
+411 Đèn ống                         
+412 Đèn tròn                        
+413 Tiến cấp đơn                    
+414 Kỹ năng đơn                     
+415 Đại bổ đơn                      
+416 Búa đục túi Cấp 1               
+417 Huy hiệu Dracula                
+418 Huy hiệu Sói                    
+419 Bí ngô                          
+420 Bí ngô ma quái                  
+421 Bí ngô vui vẻ                   
+422 Bí ngô lo lắng                  
+423 Bí ngô sợ hãi                   
+424 Huy Hiệu Dracula Quỷ            
+425 Huy hiệu Sói Ma                 
+426 Bí Ngô quỷ                      
+427 Trái bóng tối                   
+428 Thẻ thời trang Râu Đen          
+429 Bó lạt tre                      
+430 Hũ gia vị                       
+431 Chuột Vàng                      
+432 Chuột Bạc                       
+433 Chuột Đồng                      
+434 Socola Đỏ                       
+435 Socola Tím                      
+436 Socola Sữa                      
+437 Socola Love                     
+438 Socola YOU                      
+439 Hộp Socola                      
+440 Rương tình yêu                  
+441 Ốc Sên                          
+442 Mảnh bản đồ 1                   
+443 Mảnh bản đồ 2                   
+444 Mảnh bản đồ 3                   
+445 Mảnh bản đồ 4                   
+446 Mảnh bản đồ 5                   
+447 Mảnh bản đồ 6                   
+448 Mảnh bản đồ 7                   
+449 Bản đồ kho báu                  
+450 Vé biểu tượng Băng              
+451 Trang Giấy                      
+452 Sách công thức                  
+453 Vỏ ốc                           
+454 Mảnh vỏ ốc                      
+455 Rương Dial                      
+456 Hộp trang phục cấp 1            
+457 Búa đục DIAL                    
+458 Bánh Giò                        
+459 Rương bí ẩn                     
+460 Trang giấy kinh                 
+461 Lọ mực                          
+462 Rương kì bí                     
+463 Kinh kì bí                      
+464 Chìa khóa kì bí                 
+465 Đào tiên                        
+466 Mảnh TT Ngộ Không               
+467 Thẻ TT Ngộ Không (60D)          
+468 Thẻ TT Ngộ Không (vv)           
+469 Hộp trang phục 2                
+470 Rương kì bí cấp S               
+471 Bánh nướng                      
+472 Bánh dẻo                        
+473 Đèn ông sao                     
+474 Vòng Xuyến                      
+475 Thẻ TT Trung Thu                
+476 Thuốc biến dị                   
+477 Kẹo bí ẩn                       
+478 Lửa thiên                       
+479 Thẻ bí ẩn                       
+480 Huy hiệu bí ẩn                  
+481 Đồng xu bí ẩn                   
+482 Hộp trang phục Halloween        
+483 Rương ma quái                   
+484 Rương Halloween                 
+485 Túi giáng sinh                  
+486 Chuông giáng sinh               
+487 Vớ giáng sinh                   
+488 Ngôi sao giáng sinh             
+489 Kẹo giáng sinh                  
+490 Cỏ xanh                         
+491 Cỏ 4 lá                         
+492 Hộp quà giáng sinh              
+493 Kim cương xanh                  
+494 Kim cương đỏ                    
+495 Hồng ngọc                       
+496 Lam ngọc                        
+497 Huyết cẩm thạch                 
+498 Lục cẩm thạch                   
+499 San hô đỏ                       
+500 San hô vàng                     
+501 San hô lam                      
+502 San hô lục                      
+503 San hô tím                      
+504 Thiên thạch vàng                
+505 Thiên thạch tím                 
+506 Thiên thạch đỏ                  
+507 Thiên thạch xanh                
+508 Ngọc trai vàng                  
+509 Ngọc trai trắng                 
+510 Ngọc trai đỏ                    
+511 Ngọc trai xanh                  
+512 Ngọc trai tím                   
+513 Khoáng thạch vàng               
+514 Đá sao hỏa                      
+515 Đá mặt trăng                    
+516 Đá khổng tước                   
+517 Ngọc đế quang                   
+518 Hôp trang phục tết              
+519 Rương hành trình                
+520 Rương TT Franky                 
+521 Mảnh TT Franky lịch lãm         
+522 Thẻ TT Franky lịch lãm          
+523 Lá chuối                        
+524 Bột gạo                         
+525 Bánh Giầy                       
+526 Hộp quà đáp lễ                  
+527 Rượu nền                        
+528 Chất tạo màu                    
+529 Chất tạo mùi                    
+530 Aqua de Vanlecia                
+531 Blue Curacao                    
+532 Old Fashioned                   
+533 Sangria                         
+534 Singapore Sling                 
+535 Rương nguyên liệu hè            
+536 Mảnh trang phục 10x trắng       
+537 Mảnh trang sức 10x trắng        
+538 Mảnh vũ khí 10x trắng           
+539 Mảnh trang phục 10x xanh        
+540 Mảnh trang sức 10x xanh         
+541 Mảnh vũ khí 10x xanh            
+542 Mảnh trang phục 10x tím         
+543 Mảnh trang sức 10x tím          
+544 Mảnh vũ khí 10x tím             
+545 Mảnh trang phục 10x cam         
+546 Mảnh trang sức 10x cam          
+547 Mảnh vũ khí 10x cam             
+548 Khóa exp                        
+549 Bảo hiểm chuyển hóa sơ          
+550 Bảo hiểm chuyển hóa trung       
+551 Bảo hiểm chuyển hóa cao         
+552 Dự đoán WALES                   
+553 Dự đoán Ý                       
+554 Dự đoán Hà Lan                  
+555 Dự đoán Đan Mạch                
+556 Dự đoán Bỉ                      
+557 Dự đoán Áo                      
+558 Dự đoán Croatia                 
+559 Dự đoán Anh                     
+560 Dự đoán Đức                     
+561 Dự đoán Thụy Điển               
+562 Dự đoán                         
+563 Dự đoán                         
+564 Dự đoán                         
+565 Dự đoán                         
+566 Dự đoán                         
+567 Dự đoán Tây Ban Nha             
+568 Thẻ thời trang Euro             
+569 Chè đậu đỏ                      
+570 Chè đậu đỏ đặc biệt             
+571 Gỗ                              
+572 Đá                              
+573 Lông chim thước                 
+574 Phiếu giao hàng                 
+575 Giấy gói quà                    
+576 Hộp bánh thượng hạng            
+577 Quả cầu Bí Ngô                  
+578 Rương đầu lâu                   
+579 Mảnh xu hành trình              
+580 Xu hành trình                   
+581 Thẻ TT Chopper khổng lồ         
+582 Hộp quà số 5                    
+583 Hộp quà số 6                    
+584 Hộp quà số 7                    
+585 Hộp quà số 8                    
+586 Hộp qua sơ cấp                  
+587 Hộp quà cao cấp                 
+588 Khảm lv6 tự chọn                
+589 Hộp trang phục Raid Suit        
+590 Gấu bông                        
+591 cành hoa 20.10                  
+592 Hộp quà số 1                    
+593 Hộp quà số 2                    
+594 Hộp quà số 3                    
+595 Hộp quà số 4                    
+596 Hộp quà đặc biệt                
+597 Bóng bạc                        
+598 Bóng vàng                       
+599 Vé world cup                    
+600 Thẻ TT Trọng Tài WC             
+601 Dự đoán Croatia                 
+602 Dự đoán Brasil                  
+603 Dự đoán Hà Lan                  
+604 Dự đoán Argentina               
+605 Dự đoán Maroc                   
+606 Dự đoán Bồ Đào Nha              
+607 Dự đoán Anh                     
+608 Dự đoán Pháp                    
+609 Rương Worldcup                  
+610 Cúp Worldcup                    
+611 Bóng tuyết                      
+612 Cuộn len đỏ                     
+613 Tất noel                        
+614 Cuộn len trắng                  
+615 Kim chỉ                         
+616 Màu nhuộm đỏ                    
+617 Màu nhuộm trắng                 
+618 Than                            
+619 Bông vải                        
+620 Củi                             
+621 Thẻ TT Argentina                
+622 Rương trang phục noel           
+623 Cuộn chỉ 1                      
+624 Cuộn chỉ 2                      
+625 Cuộn chỉ 3                      
+626 Cuộn chỉ 4                      
+627 Chứng nhận sư phụ               
+628 Bùa xóa phản sư                 
+629 Cành Đào                        
+630 Chữ Cùng                        
+631 Chữ Vui                         
+632 Chữ Đón                         
+633 Chữ Tết                         
+634 Chữ 2023                        
+635 Hoa mai                         
+636 Giấy đỏ                         
+637 Hộp trang phục tết 1            
+638 Hộp trang phục tết 2            
+644 Đá Thời Không                   
+645 Đá Truyền Thuyết                
+646 Đá Siêu Truyền Thuyết           
+647 Cẩm thạch - Topaz thần thoại    
+648 Cẩm thạch - Ruby thần thoại     
+649 Cẩm thạch - Ngọc thần thoại     
+650 Cẩm thạch - Saphia thần thoại   
+651 Cẩm thạch - Thạch anh thần thoại
+652 Topaz - Cẩm thạch thần thoại    
+653 Topaz - Ruby thần thoại         
+654 Topaz - Ngọc thần thoại         
+655 Topaz - Saphia thần thoại       
+656 Topaz - Thạch Anh thần thoại    
+657 Ruby - Cẩm thạch thần thoại     
+658 Ruby - Topaz thần thoại         
+659 Ruby - Ngọc thần thoại          
+660 Ruby - Saphia thần thoại        
+661 Ruby - Thạch anh thần thoại     
+662 Ngọc - Cẩm thạch thần thoại     
+663 Ngọc - Topaz thần thoại         
+664 Ngọc - Ruby thần thoại          
+665 Ngọc - Saphia thần thoại        
+666 Ngọc - Thạch anh thần thoại     
+667 Saphia - Cẩm thạch thần thoại   
+668 Saphia - Topaz thần thoại       
+669 Saphia - Ruby thần thoại        
+670 Saphia - Ngọc thần thoại        
+671 Saphia - Thạch anh thần thoại   
+672 Thạch anh - Cẩm thạch thần thoại
+673 Thạch anh - Topaz thần thoại    
+674 Thạch anh - Ruby thần thoại     
+675 Thạch anh - Ngọc thần thoại     
+676 Thạch anh - Saphia thần thoại   
+677 Hổ phách - Cẩm thạch thần thoại 
+678 Hổ phách - Topaz thần thoại     
+679 Hổ phách - Ruby thần thoại      
+680 Hổ phách - Ngọc thần thoại      
+681 Hổ phách - Saphia thần thoại    
+682 Hổ phách - Thạch anh thần thoại 
+683 Đá Vô Cực Truyền Thuyết         
+
+

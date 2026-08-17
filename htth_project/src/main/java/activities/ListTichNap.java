@@ -26,65 +26,49 @@ public class ListTichNap {
         // MỐC 1: 50k Extol
         ListTichNap t = new ListTichNap();
         t.num = 50_000;
-        t.cat = new byte[]{105, 4, 7, 4, 4, 4, 4};
-        t.id = new short[]{127, 339, 10, 159, 349, 367, 455};
-        t.quant = new short[]{1, 10, 10, 20, 20, 1, 5};
+        t.cat = new byte[]{105, 4, 4, 7, 4, 4, 4, 4, 4, 4};
+        t.id = new short[]{127, 339, 323, 10, 159, 349, 367, 455, 413, 327};
+        t.quant = new short[]{1, 10, 1, 10, 20, 20, 2, 5, 2, 5};
         ENTRY.add(t);
 
         // MỐC 2: 100k Extol
         t = new ListTichNap();
         t.num = 100_000;
-        t.cat = new byte[]{105, 4, 4, 4, 4, 4, 7, 4, 7, 4};
-        t.id = new short[]{116, 339, 221, 159, 349, 367, 13, 455, 10, 323};
-        t.quant = new short[]{1, 25, 100, 30, 30, 3, 200, 5, 20, 1};
+        t.cat = new byte[]{105, 4, 4, 4, 4, 4, 4, 7, 4, 7, 4, 4, 4};
+        t.id = new short[]{53, 339, 221, 159, 349, 367, 1004, 13, 455, 10, 323, 327, 131}; // 1004 Rương đá thần thoại tự chọn
+        t.quant = new short[]{1, 25, 100, 30, 30, 3, 1, 200, 5, 20, 1, 10, 20};
         ENTRY.add(t);
 
         // MỐC 3: 200k Extol
         t = new ListTichNap();
         t.num = 200_000;
-        t.cat = new byte[]{4, 7, 4, 4, 4, 4, 4, 4, 4, 4, 105, 4};
-        t.id = new short[]{339, 10, 159, 349, 131, 457, 323, 327, 414, 367, 55, 413};
-        t.quant = new short[]{50, 30, 50, 50, 50, 10, 1, 20, 1, 10, 1, 5};
+        t.cat = new byte[]{4, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 105, 4};
+        t.id = new short[]{339, 10, 159, 349, 131, 1004, 457, 323, 327, 414, 367, 55, 413}; // 1004 Rương đá thần thoại tự chọn
+        t.quant = new short[]{50, 30, 50, 50, 50, 2, 10, 1, 20, 1, 10, 1, 5};
         ENTRY.add(t);
 
         // MỐC 4: 300k Extol
         t = new ListTichNap();
         t.num = 300_000;
         t.cat = new byte[]{4, 4, 4, 4, 4, 4, 4, 105, 7, 4, 4};
-        t.id = new short[]{226, 159, 349, 367, 457, 655, 324, 95, 10, 414, 323};
-        t.quant = new short[]{50, 60, 60, 5, 10, 5, 5, 1, 20, 1, 3};
+        t.id = new short[]{226, 159, 349, 367, 457, 1004, 325, 95, 10, 414, 323};
+        t.quant = new short[]{50, 60, 60, 5, 10, 3, 5, 1, 20, 1, 3};
         ENTRY.add(t);
 
         // MỐC 5: 500k Extol
         t = new ListTichNap();
         t.num = 500_000;
-        t.cat = new byte[]{4, 4, 4, 4, 105, 4, 4, 4, 4, 7, 4, 4};
-        t.id = new short[]{226, 159, 349, 367, 118, 457, 679, 327, 325, 10, 414, 323};
-        t.quant = new short[]{100, 100, 100, 10, 1, 10, 5, 5, 5, 50, 1, 5};
+        t.cat = new byte[]{4, 4, 4, 4, 105, 105, 4, 4, 4, 4, 4, 7, 4, 4};
+        t.id = new short[]{226, 159, 349, 367, 118, 116, 457, 455, 1004, 327, 325, 10, 414, 323};
+        t.quant = new short[]{100, 100, 100, 10, 1, 1, 10, 10, 5, 5, 5, 50, 1, 5};
         ENTRY.add(t);
 
         // MỐC 6: 1M Extol
         t = new ListTichNap();
         t.num = 1_000_000;
-        t.cat = new byte[]{4, 4, 4, 4, 4, 7, 4, 4, 4, 105};
-        t.id = new short[]{226, 159, 349, 325, 413, 10, 457, 323, 455, 119};
-        t.quant = new short[]{150, 200, 200, 5, 20, 100, 20, 6, 50, 1};
-        ENTRY.add(t);
-
-        // MỐC 7: 2M Extol
-        t = new ListTichNap();
-        t.num = 2_000_000;
-        t.cat = new byte[]{105, 4, 4, 4, 4, 4, 4, 4, 7, 4, 4};
-        t.id = new short[]{128, 413, 414, 323, 226, 325, 457, 455, 10, 159, 349};
-        t.quant = new short[]{1, 50, 5, 15, 200, 15, 50, 60, 200, 500, 500};
-        ENTRY.add(t);
-
-        // MỐC 8: 5M Extol
-        t = new ListTichNap();
-        t.num = 5_000_000;
-        t.cat = new byte[]{105, 105, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 4, 4};
-        t.id = new short[]{125, 123, 413, 414, 323, 226, 325, 660, 681, 457, 455, 10, 159, 349};
-        t.quant = new short[]{1, 1, 150, 15, 40, 800, 40, 10, 10, 100, 100, 500, 1000, 1000};
+        t.cat = new byte[]{4, 4, 4, 105, 4, 4, 4, 7, 4, 4, 4, 105};
+        t.id = new short[]{226, 159, 349, 74, 325, 1004, 413, 10, 457, 323, 455, 119};
+        t.quant = new short[]{150, 200, 200, 1, 5, 10, 20, 100, 20, 6, 50, 1};
         ENTRY.add(t);
     }
 
@@ -169,7 +153,22 @@ public class ListTichNap {
             m.writer().writeByte(i); // Index mốc
             m.writer().writeInt(t.num); // Mức tích nạp yêu cầu
             m.writer().writeByte(status); // Trạng thái
-            m.writer().writeShort(t.cat.length); // Số lượng quà
+            m.writer().writeShort(t.cat.length + 1); // Số lượng quà + 1 danh hiệu
+
+            // Add danh hiệu fake item
+            String dhName = "";
+            if (i == 0) dhName = "Fan Cứng";
+            else if (i == 1) dhName = "Tuổi Thơ";
+            else if (i == 2) dhName = "Top 4 Nạp";
+            else if (i == 3) dhName = "Top 3 Nạp";
+            else if (i == 4) dhName = "Top 2 Nạp";
+            else if (i == 5) dhName = "Top 1 Nạp";
+
+            m.writer().writeUTF("Danh hiệu " + dhName);
+            m.writer().writeByte(4); // cat 4
+            m.writer().writeShort(147); // icon vé
+            m.writer().writeShort(1); // số lượng
+            m.writer().writeByte(0); // option
 
             for (int j = 0; j < t.cat.length; j++) {
                 if (t.cat[j] == 4) {
@@ -381,6 +380,14 @@ public class ListTichNap {
             Service.send_gift(p, 1, "Phần thưởng", "Phần thưởng", listGift, true);
         }
 
+        // Add danh hiệu
+        if (id == 0) addDanhHieuByName(p, "Fan Cứng");
+        else if (id == 1) addDanhHieuByName(p, "Tuổi Thơ");
+        else if (id == 2) addDanhHieuByName(p, "Top 4 Nạp");
+        else if (id == 3) addDanhHieuByName(p, "Top 3 Nạp");
+        else if (id == 4) addDanhHieuByName(p, "Top 2 Nạp");
+        else if (id == 5) addDanhHieuByName(p, "Top 1 Nạp");
+
         p.update_money();
         p.item.update_Inventory(-1, false);
 
@@ -390,6 +397,15 @@ public class ListTichNap {
         m.writer().writeByte(id);
         p.conn.addmsg(m);
         m.cleanup();
+    }
+
+    private static void addDanhHieuByName(Player p, String name) throws IOException {
+        for (activities.DanhHieu dh : activities.DanhHieu.ENY) {
+            if (dh.Name.equalsIgnoreCase(name)) {
+                p.add_danh_hieu(dh.id);
+                return;
+            }
+        }
     }
 
     public static void showSubMenu(Player p, int index) throws IOException {
@@ -408,6 +424,15 @@ public class ListTichNap {
         }
         ListTichNap t = ENTRY.get(index);
         List<String> menuItems = new ArrayList<>();
+        
+        // Add danh hiệu text vào menu xem trước
+        if (index == 0) menuItems.add("Danh hiệu: Fan Cứng");
+        else if (index == 1) menuItems.add("Danh hiệu: Tuổi Thơ");
+        else if (index == 2) menuItems.add("Danh hiệu: Top 4 Nạp");
+        else if (index == 3) menuItems.add("Danh hiệu: Top 3 Nạp");
+        else if (index == 4) menuItems.add("Danh hiệu: Top 2 Nạp");
+        else if (index == 5) menuItems.add("Danh hiệu: Top 1 Nạp");
+
         for (int j = 0; j < t.cat.length; j++) {
             if (t.cat[j] == 4) {
                 ItemTemplate4 itTemp4Select = ItemTemplate4.get_it_by_id(t.id[j]);

@@ -1,0 +1,30 @@
+id,name,icon,info,price,priceruby,istrade,hpmpother,timedelay,value,timeactive,nameuse
+0,Bùa kinh nghiệm cấp 1,70,"Tăng 50% kinh nghiệm khi trả nhiệm vụ lặp cho tất cả thành viên trong Băng Hải Tặc, thời gian hiệu lực 1h",10000,0,1,0,3600,0,0,Sử dụng
+1,Bùa kinh nghiệm cấp 2,71,"Tăng 50% kinh nghiệm khi trả nhiệm vụ lặp và đánh quái cho tất cả thành viên trong Băng Hải Tặc, thời gian hiệu lực 1h",0,10,1,0,3600,0,0,Sử dụng
+2,Bùa cường hóa Thức Ăn,72,"Tăng 25% lượng máu hồi khi sử dụng Thức Ăn cho tất cả các thành viên trong Băng Hải Tặc, tác dụng trong 1h.",5000,0,1,1,3600,0,0,Sử dụng
+3,Bùa cường hóa Nước Uống,73,"Tăng 25% lượng năng lượng hồi khi sử dụng Nước Uống cho tất cả các thành viên trong Băng Hải Tặc, tác dụng trong 1h.",5000,0,1,1,3600,0,0,Sử dụng
+4,Bùa Cường hóa Tổng Hợp,74,Tăng 25% lượng máu và năng lượng hồi khi sử dụng thức ăn hoặc nước uống. Hiệu lực trong 1h,5000,5,1,1,3600,0,0,Sử dụng
+5,Bùa cường hóa Vật Phẩm,75,Tăng 25% tỉ lệ thành công khi cường hóa vật phẩm cho tất cả thành viên trong băng Hải Tặc. Hiệu lực trong vòng 1h,0,0,1,2,0,0,0,Sử dụng
+6,Gói 10.000 Bery,76,Tăng 10.000 Bery cho Băng Hải Tặc.,0,10,1,3,0,0,0,Sử dụng
+7,Thuốc tẩy tiềm năng,77,Tẩy toàn bộ điểm tiềm năng hiện tại của Băng Hải Tặc.,0,20,1,4,0,0,0,Sử dụng
+8,Vé PvP Băng,94,Vé tham giá đấu PvP Băng Hải Tặc,0,10,1,5,0,0,0,Sử dụng
+9,Cây thông Noel,123,Sự kiện Noel,0,0,1,6,0,0,0,Sử dụng
+10,Pokemon Ball Băng,148,Tất cả thành viên trong băng mỗi người nhận 10 quả cầu băng hải tặc với 25% bắt được pokemon.,0,0,1,7,0,0,0,Sử dụng
+11,Triệu hồi Bí Ngô,168,Gọi ra quái vật Halloween,0,0,1,8,0,0,0,Sử dụng
+12,Bánh sinh nhật 1 tầng,188,Gọi ra Bánh sinh nhật ,0,0,1,9,0,0,0,Sử dụng
+13,Bánh sinh nhật 2 tầng,189,Gọi ra Bánh sinh nhật ,0,0,1,9,0,0,0,Sử dụng
+14,Gói Xương Ống,202,Mỗi thành viên trong Băng sẽ nhận được 5 Xương Ống,0,0,1,10,0,0,0,Sử dụng
+15,Vé gọi Siêu Khuyển,197,Gọi ra siêu khuyển,0,0,1,11,0,0,0,Sử dụng
+16,Vé gọi Pokemon,249,Gọi ra đủ bộ 5 Pokemon,0,0,1,12,0,0,0,Sử dụng
+17,Choáng váng,269,Làm choáng tất cả các thành viên băng đối phương trong 10s,0,25,1,13,60,0,0,Sử dụng
+18,Kiệt sức,270,Tất cả những thành viên băng đối phương bị giảm 50% sát thương trong vòng 15s,0,25,1,13,60,0,0,Sử dụng
+19,Bất tử,271,Tất cả những thành viên trong băng được bất tử trong 15s,0,25,1,13,60,0,0,Sử dụng
+20,Kháng tất cả,272,Tất cả đòn đánh vào trụ chính trong map đều hụt trong 15s,0,25,1,13,60,0,0,Sử dụng
+21,Hạt giống băng,273,Hạt giống băng,0,0,1,14,60,0,0,Sử dụng
+22,Vé gọi Lân,364,Gọi ra Lân Sư Tử,0,0,1,15,60,0,0,Sử dụng
+23,Nồi nấu bánh Tét,390,Sự kiện Tết! Sử dụng để nấu bánh Tét,0,0,1,16,0,0,0,Sử dụng
+24,Chim Thước,549,Sử dụng đễ xây cầu ô thước,0,0,1,16,0,0,0,Sử dụng
+25,Thẻ gọi Chopper,548,Sử dụng để gọi Chopper,0,0,1,17,0,0,0,Sử dụng
+26,Xu Hành Trình,552,Sử dụng để mở rương huy hiệu băng hành trình,0,0,1,18,0,0,0,
+27,Lò sưởi,585,Sự kiện giáng sinh! Lò sưởi trang trí,0,0,1,6,0,0,0,Sử dụng
+28,Lò sưởi ấm,586,Sự kiện giáng sinh! Sử dụng để cùng các thành viên sưởi âm qua mùa đông lạnh giá,0,0,1,6,0,0,0,Sử dụng

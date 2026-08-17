@@ -1,0 +1,19 @@
+id,name,type,icon,price,priceruby,istrade
+0,Đá ngũ sắc,1,0,0,0,0
+1,Bột cường hóa,0,1,0,1,1
+2,Bột than,0,2,500,0,1
+3,Bột  tím,0,3,0,1,1
+4,Bột vàng,0,4,0,2,1
+5,Ngôi sao may mắn,2,5,0,5,1
+6,Mai rùa,3,6,0,7,1
+7,Tinh Tú may mắn,4,7,0,0,1
+8,Tinh thể đá ác quỷ,5,8,0,0,1
+9,Đá ác quỷ,6,9,0,2,1
+10,Khiên,7,10,0,0,1
+11,Thiên thạch may mắn,4,11,0,0,1
+12,Bùa cường hóa,4,12,0,0,1
+13,Lông vũ,8,13,0,0,0
+14,Sao 5 cánh,9,14,0,0,1
+15,Sao 6 cánh,9,15,0,0,1
+16,Sao 8 cánh,9,16,0,0,1
+17,Bảo thạch may mắn,9,17,0,0,1

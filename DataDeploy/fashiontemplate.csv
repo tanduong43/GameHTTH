@@ -1,0 +1,628 @@
+id,icon,name,info,mwear,op,price
+2,2,Hỏa quyền,"
+Trang phục ACE.
++10% Sát thương
++10% xuyên giáp
++10% Máu
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,299,-1,300,-1,301,-1,-1]","[[1,500],[13,500],[17,500]]",2000
+3,3,Áo Len 1,"Giữ ấm cơ thể chống lại sự khắc nghiệt của Thị Trấn Big Horn.
++10% Giảm Hồi Chiêu
++5% Máu Tối Đa
++5% Giáp.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,362,-1,363,-1,-1,-1,-1]","[[25,500],[17,250],[4,250]]",500
+4,4,Áo Len 2,"Giữ ấm cơ thể chống lại sự khắc nghiệt của Thị Trấn Big Horn.
++10% Giảm Hồi Chiêu
++5% Máu Tối Đa
++5% Giáp.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,365,-1,366,-1,-1,-1,-1]","[[25,500],[17,250],[4,250]]",500
+5,5,Áo Len 3,"Giữ ấm cơ thể chống lại sự khắc nghiệt của Thị Trấn Big Horn.
++10% Giảm Hồi Chiêu
++5% Máu Tối Đa
++5% Giáp.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,367,-1,368,-1,-1,-1,-1]","[[25,500],[17,250],[4,250]]",500
+6,6,Áo Len 4,"Giữ ấm cơ thể chống lại sự khắc nghiệt của Thị Trấn Big Horn.
++10% Giảm Hồi Chiêu
++5% Máu Tối Đa
++5% Giáp.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,369,-1,370,-1,-1,-1,-1]","[[25,500],[17,250],[4,250]]",500
+7,7,Áo Len 5,"Giữ ấm cơ thể chống lại sự khắc nghiệt của Thị Trấn Big Horn.
++10% Giảm Hồi Chiêu
++5% Máu Tối Đa
++5% Giáp.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,372,-1,373,-1,-1,-1,-1]","[[25,500],[17,250],[4,250]]",500
+9,8,Áo Choàng 1,"Giúp cơ thể chống lại cái nắng khắc nghiệt của Alabastra đồng thời ngụy trang tránh sự truy đuổi của Hải quân.
++5% Giáp
++5% Kháng Vật Lý
++5% Kháng Phép
++10% Máu.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,375,-1,376,-1,-1,-1,-1]","[[17,500],[4,250],[26,250],[27,250]]",500
+10,9,Áo Choàng 2,"Giúp cơ thể chống lại cái nắng khắc nghiệt của Alabastra đồng thời ngụy trang tránh sự truy đuổi của Hải quân.
++5% Giáp
++5% Kháng Vật Lý
++5% Kháng Phép
++10% Máu.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,377,-1,378,-1,379,-1,-1]","[[17,500],[4,250],[26,250],[27,250]]",500
+11,10,Áo Choàng 3,"Giúp cơ thể chống lại cái nắng khắc nghiệt của Alabastra đồng thời ngụy trang tránh sự truy đuổi của Hải quân.
++5% Giáp
++5% Kháng Vật Lý
++5% Kháng Phép
++10% Máu.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,-1,-1,380,-1,381,-1,-1]","[[17,500],[4,250],[26,250],[27,250]]",500
+12,11,Áo Choàng 4,"Giúp cơ thể chống lại cái nắng khắc nghiệt của Alabastra đồng thời ngụy trang tránh sự truy đuổi của Hải quân.
++5% Giáp
++5% Kháng Vật Lý
++5% Kháng Phép
++10% Máu.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,-1,-1,383,-1,384,-1,-1]","[[4,250],[26,250],[27,250],[17,500]]",500
+13,12,Áo Choàng 5,"Giúp cơ thể chống lại cái nắng khắc nghiệt của Alabastra đồng thời ngụy trang tránh sự truy đuổi của Hải quân.
++5% Giáp
++5% Kháng Vật Lý
++5% Kháng Phép
++10% Máu.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,385,-1,386,-1,387,-1,-1]","[[17,500],[4,250],[26,250],[27,250]]",500
+14,13,Đội trưởng,"Nhiệm vụ giải cứu thế giới giờ đã nằm trong tay bạn.
++10% Giảm Hồi Chiêu
++10% Giáp
++10% Sát thương.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[493,-1,-1,388,-1,389,-1,-1]","[[25,500],[4,500],[1,500]]",1000
+15,14,Thần Sét,"Nhiệm vụ giải cứu thế giới giờ đã nằm trong tay bạn.
++10% Giảm Hồi Chiêu
++10% Giáp
++10% Sát thương.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[494,-1,-1,390,-1,391,-1,-1]","[[25,500],[4,500],[1,500]]",1000
+16,15,Quản lý,"Nhiệm vụ giải cứu thế giới giờ đã nằm trong tay bạn.
++10% Giảm Hồi Chiêu
++10% Giáp
++10% Sát thương.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,460,-1,392,-1,393,-1,-1]","[[25,500],[4,500],[1,500]]",1000
+17,16,Nhện đen,"Nhiệm vụ giải cứu thế giới giờ đã nằm trong tay bạn.
++10% Giảm Hồi Chiêu
++10% Giáp
++10% Sát thương.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[496,-1,-1,394,-1,395,-1,-1]","[[25,500],[4,500],[1,500]]",1000
+18,17,Thiện Xạ,"Nhiệm vụ giải cứu thế giới giờ đã nằm trong tay bạn.
++10% Giảm Hồi Chiêu
++10% Giáp
++10% Sát thương.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[495,396,-1,397,-1,398,-1,-1]","[[25,500],[4,500],[1,500]]",1000
+23,21,Đấng tối cao,"Sức mạnh của thần linh sẽ nằm trong người bạn khi sở hữu trang phục này.
+(Kháng thuộc tính đảo trên trời)
++8% Né tránh
++8% Xuyên giáp
++8% Hp
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,576,-1,577,-1,578,-1,-1]","[[17,400],[12,400],[13,400]]",800
+24,22,vệ thần 1,"Sức mạnh của thần linh sẽ nằm trong người bạn khi sở hữu trang phục này.
+(Kháng thuộc tính đảo trên trời)
++8% Né tránh
++8% Xuyên giáp
++8% Hp
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,585,-1,586,-1,587,-1,-1]","[[17,400],[12,400],[13,400]]",500
+25,24,Vệ thần 2,"Sức mạnh của thần linh sẽ nằm trong người bạn khi sở hữu trang phục này.
+(Kháng thuộc tính đảo trên trời)
++8% Né tránh
++8% Xuyên giáp
++8% Hp
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,582,-1,583,-1,584,-1,-1]","[[17,400],[12,400],[13,400]]",500
+26,23,Vệ thần 3,"Sức mạnh của thần linh sẽ nằm trong người bạn khi sở hữu trang phục này.
+(Kháng thuộc tính đảo trên trời)
++8% Né tránh
++8% Xuyên giáp
++8% Hp
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,-1,-1,580,-1,581,-1,-1]","[[17,400],[12,400],[13,400]]",500
+27,25,Vệ thần 4,"Sức mạnh của thần linh sẽ nằm trong người bạn khi sở hữu trang phục này.
+(Kháng thuộc tính đảo trên trời)
++8% Né tránh
++8% Xuyên giáp
++8% Hp
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,588,-1,590,-1,591,-1,-1]","[[17,400],[12,400],[13,400]]",700
+28,27,Hot Boy,"Đến trường nhưng cũng phải thật kool mới được nha.
++8% Sát thương
++8% Xuyên Giáp
++8% Giáp.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,-1,-1,621,-1,622,-1,620]","[[13,400],[4,400],[1,400]]",700
+29,26,Hot Girl,"Đến trường nhưng cũng phải thật kool mới được nha.
++8% Sát thương
++8% Xuyên Giáp
++8% Giáp.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,-1,-1,618,-1,619,-1,617]","[[13,400],[4,400],[1,400]]",700
+30,28,Đại Ca,"Đến trường nhưng cũng phải thật kool mới được nha.
++8% Sát thương
++8% Xuyên Giáp
++8% Giáp.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,-1,-1,624,-1,625,-1,623]","[[13,400],[4,400],[1,400]]",700
+33,34,Pell,"Không chỉ đơn giản là đồ thời trang mà còn mang lại sức mạnh tiềm năng cho chủ nhân của nó.
++8% Sát thương
++8% Hp
++8% Né tránh.
+Khi kết hợp với trái chim ưng sẽ có hiệu ứng tăng 15% sát thương.
+ Hạn sử dụng vĩnh viễn
+ =>Đối với sv chỉ số trên x5","[-1,648,-1,649,-1,650,-1,-1]","[[17,400],[12,400],[1,400]]",800
+34,33,Lucci,"Không chỉ đơn giản là đồ thời trang mà còn mang lại sức mạnh tiềm năng cho chủ nhân của nó.
++8% Sát thương
++8% Hp
++8% Né tránh.
+Khi kết hợp với trái báo đốm sẽ có hiệu ứng tăng 15% sát thương.
+ Hạn sử dụng vĩnh viễn
+ =>khi mặc lên chỉ số trên x5","[-1,653,-1,654,-1,655,-1,-1]","[[17,400],[12,400],[1,400]]",800
+40,40,Linh hồn,"Trang phục Perona.
++100% Né tránh
++100% xuyên giáp
++60% Máu
+ Hạn sử dụng vĩnh viễn","[-1,675,-1,677,-1,678,-1,676]","[[17,600],[12,1000],[13,1000]]",-1
+45,44,Noel Nữ,"Giúp giữ ấm cơ thể trong mùa đông lạnh giá.
++6% Né tránh.
++6% Xuyên giáp
++10% Máu
+ Hạn sử dụng còn 7 ngày.
+ =>khi mặc lên chỉ số trên x5","[-1,682,-1,685,-1,686,-1,-1]","[[17,500],[12,300],[13,300]]",800
+46,45,Bé tuyết,"Giúp giữ ấm cơ thể trong mùa đông lạnh giá.
++9% Chí mạng.
++9% Xuyên giáp
++10% Máu
+ Hạn sử dụng còn 7 ngày.
+ =>khi mặc lên chỉ số trên x5","[-1,691,-1,692,-1,693,-1,-1]","[[17,500],[10,450],[13,450]]",900
+47,46,Đấm phát chết luôn,"Đồ thời trang.
++90% Chí mạng.
++90% Xuyên giáp
++100% Máu
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,306,-1,307,-1,-1]","[[17,1000],[10,900],[13,900]]",-1
+48,47,Drama,"Đồ thời trang.
++100% Chí mạng.
++100% Xuyên giáp
++100% Máu
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,568,-1,569,-1,-1]","[[17,1000],[10,1000],[13,1000]]",-1
+49,48,Tết Nam,"Thời trang tết.
++100% Chí mạng.
++150% Máu
+ Hạn sử dụng còn 7 ngày.","[-1,703,-1,704,-1,705,-1,-1]","[[17,1500],[10,1000]]",-1
+50,49,Tết Nữ,"Thời trang tết.
++100% Chí mạng.
++150% Máu
+ Hạn sử dụng còn 7 ngày.","[-1,708,-1,709,-1,710,-1,-1]","[[17,1500],[10,1000]]",-1
+51,50,Sắc đỏ Nam,"Thời trang tết.
++100% Chí mạng.
++100% Xuyên giáp
++100% Sát thương
+ Hạn sử dụng vĩnh viễn","[-1,706,-1,707,-1,705,-1,-1]","[[10,1000],[13,1000],[1,1000]]",-1
+52,51,Sắc đỏ Nữ,"Thời trang tết.
++100% Chí mạng.
++100% Xuyên giáp
++100% Sát thương
+ Hạn sử dụng vĩnh viễn","[-1,711,-1,712,-1,713,-1,-1]","[[10,1000],[13,1000],[1,1000]]",-1
+53,52,Chấn thiên,"Thời trang tết.
++120% Chí mạng.
++100% Xuyên giáp
++100% né tránh
+ Hạn sử dụng vĩnh viễn","[757,-1,-1,719,-1,720,729,-2]","[[10,1200],[13,1000],[12,1000]]",-1
+54,52,Chấn thiên,"Thời trang tết.
++120% Chí mạng.
++100% Xuyên giáp
++100% né tránh
+ Hạn sử dụng vĩnh viễn","[757,-1,-1,756,-1,720,729,-2]","[[10,1200],[13,1000],[12,1000]]",-1
+55,53,Bão tố,"Thời trang Dragon.
++120% Miễn thương 
++100% Chí mạng
++100% Né tránh
+ Hạn sử dụng vĩnh viễn","[-1,758,-1,748,-1,749,747,-2]","[[10,1000],[53,1200],[12,1000]]",-1
+58,60,Thần chết,"Trang phục Halloween
++130% Né tránh
++80% Hp
++30% Hút máu
++200% exp skill(t/d trong sk halloween)
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,763,-1,764,762,-1]","[[17,800],[12,1300],[59,300],[68,2000]]",-1
+59,65,Đấng,"Thần
++120% né tránh
++120% Hp
++100% xuyên giáp
+ Hạn sử dụng vĩnh viễn","[803,-1,-1,798,-2,800,-1,-1]","[[12,1200],[17,1200],[13,1000]]",-1
+60,31,D-Gap,"Niềm tự hào của hải quân nhưng lại là sư phụ của tất cả hải tặc.
+Né tránh 100%
+Hồi chiêu 80%
+Miễn thương 10%
+ Hạn sử dụng vĩnh viễn","[-1,642,-1,643,-1,644,-1,-1]","[[12,1000],[53,1000],[25,800]]",-1
+61,62,Kỷ hợi,"Thơi trang tết.
++120% né đòn
++80% Hp
++100% hồi chiêu
+ Hạn sử dụng vĩnh viễn","[-1,807,-1,808,-1,809,-1,-1]","[[12,1200],[17,800],[25,1000]]",-1
+62,63,Nam thần,"Thần tình yêu.
++100% né tránh
++80% Hp
++140% hồi chiêu
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,810,-1,811,-1,-1]","[[12,1000],[17,800],[25,1400]]",-1
+63,64,Nữ thần,"Thần tình yêu.
++100% né tránh
++80% Hp
++140% hồi chiêu
+ Hạn sử dụng vĩnh viễn","[-1,812,-1,813,-1,814,-1,-1]","[[12,1000],[17,800],[25,1400]]",-1
+64,65,Đấng,"Thần
++120% né tránh
++120% Hp
++100% xuyên giáp
+ Hạn sử dụng vĩnh viễn","[803,-1,-1,799,-1,800,-1,-1]","[[12,1200],[17,1200],[13,1000]]",-1
+65,66,Chú cuội,"Thời trang Trung Thu
++130% né tránh
++80% Hp
++100% Miễn thương
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,842,-1,843,-1,841]","[[10,1000],[17,800],[53,1000]]",-1
+66,67,Chị Hằng,"Thời trang Trung Thu
++130% né tránh
++80% Hp
++100% Miễn thương
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,845,-1,846,-1,844]","[[10,1000],[17,800],[53,1000]]",-1
+68,69,Thời trang Dracula,"Thời trang Haloween
++100% Sát thương
++10% Hút % máu
++100% Né tránh
+ Hạn sử dụng còn 30 ngày.","[-1,852,-1,853,-1,854,-1,-1]","[[12,1000],[1,1000],[59,100]]",-1
+69,70,Thời trang Dracula,"Thời trang Haloween
++100% Sát thương
++10% Hút % máu
++100% Né tránh
+ Hạn sử dụng còn 30 ngày.","[-1,855,-1,856,-1,857,-1,-1]","[[12,1000],[1,1000],[59,100]]",-1
+70,71,Thời trang Ma Sói,"Thời trang Haloween
++100% Sát thương
++100% Chí mạng
++100% Miễn thương
+ Hạn sử dụng còn 30 ngày.","[-1,-2,-1,859,-1,860,858,-2]","[[10,1000],[53,1000],[1,1000]]",-1
+72,70,Thời trang Dracula,"Thời trang Haloween
++100% Sát thương
++10% Hút % máu
++100% Né tránh
+ Hạn sử dụng vĩnh viễn","[-1,855,-1,856,-1,857,-1,-1]","[[12,1000],[1,1000],[59,100]]",-1
+73,71,Thời trang Ma Sói,"Thời trang Haloween
++100% Sát thương
++100% Chí mạng
++100% Miễn thương
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,859,-1,860,858,-2]","[[10,1000],[53,1000],[1,1000]]",-1
+74,68,Râu đen,"Tứ Hoàng của vùng biển cả
++150% Chí mạng
++150% Phản đòn
++150% Sát thương
+5% Hấp thụ (Ẩn)
+Khi kết hợp với trái Bóng Tối sẽ kích hoạt 5% chỉ số Hấp thụ
+ Hạn sử dụng vĩnh viễn","[-1,848,-1,851,-1,850,847,-2]","[[10,1500],[14,1500],[1,1500]]",-1
+75,72,Hoàng tử tuyết,"Thời trang Noel
++13% né tránh
++8% Hp
++10% Miễn thương
+ Hạn sử dụng vĩnh viễn
+ =>khi mặc lên chỉ số trên x5","[-1,861,-1,862,-1,863,-1,-1]","[[12,6500],[53,5000],[17,4000]]",10000
+76,73,Công chúa tuyết,"Thời trang Noel
++13% né tránh
++8% Hp
++10% Miễn thương
+ Hạn sử dụng vĩnh viễn
+ =>khi mặc lên chỉ số trên x5","[-1,864,-1,865,-1,866,-1,-1]","[[12,6500],[53,5000],[17,4000]]",10000
+77,74,Chuột thần tài,"Thơi trang tết thần tài.
++120% né đòn
++70% Xuyên Giáp
++100% Miễn thương
++100% May măn
+Tăng thêm 30% lượng bery khi đánh quái nhận được. Hạn sử dụng vĩnh viễn","[-1,-2,-1,868,-1,869,867,-2]","[[12,1200],[13,700],[53,1000],[62,1000]]",-1
+78,75,Áo dài Nam,"Thời trang Tết
++80% Xuyên Giáp
++80% Chí mạng
++100% hồi chiêu
+Tăng thêm 10% lượng bery khi đánh quái nhận được Hạn sử dụng vĩnh viễn","[-1,-1,-1,870,-1,871,-1,-1]","[[13,800],[10,800],[25,1000]]",-1
+79,76,Áo dài Nữ,"Thời trang Tết
++80% Xuyên Giáp
++80% Chí mạng
++100% hồi chiêu
+Tăng thêm 10% lượng bery khi đánh quái nhận được Hạn sử dụng vĩnh viễn","[-1,872,-1,873,-1,874,-1,-1]","[[13,800],[10,800],[25,1000]]",-1
+80,77,Thiên thần Nam,"Thời trang thiên thần 
+100% Né tránh 
+100% Chí mạng 
+100% Giảm hồi chiêu 
+Tăng 50 Hp mỗi 5s Hạn sử dụng vĩnh viễn","[-1,875,-1,876,-1,877,-1,-1]","[[12,1000],[10,1000],[25,1000]]",-1
+81,78,Thiên thần Nữ,"Thời trang thiên thần 
+100% Né tránh 
+100% Chí mạng 
+100% Giảm hồi chiêu 
+Tăng 50 Hp mỗi 5s Hạn sử dụng vĩnh viễn","[-1,875,-1,878,-1,879,-1,-1]","[[12,1000],[10,1000],[25,1000]]",-1
+82,79,Hùng Vương Nam,"Thời trang Hùng Vương
+80% Né tránh 
+80% Chí mạng 
+Hiệu ứng giảm 50% sức mạnh đối phương trong 5s
+ Hạn sử dụng vĩnh viễn","[887,882,-1,883,-1,884,-1,-1]","[[12,800],[10,800]]",-1
+83,80,Hùng Vương Nữ,"Thời trang Hùng Vương
+80% Né tránh 
+80% Chí mạng 
+Hiệu ứng giảm 50% sức mạnh đối phương trong 5s
+ Hạn sử dụng vĩnh viễn","[888,882,-1,885,-1,886,-1,-1]","[[12,800],[10,800]]",-1
+84,123,Thời trang Boa Hancock,"Thời trang Boa Hancock
++100% Sát thương
++100% Máu
++100% Giảm hồi chiều
+x20 kinh nghiệm bản thân
+x20 kinh nghiệm kỹ năng chiêu thức
+ Hạn sử vĩnh viễn.
+=> khi mặc lên chỉ số x5","[-1,-2,-1,695,-1,696,694,-2]","[[1,5000],[17,5000],[25,5000],[67,50000],[68,50000]]",-1
+85,81,Tôn Ngộ Không,"Thời trang Đặc Biệt
++80% né tránh
++100% Chí mạng
++100% Sát thương chí mạng
+*50% xảy ra choáng trong 3s
+ Hạn sử dụng vĩnh viễn","[892,-2,-1,890,-1,891,889,-2]","[[12,800],[10,1000],[11,1000]]",-1
+86,82,Thời trang Đường Tăng,"Thời trang Đặc Biệt
++100% né tránh
++100% Miễn thương
++100% Giảm hồi chiêu
+*50% xảy ra lóa mắt trong 3s
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,896,-1,895,893,-2]","[[12,1000],[53,1000],[25,1000]]",-1
+87,83,Thời trang Trư Bát Giới,"Thời trang Đặc Biệt
++110% né tránh
++100% Giảm hồi chiêu
++100% Xuyên giáp
+*50% xảy ra giảm tấn công đối thủ trong 5s
+ Hạn sử dụng vĩnh viễn","[903,-2,-1,898,-1,899,897,-2]","[[12,1100],[25,1000],[13,1000]]",-1
+88,84,Thời trang Trư Bát Giới,"Thời trang Đặc Biệt
++110% né tránh
++100% Giảm hồi chiêu
++100% Xuyên giáp
+*50% xảy ra giảm tấn công đối thủ trong 5s
+ Hạn sử dụng vĩnh viễn","[904,-2,-1,901,-1,902,900,-2]","[[12,1100],[25,1000],[13,1000]]",-1
+89,85,Thời trang Sa Tăng,"Thời trang Đặc Biệt
++100% Chí mạng
++100% Xuyên giáp
++100% Máu cuối
+*50% xảy ra bất tử trong 5s
+ Hạn sử dụng vĩnh viễn","[908,-2,-1,909,-1,907,905,-2]","[[10,1000],[56,1000],[13,1000]]",-1
+90,86,Thời trang Mặt Ông Địa,"Thời trang Trung Thu
++100% Chí mạng
++130% Giảm hồi chiêu
+ Hạn sử dụng còn 1 ngày.","[-1,-2,-1,-1,-1,-1,910,-2]","[[10,1000],[25,1300]]",-1
+92,87,Chú Hề ma quái,"Thời trang Đặc Biệt
++100% Chí mạng
++100% Xuyên giáp
++100% Máu cuối
+*50% xảy ra bất tử trong 5s
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,919,-1,920,918,-2]","[[10,1000],[56,1000],[13,1000]]",-1
+93,89,Trang phục Franky,"Thời trang franky 
+120% Né tránh 
+100% Chí mạng 
+150% Giảm hồi chiêu 
+Tăng 500 Hp mỗi 5s 
+100% Máu cuối
+ Hạn sử dụng vĩnh viễn
+ => khi mặc lên chỉ số x5","[-1,-2,-1,950,-1,951,949,-2]","[[12,6000],[10,5000],[25,6500],[19,2500],[56,5000]]",-1
+94,90,Trang phục Franky,"Thời trang franky 
+120% Né tránh 
+100% Chí mạng 
+150% Giảm hồi chiêu 
+Tăng 500 Hp mỗi 5s 
+100% Máu cuối
+ Hạn sử dụng vĩnh viễn
+ => khi mặc lên chỉ số x5","[955,-2,-1,953,-1,954,952,-2]","[[12,6000],[10,5000],[25,6500],[19,2500],[56,5000]]",-1
+95,91,Trang phục Thần Tài,"Thơi trang tết thần tài.
++120% né đòn
++70% Xuyên Giáp
++100% Miễn thương
++100% May măn
+Tăng thêm 30% lượng bery khi đánh quái nhận được. Hạn sử dụng vĩnh viễn
+=> khi mặc lên chỉ số x5","[-1,959,-1,960,-1,961,-1,-1]","[[12,6000],[53,5000],[13,3500],[72,1500],[62,5000]]",-1
+96,92,Trang phục Franky,"Thời trang franky 
+100% Né tránh 
+80% Chí mạng 
+130% Giảm hồi chiêu 
+Tăng 500 Hp mỗi 5s 
+80% Máu cuối
+ Hạn sử dụng vĩnh viễn
+ => khi mặc lên chỉ số x5","[-1,-2,-1,963,-1,951,949,-2]","[[12,5000],[10,4000],[25,6500],[19,2500],[56,4000]]",-1
+97,93,Trang phục Franky,"Thời trang franky 
+100% Né tránh 
+80% Chí mạng 
+130% Giảm hồi chiêu 
+Tăng 500 Hp mỗi 5s 
+80% Máu cuối
+ Hạn sử dụng vĩnh viễn
+ => khi mặc lên chỉ số x5","[955,-2,-1,1002,-1,954,952,-2]","[[12,5000],[10,4000],[25,6500],[19,2500],[56,4000]]",-1
+98,92,Trang phục Euro 2020,"Thời trang Euro 2020 Đội tuyển Ý
++100% né tránh
++80% Hp
++70% Miễn thương
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,964,-1,965,-1,-1]","[[12,1000],[17,800],[53,700]]",-1
+99,94,Trang phục Squid tam giác,"Thời trang Squid Game
++110% Chí mạng
++100% Xuyên giap
++100% Chuyển ST thành HP
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,969,-1,970,966,-2]","[[10,1100],[13,1000],[73,1000]]",-1
+100,96,Trang phục Squid tròn,"Thời trang Squid Game
++100% Chí mạng
++100% Xuyên giap
++100% Chuyển ST thành HP
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,969,-1,970,968,-2]","[[10,1000],[13,1000],[73,1000]]",-1
+101,95,Trang phục Squid vuông,"Thời trang Squid Game
++120% Chí mạng
++100% Xuyên giap
++100% Chuyển ST thành HP
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,969,-1,970,967,-2]","[[10,1200],[13,1000],[73,1000]]",-1
+102,102,Trang phục Chopper khổng lồ,"Thời trang Chopper khổng lồ
++100% Giảm né đối phương
++120% Hp
++120% Miễn thương
+Hồi 500mp mỗi 5s
+ Hạn sử dụng vĩnh viễn","[976,-2,-1,972,-1,973,971,-2]","[[17,1200],[53,1200],[51,1000]]",-1
+103,98,Trang phục Spiderman,"Thông tin: 
++150% Né tránh
++100% Chí mạng
++100% giảm né đối phương
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,979,-1,980,978,-2]","[[12,1500],[10,1000],[51,1000]]",-1
+104,99,Trang phục Spiderman Iron,"Thông tin: 
++150% Né tránh
++150% Chí mạng
++150% giảm né đối phương
++150% Máu cuối
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,982,-1,983,981,-2]","[[12,1500],[10,1500],[56,1500],[51,1500]]",-1
+105,100,Trang phục Hổ Vằn,"Thời trang tết Hổ Vằn
++100% Chí mạng
++100% Né tránh
++100% máu cuối
+ Hạn sử dụng vĩnh viễn","[-1,984,-1,985,-1,986,-1,-2]","[[10,1000],[12,1000],[56,1000]]",-1
+106,101,Trang phục Hổ Vằn,"Thời trang tết Hổ Vằn
++100% Chí mạng
++100% Né tránh
++100% máu cuối
+ Hạn sử dụng vĩnh viễn","[-1,987,-1,988,-1,989,-1,-2]","[[10,1000],[12,1000],[56,1000]]",-1
+107,103,Trang phục người Dơi,"Thời trang Người Dơi
++150% Máu cuối
++100% Né tránh
++100% Miễn thương
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,996,-1,997,995,-2]","[[53,1000],[12,1000],[56,1500]]",-1
+108,104,Trang phục Cat Women,"Thời trang Cat Women
++150% Máu cuối
++100% Né tránh
++100% Miễn thương
+ Hạn sử dụng vĩnh viễn","[1001,998,-1,999,-1,1000,-1,-2]","[[53,1000],[12,1000],[56,1500]]",-1
+109,105,Trang phục Sogeking,"Thời trang Sogeking
++100% Máu cuối
++100% Né tránh
++100% Giảm né tránh
++100% Chí mạng
+ Hạn sử dụng vĩnh viễn
+ => khi mặc lên chỉ số x5","[994,992,-1,993,-1,-1,-1,-1]","[[10,5000],[12,5000],[56,5000],[51,5000]]",-1
+110,106,Trang phục Doctor Strange,"Thời trang Doctor Strange
++150% Né tránh
++100% Miễn thương
++150% Máu cuối
++100% Giảm miễn thương đối phương
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,1003,-1,1004,-1,-1]","[[56,1500],[12,1500],[53,1000],[63,1000]]",-1
+111,107,Trang phục Scarlet Witch,"Thời trang Scarlet Witch
++150% Né tránh
++100% Miễn thương
++150% Máu cuối
++100% Giảm miễn thương đối phương
+ Hạn sử dụng vĩnh viễn","[-1,1005,-1,1006,-1,1007,-1,-1]","[[56,1500],[12,1500],[53,1000],[63,1000]]",-1
+112,108,Trang phục Raid Suit iChiji,"Thời trang Gia Đình Germa 66
++100% Máu cuối
++150% Chí mạng
++100% Né tránh
++100% Giảm né đối phương (ẩn)
+Khi sử dụng với Tóc iChiji sẽ kích hoạt Giảm Né tránh đối phương
+ Hạn sử dụng vĩnh viễn","[-1,1009,-1,1010,-1,1011,-1,-1]","[[10,1500],[12,1000],[56,1000],[51,1000]]",-1
+113,109,Trang phục Raid Suit Niji,"Thời trang Gia Đình Germa 66
++100% Máu cuối
++150% Né tránh
++100% Miễn thương
++100% Giảm miễn thương đối phương (ẩn)
+Khi sử dụng với Tóc Niji sẽ kích hoạt Giảm Miễn thương đối phương
+ Hạn sử dụng vĩnh viễn","[-1,1013,-1,1014,-1,1015,-1,-1]","[[53,1000],[12,1500],[56,1000],[63,1000]]",-1
+114,110,Trang phục Raid Suit Yonji,"Thời trang Gia Đình Germa 66
++100% Máu cuối
++150% Xuyên giáp
++100% Phản đòn
++100% Giảm xuyên giáp đối phương (ẩn)
+Khi sử dụng với Tóc Yonji sẽ kích hoạt Giảm Xuyên giáp đối phương
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,1017,-1,1018,-1,-1]","[[14,1000],[13,1500],[56,1000],[50,1000]]",-1
+115,111,Trang phục Raid Suit Sanji,"Thời trang Gia Đình Germa 66
++100% Máu cuối
++100% Né tránh
++100% Phản đòn
++100% Giảm phản đòn đối phương (ẩn)
+Khi sử dụng với Tóc Sanji sẽ kích hoạt Giảm Phản đòn đối phương
+ Hạn sử dụng vĩnh viễn","[-1,1020,-1,1021,-1,1022,-1,-1]","[[14,1000],[12,1000],[56,1000],[52,1000]]",-1
+116,112,Trang phục Raid Suit Judge,"Thời trang Gia Đình Germa 66
++100% Máu cuối
++150% Né tránh
++150% Xuyên giáp
++100% Giảm STCM đối phương (ẩn)
+Khi sử dụng với Tóc Judge sẽ kích hoạt Giảm Sát thương chí mạng đối phương
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,1024,-1,1025,-1,-1]","[[13,1500],[12,1500],[56,1000],[69,1000]]",-1
+117,113,Trang phục Raid Suit Reiju,"Thời trang Gia Đình Germa 66
++100% Máu cuối
++150% Chí mạng
++150% ST chí mạng
++100% Giảm chí mạng đối phương (ẩn)
+Khi sử dụng với Tóc Reiju sẽ kích hoạt Giảm Chí mạng đối phương
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,1027,-1,1028,-1,-1]","[[10,1500],[11,1500],[56,1000],[49,1000]]",-1
+118,114,Trang phục Mihawk,"Thời trang Mihawk 
++120% Máu cuối
++110% Xuyên giáp
++120% Phản đòn
+ Hạn sử dụng vĩnh viễn","[-1,1029,-1,1030,-1,1031,-1,-1]","[[14,1200],[13,1100],[56,1200]]",-1
+119,115,Trang phục Mihawk Gold,"Thời trang Mihawk Gold
++120% Máu cuối
++110% Xuyên giáp
++120% Phản đòn
++50% Sát thương chuẩn
+ Hạn sử dụng vĩnh viễn","[-1,1033,-1,1034,-1,1031,-1,-1]","[[14,1200],[13,1100],[56,1200],[57,500]]",-1
+120,116,Dr. Strange Zoombie,"+120% Né tránh
++100% Miễn thương
++120% Máu cuối
++100% Giảm miễn thương đối phương
+*8% xảy ra hiệu ứng zoombie hóa đối phương trong 5s
+Tác dụng lên đối phương:
+-Tăng 50% thời gian hồi chiêu
+-Giảm 50% sát thương của đối phương
+-Giảm 50% 1 số chỉ số
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,1038,-1,1039,1037,1036]","[[12,1200],[53,1000],[56,1200],[63,1000]]",-1
+121,117,Trong tài worldcup,"Trang phục Trong Tài Worldcup 2022
++100% Giảm hồi chiêu
++100% Máu cuối
++100% Miễn thương
+Hồi phục 500 Hp trong mỗi 5s.
+ Hạn sử dụng vĩnh viễn","[-1,-1,-1,1040,-1,1041,-1,-1]","[[25,1000],[53,1000],[56,1000],[19,500]]",-1
+123,118,Thời trang UTA,"Trang phục UTA
++120% Chí mạng
++100% Giảm miễn thương
++100% né tránh
+**5% gậy ra hiệu ứng Uta Uta No Mi trong 5s:
+-Giảm 50% sức tấn công đối thủ.
+-Tăng 50% sức tấn công bản thân.
+ Hạn sử dụng vĩnh viễn","[1045,-2,-1,1043,-1,1044,1042,-2]","[[10,1200],[53,1000],[12,1000]]",-1
+124,120,Thời trang Fan cứng,"Trang phục Bartolomeo Fan cứng
++70% Sát thương
++70% Máu
++70% Giảm hồi chiều
+x20 kinh nghiệm bản thân
+x20 kinh nghiệm kỹ năng chiêu thức
+ Hạn sử dụng còn 7 ngày.
+ => khi mặc lên chỉ số x10","[-1,-1,-1,1050,-1,1051,1049,-2]","[[25,7000],[17,7000],[1,7000],[67,100000],[68,100000]]",-1
+125,119,Thời trang Nami Wano,"Trang phục Nami Wano
++120% Giảm né tránh
++120% Máu cuối
++120% Sát thương chí mạng
+**Chỉ số đặc biệt
++5% Kháng hiệu ứng
+ Hạn sử dụng vĩnh viễn","[-1,-2,-1,1047,-1,1048,1046,-2]","[[11,1200],[56,1200],[51,1200],[71,50]]",-1
+127,122,Thời trang Doflamingo,"Thời trang Doflamingo
++100% Sát thương
++100% Máu
++100% Giảm hồi chiều
+x20 kinh nghiệm bản thân
+x20 kinh nghiệm kỹ năng chiêu thức
+ Hạn sử dụng vĩnh viễn.
+ => khi mặc lên chỉ số x10","[-1,-2,-1,529,-1,530,528,-2]","[[1,10000],[17,10000],[25,10000],[67,100000],[68,100000]]",-1
+128,121,Thời trang Gol D.Roger ,"Thời trang Gol D.Roger
++16% Né tránh
++11% Miễn thương
++16% Máu Cuối
++11% Giảm miễn thương đối phương
+**Chỉ số đặc biệt
++*5% Xảy ra bất tử trong 5s
+ Hạn sử dụng vĩnh viễn.
+=>khi mặc lên chỉ số trên x5","[-1,1054,-1,1053,-1,1052,1055,-2]","[[12,800],[53,550],[56,800],[63,550]]",10000

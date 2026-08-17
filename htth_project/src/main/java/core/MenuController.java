@@ -107,12 +107,12 @@ public class MenuController {
           if (event.EventTet.isEvent()) {
             send_dynamic_menu(p, type, "Sự kiện",
                 new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
-                    "Hang động", "Xếp hạng hang động", "Top pháo hoa", "Sự Kiện Tết" },
+                    "Top pháo hoa", "Sự Kiện Tết" },
                 null);
           } else {
             send_dynamic_menu(p, type, "Sự kiện",
                 new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
-                    "Hang động", "Xếp hạng hang động", "Top pháo hoa" },
+                    "Top pháo hoa" },
                 null);
           }
           break;
@@ -455,7 +455,7 @@ public class MenuController {
         }
         case -201: {
           send_dynamic_menu(p, type, get_name_npc(type),
-              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn" }, null);
+              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn","Hang động" }, null);
           break;
         }
         case -202: {
@@ -1637,6 +1637,22 @@ public class MenuController {
           } else if (index == 2) {
             send_dynamic_menu(p, 9898, "Đấu Trường Sinh Tồn", new String[] { "Vào Map", "Bảng Xếp Hạng", "Nhận quà" },
                 null);
+          } else if (index == 3) {
+            send_dynamic_menu(p, 9899, "Hang động", new String[] { "Vào map", "Bảng xếp hạng" }, null);
+          }
+          break;
+        }
+        case 9899: {
+          switch (index) {
+            case 0: { // Vào map Hang động
+              Service.send_box_yesno(p, 1001, "Thông báo", "Bạn có muốn vào Hang động không? (Yêu cầu 1 chìa khóa phó bản)",
+                  new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+              break;
+            }
+            case 1: { // Bảng xếp hạng Hang động
+              BXH.send(p, 10, 0);
+              break;
+            }
           }
           break;
         }
@@ -2668,20 +2684,11 @@ public class MenuController {
         activities.ListTichTieu.sendUI(p);
         break;
       }
-      case 5: { // Hang dong
-        Service.send_box_yesno(p, 1001, "Thông báo", "Bạn có muốn vào Hang động không? (Yêu cầu 1 chìa khóa phó bản)",
-            new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
-        break;
-      }
-      case 6: { // Xep hang hang dong
-        BXH.send(p, 10, 0);
-        break;
-      }
-      case 7: { // Top Phao hoa
+      case 5: { // Top Phao hoa
         BXH.sendTopPhaoHoa(p, 0);
         break;
       }
-      case 8: { // Sự kiện Tết
+      case 6: { // Sự kiện Tết
         if (event.EventTet.isEvent()) {
           send_dynamic_menu(p, -1003, "Sự Kiện Tết",
               new String[] { "Làm Bánh", "Ghép Chữ Vàng", "BXH Sự Kiện Tết", "Hướng dẫn" }, null);
