@@ -21,6 +21,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import database.SQL;
 import io.Message;
+import io.SessionManager;
 import template.*;
 
 /**
@@ -482,6 +483,9 @@ public class Manager {
                 JSONArray js = (JSONArray) JSONValue.parse(rs.getString("data"));
                 Part part = new Part(type);
                 part.id = rs.getShort("id");
+                if (part.pi == null || part.pi.length < js.size()) {
+                    part.pi = new PartImg[js.size()];
+                }
                 for (int i = 0; i < js.size(); i++) {
                     JSONArray js_in = (JSONArray) js.get(i);
                     part.pi[i] = new PartImg();
@@ -1188,5 +1192,104 @@ public class Manager {
 
     public TaiXiu TaiXiu() {
         return tx;
+    }
+
+    public static void reload_parts(short... partIds) throws SQLException {
+        String query = "SELECT * FROM `parts`;";
+        List<Part> list = new ArrayList<>();
+        Connection conn = database.SQL.gI().getCon();
+        Statement ps = conn.createStatement();
+        ResultSet rs = ps.executeQuery(query);
+        while (rs.next()) {
+            byte type = rs.getByte("type");
+            JSONArray js = (JSONArray) JSONValue.parse(rs.getString("data"));
+            Part part = new Part(type);
+            part.id = rs.getShort("id");
+            if (part.pi == null || part.pi.length < js.size()) {
+                part.pi = new PartImg[js.size()];
+            }
+            for (int i = 0; i < js.size(); i++) {
+                JSONArray js_in = (JSONArray) js.get(i);
+                part.pi[i] = new PartImg();
+                part.pi[i].id = Short.parseShort(js_in.get(0).toString());
+                part.pi[i].dx = Byte.parseByte(js_in.get(1).toString());
+                part.pi[i].dy = Byte.parseByte(js_in.get(2).toString());
+            }
+            list.add(part);
+        }
+        rs.close();
+        ps.close();
+        conn.close();
+        Part.ENTRY = list;
+
+        // Broadcast updated parts to all online players
+        List<Part> sendList = new ArrayList<>();
+        if (partIds != null && partIds.length > 0) {
+            for (short id : partIds) {
+                Part p = Part.get_part(id);
+                if (p != null) {
+                    sendList.add(p);
+                }
+            }
+        } else {
+            sendList = list;
+        }
+
+        synchronized (SessionManager.CLIENT_ENTRYS) {
+            for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
+                io.Session sess = SessionManager.CLIENT_ENTRYS.get(i);
+                if (sess != null && sess.p != null) {
+                    try {
+                        for (Part part : sendList) {
+                            Message m = new Message(-82);
+                            m.writer().writeShort(part.id);
+                            m.writer().writeByte(part.type);
+                            for (int j = 0; j < part.pi.length; j++) {
+                                m.writer().writeShort(part.pi[j].id);
+                                m.writer().writeByte(part.pi[j].dx);
+                                m.writer().writeByte(part.pi[j].dy);
+                            }
+                            sess.addmsg(m);
+                            m.cleanup();
+                        }
+                        sess.p.update_info_to_all();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    public static void reload_fashion() throws SQLException {
+        ItemFashion.ENTRYS = new ArrayList<>();
+        Connection conn = database.SQL.gI().getCon();
+        Statement ps = conn.createStatement();
+        String query = "SELECT * FROM `fashiontemplate`;";
+        ResultSet rs = ps.executeQuery(query);
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            short icon = rs.getShort("icon");
+            String name = rs.getString("name");
+            String info = rs.getString("info");
+            JSONArray js = (JSONArray) JSONValue.parse(rs.getString("mwear"));
+            short[] wear = new short[js.size()];
+            for (int i = 0; i < wear.length; i++) {
+                wear[i] = Short.parseShort(js.get(i).toString());
+            }
+            js.clear();
+            js = (JSONArray) JSONValue.parse(rs.getString("op"));
+            List<Option> op = new ArrayList<>();
+            for (int i = 0; i < js.size(); i++) {
+                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                op.add(new Option(Byte.parseByte(js2.get(0).toString()),
+                        Integer.parseInt(js2.get(1).toString())));
+            }
+            ItemFashion.ENTRYS
+                    .add(new ItemFashion((short) id, icon, name, info, wear, op, rs.getInt("price")));
+        }
+        rs.close();
+        ps.close();
+        conn.close();
     }
 }

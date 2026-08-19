@@ -1673,6 +1673,10 @@ public class Player {
         if (this.map.template.id == 81 && this.map.map_little_garden != null) {
             return;
         }
+        if (this.dungeon instanceof activities.HangDong || (this.map != null && this.map.map_dungeon instanceof activities.HangDong)) {
+            Service.send_box_ThongBao_OK(this, "Không thể hồi sinh hay về làng trong Hang Động!");
+            return;
+        }
         byte type = m2.reader().readByte();
         if (type == 1) { //
             if (Map.is_map_dungeon(this.map.template.id)) {
@@ -2310,7 +2314,7 @@ public class Player {
                 }
             }
         }
-        if (result != null && this.item.it_body[0] != null) {
+        if (result != null && this.item.it_body[0] != null && result[0] == -1) {
             result[0] = this.item.it_body[0].template.part;
         }
         return result;

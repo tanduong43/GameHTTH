@@ -2235,6 +2235,58 @@ public class Map implements Runnable {
                 return;
             }
         }
+        boolean isHangDong = this.map_dungeon != null && this.map_dungeon instanceof activities.HangDong;
+        if (isHangDong) {
+            activities.HangDong hd = (activities.HangDong) this.map_dungeon;
+            p0.isdie = true;
+            p0.hp = 0;
+
+            boolean allDead = true;
+            for (Player member : hd.partyMembers) {
+                Player pOnline = Map.get_player_by_name_allmap(member.name);
+                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                        && pOnline.dungeon == hd && pOnline.map != null && pOnline.map.equals(this)) {
+                    if (pOnline.name.equals(p0.name)) {
+                        continue;
+                    }
+                    if (!pOnline.isdie && pOnline.hp > 0) {
+                        allDead = false;
+                        break;
+                    }
+                }
+            }
+            if (allDead) {
+                if (!hd.isFailing) {
+                    hd.isFailing = true;
+                    hd.failTime = System.currentTimeMillis() + 5000L;
+                    for (Player member : hd.partyMembers) {
+                        Player pOnline = Map.get_player_by_name_allmap(member.name);
+                        if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                                && pOnline.dungeon == hd && pOnline.map != null && pOnline.map.equals(this)) {
+                            Service.send_time_cool_down(pOnline, hd.failTime, "Thất Bại", 2);
+                            Service.send_box_ThongBao_OK(pOnline,
+                                    "Tổ đội đã tử trận! Tự động rời phó bản sau 5 giây.");
+                        }
+                    }
+                }
+            } else {
+                // Đội vẫn còn người sống -> gửi đồng hồ đếm ngược chờ qua tầng (type 3 - watchRevice để client ẩn bảng hồi sinh / về làng)
+                Service.send_time_cool_down(p0, hd.stageEndTime, "Chờ qua tầng", 3);
+            }
+
+            p0.isdie = true;
+            p0.update_die();
+
+            Message m = new Message(7);
+            m.writer().writeShort(p.index_map);
+            m.writer().writeByte(0);
+            m.writer().writeShort(p0.index_map);
+            m.writer().writeByte(0);
+            m.writer().writeShort(p.pointPk); // point pk
+            send_msg_all_p(m, p0, true);
+            m.cleanup();
+            return;
+        }
         p0.isdie = true;
         p0.update_die();
         //
@@ -4563,7 +4615,61 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 9);
                 else if (cmd.equals("resethangdong") || cmd.equals("reset_hangdong"))
                     MenuController.Menu_Admin(p, (byte) 10);
-                else if (cmd.equals("dualboss")) {
+                else if (cmd.equals("reloadpart") || cmd.equals("reload_part") || cmd.equals("updatepart") || cmd.equals("update_part")) {
+                    try {
+                        core.Manager.reload_parts();
+                        Service.send_box_ThongBao_OK(p, "Đã reload toàn bộ parts từ database và đồng bộ tới toàn bộ người chơi!");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Service.send_box_ThongBao_OK(p, "Lỗi reload parts: " + e.getMessage());
+                    }
+                } else if (cmd.startsWith("reloadpart ") || cmd.startsWith("updatepart ")) {
+                    try {
+                        String[] raw = cmd.split(" ");
+                        short[] ids = new short[raw.length - 1];
+                        for (int i = 1; i < raw.length; i++) {
+                            ids[i - 1] = Short.parseShort(raw[i]);
+                        }
+                        core.Manager.reload_parts(ids);
+                        Service.send_box_ThongBao_OK(p, "Đã reload parts " + cmd.substring(raw[0].length() + 1) + " thành công!");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Service.send_box_ThongBao_OK(p, "Lỗi reload parts: " + e.getMessage());
+                    }
+                } else if (cmd.startsWith("addfashion ") || cmd.startsWith("add_fashion ") || cmd.startsWith("fashion ")) {
+                    try {
+                        short fId = Short.parseShort(cmd.split(" ")[1]);
+                        ItemFashion itf = ItemFashion.get_item(fId);
+                        if (itf != null) {
+                            ItemFashionP2 temp2 = p.check_fashion(fId);
+                            if (temp2 == null) {
+                                temp2 = new ItemFashionP2();
+                                temp2.id = itf.ID;
+                                p.fashion.add(temp2);
+                            }
+                            p.update_fashionP2(temp2);
+                            for (int i = 0; i < p.map.players.size(); i++) {
+                                Player p0 = p.map.players.get(i);
+                                Service.charWearing(p, p0, false);
+                            }
+                            Service.UpdateInfoMaincharInfo(p);
+                            Service.send_box_ThongBao_OK(p, "Đã trang bị thời trang: " + itf.name + " (ID " + fId + ")");
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Không tìm thấy thời trang ID " + fId);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Service.send_box_ThongBao_OK(p, "Lệnh sai cú pháp! Ví dụ: admin addfashion 236");
+                    }
+                } else if (cmd.equals("reloadfashion") || cmd.equals("reload_fashion")) {
+                    try {
+                        core.Manager.reload_fashion();
+                        Service.send_box_ThongBao_OK(p, "Đã reload toàn bộ Fashion Template từ database thành công!");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Service.send_box_ThongBao_OK(p, "Lỗi reload fashion: " + e.getMessage());
+                    }
+                } else if (cmd.equals("dualboss")) {
                     map.Boss.spawnDualEventBosses();
                     Service.send_box_ThongBao_OK(p, "Đã gọi sự kiện Boss Mèo truyền thuyết!");
                 } else if (cmd.equals("boss") || cmd.equals("bosstg") || cmd.equals("boss_thegioi")) {
