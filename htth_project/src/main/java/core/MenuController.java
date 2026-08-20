@@ -23,6 +23,7 @@ import activities.UpgradeItem;
 import activities.UpgradeSuperItem;
 import activities.Upgrade_Skin;
 import activities.VongQuay;
+import activities.Vong_quay_oc_sen;
 import client.Clazz;
 import client.Player;
 import database.SQL;
@@ -455,7 +456,7 @@ public class MenuController {
         }
         case -201: {
           send_dynamic_menu(p, type, get_name_npc(type),
-              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn","Hang động" }, null);
+              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn", "Hang động" }, null);
           break;
         }
         case -202: {
@@ -481,7 +482,8 @@ public class MenuController {
         case -133: {
           send_dynamic_menu(p, type, "Kho Báu",
               new String[] { "Vòng quay kho báu", "Hoàn mỹ - Kích ẩn",
-                  // "Vòng quay ốc sên", "Lục Thức","Sức Mạnh Vật Lý", "Doriki",
+                  "Vòng quay ốc sên",
+                  // "Lục Thức","Sức Mạnh Vật Lý", "Doriki",
                   "Quay Pet" },
               null);
           break;
@@ -684,6 +686,14 @@ public class MenuController {
         }
         case activities.Bank.MENU_ID_BANK_INFO: {
           activities.Bank.handleInfoMenu(p, index);
+          break;
+        }
+        case activities.Bank.MENU_ID_ADMIN_ACTION_DEPOSIT: {
+          activities.Bank.handleActionDeposit(p, index);
+          break;
+        }
+        case activities.Bank.MENU_ID_ADMIN_CONFIG_NAP: {
+          activities.Bank.handleConfigNap(p, index);
           break;
         }
         case 9915: {
@@ -1645,7 +1655,8 @@ public class MenuController {
         case 9899: {
           switch (index) {
             case 0: { // Vào map Hang động
-              Service.send_box_yesno(p, 1001, "Thông báo", "Bạn có muốn vào Hang động không? (Yêu cầu 1 chìa khóa phó bản)",
+              Service.send_box_yesno(p, 1001, "Thông báo",
+                  "Bạn có muốn vào Hang động không? (Yêu cầu 1 chìa khóa phó bản)",
                   new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
               break;
             }
@@ -3027,36 +3038,15 @@ public class MenuController {
             new String[] { "Hoàn mỹ", "Kích ẩn", "Phục hồi chế tác" }, null);
         break;
       }
-      case 2: { // Quay Pet
+      case 2: { // Vòng quay ốc sên
+        Vong_quay_oc_sen.show_table(p);
+        break;
+      }
+      case 3: { // Quay Pet
         p.type_vongquay = 1;
         activities.VongQuayPet.show_table(p);
         break;
       }
-
-      // case 2: {
-      // Service.send_box_ThongBao_OK(p, "Chức năng chưa ra mắt");
-      // break;
-      // }
-      // case 3: { // Lục Thức
-      // send_dynamic_menu(p, 1002, "Lục Thức", new String[] { "Hướng dẫn", "Luyện Lục
-      // Thức", "Cảnh Giới" }, null);
-      // break;
-      // }
-      // case 4: { // Sức Mạnh Vật Lý
-      // send_dynamic_menu(p, 1003, "Sức Mạnh Vật Lý", new String[] { "Hướng dẫn",
-      // "Tăng Sức Mạnh", "Thể Trạng" }, null);
-      // break;
-      // }
-      // case 5: { // Doriki
-      // send_dynamic_menu(p, 1001, "Doriki", new String[] { "Hướng dẫn", "Nâng Cấp",
-      // "Doriki" }, null);
-      // break;
-      // }
-      // case 6: { // Quay Pet
-      // p.type_vongquay = 1;
-      // activities.VongQuayPet.show_table(p);
-      // break;
-      // }
     }
   }
 

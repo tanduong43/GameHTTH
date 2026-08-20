@@ -148,6 +148,8 @@ public class Player {
     public boolean ischangemap = true;
     public short thongthao;
     public byte type_vongquay = 0;
+    public ItemBag47[] ocsen_items;
+    public byte[] ocsen_claimed;
     public int pointPk;
     public short pointAttribute;
     public int typePirate;
@@ -3228,6 +3230,42 @@ public class Player {
         if (listDanhHieu != null) {
             for (Integer idd : listDanhHieu) {
                 if (idd != null && idd.intValue() == ids) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean has_devil_fruit_chan_thien() {
+        if (this.skill_point != null) {
+            for (int i = 0; i < this.skill_point.size(); i++) {
+                Skill_info sk = this.skill_point.get(i);
+                if (sk != null && sk.temp != null && sk.temp.indexSkillInServer >= 539 && sk.temp.indexSkillInServer <= 542) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean has_devil_fruit_set() {
+        if (this.skill_point != null) {
+            for (int i = 0; i < this.skill_point.size(); i++) {
+                Skill_info sk = this.skill_point.get(i);
+                if (sk != null && sk.temp != null && sk.temp.indexSkillInServer >= 524 && sk.temp.indexSkillInServer <= 527) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean has_devil_fruit_bong_toi() {
+        if (this.skill_point != null) {
+            for (int i = 0; i < this.skill_point.size(); i++) {
+                Skill_info sk = this.skill_point.get(i);
+                if (sk != null && sk.temp != null && sk.temp.indexSkillInServer >= 656 && sk.temp.indexSkillInServer <= 659) {
                     return true;
                 }
             }

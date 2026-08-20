@@ -2995,6 +2995,14 @@ public class Map implements Runnable {
                         }
                     }
                 }
+                // Trang phục Kaido Bách Thú (ID 234): Giảm 50% sức tấn công đối thủ
+                ItemFashionP2 checkKaido = p_target.check_fashion(234);
+                if (checkKaido != null && checkKaido.is_use) {
+                    dame2 = (dame2 * 50L) / 100L;
+                    if (dame_inf.dameM > 0) {
+                        dame_inf.dameM = (dame_inf.dameM * 50) / 100;
+                    }
+                }
                 int react_dame_ = p_target.body.get_dame_react(true) - p.body.get_dame_react_reduce();
                 int MienThuong = p_target.body.get_dame_skip(true) - p.body.get_dame_skip_reduce();
                 if (MienThuong < 0) {
@@ -3036,6 +3044,24 @@ public class Map implements Runnable {
                                     time_eff = (time_eff * (1000)) / 1000;
                                     p_target.add_new_eff(400, 1, time_eff);
                                 }
+                            }
+                        }
+                    }
+                    // Thời trang Đặc Biệt (ID 247): 50% xảy ra bất tử trong 5s
+                    ItemFashionP2 f247 = p_target.check_fashion(247);
+                    if (f247 != null && f247.is_use) {
+                        eff = p_target.get_eff(300);
+                        if (eff != null) {
+                            dame2 = 0;
+                            dame_inf.dameM = 0;
+                        } else {
+                            eff = p_target.get_eff(400);
+                            if (eff == null && 50 > Util.random(100)) {
+                                dame2 = 0;
+                                dame_inf.dameM = 0;
+                                p_target.add_new_eff(300, 1, 5_000);
+                                Service.send_kich_an(p, p_target, 5, 0, 0, 0);
+                                p_target.add_new_eff(400, 1, 60_000);
                             }
                         }
                     }

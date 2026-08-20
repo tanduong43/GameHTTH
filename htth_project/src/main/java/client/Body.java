@@ -107,6 +107,30 @@ public class Body {
                             par += op_value;
                         }
                     }
+                    // Kích hoạt: +10% Chí mạng khi kết hợp với Trái Chấn Thiên
+                    if ((temp.id == 53 || temp.id == 54) && id == 10 && p.has_devil_fruit_chan_thien()) {
+                        par += 100;
+                    }
+                    // Kích hoạt: +10% Chí mạng khi kết hợp với Trái Sét
+                    if (temp.id == 59 && id == 10 && p.has_devil_fruit_set()) {
+                        par += 100;
+                    }
+                    // Trang phục Kaido Bách Thú (ID 234): Tăng 50% sức tấn công bản thân
+                    if (temp.id == 234 && id == 1) {
+                        par += 500;
+                    }
+                    // Thời trang Minh Vương (ID 235): Tăng 100% sức tấn công bản thân
+                    if (temp.id == 235 && id == 1) {
+                        par += 1000;
+                    }
+                    // Trang phục Fujitora (ID 236): Tăng 50% sức tấn công bản thân
+                    if (temp.id == 236 && id == 1) {
+                        par += 500;
+                    }
+                    // Trang phục Kuma (ID 238): Tăng 100% sức tấn công bản thân
+                    if (temp.id == 238 && id == 1) {
+                        par += 1000;
+                    }
                     break;
                 }
             }
@@ -925,7 +949,10 @@ public class Body {
         int par = total_param_item(59, true);
         ItemFashionP2 itF = p.check_fashion(74);
         if (itF != null && itF.is_use) {
-            par *= 2;
+            // Khi kết hợp với trái Bóng Tối sẽ kích hoạt 5% chỉ số Hấp thụ
+            if (p.has_devil_fruit_bong_toi()) {
+                par += 50; // 5% = 50
+            }
         }
         return par;
     }

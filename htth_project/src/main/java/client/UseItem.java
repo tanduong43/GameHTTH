@@ -1068,7 +1068,7 @@ public class UseItem {
                         m.writer().writeUTF("Rương Thời Trang Cao");
                         m.writer().writeUTF("Đổi");
 
-                        short[] ids = new short[] {54, 55, 59 };
+                        short[] ids = new short[] { 54, 55, 59, 110, 109, 120, 118, 239, 243, 237 };
                         m.writer().writeByte(ids.length);
 
                         for (short fashionId : ids) {

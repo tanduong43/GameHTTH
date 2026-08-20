@@ -26,6 +26,7 @@ import activities.UpgradeItem;
 import activities.UpgradeSuperItem;
 import activities.Upgrade_Skin;
 import activities.VongQuay;
+import activities.Vong_quay_oc_sen;
 import activities.Wanted;
 import core.BXH;
 import core.Manager;
@@ -411,6 +412,12 @@ public class MessageHandler {
                     } else {
                         VongQuay.process(conn.p, m);
                     }
+                }
+                break;
+            }
+            case 77: {
+                if (conn.p != null) {
+                    Vong_quay_oc_sen.process(conn.p, m);
                 }
                 break;
             }

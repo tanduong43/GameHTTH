@@ -66,6 +66,11 @@ public class ClientYesNo {
             p.map_tele = null;
             return;
         }
+        if (id == activities.Bank.YESNO_ID_BANK_REJECT_DEPOSIT) {
+            activities.Bank.processConfirmRejectDeposit(p, value);
+            p.map_tele = null;
+            return;
+        }
         if (id == 8888) {
             if (value == 0) { // Đồng ý
                 activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);

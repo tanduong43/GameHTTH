@@ -36,6 +36,12 @@ public class Bank {
     public static final short YESNO_ID_BANK_APPROVE_DEPOSIT = 20504;
     public static final short MENU_ID_ADMIN_DUYET_NAP = 20505;
     public static final short MENU_ID_BANK_INFO = 20506;
+    public static final short MENU_ID_ADMIN_ACTION_DEPOSIT = 20507;
+    public static final short MENU_ID_ADMIN_CONFIG_NAP = 20508;
+    public static final short YESNO_ID_BANK_REJECT_DEPOSIT = 20509;
+
+    /** Hệ số nhân nạp hiện tại (1 = bình thường, 2 = x2, 3 = x3) */
+    private static volatile int DEPOSIT_MULTIPLIER = 1;
 
     public static class PendingRecharge {
         public int id;
@@ -73,11 +79,14 @@ public class Bank {
         }
         if (isAdmin(p)) {
             MenuController.send_dynamic_menu(p, npcId, "Ngân Hàng",
-                    new String[] { "Nạp tiền", "Đổi Coin", "Xem Coin", "Duyệt nạp", "Thông tin" },
-                    new short[] { 132, 140, 140, 161, 148 });
+                    new String[] { "Nạp tiền", "Đổi Coin", "Xem Coin", "Duyệt nạp", "Cấu hình nạp", "Thông tin" },
+                    new short[] { 132, 140, 140, 161, 148, 148 });
         } else {
+            String napLabel = DEPOSIT_MULTIPLIER > 1
+                    ? "Nạp tiền (đang x" + DEPOSIT_MULTIPLIER + ")"
+                    : "Nạp tiền";
             MenuController.send_dynamic_menu(p, npcId, "Ngân Hàng",
-                    new String[] { "Nạp tiền", "Đổi Coin", "Xem Coin", "Thông tin" },
+                    new String[] { napLabel, "Đổi Coin", "Xem Coin", "Thông tin" },
                     new short[] { 132, 140, 140, 148 });
         }
     }
@@ -101,6 +110,9 @@ public class Bank {
                     showPendingList(p);
                     break;
                 case 4:
+                    showConfigNapMenu(p);
+                    break;
+                case 5:
                     showInfoMenu(p, npcId);
                     break;
             }
@@ -164,7 +176,11 @@ public class Bank {
      * Mở form nhập số tiền cần nạp
      */
     public static void requestDepositInput(Player p) throws IOException {
-        Service.input_text(p, INPUT_ID_BANK_DEPOSIT, "Nạp Tiền Ngân Hàng",
+        String title = "Nạp Tiền Ngân Hàng";
+        if (DEPOSIT_MULTIPLIER > 1) {
+            title += " (🔥 Đang x" + DEPOSIT_MULTIPLIER + ")";
+        }
+        Service.input_text(p, INPUT_ID_BANK_DEPOSIT, title,
                 new String[] { "Nhập số tiền VNĐ (VD: 50000, 100000)" });
     }
 
@@ -227,10 +243,16 @@ public class Bank {
             psInsert.setString(6, description);
             psInsert.executeUpdate();
 
+            int expectedCoin = (amount / 1000) * DEPOSIT_MULTIPLIER;
+            String multiplierNote = DEPOSIT_MULTIPLIER > 1
+                    ? "\n• 🔥 Sự kiện nạp x" + DEPOSIT_MULTIPLIER + " đang diễn ra!"
+                    : "";
             Service.send_box_ThongBao_OK(p, "✅ Đã tạo yêu cầu nạp " + Util.number_format(amount) + " VNĐ thành công!\n"
                     + "• Mã GD: " + code + "\n"
-                    + "• Quy đổi dự kiến: +" + Util.number_format(amount / 1000) + " Coin\n"
-                    + "• Tích nạp dự kiến: +" + Util.number_format(amount) + " điểm\n\n"
+                    + "• Quy đổi dự kiến: +" + Util.number_format(expectedCoin) + " Coin"
+                    + (DEPOSIT_MULTIPLIER > 1 ? " (" + Util.number_format(amount / 1000) + " x" + DEPOSIT_MULTIPLIER + ")" : "") + "\n"
+                    + "• Tích nạp dự kiến: +" + Util.number_format(amount) + " điểm"
+                    + multiplierNote + "\n\n"
                     + "Vui lòng chuyển khoản đúng nội dung và đợi Admin duyệt đơn nạp của bạn nhé!");
 
             // Thông báo cho các Admin đang online biết có đơn nạp mới
@@ -388,19 +410,65 @@ public class Bank {
         PendingRecharge selected = list.get(index);
         SELECTED_APPROVE_MAP.put(adminPlayer.name, selected);
 
-        adminPlayer.data_yesno = new int[] { YESNO_ID_BANK_APPROVE_DEPOSIT, selected.id, selected.amount };
+        int coinGain = (selected.amount / 1000) * DEPOSIT_MULTIPLIER;
+        String multiplierInfo = DEPOSIT_MULTIPLIER > 1
+                ? " (x" + DEPOSIT_MULTIPLIER + ")"
+                : "";
 
-        int coinGain = selected.amount / 1000;
-        String confirmMsg = "Xác nhận duyệt đơn nạp tiền:\n"
-                + "• STT: " + (index + 1) + "\n"
-                + "• Tài khoản: " + selected.username + "\n"
-                + "• Số tiền: " + Util.number_format(selected.amount) + " VNĐ\n"
-                + "• Quy đổi: +" + Util.number_format(coinGain) + " Coin\n"
-                + "• Tích nạp: +" + Util.number_format(selected.amount) + " điểm\n\n"
-                + "Bạn có chắc chắn muốn duyệt nạp cho người chơi này?";
+        // Hiển thị menu con 3 lựa chọn thay vì yesno 2 nút
+        MenuController.send_dynamic_menu(adminPlayer, MENU_ID_ADMIN_ACTION_DEPOSIT,
+                "Đơn nạp: " + selected.username + " | " + Util.number_format(selected.amount) + "đ | +" + Util.number_format(coinGain) + " Coin" + multiplierInfo,
+                new String[] { "✅ Duyệt ngay", "❌ Từ chối", "↩ Huỷ" },
+                new short[] { 161, 132, 140 });
+    }
 
-        Service.send_box_yesno(adminPlayer, YESNO_ID_BANK_APPROVE_DEPOSIT, "Xác nhận Duyệt Nạp", confirmMsg,
-                new String[] { "Duyệt ngay", "Hủy" }, new byte[] { 2, 1 });
+    /**
+     * Xử lý menu con khi Admin chọn hành động cho 1 đơn nạp (Duyệt / Từ chối / Huỷ)
+     */
+    public static void handleActionDeposit(Player adminPlayer, byte index) throws IOException {
+        if (!isAdmin(adminPlayer)) {
+            Service.send_box_ThongBao_OK(adminPlayer, "Bạn không có quyền thực hiện chức năng này!");
+            return;
+        }
+
+        PendingRecharge selected = SELECTED_APPROVE_MAP.get(adminPlayer.name);
+        if (selected == null) {
+            Service.send_box_ThongBao_OK(adminPlayer, "Đơn nạp không hợp lệ hoặc đã hết hạn, vui lòng tải lại!");
+            return;
+        }
+
+        switch (index) {
+            case 0: { // Duyệt ngay
+                adminPlayer.data_yesno = new int[] { YESNO_ID_BANK_APPROVE_DEPOSIT, selected.id, selected.amount };
+                int coinGain = (selected.amount / 1000) * DEPOSIT_MULTIPLIER;
+                String multiplierInfo = DEPOSIT_MULTIPLIER > 1
+                        ? " (x" + DEPOSIT_MULTIPLIER + ")"
+                        : "";
+                String confirmMsg = "Xác nhận duyệt đơn nạp tiền:\n"
+                        + "• Tài khoản: " + selected.username + "\n"
+                        + "• Số tiền: " + Util.number_format(selected.amount) + " VNĐ\n"
+                        + "• Quy đổi: +" + Util.number_format(coinGain) + " Coin" + multiplierInfo + "\n"
+                        + "• Tích nạp: +" + Util.number_format(selected.amount) + " điểm\n\n"
+                        + "Bạn có chắc chắn muốn duyệt nạp cho người chơi này?";
+                Service.send_box_yesno(adminPlayer, YESNO_ID_BANK_APPROVE_DEPOSIT, "Xác nhận Duyệt Nạp", confirmMsg,
+                        new String[] { "Duyệt ngay", "Hủy" }, new byte[] { 2, 1 });
+                break;
+            }
+            case 1: { // Từ chối
+                adminPlayer.data_yesno = new int[] { YESNO_ID_BANK_REJECT_DEPOSIT, selected.id, selected.amount };
+                String rejectMsg = "Xác nhận TỪ CHỐI đơn nạp tiền:\n"
+                        + "• Tài khoản: " + selected.username + "\n"
+                        + "• Số tiền: " + Util.number_format(selected.amount) + " VNĐ\n\n"
+                        + "Đơn nạp sẽ bị ẩn khỏi danh sách. Bạn có chắc chắn?";
+                Service.send_box_yesno(adminPlayer, YESNO_ID_BANK_REJECT_DEPOSIT, "Xác nhận Từ Chối", rejectMsg,
+                        new String[] { "Từ chối", "Hủy" }, new byte[] { 2, 1 });
+                break;
+            }
+            case 2: { // Huỷ
+                SELECTED_APPROVE_MAP.remove(adminPlayer.name);
+                break;
+            }
+        }
     }
 
     /**
@@ -457,7 +525,7 @@ public class Bank {
             }
             String targetUser = rs.getString("username");
             int targetAmount = rs.getInt("amount");
-            int coinGain = targetAmount / 1000;
+            int coinGain = (targetAmount / 1000) * DEPOSIT_MULTIPLIER;
 
             // Cập nhật trạng thái đơn nạp
             psUpdateHistory = conn.prepareStatement(
@@ -521,9 +589,12 @@ public class Bank {
                             try {
                                 sess.p.update_money();
                                 activities.ListTichNap.syncAccountTichNap(sess.p);
+                                String multiplierNote = DEPOSIT_MULTIPLIER > 1
+                                        ? " (x" + DEPOSIT_MULTIPLIER + ")"
+                                        : "";
                                 Service.send_box_ThongBao_OK(sess.p, "🎉 THÔNG BÁO NẠP TIỀN THÀNH CÔNG!\n\n"
                                         + "Đơn nạp " + Util.number_format(targetAmount) + " VNĐ của bạn đã được Admin duyệt thành công.\n"
-                                        + "• Nhận được: +" + Util.number_format(coinGain) + " Coin\n"
+                                        + "• Nhận được: +" + Util.number_format(coinGain) + " Coin" + multiplierNote + "\n"
                                         + "• Tích nạp: +" + Util.number_format(targetAmount) + " điểm"
                                         + (newVip > currentVip ? ("\n• Chúc mừng bạn đã được nâng cấp lên VIP " + newVip + "!") : ""));
                             } catch (Exception ex) {
@@ -535,8 +606,12 @@ public class Bank {
                 }
             }
 
+            String adminMultiplierNote = DEPOSIT_MULTIPLIER > 1
+                    ? " (x" + DEPOSIT_MULTIPLIER + " → +" + Util.number_format(coinGain) + " Coin)"
+                    : "";
             Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã duyệt thành công đơn nạp " + Util.number_format(targetAmount)
-                    + " VNĐ cho tài khoản [" + targetUser + "]!" + (isOnline ? " (Người chơi đang Online)" : " (Người chơi Offline)"));
+                    + " VNĐ cho tài khoản [" + targetUser + "]!" + adminMultiplierNote
+                    + (isOnline ? " (Người chơi đang Online)" : " (Người chơi Offline)"));
 
             // Thông báo toàn server
             Manager.gI().chatKTG(0, "Thông báo: Người chơi [" + targetUser + "] vừa nạp thành công " + Util.number_format(targetAmount) + " VNĐ vào Ngân Hàng!", 5);
@@ -671,5 +746,193 @@ public class Bank {
                 }
             }
         }
+    }
+
+    /**
+     * Xử lý xác nhận Yes/No từ chối đơn nạp của Admin
+     */
+    public static void processConfirmRejectDeposit(Player adminPlayer, byte value) throws IOException {
+        if (!isAdmin(adminPlayer)) {
+            Service.send_box_ThongBao_OK(adminPlayer, "Bạn không có quyền thực hiện chức năng này!");
+            adminPlayer.data_yesno = null;
+            return;
+        }
+
+        if (value == 0 && adminPlayer.data_yesno != null && adminPlayer.data_yesno.length >= 3
+                && adminPlayer.data_yesno[0] == YESNO_ID_BANK_REJECT_DEPOSIT) {
+
+            PendingRecharge selected = SELECTED_APPROVE_MAP.get(adminPlayer.name);
+            if (selected == null || selected.id != adminPlayer.data_yesno[1]) {
+                Service.send_box_ThongBao_OK(adminPlayer, "Đơn nạp không hợp lệ hoặc đã bị thay đổi!");
+                adminPlayer.data_yesno = null;
+                return;
+            }
+
+            rejectRechargeOrder(adminPlayer, selected);
+        }
+
+        adminPlayer.data_yesno = null;
+        SELECTED_APPROVE_MAP.remove(adminPlayer.name);
+    }
+
+    /**
+     * Thực hiện từ chối đơn nạp: cập nhật status = 2 và ẩn phiếu khỏi danh sách
+     */
+    private static void rejectRechargeOrder(Player adminPlayer, PendingRecharge selected) throws IOException {
+        Connection conn = null;
+        PreparedStatement psSelect = null;
+        PreparedStatement psUpdate = null;
+        ResultSet rs = null;
+
+        try {
+            conn = SQL.gI().getCon();
+            conn.setAutoCommit(false);
+
+            // Kiểm tra trạng thái đơn nạp
+            psSelect = conn.prepareStatement("SELECT `username`, `amount`, `status` FROM `recharge_history` WHERE `id` = ? FOR UPDATE;");
+            psSelect.setInt(1, selected.id);
+            rs = psSelect.executeQuery();
+            if (!rs.next() || rs.getInt("status") != 0) {
+                conn.rollback();
+                Service.send_box_ThongBao_OK(adminPlayer, "Đơn nạp này đã được xử lý bởi người khác hoặc không tồn tại!");
+                return;
+            }
+            String targetUser = rs.getString("username");
+            int targetAmount = rs.getInt("amount");
+
+            // Cập nhật trạng thái đơn nạp thành từ chối (status = 2)
+            psUpdate = conn.prepareStatement(
+                    "UPDATE `recharge_history` SET `status` = 2, `description` = CONCAT(COALESCE(`description`,''), ' [Từ chối bởi ', ?, ']') WHERE `id` = ?;");
+            psUpdate.setString(1, adminPlayer.name);
+            psUpdate.setInt(2, selected.id);
+            psUpdate.executeUpdate();
+
+            conn.commit();
+
+            // Thông báo cho player đang online nếu có
+            synchronized (SessionManager.CLIENT_ENTRYS) {
+                for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
+                    io.Session sess = SessionManager.CLIENT_ENTRYS.get(i);
+                    if (sess != null && targetUser.equalsIgnoreCase(sess.user) && sess.p != null) {
+                        try {
+                            Service.send_box_ThongBao_OK(sess.p, "⚠️ THÔNG BÁO:\n\n"
+                                    + "Đơn nạp " + Util.number_format(targetAmount) + " VNĐ của bạn đã bị từ chối.\n"
+                                    + "Vui lòng kiểm tra lại thông tin chuyển khoản hoặc liên hệ Admin!");
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        break;
+                    }
+                }
+            }
+
+            Service.send_box_ThongBao_OK(adminPlayer, "❌ Đã từ chối đơn nạp " + Util.number_format(targetAmount)
+                    + " VNĐ của tài khoản [" + targetUser + "]!");
+
+            // Xóa cache danh sách để tải lại lần sau
+            PENDING_MAP.remove(adminPlayer.name);
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (Exception ex) {}
+            }
+            e.printStackTrace();
+            Service.send_box_ThongBao_OK(adminPlayer, "Có lỗi xảy ra khi từ chối đơn nạp: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (psSelect != null) psSelect.close();
+                if (psUpdate != null) psUpdate.close();
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Hiển thị menu cấu hình nạp cho Admin (x1, x2, x3)
+     */
+    public static void showConfigNapMenu(Player adminPlayer) throws IOException {
+        if (!isAdmin(adminPlayer)) {
+            Service.send_box_ThongBao_OK(adminPlayer, "Bạn không có quyền thực hiện chức năng này!");
+            return;
+        }
+
+        String currentLabel;
+        switch (DEPOSIT_MULTIPLIER) {
+            case 2:  currentLabel = "x2"; break;
+            case 3:  currentLabel = "x3"; break;
+            default: currentLabel = "x1 (Bình thường)"; break;
+        }
+
+        MenuController.send_dynamic_menu(adminPlayer, MENU_ID_ADMIN_CONFIG_NAP,
+                "Cấu Hình Nạp (Hiện tại: " + currentLabel + ")",
+                new String[] {
+                        "Nạp x1 (Bình thường)" + (DEPOSIT_MULTIPLIER == 1 ? " ✔" : ""),
+                        "Nạp x2" + (DEPOSIT_MULTIPLIER == 2 ? " ✔" : ""),
+                        "Nạp x3" + (DEPOSIT_MULTIPLIER == 3 ? " ✔" : ""),
+                        "Quay lại"
+                },
+                new short[] { 140, 148, 161, 132 });
+    }
+
+    /**
+     * Xử lý lựa chọn từ menu cấu hình nạp
+     */
+    public static void handleConfigNap(Player adminPlayer, byte index) throws IOException {
+        if (!isAdmin(adminPlayer)) {
+            Service.send_box_ThongBao_OK(adminPlayer, "Bạn không có quyền thực hiện chức năng này!");
+            return;
+        }
+
+        switch (index) {
+            case 0: { // x1
+                if (DEPOSIT_MULTIPLIER == 1) {
+                    Service.send_box_ThongBao_OK(adminPlayer, "Hệ thống đang ở chế độ nạp x1 rồi!");
+                    return;
+                }
+                DEPOSIT_MULTIPLIER = 1;
+                Manager.gI().chatKTG(0, "📢 THÔNG BÁO: Sự kiện nạp nhân bội đã kết thúc. Hệ thống trở về nạp bình thường (x1).", 5);
+                Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã chuyển về chế độ nạp bình thường (x1)!");
+                break;
+            }
+            case 1: { // x2
+                if (DEPOSIT_MULTIPLIER == 2) {
+                    Service.send_box_ThongBao_OK(adminPlayer, "Hệ thống đang ở chế độ nạp x2 rồi!");
+                    return;
+                }
+                DEPOSIT_MULTIPLIER = 2;
+                Manager.gI().chatKTG(0, "🔥 THÔNG BÁO: Hiện tại hệ thống đang có sự kiện NẠP x2! Nạp ngay để nhận GẤP ĐÔI Coin!", 5);
+                Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã bật sự kiện nạp x2! Người chơi nạp sẽ nhận gấp đôi Coin.");
+                break;
+            }
+            case 2: { // x3
+                if (DEPOSIT_MULTIPLIER == 3) {
+                    Service.send_box_ThongBao_OK(adminPlayer, "Hệ thống đang ở chế độ nạp x3 rồi!");
+                    return;
+                }
+                DEPOSIT_MULTIPLIER = 3;
+                Manager.gI().chatKTG(0, "🔥🔥 THÔNG BÁO: Hiện tại hệ thống đang có sự kiện NẠP x3! Nạp ngay để nhận GẤP BA Coin!", 5);
+                Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã bật sự kiện nạp x3! Người chơi nạp sẽ nhận gấp ba Coin.");
+                break;
+            }
+            case 3: { // Quay lại
+                sendMainMenu(adminPlayer, NPC_ID_BANK);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Lấy hệ số nhân nạp hiện tại (dùng cho các module khác nếu cần)
+     */
+    public static int getDepositMultiplier() {
+        return DEPOSIT_MULTIPLIER;
     }
 }
