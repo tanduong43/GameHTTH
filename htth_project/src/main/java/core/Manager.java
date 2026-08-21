@@ -464,29 +464,29 @@ public class Manager {
                 Map.ENTRYS.add(m_temp);
             }
             rs.close();
-            // Đảm bảo Map 2028 (Đảo Huấn Luyện Pet) luôn được nạp từ data Map 116
+            // Đảm bảo Map 2028 (Đảo Huấn Luyện Pet) luôn được nạp từ data Map 2 (1-1 Rừng Làng)
             if (Map.get_map_by_id(2028) == null) {
-                Map[] map116 = Map.get_map_by_id(116);
-                if (map116 != null && map116.length > 0 && map116[0].template != null) {
-                    MapTemplate temp116 = map116[0].template;
+                Map[] map2 = Map.get_map_by_id(2);
+                if (map2 != null && map2.length > 0 && map2[0].template != null) {
+                    MapTemplate temp2 = map2[0].template;
                     MapTemplate petMapTemp = new MapTemplate();
                     petMapTemp.id = 2028;
                     petMapTemp.name = "Đảo Huấn Luyện Pet";
                     petMapTemp.max_zone = (byte) 10;
                     petMapTemp.max_player = (byte) 30;
-                    petMapTemp.data = temp116.data;
-                    petMapTemp.IDBack = temp116.IDBack;
-                    petMapTemp.HBack = temp116.HBack;
-                    petMapTemp.maxW = temp116.maxW;
-                    petMapTemp.maxH = temp116.maxH;
+                    petMapTemp.data = temp2.data;
+                    petMapTemp.IDBack = temp2.IDBack;
+                    petMapTemp.HBack = temp2.HBack;
+                    petMapTemp.maxW = temp2.maxW;
+                    petMapTemp.maxH = temp2.maxH;
                     petMapTemp.type_view_p = 0;
-                    petMapTemp.b = temp116.b;
+                    petMapTemp.b = temp2.b;
                     petMapTemp.specMap = 0;
-                    petMapTemp.id_eff_map = temp116.id_eff_map;
-                    petMapTemp.level = temp116.level;
-                    petMapTemp.typeChangeMap = temp116.typeChangeMap;
-                    petMapTemp.mPosMapTrain = temp116.mPosMapTrain;
-                    petMapTemp.strTimeChange = temp116.strTimeChange;
+                    petMapTemp.id_eff_map = temp2.id_eff_map;
+                    petMapTemp.level = temp2.level;
+                    petMapTemp.typeChangeMap = temp2.typeChangeMap;
+                    petMapTemp.mPosMapTrain = temp2.mPosMapTrain;
+                    petMapTemp.strTimeChange = temp2.strTimeChange;
                     petMapTemp.list_boat = new ArrayList<>();
                     petMapTemp.vgos = new ArrayList<>();
                     petMapTemp.npcs = new ArrayList<>();
@@ -562,7 +562,7 @@ public class Manager {
                         }
                     }
                     Map.ENTRYS.add(petMapArr);
-                    System.out.println("[PetTraining] Successfully registered Map 2028 with mob 167 (cloned from Map 116)");
+                    System.out.println("[PetTraining] Successfully registered Map 2028 with mob 167 (cloned from Map 2)");
                 }
             }
             for (int i = 0; i < MapTemplate.ENTRYS.size(); i++) {
