@@ -102,6 +102,7 @@ public class Manager {
         tx = new TaiXiu();
         EventTrungThu.getInstance();
         EventTet.getInstance();
+        event.Event2011.getInstance();
         event.GuildWarDaoHoa.getInstance().init();
         a = Rebuild_Item.ID_SELL.length;
         a = Red_Line.KEY0.length;
@@ -1234,6 +1235,10 @@ public class Manager {
         // Event Tet config
         if (configMap.containsKey("event-tet")) {
             event.EventTet.setEvent(Boolean.parseBoolean(configMap.get("event-tet")));
+        }
+        // Event 20/11 config
+        if (configMap.containsKey("event-2011")) {
+            event.Event2011.setEvent(Boolean.parseBoolean(configMap.get("event-2011")));
         }
         // Server Event Rate Config (x2 EXP, x2 EXP Skill)
         if (configMap.containsKey("rate-exp")) {

@@ -182,6 +182,40 @@ public class UseItem {
         p.item.update_Inventory(-1, false);
     }
 
+    /**
+     * Xử lý các item đặc biệt của sự kiện Ngày Nhà Giáo Việt Nam 20/11
+     */
+    private static void handleEvent2011Item(Player p, int id) throws IOException {
+        if (p.item.total_item_bag_by_id(4, id) <= 0) {
+            Service.send_box_ThongBao_OK(p, "Bạn không có vật phẩm này!");
+            return;
+        }
+
+        switch (id) {
+            case event.Event2011.ITEM_DIEM_10:
+                event.Event2011.useDiem10(p);
+                p.item.remove_item47(4, id, 1);
+                break;
+            case event.Event2011.ITEM_THIEP_TRI_AN:
+                event.Event2011.useThiepTriAn(p);
+                p.item.remove_item47(4, id, 1);
+                break;
+            case event.Event2011.ITEM_HOP_QUA_SO_CAP:
+                event.Event2011.openHopQuaSoCap(p);
+                p.item.remove_item47(4, id, 1);
+                break;
+            case event.Event2011.ITEM_HOP_QUA_CAO_CAP:
+                event.Event2011.openHopQuaCaoCap(p);
+                p.item.remove_item47(4, id, 1);
+                break;
+            case event.Event2011.ITEM_HOP_QUA_DAC_BIET:
+                event.Event2011.openHopQuaDacBiet(p);
+                p.item.remove_item47(4, id, 1);
+                break;
+        }
+        p.item.update_Inventory(-1, false);
+    }
+
     private static boolean use_item_4(Player p, int id) throws IOException {
         boolean used = true;
         ItemTemplate4 it_temp = ItemTemplate4.get_it_by_id(id);
@@ -226,6 +260,16 @@ public class UseItem {
                         return true;
                     } catch (Exception e) {
                         System.out.println("Error handling Trung Thu item: " + e.getMessage());
+                    }
+                }
+
+                // Event 20/11: Xử lý các item sự kiện
+                if (event.Event2011.isEvent() && event.Event2011.isEventItem(id)) {
+                    try {
+                        handleEvent2011Item(p, id);
+                        return true;
+                    } catch (Exception e) {
+                        System.out.println("Error handling Event 20/11 item: " + e.getMessage());
                     }
                 }
 

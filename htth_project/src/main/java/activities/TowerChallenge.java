@@ -455,6 +455,7 @@ public class TowerChallenge extends Dungeon {
                 core.Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Đi liên tầng");
             }
             event.EventTrungThu.rewardLienTangMr3(p);
+            event.Event2011.rewardTower(p);
             List<GiftBox> list_gift = new ArrayList<>();
             int rewardMultiplier = (stageIndex >= 7) ? 2 : 1;
 

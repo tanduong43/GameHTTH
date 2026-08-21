@@ -1056,6 +1056,7 @@ public class Map implements Runnable {
                                         "Hoàn thành Thành tích hằng ngày: PVP");
                             }
                             event.EventTrungThu.rewardPvpTruyNa(players.get(0));
+                            event.Event2011.rewardPvpArena(players.get(0));
                             players.get(1).pvp_lose++;
                             //
                             int chenhLech = players.get(1).get_pvpPoint() - players.get(0).get_pvpPoint();
@@ -1078,6 +1079,7 @@ public class Map implements Runnable {
                                         "Hoàn thành Thành tích hằng ngày: PVP");
                             }
                             event.EventTrungThu.rewardPvpTruyNa(players.get(1));
+                            event.Event2011.rewardPvpArena(players.get(1));
                             players.get(0).pvp_lose++;
                             //
                             int chenhLech = players.get(0).get_pvpPoint() - players.get(1).get_pvpPoint();
@@ -1103,6 +1105,7 @@ public class Map implements Runnable {
                             //
                             Wanted_Chest.receiv_ruong(players.get(0));
                             event.EventTrungThu.rewardPvpTruyNa(players.get(0));
+                            event.Event2011.rewardPvpArena(players.get(0));
 
                             Service.send_box_ThongBao_OK(players.get(0),
                                     "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win
@@ -1123,6 +1126,7 @@ public class Map implements Runnable {
                             //
                             Wanted_Chest.receiv_ruong(players.get(1));
                             event.EventTrungThu.rewardPvpTruyNa(players.get(1));
+                            event.Event2011.rewardPvpArena(players.get(1));
 
                             Service.send_box_ThongBao_OK(players.get(0),
                                     "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
@@ -3645,6 +3649,12 @@ public class Map implements Runnable {
                     dame_inf.dameM = 0;
                     event.EventTet.getInstance().onBossDamaged(p, 1);
                 }
+                if (event.Event2011.isEvent() && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU && dame_to_target > 0) {
+                    dame_to_target = 1;
+                    dame_inf.dameP = 1;
+                    dame_inf.dameM = 0;
+                    event.Event2011.getInstance().onBossDamaged(p, 1);
+                }
                 if (mob_target.boss_info != null && dame_to_target > 0) {
                     Top_Dame topdame = null;
                     for (int j = 0; j < mob_target.boss_info.TopDame.size(); j++) {
@@ -3676,7 +3686,8 @@ public class Map implements Runnable {
                             && mob_target.mob_template.mob_id != 121
                             && mob_target.boss_info.thegioi != 2
                             && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN
-                            && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU) {
+                            && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU
+                            && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU) {
                         // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) và Boss Lân chỉ nhận quà khi giết
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
@@ -4017,6 +4028,13 @@ public class Map implements Runnable {
                     if (event.EventTet.isEvent() && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU) {
                         event.EventTet.getInstance().onBossKilled(p);
                     }
+                    // Event 20/11: Drop Trang Giấy & Cánh Hoa Phượng khi giết quái
+                    if (event.Event2011.isEvent() && mob_target.boss_info == null) {
+                        event.Event2011.onMobKill(p, mob_target);
+                    }
+                    if (event.Event2011.isEvent() && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU) {
+                        event.Event2011.getInstance().onBossKilled(p);
+                    }
                     // update quest relative to
                     if (!id_mob_die.containsKey((int) mob_target.mob_template.mob_id)) {
                         id_mob_die.put((int) mob_target.mob_template.mob_id, 1);
@@ -4030,12 +4048,14 @@ public class Map implements Runnable {
                         LeaveItemMap.leave_item4_little_garden(this, mob_target, p);
                         if (mob_target.mob_template.mob_id == 81) {
                             event.EventTrungThu.rewardLienTangMr3(p);
+                            event.Event2011.rewardDungeon(p);
                         }
                     }
-                    // boss (loại trừ Boss Lân - xử lý riêng trong EventTrungThu & EventTet)
+                    // boss (loại trừ Boss Lân, Boss Tết, Boss 20/11 - xử lý riêng)
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
                             && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN
-                            && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU) {
+                            && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU
+                            && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU) {
                         Boss boss = mob_target.boss_info;
                         boss.timeDeath = System.currentTimeMillis();
                         core.BXH.updateTopBoss(boss);
@@ -4742,6 +4762,24 @@ public class Map implements Runnable {
                 } else if (cmd.equals("event tt status")) {
                     boolean status = event.EventTrungThu.isEvent();
                     Service.send_box_ThongBao_OK(p, "Trạng thái sự kiện Trung Thu: " + (status ? "BẬT" : "TẮT"));
+                } else if (cmd.equals("event 2011 on") || cmd.equals("event 2011 1") || cmd.equals("event 2011 true")) {
+                    event.Event2011.setEvent(true);
+                    Service.send_box_ThongBao_OK(p, "Đã bật sự kiện 20/11!");
+                } else if (cmd.equals("event 2011 off") || cmd.equals("event 2011 0") || cmd.equals("event 2011 false")) {
+                    event.Event2011.setEvent(false);
+                    Service.send_box_ThongBao_OK(p, "Đã tắt sự kiện 20/11!");
+                } else if (cmd.equals("event 2011 status")) {
+                    boolean status = event.Event2011.isEvent();
+                    Service.send_box_ThongBao_OK(p, "Trạng thái sự kiện 20/11: " + (status ? "BẬT" : "TẮT"));
+                } else if (cmd.equals("goiboss 2011") || cmd.equals("call boss 2011") || cmd.equals("boss 2011")) {
+                    event.Event2011.getInstance().forceSpawnBoss(p);
+                    Service.send_box_ThongBao_OK(p, "Đã gọi Boss Lân Sư Tử xuất hiện!");
+                } else if (cmd.equals("traothuong 2011") || cmd.equals("reward 2011")) {
+                    event.Event2011.distributeEndTopRewards(p);
+                } else if (cmd.equals("nhanqua 2011") || cmd.equals("claim 2011") || cmd.equals("nhanthuong 2011")) {
+                    event.Event2011.getInstance().claimLeaderboardReward(p);
+                } else if (cmd.equals("event 2011 menu") || cmd.equals("2011 menu")) {
+                    event.Event2011Craft.showCraftHelp(p);
                 } else if (cmd.equals("event tt menu") || cmd.equals("tt menu") || cmd.equals("trungthu") || cmd.equals("ghép") || cmd.equals("ghep")) {
                     event.TrungThuCraft.showCraftMenu(p);
                 } else if (cmd.startsWith("ghép ") || cmd.startsWith("ghep ")) {

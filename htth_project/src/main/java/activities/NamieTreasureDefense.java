@@ -505,6 +505,10 @@ public class NamieTreasureDefense extends Dungeon {
                 if (EventTrungThu.isEvent()) {
                     EventTrungThu.rewardPhongThachNami(pOnline);
                 }
+                // Event 20/11: Thưởng Giấy Gói Quà & Gấu Bông khi hoàn thành Phó Bản Nami
+                if (event.Event2011.isEvent()) {
+                    event.Event2011.rewardDungeon(pOnline);
+                }
             }
         }
         

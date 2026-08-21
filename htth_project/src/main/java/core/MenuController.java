@@ -104,17 +104,20 @@ public class MenuController {
           break;
         }
         case -100: {
+          List<String> listMenu = new ArrayList<>();
+          listMenu.add("T/g x2 kỹ năng EXP");
+          listMenu.add("T/g khóa exp");
+          listMenu.add("Hủy t/g khóa exp");
+          listMenu.add("Tài xỉu");
+          listMenu.add("Tích tiêu");
+          listMenu.add("Top pháo hoa");
           if (event.EventTet.isEvent()) {
-            send_dynamic_menu(p, type, "Sự kiện",
-                new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
-                    "Top pháo hoa", "Sự Kiện Tết" },
-                null);
-          } else {
-            send_dynamic_menu(p, type, "Sự kiện",
-                new String[] { "T/g x2 kỹ năng EXP", "T/g khóa exp", "Hủy t/g khóa exp", "Tài xỉu", "Tích tiêu",
-                    "Top pháo hoa" },
-                null);
+            listMenu.add("Sự Kiện Tết");
           }
+          if (event.Event2011.isEvent()) {
+            listMenu.add("Sự Kiện 20/11");
+          }
+          send_dynamic_menu(p, type, "Sự kiện", listMenu.toArray(new String[0]), null);
           break;
         }
         case -154: {
@@ -1574,6 +1577,22 @@ public class MenuController {
           }
           break;
         }
+        case -2011: {
+          if (!event.Event2011.isEvent()) {
+            Service.send_box_ThongBao_OK(p, "Sự kiện 20/11 chưa được kích hoạt!");
+            return;
+          }
+          Menu_2011(p, index);
+          break;
+        }
+        case -2012: {
+          event.Event2011Craft.processCraft(p, index == 0 ? 1 : 2);
+          break;
+        }
+        case -2013: {
+          event.Event2011Craft.processCraft(p, 3 + index);
+          break;
+        }
         case 997: {
           Menu_Remove_Skill(p, index);
           break;
@@ -2153,6 +2172,9 @@ public class MenuController {
               } catch (Exception e) {
               }
             }
+            if (event.Event2011.isEvent()) {
+              event.Event2011.rewardTrade(p);
+            }
             p.name_ThoSanHaiTac = null;
             p.update_money();
           } else {
@@ -2724,13 +2746,61 @@ public class MenuController {
         BXH.sendTopPhaoHoa(p, 0);
         break;
       }
-      case 6: { // Sự kiện Tết
+      case 6: { // Sự kiện Tết hoặc 20/11
         if (event.EventTet.isEvent()) {
           send_dynamic_menu(p, -1003, "Sự Kiện Tết",
               new String[] { "Làm Bánh", "Ghép Chữ Vàng", "BXH Sự Kiện Tết", "Hướng dẫn" }, null);
+        } else if (event.Event2011.isEvent()) {
+          send_dynamic_menu(p, -2011, "Sự Kiện 20/11",
+              new String[] { "Làm Điểm 10 & Thiệp", "Ghép Lẵng Hoa & Hộp Quà", "BXH Học Trò Xuất Sắc", "Nhận Thưởng Đua Top", "Hướng Dẫn" }, null);
         } else {
-          Service.send_box_ThongBao_OK(p, "Sự kiện Tết chưa được kích hoạt!");
+          Service.send_box_ThongBao_OK(p, "Sự kiện chưa được kích hoạt!");
         }
+        break;
+      }
+      case 7: { // Khi cả 2 sự kiện cùng mở
+        if (event.EventTet.isEvent() && event.Event2011.isEvent()) {
+          send_dynamic_menu(p, -2011, "Sự Kiện 20/11",
+              new String[] { "Làm Điểm 10 & Thiệp", "Ghép Lẵng Hoa & Hộp Quà", "BXH Học Trò Xuất Sắc", "Nhận Thưởng Đua Top", "Hướng Dẫn" }, null);
+        } else {
+          Service.send_box_ThongBao_OK(p, "Chức năng đang được bảo trì");
+        }
+        break;
+      }
+      default: {
+        Service.send_box_ThongBao_OK(p, "Chức năng đang được bảo trì");
+        break;
+      }
+    }
+  }
+
+  private static void Menu_2011(Player p, byte index) throws IOException {
+    switch (index) {
+      case 0: {
+        // Làm Điểm 10 & Thiệp
+        send_dynamic_menu(p, -2012, "Làm Điểm 10 & Thiệp",
+            new String[] { "Bông Hoa Điểm 10", "Thiệp Tri Ân 20/11" }, null);
+        break;
+      }
+      case 1: {
+        // Ghép Lẵng Hoa & Hộp Quà
+        send_dynamic_menu(p, -2013, "Ghép Lẵng Hoa & Hộp Quà",
+            new String[] { "Lẵng Hoa Tri Ân", "Hộp Quà Sơ Cấp", "Hộp Quà Cao Cấp", "Hộp Quà Tôn Sư Trọng Đạo" }, null);
+        break;
+      }
+      case 2: {
+        // BXH Học Trò Xuất Sắc
+        event.Event2011.getInstance().showLeaderboard(p);
+        break;
+      }
+      case 3: {
+        // Nhận Thưởng Đua Top
+        event.Event2011.getInstance().claimLeaderboardReward(p);
+        break;
+      }
+      case 4: {
+        // Hướng dẫn
+        event.Event2011Craft.showCraftHelp(p);
         break;
       }
       default: {

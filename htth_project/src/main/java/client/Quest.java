@@ -326,8 +326,16 @@ public class Quest {
                 result.add(temp);
             }
             int xptt = Util.random(1,100);
-              p.lucthuc[2]+= xptt;
-              }
+            p.lucthuc[2]+= xptt;
+            if (event.Event2011.isEvent()) {
+                event.Event2011.rewardQuestLap(p);
+            }
+        }
+        if (questP.template.id < -2000) {
+            if (event.Event2011.isEvent()) {
+                event.Event2011.rewardClan(p);
+            }
+        }
         Service.send_gift(p, 0, "Nhiệm vụ hoàn thành!", questP.template.infoFinish, result, true);
     }
 
