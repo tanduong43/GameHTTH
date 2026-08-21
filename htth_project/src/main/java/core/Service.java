@@ -2417,24 +2417,28 @@ public class Service {
         if (p == null || p.map == null)
             return;
 
-        // 1. Gửi dữ liệu effect DATA trước để client có sẵn trong ALL_EFF_DATA
-        //    (phải gửi trước lệnh play, nếu không client nhận lệnh play mà chưa có data sẽ bỏ qua effect)
+        // Gửi DATA + lệnh PLAY cho từng player riêng lẻ theo đúng thứ tự:
+        // DATA trước → PLAY sau. Cách này tránh race condition khi gửi cho tất cả
+        // vì addmsg là queue nên đảm bảo thứ tự trong cùng 1 connection.
         for (Player p0 : p.map.players) {
-            if (p0 != null && p0.conn != null) {
-                send_effect_data(p0.conn, effId);
+            if (p0 == null || p0.conn == null) continue;
+            // Bước 1: Gửi DATA effect cho player này trước
+            send_effect_data(p0.conn, effId);
+            // Bước 2: Gửi lệnh PLAY effect ngay sau DATA trong cùng queue của player này
+            try {
+                Message mPlay = new Message(74);
+                mPlay.writer().writeByte(1);
+                mPlay.writer().writeShort(p.index_map);
+                mPlay.writer().writeShort(effId);
+                mPlay.writer().writeInt(time > 0 ? time : 20000); // thời gian buff Haki
+                mPlay.writer().writeByte(0); // typemove: 0 (tại chỗ)
+                mPlay.writer().writeByte(-1); // loop: -1 (lặp liên tục)
+                p0.conn.addmsg(mPlay);
+                mPlay.cleanup();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-
-        // 2. Gửi Message 74 type=1 để HIỂN THỊ effect (sau khi data đã được queue trước)
-        Message mTest = new Message(74);
-        mTest.writer().writeByte(1);
-        mTest.writer().writeShort(p.index_map);
-        mTest.writer().writeShort(effId);
-        mTest.writer().writeInt(time > 0 ? time : 20000); // thời gian buff Haki
-        mTest.writer().writeByte(0); // typemove: 0 (tại chỗ)
-        mTest.writer().writeByte(-1); // loop: -1 (lặp liên tục trong suốt thời gian time)
-        p.map.send_msg_all_p(mTest, null, true);
-        mTest.cleanup();
     }
 
     public static void send_eff_haki(Player p, short effId) throws IOException {

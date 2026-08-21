@@ -203,9 +203,9 @@ public class PetTraining {
             Player p = map.players.get(i);
             if (p != null && !p.isdie && p.conn != null) {
                 MyPet pet = p.get_pet();
-                if (pet != null && !pet.isMaxLevel()) {
+                if (pet != null && !pet.isMaxLevel() && p.type_pk == 3) {
                     int oldExp = pet.exp;
-                    pet.addExp(5); // Cộng 5 EXP mỗi chu kỳ online
+                    pet.addExp(5); // Cộng 5 EXP mỗi chu kỳ online khi bật Cờ Đen
                     try {
                         if (pet.exp > oldExp && pet.canLevelUp()) {
                             Service.send_box_ThongBao_OK(p, "🎉 Thú cưng [" + pet.template.name
@@ -225,12 +225,16 @@ public class PetTraining {
         String guide = "=== HƯỚNG DẪN HUẤN LUYỆN PET ===\n"
                 + "1. CẤP ĐỘ PET:\n"
                 + "• Pet có tối đa 3 Cấp Độ (Lv.1 -> Lv.3).\n"
+                + "  - Lv.0 -> Lv.1: Cần 10.000 EXP\n"
+                + "  - Lv.1 -> Lv.2: Cần 50.000 EXP\n"
+                + "  - Lv.2 -> Lv.3: Cần 100.000 EXP\n"
                 + "• Mỗi cấp độ mở khóa sẽ ngẫu nhiên (random) thêm 1 dòng thuộc tính trong danh sách:\n"
                 + "  - Nhóm Tiềm năng (+1 đến +10): T/n sức mạnh, T/n phòng thủ, T/n thể lực, T/n tinh thần, T/n nhanh nhẹn.\n"
                 + "  - Nhóm Chiến đấu (+1% đến +10%): Chí mạng, Né tránh, Xuyên giáp, Phản đòn, Miễn thương, Giảm miễn thương.\n"
                 + "• Max Lv.3 sẽ sở hữu tối đa 3 dòng chỉ số huấn luyện cực mạnh.\n\n"
                 + "2. CÁCH TÍCH LŨY EXP:\n"
-                + "• Trang bị Pet và treo máy Online hoặc đánh quái tại Đảo Huấn Luyện để nhận EXP cho Pet.\n\n"
+                + "• Lưu ý QUAN TRỌNG: Người chơi phải BẬT CỜ ĐEN mới nhận được EXP cho Pet.\n"
+                + "• Trang bị Pet, bật Cờ Đen và treo máy Online hoặc đánh quái tại Đảo Huấn Luyện để nhận EXP cho Pet.\n\n"
                 + "3. TẨY CHỈ SỐ:\n"
                 + "• Xóa toàn bộ chỉ số huấn luyện và cấp độ của Pet đang trang bị về ban đầu để luyện lại từ đầu.";
         Service.send_box_ThongBao_OK(p, guide);

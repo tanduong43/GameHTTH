@@ -2836,9 +2836,9 @@ public class Map implements Runnable {
                     }
                 } else if (this.template.id == activities.PetTraining.MAP_TRAIN_PET_ID) {
                     client.MyPet pet = p.get_pet();
-                    if (pet != null && !pet.isMaxLevel()) {
+                    if (pet != null && !pet.isMaxLevel() && p.type_pk == 3) {
                         int oldExp = pet.exp;
-                        pet.addExp(1); // Đánh quái tại Đảo Huấn Luyện Pet nhận +1 EXP cho Pet
+                        pet.addExp(1); // Đánh quái tại Đảo Huấn Luyện Pet nhận +1 EXP cho Pet khi bật Cờ Đen
                         if (pet.exp > oldExp && pet.canLevelUp()) {
                             try {
                                 Service.send_box_ThongBao_OK(p, "🎉 Thú cưng [" + pet.template.name + "] đã tích lũy đủ EXP Huấn Luyện!\nHãy gặp Huấn Luyện Sư để Đột Phá Cấp Độ mới!");
@@ -4810,22 +4810,19 @@ public class Map implements Runnable {
                         if (parts.length > 2) typemove = Byte.parseByte(parts[2]);
                         if (parts.length > 3) loop = Byte.parseByte(parts[3]);
 
-                        // 1. Gửi lệnh hiển thị effect cho tất cả players TRƯỚC (để client khởi tạo EffectData trong ALL_EFF_DATA)
-                        Message mTest = new Message(74);
-                        mTest.writer().writeByte(1);
-                        mTest.writer().writeShort(p.index_map);
-                        mTest.writer().writeShort(effId);
-                        mTest.writer().writeInt(3_600_000); // 1 tiếng
-                        mTest.writer().writeByte(typemove);
-                        mTest.writer().writeByte(loop);
-                        this.send_msg_all_p(mTest, null, true);
-                        mTest.cleanup();
-
-                        // 2. Gửi dữ liệu effect cho mỗi client theo zoom level của họ
+                        // Gửi DATA + lệnh PLAY cho từng player theo đúng thứ tự (DATA trước, PLAY sau)
                         for (Player p0 : this.players) {
-                            if (p0 != null && p0.conn != null) {
-                                Service.send_effect_data(p0.conn, effId);
-                            }
+                            if (p0 == null || p0.conn == null) continue;
+                            Service.send_effect_data(p0.conn, effId);
+                            Message mTest = new Message(74);
+                            mTest.writer().writeByte(1);
+                            mTest.writer().writeShort(p.index_map);
+                            mTest.writer().writeShort(effId);
+                            mTest.writer().writeInt(3_600_000); // 1 tiếng
+                            mTest.writer().writeByte(typemove);
+                            mTest.writer().writeByte(loop);
+                            p0.conn.addmsg(mTest);
+                            mTest.cleanup();
                         }
                         
                         System.out.println("[Debug Admin] Sent eff command with id=" + effId + " to map. TypeMove: " + typemove + ", Loop: " + loop);
