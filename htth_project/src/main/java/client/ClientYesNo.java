@@ -71,6 +71,11 @@ public class ClientYesNo {
             p.map_tele = null;
             return;
         }
+        if (id == activities.PetTraining.YESNO_ID_CONFIRM_RESET_PET) {
+            activities.PetTraining.processConfirmResetPet(p, value);
+            p.map_tele = null;
+            return;
+        }
         if (id == 8888) {
             if (value == 0) { // Đồng ý
                 activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);

@@ -70,7 +70,7 @@ public class VillageProgression {
      * Các map sự kiện / đấu trường / chợ / bang hội đặc biệt được bypass
      */
     public static boolean isSpecialBypassMap(int mapId) {
-        return mapId == 1000 || mapId == 1001 || mapId == 1002 || mapId == 2000 || mapId == 2027
+        return mapId == 1000 || mapId == 1001 || mapId == 1002 || mapId == 2000 || mapId == 2027 || mapId == 2028
                 || mapId == 123 || (mapId >= 167 && mapId <= 176) || (mapId >= 500 && mapId <= 512)
                 || mapId == 62;
     }

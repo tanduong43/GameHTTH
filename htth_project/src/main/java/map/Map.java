@@ -166,6 +166,19 @@ public class Map implements Runnable {
         update_map_Wanted();
         update_map_bossHunt();
         update_map_HangDong();
+        update_map_pet_train();
+    }
+
+    private long time_update_pet_train = 0;
+
+    private void update_map_pet_train() {
+        if (this.template != null && this.template.id == activities.PetTraining.MAP_TRAIN_PET_ID) {
+            long now = System.currentTimeMillis();
+            if (now > this.time_update_pet_train) {
+                this.time_update_pet_train = now + 30_000L; // 30 giây một chu kỳ
+                activities.PetTraining.updateMapTraining(this);
+            }
+        }
     }
 
     private void update_map_HangDong() {
@@ -2772,7 +2785,7 @@ public class Map implements Runnable {
             if (exp_up != null) { // update exp
                 if (this.template.id == 2000) {
                     p.haki_monster_killed += 1;
-                    if (p.haki_monster_killed == 10) {
+                    if (p.haki_monster_killed == 1000) {
                         Skill_info hq = new Skill_info();
                         hq.temp = Skill_Template.get_temp(900, -1);
                         if (hq.temp != null && Skill_Template.learn_skill(hq)) {
@@ -2780,7 +2793,7 @@ public class Map implements Runnable {
                             p.send_skill(); // Gui skill list cho client
                             try { Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Quan Sát!"); } catch (Exception e) {}
                         }
-                    } else if (p.haki_monster_killed == 15) {
+                    } else if (p.haki_monster_killed == 1500) {
                         Skill_info hv = new Skill_info();
                         hv.temp = Skill_Template.get_temp(901, -1);
                         if (hv.temp != null && Skill_Template.learn_skill(hv)) {
@@ -2788,7 +2801,7 @@ public class Map implements Runnable {
                             p.send_skill(); // Gui skill list cho client
                             try { Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Vũ Trang!"); } catch (Exception e) {}
                         }
-                    } else if (p.haki_monster_killed == 20) {
+                    } else if (p.haki_monster_killed == 2000) {
                         Skill_info hb = new Skill_info();
                         hb.temp = Skill_Template.get_temp(902, -1);
                         if (hb.temp != null && Skill_Template.learn_skill(hb)) {
@@ -2820,6 +2833,23 @@ public class Map implements Runnable {
                                 } catch (Exception e) {}
                             }
                         }
+                    }
+                } else if (this.template.id == activities.PetTraining.MAP_TRAIN_PET_ID) {
+                    client.MyPet pet = p.get_pet();
+                    if (pet != null && !pet.isMaxLevel()) {
+                        int oldExp = pet.exp;
+                        pet.addExp(1); // Đánh quái tại Đảo Huấn Luyện Pet nhận +1 EXP cho Pet
+                        if (pet.exp > oldExp && pet.canLevelUp()) {
+                            try {
+                                Service.send_box_ThongBao_OK(p, "🎉 Thú cưng [" + pet.template.name + "] đã tích lũy đủ EXP Huấn Luyện!\nHãy gặp Huấn Luyện Sư để Đột Phá Cấp Độ mới!");
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                    if (exp_up[0] > 0) {
+                        p.update_exp(exp_up[0], true);
+                    }
+                    if (exp_up[1] > 0) {
+                        p.update_skill_exp(idSkill, exp_up[1]);
                     }
                 } else {
                     if (exp_up[0] > 0) {

@@ -462,19 +462,47 @@ public class Player {
             js.clear();
             my_pet = new ArrayList<>();
             js = (JSONArray) JSONValue.parse(rs.getString("mypet"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js_in2 = (JSONArray) js.get(i);
-                MyPet tempPet = new MyPet();
-                tempPet.id = Short.parseShort(js_in2.get(0).toString());
-                tempPet.template = Pet.getTemplate(Short.parseShort(js_in2.get(1).toString()));
-                tempPet.isUse = Byte.parseByte(js_in2.get(2).toString()) == 1;
-                if (js_in2.size() > 3) {
-                    tempPet.expiryTime = Long.parseLong(js_in2.get(3).toString());
-                } else {
-                    tempPet.expiryTime = -1;
-                }
-                if (tempPet.template != null) {
-                    my_pet.add(tempPet);
+            if (js != null) {
+                for (int i = 0; i < js.size(); i++) {
+                    JSONArray js_in2 = (JSONArray) js.get(i);
+                    MyPet tempPet = new MyPet();
+                    tempPet.id = Short.parseShort(js_in2.get(0).toString());
+                    tempPet.template = Pet.getTemplate(Short.parseShort(js_in2.get(1).toString()));
+                    tempPet.isUse = Byte.parseByte(js_in2.get(2).toString()) == 1;
+                    if (js_in2.size() > 3) {
+                        tempPet.expiryTime = Long.parseLong(js_in2.get(3).toString());
+                    } else {
+                        tempPet.expiryTime = -1;
+                    }
+                    if (js_in2.size() > 4) {
+                        tempPet.level = Byte.parseByte(js_in2.get(4).toString());
+                    }
+                    if (js_in2.size() > 5) {
+                        tempPet.exp = Integer.parseInt(js_in2.get(5).toString());
+                    }
+                    if (js_in2.size() > 6) {
+                        Object extraObj = js_in2.get(6);
+                        JSONArray js_extra = null;
+                        if (extraObj instanceof JSONArray) {
+                            js_extra = (JSONArray) extraObj;
+                        } else if (extraObj instanceof String) {
+                            js_extra = (JSONArray) JSONValue.parse(extraObj.toString());
+                        }
+                        if (js_extra != null) {
+                            for (int k = 0; k < js_extra.size(); k++) {
+                                Object itemObj = js_extra.get(k);
+                                JSONArray js_op = (itemObj instanceof JSONArray) ? (JSONArray) itemObj : (JSONArray) JSONValue.parse(itemObj.toString());
+                                if (js_op != null && js_op.size() >= 2) {
+                                    int optId = Integer.parseInt(js_op.get(0).toString());
+                                    int optVal = Integer.parseInt(js_op.get(1).toString());
+                                    tempPet.extra_op.add(new Option(optId, optVal));
+                                }
+                            }
+                        }
+                    }
+                    if (tempPet.template != null) {
+                        my_pet.add(tempPet);
+                    }
                 }
             }
             js.clear();
@@ -1318,9 +1346,21 @@ public class Player {
                 JSONArray js_in2 = new JSONArray();
                 MyPet pet = p.my_pet.get(i);
                 js_in2.add(pet.id);
-                js_in2.add(pet.template.id);
+                js_in2.add(pet.template != null ? pet.template.id : 0);
                 js_in2.add(pet.isUse ? 1 : 0);
                 js_in2.add(pet.expiryTime);
+                js_in2.add(pet.level);
+                js_in2.add(pet.exp);
+                JSONArray js_extra = new JSONArray();
+                if (pet.extra_op != null) {
+                    for (Option op : pet.extra_op) {
+                        JSONArray js_op = new JSONArray();
+                        js_op.add(op.id);
+                        js_op.add(op.getParam());
+                        js_extra.add(js_op);
+                    }
+                }
+                js_in2.add(js_extra);
                 js.add(js_in2);
             }
             ps.setNString(25, js.toJSONString());

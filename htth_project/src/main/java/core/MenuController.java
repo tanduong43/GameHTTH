@@ -94,9 +94,8 @@ public class MenuController {
           return;
         }
       }
-      if ((type == -38 || type == -1) && p.map.template.id == 2000) {
-        send_dynamic_menu(p, type, "Trưởng Làng",
-            new String[] { "Chuyển Khu", "Về Làng Cối Xay Gió" }, null);
+      if (type == activities.PetTraining.NPC_HUAN_LUYEN_SU) {
+        activities.PetTraining.sendMainMenu(p, type);
         return;
       }
       switch (type) {
@@ -438,6 +437,10 @@ public class MenuController {
         case -21:
         case -13:
         case -1: {
+          if (p.map != null && p.map.template.id == 2000) {
+            send_dynamic_menu(p, type, "Trưởng Làng", new String[] { "Đổi khu", "Về làng" }, null);
+            break;
+          }
           if (p.conn.status != 1) {
             send_dynamic_menu(
                 p, type, get_name_npc(type), new String[] { "Kích Hoạt Tài Khoản", "Thách đấu",
@@ -456,7 +459,11 @@ public class MenuController {
         }
         case -201: {
           send_dynamic_menu(p, type, get_name_npc(type),
-              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn", "Hang động" }, null);
+              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn", "Hang động", "Đến đảo huấn luyện pet" }, null);
+          break;
+        }
+        case -999: {
+          activities.PetTraining.sendMainMenu(p, (short) type);
           break;
         }
         case -202: {
@@ -558,6 +565,10 @@ public class MenuController {
         case -23:
         case -15:
         case -3: {
+          if (p.map != null && p.map.template.id == 2000) {
+            send_dynamic_menu(p, type, "Trưởng Làng", new String[] { "Đổi khu", "Về làng", "Số lượng quái" }, null);
+            break;
+          }
           send_dynamic_menu(p, type, get_name_npc(type),
               new String[] { Clazz.NAME[p.clazz - 1], "Hệ khác",
                   (!p.is_show_hat ? "Bật hiển thị nón" : "Tắt hiển thị nón"), "Khóa bảo vệ",
@@ -675,6 +686,10 @@ public class MenuController {
       byte index = m2.reader().readByte();
       // System.out.println("idNPC " + idNPC);
       // System.out.println("idMenu " + idMenu);
+      if (idNPC == activities.PetTraining.NPC_HUAN_LUYEN_SU) {
+        activities.PetTraining.handleMenu(p, idNPC, index);
+        return;
+      }
       switch (idNPC) {
         case -205: {
           activities.Bank.handleMenu(p, idNPC, index);
@@ -1590,6 +1605,8 @@ public class MenuController {
               vgo.xnew = 400;
               vgo.ynew = 250;
               p.goto_map(vgo);
+            } else if (index == 2) {
+              showHakiMonsterProgress(p);
             }
             break;
           }
@@ -1620,6 +1637,8 @@ public class MenuController {
               vgo.xnew = 400;
               vgo.ynew = 250;
               p.goto_map(vgo);
+            } else if (index == 2) {
+              showHakiMonsterProgress(p);
             }
             break;
           }
@@ -1629,7 +1648,7 @@ public class MenuController {
         case -201: {
           if (index == 0) {
             Service.send_box_ThongBao_OK(p,
-                "Tôn Ngộ Không: Lão Tôn xin chào! Ngươi muốn vào Đảo Ruby hay tham gia Đấu Trường Sinh Tồn?");
+                "Tôn Ngộ Không: Lão Tôn xin chào! Ngươi muốn vào Đảo Ruby, Đấu Trường Sinh Tồn, Hang Động hay Đảo Huấn Luyện Pet?");
           } else if (index == 1) {
             if (!map.Map.isRubyIslandOpen()) {
               Service.send_box_ThongBao_OK(p, "Đảo Ruby chỉ mở cửa từ 7h-8h sáng và 17h-19h tối hàng ngày!");
@@ -1649,6 +1668,8 @@ public class MenuController {
                 null);
           } else if (index == 3) {
             send_dynamic_menu(p, 9899, "Hang động", new String[] { "Vào map", "Bảng xếp hạng" }, null);
+          } else if (index == 4) {
+            activities.PetTraining.teleportToMap(p, activities.PetTraining.MAP_TRAIN_PET_ID, 200, 200);
           }
           break;
         }
@@ -1828,6 +1849,10 @@ public class MenuController {
         }
         case -133: {
           Menu_Buggi(p, index);
+          break;
+        }
+        case -999: {
+          activities.PetTraining.handleMenu(p, (short) idNPC, index);
           break;
         }
         case 999: {
@@ -3024,6 +3049,24 @@ public class MenuController {
         break;
       }
     }
+  }
+
+  private static void showHakiMonsterProgress(Player p) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    sb.append("🗡️ TIẾN ĐỘ LUYỆN HAKI (MAP 2000)\n");
+    sb.append("• Số quái đã hạ gục: ").append(p.haki_monster_killed).append(" con\n\n");
+    sb.append("📌 Các mốc lĩnh ngộ Haki:\n");
+    sb.append("• 1.000 quái: Haki Quan Sát ")
+        .append(p.haki_monster_killed >= 1000 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/1.000)"))
+        .append("\n");
+    sb.append("• 1.500 quái: Haki Vũ Trang ")
+        .append(p.haki_monster_killed >= 1500 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/1.500)"))
+        .append("\n");
+    sb.append("• 2.000 quái: Haki Bá Vương ")
+        .append(p.haki_monster_killed >= 2000 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/2.000)"))
+        .append("\n\n");
+    sb.append("💡 Sau khi mở khóa, tiếp tục hạ quái tại Đảo Luyện Haki để tích EXP thăng cấp kỹ năng Haki!");
+    Service.send_box_ThongBao_OK(p, sb.toString());
   }
 
   private static void Menu_Buggi(Player p, byte index) throws IOException {

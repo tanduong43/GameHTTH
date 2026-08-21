@@ -66,34 +66,98 @@ public class Pet {
         }
     }
 
+    // Danh sách 11 thuộc tính random cho Pet:
+    // Nhóm Tiềm Năng (1 - 10): 5: T/n sức mạnh, 6: T/n phòng thủ, 7: T/n thể lực, 8: T/n tinh thần, 9: T/n nhanh nhẹn
+    // Nhóm Chỉ Số % (1% - 10%): 10: Chí mạng, 12: Né tránh, 13: Xuyên giáp, 14: Phản đòn, 53: Miễn thương, 63: Giảm miễn thương
+    public static final int[] PET_STAT_POOL = new int[] { 5, 6, 7, 8, 9, 10, 12, 13, 14, 53, 63 };
+
+    public static boolean isPercentOption(int id) {
+        if (template.ItemOptionTemplate.ENTRYS != null) {
+            for (template.ItemOptionTemplate entry : template.ItemOptionTemplate.ENTRYS) {
+                if (entry.id == id) {
+                    return entry.percent != 0;
+                }
+            }
+        }
+        return id == 10 || id == 12 || id == 13 || id == 14 || id == 53 || id == 63;
+    }
+
+    public static String getOptionName(int id) {
+        if (template.ItemOptionTemplate.ENTRYS != null) {
+            for (template.ItemOptionTemplate entry : template.ItemOptionTemplate.ENTRYS) {
+                if (entry.id == id) {
+                    return entry.name;
+                }
+            }
+        }
+        switch (id) {
+            case 10: return "Chí mạng";
+            case 12: return "Né tránh";
+            case 13: return "Xuyên giáp";
+            case 14: return "Phản đòn";
+            case 53: return "Miễn thương";
+            case 63: return "Giảm miễn thương";
+        }
+        return "Chỉ số " + id;
+    }
+
+    public static String formatOptionString(Option op) {
+        String opName = getOptionName(op.id);
+        boolean isPct = isPercentOption(op.id);
+        int val = op.getParam();
+        if (isPct) {
+            if (val >= 10 && val % 10 == 0) {
+                val = val / 10;
+            }
+            return opName + ": +" + val + "%";
+        } else {
+            return opName + ": +" + val;
+        }
+    }
+
+    public static int generateStatValue(int optId) {
+        if (isPercentOption(optId)) {
+            int percent = core.Util.random(1, 11); // Random từ 1% đến 10%
+            return percent * 10; // Lưu giá trị theo chuẩn combat Server (10..100)
+        } else {
+            return core.Util.random(1, 11); // Random từ 1 đến 10 điểm
+        }
+    }
+
     public static String getPetDescription(MyPet pet) {
         StringBuilder sb = new StringBuilder();
-        if (pet.template.op == null || pet.template.op.isEmpty()) {
-            sb.append(pet.template.name);
+        
+        // Cấp độ Pet
+        sb.append("[Cấp độ: Lv.").append(pet.level).append("/3]");
+        if (!pet.isMaxLevel()) {
+            sb.append(" (EXP: ").append(pet.exp).append("/").append(MyPet.getMaxExp(pet.level)).append(")");
         } else {
+            sb.append(" (Cấp tối đa)");
+        }
+        sb.append("\n");
+
+        // Chỉ số gốc từ Template
+        if (pet.template.op != null && !pet.template.op.isEmpty()) {
+            sb.append("[Chỉ số cơ bản]\n");
             for (int j = 0; j < pet.template.op.size(); j++) {
                 Option op = pet.template.op.get(j);
-                String opName = "";
-                for (template.ItemOptionTemplate entry : template.ItemOptionTemplate.ENTRYS) {
-                    if (entry.id == op.id) {
-                        opName = entry.name;
-                        break;
-                    }
-                }
-                if (opName.isEmpty()) {
-                    opName = "Chỉ số " + op.id;
-                }
-                if (opName.endsWith("+") || opName.endsWith("-")) {
-                    sb.append(opName).append(op.getParam());
-                } else {
-                    sb.append(opName).append(": +").append(op.getParam());
-                }
-                if (j < pet.template.op.size() - 1) {
+                sb.append(formatOptionString(op)).append("\n");
+            }
+        }
+
+        // Chỉ số huấn luyện thêm theo từng cấp độ
+        if (pet.extra_op != null && !pet.extra_op.isEmpty()) {
+            sb.append("[Chỉ số Huấn Luyện]\n");
+            for (int j = 0; j < pet.extra_op.size(); j++) {
+                Option op = pet.extra_op.get(j);
+                sb.append("• Lv.").append(j + 1).append(": ").append(formatOptionString(op));
+                if (j < pet.extra_op.size() - 1) {
                     sb.append("\n");
                 }
             }
         }
-        
+
+        // Hạn sử dụng
         if (pet.expiryTime != -1) {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm dd/MM/yyyy");
             sb.append("\n[HSD: ").append(sdf.format(new java.util.Date(pet.expiryTime))).append("]");
@@ -104,24 +168,110 @@ public class Pet {
     }
 
     public static String getPetNameWithStats(MyPet pet) {
+        String lvPrefix = "[Lv." + pet.level + "] ";
         if (pet.expiryTime != -1) {
             long remaining = pet.expiryTime - System.currentTimeMillis();
             if (remaining > 0) {
                 long days = remaining / (24 * 60 * 60 * 1000L);
                 long hours = (remaining % (24 * 60 * 60 * 1000L)) / (60 * 60 * 1000L);
                 if (days > 0) {
-                    return pet.template.name + " (" + days + " ngày)";
+                    return lvPrefix + pet.template.name + " (" + days + " ngày)";
                 } else {
-                    return pet.template.name + " (" + hours + " giờ)";
+                    return lvPrefix + pet.template.name + " (" + hours + " giờ)";
                 }
             } else {
-                return pet.template.name + " (Hết hạn)";
+                return lvPrefix + pet.template.name + " (Hết hạn)";
             }
         }
-        return pet.template.name + " (Vĩnh viễn)";
+        return lvPrefix + pet.template.name + " (Vĩnh viễn)";
     }
 
-    private static void show_inven(Player p) throws IOException {
+    public static boolean levelUpPet(Player p, MyPet pet) {
+        if (pet == null || pet.isMaxLevel()) {
+            return false;
+        }
+        if (!pet.canLevelUp()) {
+            return false;
+        }
+        // Chọn 1 option chưa có trong extra_op
+        List<Integer> availablePool = new ArrayList<>();
+        for (int optId : PET_STAT_POOL) {
+            boolean exists = false;
+            if (pet.extra_op != null) {
+                for (Option op : pet.extra_op) {
+                    if (op.id == optId) {
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+            if (!exists) {
+                availablePool.add(optId);
+            }
+        }
+        if (availablePool.isEmpty()) {
+            for (int optId : PET_STAT_POOL) {
+                availablePool.add(optId);
+            }
+        }
+        int chosenOptId = availablePool.get(core.Util.random(0, availablePool.size()));
+        int optVal = generateStatValue(chosenOptId);
+
+        if (pet.extra_op == null) {
+            pet.extra_op = new ArrayList<>();
+        }
+        Option newOp = new Option(chosenOptId, optVal);
+        pet.extra_op.add(newOp);
+        pet.level++;
+        pet.exp = 0; // Reset exp cho cấp kế tiếp
+        return true;
+    }
+
+    public static boolean resetPetStats(MyPet pet) {
+        if (pet == null) {
+            return false;
+        }
+        if (pet.extra_op != null) {
+            pet.extra_op.clear();
+        }
+        pet.level = 0;
+        pet.exp = 0;
+        return true;
+    }
+
+    public static boolean reRollPet(Player p, MyPet pet) {
+        if (pet == null || pet.level <= 0) {
+            return false;
+        }
+        int curLevel = pet.level;
+        pet.extra_op.clear();
+        for (int lv = 1; lv <= curLevel; lv++) {
+            List<Integer> availablePool = new ArrayList<>();
+            for (int optId : PET_STAT_POOL) {
+                boolean exists = false;
+                for (Option op : pet.extra_op) {
+                    if (op.id == optId) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists) {
+                    availablePool.add(optId);
+                }
+            }
+            if (availablePool.isEmpty()) {
+                for (int optId : PET_STAT_POOL) {
+                    availablePool.add(optId);
+                }
+            }
+            int chosenOptId = availablePool.get(core.Util.random(0, availablePool.size()));
+            int optVal = generateStatValue(chosenOptId);
+            pet.extra_op.add(new Option(chosenOptId, optVal));
+        }
+        return true;
+    }
+
+    public static void show_inven(Player p) throws IOException {
         long currentTime = System.currentTimeMillis();
         boolean hasExpired = false;
         for (int i = p.my_pet.size() - 1; i >= 0; i--) {
@@ -151,15 +301,20 @@ public class Pet {
             m.writer().writeShort(myPet.template.icon);
             m.writer().writeByte(110);
             m.writer().writeByte(myPet.isUse ? 1 : 0);
-            List<Option> ops = myPet.template.op;
-            if (ops == null) {
-                m.writer().writeByte(0);
-            } else {
-                m.writer().writeByte(ops.size());
-                for (Option op : ops) {
-                    m.writer().writeByte(op.id);
-                    m.writer().writeShort(op.getParam());
-                }
+
+            // Gộp tất cả option gốc và option thêm theo cấp độ
+            List<Option> allOps = new ArrayList<>();
+            if (myPet.template != null && myPet.template.op != null) {
+                allOps.addAll(myPet.template.op);
+            }
+            if (myPet.extra_op != null) {
+                allOps.addAll(myPet.extra_op);
+            }
+
+            m.writer().writeByte(allOps.size());
+            for (Option op : allOps) {
+                m.writer().writeByte(op.id);
+                m.writer().writeShort(op.getParam());
             }
         }
         p.conn.addmsg(m);

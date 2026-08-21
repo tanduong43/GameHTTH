@@ -464,6 +464,107 @@ public class Manager {
                 Map.ENTRYS.add(m_temp);
             }
             rs.close();
+            // Đảm bảo Map 2028 (Đảo Huấn Luyện Pet) luôn được nạp từ data Map 116
+            if (Map.get_map_by_id(2028) == null) {
+                Map[] map116 = Map.get_map_by_id(116);
+                if (map116 != null && map116.length > 0 && map116[0].template != null) {
+                    MapTemplate temp116 = map116[0].template;
+                    MapTemplate petMapTemp = new MapTemplate();
+                    petMapTemp.id = 2028;
+                    petMapTemp.name = "Đảo Huấn Luyện Pet";
+                    petMapTemp.max_zone = (byte) 10;
+                    petMapTemp.max_player = (byte) 30;
+                    petMapTemp.data = temp116.data;
+                    petMapTemp.IDBack = temp116.IDBack;
+                    petMapTemp.HBack = temp116.HBack;
+                    petMapTemp.maxW = temp116.maxW;
+                    petMapTemp.maxH = temp116.maxH;
+                    petMapTemp.type_view_p = 0;
+                    petMapTemp.b = temp116.b;
+                    petMapTemp.specMap = 0;
+                    petMapTemp.id_eff_map = temp116.id_eff_map;
+                    petMapTemp.level = temp116.level;
+                    petMapTemp.typeChangeMap = temp116.typeChangeMap;
+                    petMapTemp.mPosMapTrain = temp116.mPosMapTrain;
+                    petMapTemp.strTimeChange = temp116.strTimeChange;
+                    petMapTemp.list_boat = new ArrayList<>();
+                    petMapTemp.vgos = new ArrayList<>();
+                    petMapTemp.npcs = new ArrayList<>();
+
+                    // NPC Huấn Luyện Sư (-999)
+                    Npc npcHL = new Npc();
+                    npcHL.iditem = -999;
+                    npcHL.name = "Huấn Luyện Sư";
+                    npcHL.namegt = "Huấn Luyện Pet";
+                    npcHL.chat = "Chào mừng bạn đến với Đảo Huấn Luyện Pet! Tại đây pet của bạn sẽ tự động nhận EXP mỗi phút khi Online.";
+                    npcHL.x = 200;
+                    npcHL.y = 200;
+                    npcHL.isPerson = 1;
+                    npcHL.typeIcon = 0;
+                    npcHL.wBlock = 0;
+                    npcHL.hBlock = 0;
+                    npcHL.b3 = 0;
+                    npcHL.dataFrame = new byte[] { 71, 2 };
+                    npcHL.head = 0;
+                    npcHL.hair = 0;
+                    npcHL.wearing = new short[0];
+                    petMapTemp.npcs.add(npcHL);
+
+                    // NPC Chuyển khu (-7)
+                    Npc npcKhu = new Npc();
+                    npcKhu.iditem = -7;
+                    npcKhu.name = " ";
+                    npcKhu.namegt = "Chuyển khu";
+                    npcKhu.chat = "";
+                    npcKhu.x = 122;
+                    npcKhu.y = 173;
+                    npcKhu.isPerson = 99;
+                    npcKhu.typeIcon = -1;
+                    npcKhu.wBlock = 24;
+                    npcKhu.hBlock = 24;
+                    npcKhu.b3 = 0;
+                    npcKhu.dataFrame = new byte[] { 5, 1 };
+                    npcKhu.head = 0;
+                    npcKhu.hair = 0;
+                    npcKhu.wearing = new short[0];
+                    petMapTemp.npcs.add(npcKhu);
+
+                    MapTemplate.ENTRYS.add(petMapTemp);
+                    String mobPetJson = "[[167,336,168],[167,360,264],[167,480,192],[167,504,288],[167,408,216],[167,264,216],[167,168,192],[167,120,288],[167,216,264],[167,552,216],[167,432,312],[167,288,312],[167,768,192],[167,840,216],[167,744,288],[167,816,312],[167,888,264],[167,912,192],[167,960,240],[167,936,312],[167,1032,168],[167,1080,288]]";
+                    JSONArray jsMobs = (JSONArray) JSONValue.parse(mobPetJson);
+                    Map[] petMapArr = new Map[petMapTemp.max_zone];
+                    for (int z = 0; z < petMapArr.length; z++) {
+                        petMapArr[z] = new Map();
+                        petMapArr[z].zone_id = (byte) z;
+                        petMapArr[z].template = petMapTemp;
+                        petMapArr[z].list_mob = new int[jsMobs.size()];
+                        for (int mIdx = 0; mIdx < jsMobs.size(); mIdx++) {
+                            JSONArray js2 = (JSONArray) JSONValue.parse(jsMobs.get(mIdx).toString());
+                            Mob temp = new Mob();
+                            int mobId = Integer.parseInt(js2.get(0).toString());
+                            if (mobId < 0 || mobId >= MobTemplate.ENTRYS.size()) {
+                                mobId = 0;
+                            }
+                            temp.mob_template = MobTemplate.ENTRYS.get(mobId);
+                            temp.x = Short.parseShort(js2.get(1).toString());
+                            temp.y = Short.parseShort(js2.get(2).toString());
+                            temp.hp_max = temp.mob_template.hp_max;
+                            temp.hp = temp.hp_max;
+                            temp.level = temp.mob_template.level;
+                            temp.isdie = false;
+                            temp.id_target = -1;
+                            temp.index = this.index_mob;
+                            temp.map = petMapArr[z];
+                            temp.boss_info = null;
+                            Mob.ENTRYS.put(this.index_mob, temp);
+                            petMapArr[z].list_mob[mIdx] = this.index_mob;
+                            this.index_mob++;
+                        }
+                    }
+                    Map.ENTRYS.add(petMapArr);
+                    System.out.println("[PetTraining] Successfully registered Map 2028 with mob 167 (cloned from Map 116)");
+                }
+            }
             for (int i = 0; i < MapTemplate.ENTRYS.size(); i++) {
                 for (int j = 0; j < MapTemplate.ENTRYS.get(i).vgos.size(); j++) {
                     Vgo vgo = MapTemplate.ENTRYS.get(i).vgos.get(j);
