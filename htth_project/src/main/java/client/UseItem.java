@@ -1988,7 +1988,7 @@ public class UseItem {
                 break;
             }
             case 23: {
-                int bound1 = ((level / 10) * 192) + 2112, bound2 = (((level / 10) + 1) * 192) + 2112 + 192;
+                int bound1 = ((level / 10) * 192) + 2112, bound2 = (((level / 10) + 1) * 192) + 2112;
                 List<Item_wear> list_receiv = new ArrayList<>();
                 Item_wear temp = new Item_wear();
                 int id_add = random_red_equip_id(bound1, bound2, p.clazz, true);
