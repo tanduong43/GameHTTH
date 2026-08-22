@@ -676,6 +676,7 @@ public class MenuController {
       case -154:
       case -1540:
       case -1541:
+      case -1542:
         return "Chị Hằng";
     }
     return "NPC";
@@ -767,27 +768,11 @@ public class MenuController {
               BXH.send(p, 13, 0);
               break;
             case 3:
-              Service.send_box_ThongBao_OK(p,
-                  "🎑 THÔNG TIN SỰ KIỆN TRUNG THU - ĐÊM RẰM HẢI TẶC\n\n"
-                      + "📍 Nguồn nguyên liệu thu thập:\n"
-                      + "• Đánh quái ±10 cấp → Bột Mì (tối đa 100/ngày)\n"
-                      + "• Làm NV Lặp hằng ngày → Đường (tối đa 100/ngày)\n"
-                      + "• Hoàn thành NV Băng / PvP / Truy Nã → Trứng Muối\n"
-                      + "• Phó Bản Nami Liên Tầng / Đá đít Mr.3 → Đèn Ông Sao\n"
-                      + "• Săn Boss Lân Sư Tử / Vận buôn → Giấy Gói Quà\n\n"
-                      + "📍 Chế tạo bánh:\n"
-                      + "• Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500k Beri\n"
-                      + "• Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1M Beri\n"
-                      + "• Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15M Beri\n"
-                      + "• Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2M Beri\n\n"
-                      + "📍 Ghép đèn:\n"
-                      + "• Đèn Kéo Quân: 3 Đèn Ông Sao + 2M Beri\n\n"
-                      + "📍 Ghép hộp bánh:\n"
-                      + "• Hộp Bánh: 4 loại bánh + 2M Beri + 50 Ruby\n"
-                      + "• Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2M Beri + 100 Ruby\n\n"
-                      + "📍 Boss Lân Sư Tử:\n"
-                      + "• Xuất hiện: 12h, 18h, 20h, 22h hàng ngày\n\n"
-                      + "Hãy gom đủ nguyên liệu để làm Bánh Trung Thu nhé! 🎑");
+              // Sub-menu: Hướng dẫn chi tiết
+              send_dynamic_menu(p, -1542, "Chị Hằng",
+                  new String[] { "Toàn bộ hướng dẫn", "Nguồn nguyên liệu", "Công thức làm bánh",
+                      "Ghép đèn & Hộp bánh", "Boss Lân Sư Tử", "Phần thưởng & Thời trang" },
+                  null);
               break;
           }
           break;
@@ -830,6 +815,102 @@ public class MenuController {
             case 0:
               event.TrungThuCraft.processCraft(p, 5); // Đèn Kéo Quân
               break;
+          }
+          break;
+        }
+        case -1542: {
+          // Sub-menu: Hướng dẫn Trung Thu
+          if (!event.EventTrungThu.isEvent()) {
+            Service.send_box_ThongBao_OK(p, "Sự kiện Vui Hội Trung Thu hiện đã khép lại. Hẹn gặp lại bạn năm sau nhé!");
+            return;
+          }
+          switch (index) {
+            case 0: {
+              // Toàn bộ hướng dẫn phân trang qua Help_From_Server (chia nhiều trang \b có nút Tiếp tục)
+              String fullGuide = "🎑 SỰ KIỆN TRUNG THU - ĐÊM RẰM HẢI TẶC 🎑\n\n"
+                  + "Chào mừng bạn đến với Lễ Hội Trung Thu!\n"
+                  + "Hãy thu thập nguyên liệu từ các hoạt động hằng ngày để làm Bánh Trung Thu, ghép Đèn Kéo Quân và săn Boss Lân Sư Tử nhận vô vàn phần quà giá trị!\b"
+                  + "📍 1. NGUỒN NGUYÊN LIỆU THU THẬP:\n\n"
+                  + "• Bột Mì: Đánh quái ±10 cấp (Tối đa 100 cái/ngày)\n"
+                  + "• Đường: Làm NV Lặp hằng ngày (1 cái/lần, tối đa 100 cái/ngày)\n"
+                  + "• Trứng Muối: NV Băng (2 cái) / Thắng PvP, Truy Nã (5 cái, tối đa 100/ngày)\n"
+                  + "• Đèn Ông Sao: Vượt ải Nami Liên Tầng / Tiêu diệt Mr.3 trong Đá đít Mr.3\n"
+                  + "• Giấy Gói Quà: Vận Buôn thành công / Đòn kết liễu Boss Lân Sư Tử\b"
+                  + "📍 2. CÔNG THỨC LÀM BÁNH (NPC Chị Hằng):\n\n"
+                  + "• Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500.000 Beri\n"
+                  + "• Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1.000.000 Beri\n"
+                  + "• Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15.000.000 Beri\n"
+                  + "• Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2.000.000 Beri\b"
+                  + "📍 3. GHÉP ĐÈN & HỘP BÁNH:\n\n"
+                  + "• Đèn Kéo Quân: 3 Đèn Ông Sao + 2.000.000 Beri (Thắp đèn bắn pháo hoa nhận quà)\n"
+                  + "• Hộp Bánh: 1 Bánh TT + 1 Đậu Xanh + 1 Trứng Muối + 1 Hạt Sen + 2.000.000 Beri + 50 Ruby\n"
+                  + "• Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2.000.000 Beri + 100 Ruby\b"
+                  + "📍 4. SĂN BOSS LÂN SƯ TỬ:\n\n"
+                  + "• Khung giờ xuất hiện: 11:00 - 13:00 và 20:00 - 21:00 hằng ngày\n"
+                  + "• Vị trí: Xuất hiện ngẫu nhiên tại các map (ngoại trừ Làng)\n"
+                  + "• Hồi sinh: Tự động hồi sinh sau 10 phút khi bị hạ gục\n"
+                  + "• Đòn kết liễu: 30% nhận Hộp Thượng Hạng, 50 Ruby, 2 Giấy Gói Quà, Bột Mì, Đường, Trứng Muối + Điểm BXH Giết Lân\b"
+                  + "📍 5. PHẦN THƯỞNG ĐẶC BIỆT:\n\n"
+                  + "• Mở Bánh & Hộp: Nhận Đá Khảm Cấp 1-6, Ruby, Beri, Tinh Thể Ác Quỷ, Bột Vàng, Mai Rùa, Rương Đại Ác Quỷ...\n"
+                  + "• Hộp Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu & Pet Thỏ (1 ngày / 7 ngày / Vĩnh Viễn)!\n"
+                  + "• Thẻ TT Trung Thu: Mở nhận Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+130% né tránh, +80% HP, +100% Miễn thương)!";
+              Service.Help_From_Server(p, -154, fullGuide);
+              break;
+            }
+            case 1: {
+              // Nguồn nguyên liệu
+              Service.send_box_ThongBao_OK(p,
+                  "📍 NGUỒN THU THẬP NGUYÊN LIỆU TRUNG THU:\n\n"
+                      + "• 🌾 Bột Mì: Đánh quái ±10 cấp (Tối đa 100 cái/ngày)\n"
+                      + "• 🍬 Đường: Làm NV Lặp hằng ngày (1 cái/lần, tối đa 100 cái/ngày)\n"
+                      + "• 🥚 Trứng Muối: NV Băng (2 cái) / Thắng PvP, Truy Nã (5 cái, tối đa 100/ngày)\n"
+                      + "• ⭐ Đèn Ông Sao: Phó bản Nami Liên Tầng / Tiêu diệt Mr.3 trong Đá đít Mr.3\n"
+                      + "• 🎁 Giấy Gói Quà: Hoàn thành chuyến Vận Buôn / Đòn kết liễu Boss Lân Sư Tử");
+              break;
+            }
+            case 2: {
+              // Công thức làm bánh
+              Service.send_box_ThongBao_OK(p,
+                  "📍 CÔNG THỨC LÀM BÁNH (NPC Chị Hằng):\n\n"
+                      + "1. 🥮 Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500.000 Beri\n"
+                      + "2. 🥮 Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1.000.000 Beri\n"
+                      + "3. 🥮 Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15.000.000 Beri\n"
+                      + "4. 🥮 Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2.000.000 Beri\n\n"
+                      + "👉 Chọn mục 'Làm Bánh' tại NPC Chị Hằng để bắt đầu làm bánh!");
+              break;
+            }
+            case 3: {
+              // Ghép đèn & Hộp bánh
+              Service.send_box_ThongBao_OK(p,
+                  "📍 CÔNG THỨC GHÉP ĐÈN & HỘP BÁNH:\n\n"
+                      + "1. 🏮 Đèn Kéo Quân: 3 Đèn Ông Sao + 2.000.000 Beri\n"
+                      + "2. 🎁 Hộp Bánh: 1 Bánh TT + 1 Đậu Xanh + 1 Trứng Muối + 1 Hạt Sen + 2.000.000 Beri + 50 Ruby\n"
+                      + "3. 🏆 Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2.000.000 Beri + 100 Ruby\n\n"
+                      + "👉 Đèn Kéo Quân có thể thắp để bắn pháo hoa và nhận rương quà ngẫu nhiên!");
+              break;
+            }
+            case 4: {
+              // Boss Lân Sư Tử
+              Service.send_box_ThongBao_OK(p,
+                  "🦁 BOSS LÂN SƯ TỬ (ĐÊM RẰM HẢI TẶC):\n\n"
+                      + "⏰ Khung giờ xuất hiện: 11:00 - 13:00 và 20:00 - 21:00 hằng ngày\n"
+                      + "🗺️ Vị trí: Ngẫu nhiên tại các bản đồ (trừ map Làng)\n"
+                      + "⏱️ Hồi sinh: Sau 10 phút kể từ khi Boss bị hạ gục\n\n"
+                      + "👑 Phần thưởng Kết Liễu (Last Hit):\n"
+                      + "• 30% nhận 1 Hộp Bánh Thượng Hạng\n"
+                      + "• 50 Ruby + 2 Giấy Gói Quà + Bột Mì + Đường + Trứng Muối\n"
+                      + "• Tích lũy điểm vào Bảng Xếp Hạng Giết Lân!");
+              break;
+            }
+            case 5: {
+              // Phần thưởng & Thời trang
+              Service.send_box_ThongBao_OK(p,
+                  "🎁 PHẦN THƯỞNG SỰ KIỆN TRUNG THU:\n\n"
+                      + "• Mở Bánh & Hộp: Nhận Đá Khảm Cấp 1-6, Ruby, Beri, Tinh Thể Ác Quỷ, Bột Vàng, Mai Rùa, Rương Đại Ác Quỷ...\n"
+                      + "• Hộp Bánh Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu & Pet Thỏ (1 ngày / 7 ngày / Vĩnh Viễn)!\n"
+                      + "• 👑 Thẻ TT Trung Thu: Mở nhận trực tiếp Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+130% né tránh, +80% HP, +100% Miễn thương)!");
+              break;
+            }
           }
           break;
         }
