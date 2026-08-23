@@ -87,3 +87,7 @@ Hashirama
 *.sln
 *.user
 *.userprefs
+
+# Whitelist WebClient for WebGL release
+!WebClient/**
+!WebClient/Build/**
