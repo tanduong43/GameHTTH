@@ -56,7 +56,7 @@ public class WebSocketSession extends Session {
                 while (connected) {
                     Message m = list_msg.poll(10, TimeUnit.SECONDS);
                     if (m != null) {
-                        sendWebSocketMessage(m);
+                        send_msg(m);
                         m.cleanup();
                     }
                 }
@@ -176,9 +176,10 @@ public class WebSocketSession extends Session {
 
     /**
      * Serialize a game Message and send it as a WebSocket binary frame.
-     * Uses the same wire format as TCP: [cmd][size_hi][size_lo][encrypted_data]
+     * Overrides Session.send_msg so that all server messages go through WebSocket.
      */
-    private void sendWebSocketMessage(Message msg) throws IOException {
+    @Override
+    protected void send_msg(Message msg) throws IOException {
         if (!webSocket.isOpen()) return;
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -245,7 +246,7 @@ public class WebSocketSession extends Session {
         for (int i = 1; i < KEYS.length; i++) {
             msg.writer().writeByte(KEYS[i] ^ KEYS[i - 1]);
         }
-        sendWebSocketMessage(msg);
+        send_msg(msg);
         msg.cleanup();
         sendKeyComplete = true;
     }
