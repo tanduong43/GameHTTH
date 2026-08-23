@@ -9,6 +9,7 @@ import io.Message;
 import map.Mob;
 import template.EffTemplate;
 import template.Skill_info;
+
 /**
  *
  * @author Truongbk
@@ -53,7 +54,8 @@ public class Buff {
                 break;
             }
         }
-        // Override thời gian và cooldown cho Haki Quan Sát, Haki Vũ Trang và Haki Bá Vương
+        // Override thời gian và cooldown cho Haki Quan Sát, Haki Vũ Trang và Haki Bá
+        // Vương
         if (sk_info != null && (sk_info.temp.indexSkillInServer >= 900 && sk_info.temp.indexSkillInServer <= 902)) {
             if (time_buff <= 0) {
                 time_buff = 20000; // 20 giây
@@ -72,13 +74,30 @@ public class Buff {
                 Service.send_eff_haki(p, (short) 26, time_buff); // Haki Bá Vương (eff 26)
                 apply_haki_bavuong_stun(p, 5, 250, 5000);
             }
+            // FIX: get_eff_skill() không có mapping cho 3 skill Haki
+            // (indexSkillInServer 900/901/902), nên nó fallback về
+            // temp.getTypeEffSkill() - giá trị cấu hình trong DB skill_info,
+            // nếu chưa set đúng sẽ trả về 0/sai. Gói tin opcode 20 này là gói
+            // gửi RIÊNG cho chính người bấm skill (p.conn), quyết định client
+            // của chính họ có vẽ hiệu ứng lên nhân vật mình hay không - độc lập
+            // với gói opcode 74 (send_eff_haki) mà người chơi khác nhận được.
+            // Ghi đè trực tiếp đúng effId (21/18/26) để đảm bảo người bấm
+            // skill luôn tự thấy hiệu ứng, không phụ thuộc cấu hình DB.
+            short effSkillToSend = sk_info.get_eff_skill();
+            if (sk_info.temp.indexSkillInServer == 900) {
+                effSkillToSend = 21; // Haki Quan Sát
+            } else if (sk_info.temp.indexSkillInServer == 901) {
+                effSkillToSend = 18; // Haki Vũ Trang
+            } else if (sk_info.temp.indexSkillInServer == 902) {
+                effSkillToSend = 26; // Haki Bá Vương
+            }
             Message m = new Message(20);
             m.writer().writeByte(1);
             m.writer().writeShort(id);
             m.writer().writeShort(p.index_map);
             m.writer().writeByte(0);
             m.writer().writeShort(sk_info.temp.idIcon);
-            m.writer().writeShort(sk_info.get_eff_skill());
+            m.writer().writeShort(effSkillToSend);
             m.writer().writeInt(time_buff);
             m.writer().writeByte(0);
             m.writer().writeByte(1);

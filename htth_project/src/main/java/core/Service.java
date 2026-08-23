@@ -240,7 +240,8 @@ public class Service {
     }
 
     public static void update_PK(Player p0, Player p, boolean save_cache) throws IOException {
-        if (!(p0.map.map_pvp != null || p0.map.map_pvp_clan != null || p0.map.template.id == 1000 || p0.map.template.id == 123)) {
+        if (!(p0.map.map_pvp != null || p0.map.map_pvp_clan != null || p0.map.template.id == 1000
+                || p0.map.template.id == 123)) {
             if (p0.pointPk >= 400 && p0.type_pk == -1) {
                 p0.type_pk = 1;
             }
@@ -2332,32 +2333,35 @@ public class Service {
         }
         byte[] data1 = null;
         byte[] data2 = null;
-        byte[] testZoom = new byte[]{zoomlv, 4, 2, 1, 3, 0};
+        byte[] testZoom = new byte[] { zoomlv, 4, 2, 1, 3, 0 };
 
-        // 1. Check skill template (data/template/skill/x{zoom}/data/{id} & img/{id}.png)
+        // 1. Check skill template (data/template/skill/x{zoom}/data/{id} &
+        // img/{id}.png)
         for (byte z : testZoom) {
             data1 = Util.loadfile("data/template/skill/x" + z + "/data/" + effId);
             data2 = Util.loadfile("data/template/skill/x" + z + "/img/" + effId + ".png");
             if (data1 != null && data2 != null) {
-                return new byte[][]{data1, data2};
+                return new byte[][] { data1, data2 };
             }
         }
 
-        // 2. Check danhhieu effect (data/danhhieu/effect/x{zoom}/data/DataEffect_{id} & img/ImgEffect_{id}.png)
+        // 2. Check danhhieu effect (data/danhhieu/effect/x{zoom}/data/DataEffect_{id} &
+        // img/ImgEffect_{id}.png)
         for (byte z : testZoom) {
             data1 = Util.loadfile("data/danhhieu/effect/x" + z + "/data/DataEffect_" + effId);
             data2 = Util.loadfile("data/danhhieu/effect/x" + z + "/img/ImgEffect_" + effId + ".png");
             if (data1 != null && data2 != null) {
-                return new byte[][]{data1, data2};
+                return new byte[][] { data1, data2 };
             }
         }
 
-        // 3. Check nro effect (data/nro/data/effect/x{zoom}/data/DataEffect_{id} & img/ImgEffect_{id}.png)
+        // 3. Check nro effect (data/nro/data/effect/x{zoom}/data/DataEffect_{id} &
+        // img/ImgEffect_{id}.png)
         for (byte z : testZoom) {
             data1 = Util.loadfile("data/nro/data/effect/x" + z + "/data/DataEffect_" + effId);
             data2 = Util.loadfile("data/nro/data/effect/x" + z + "/img/ImgEffect_" + effId + ".png");
             if (data1 != null && data2 != null) {
-                return new byte[][]{data1, data2};
+                return new byte[][] { data1, data2 };
             }
         }
 
@@ -2368,7 +2372,7 @@ public class Service {
                 data1 = Util.loadfile("data/nro/data/effect/x" + z + "/data/DataEffect_" + subId);
                 data2 = Util.loadfile("data/nro/data/effect/x" + z + "/img/ImgEffect_" + subId + ".png");
                 if (data1 != null && data2 != null) {
-                    return new byte[][]{data1, data2};
+                    return new byte[][] { data1, data2 };
                 }
             }
         }
@@ -2381,7 +2385,7 @@ public class Service {
                     data2 = Util.loadfile("data/icon/x" + z + "/" + effId + ".png");
                 }
                 if (data2 != null) {
-                    return new byte[][]{data1, data2};
+                    return new byte[][] { data1, data2 };
                 }
             }
         }
@@ -2406,7 +2410,8 @@ public class Service {
                 conn.addmsg(mData);
                 mData.cleanup();
             } else {
-                System.out.println("[Effect Error] Khong tim thay du lieu effect id=" + effId + " (zoom=x" + zoomlv + ")");
+                System.out.println(
+                        "[Effect Error] Khong tim thay du lieu effect id=" + effId + " (zoom=x" + zoomlv + ")");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -2417,15 +2422,28 @@ public class Service {
         if (p == null || p.map == null)
             return;
 
+        // FIX: chụp snapshot danh sách player trong khối synchronized(p.map),
+        // vì Map.players.add()/remove() (khi player join/leave map) đang được
+        // khoá bằng synchronized(this) ở map/Map.java. Nếu duyệt trực tiếp
+        // p.map.players mà không khoá, việc join/leave map cùng lúc có thể
+        // ném ConcurrentModificationException giữa vòng lặp, làm ngắt ngang
+        // việc gửi hiệu ứng -> chỉ một phần người chơi nhận được hiệu ứng
+        // (đây là nguyên nhân hiện tượng "lúc hiện lúc không").
+        java.util.List<Player> snapshot;
+        synchronized (p.map) {
+            snapshot = new java.util.ArrayList<>(p.map.players);
+        }
+
         // Gửi DATA + lệnh PLAY cho từng player riêng lẻ theo đúng thứ tự:
         // DATA trước → PLAY sau. Cách này tránh race condition khi gửi cho tất cả
         // vì addmsg là queue nên đảm bảo thứ tự trong cùng 1 connection.
-        for (Player p0 : p.map.players) {
-            if (p0 == null || p0.conn == null) continue;
-            // Bước 1: Gửi DATA effect cho player này trước
-            send_effect_data(p0.conn, effId);
-            // Bước 2: Gửi lệnh PLAY effect ngay sau DATA trong cùng queue của player này
+        for (Player p0 : snapshot) {
+            if (p0 == null || p0.conn == null)
+                continue;
             try {
+                // Bước 1: Gửi DATA effect cho player này trước
+                send_effect_data(p0.conn, effId);
+                // Bước 2: Gửi lệnh PLAY effect ngay sau DATA trong cùng queue của player này
                 Message mPlay = new Message(74);
                 mPlay.writer().writeByte(1);
                 mPlay.writer().writeShort(p.index_map);
@@ -2436,6 +2454,9 @@ public class Service {
                 p0.conn.addmsg(mPlay);
                 mPlay.cleanup();
             } catch (Exception e) {
+                // FIX: bọc cả send_effect_data() vào try-catch này (trước đây nó nằm
+                // ngoài try-catch), để 1 connection lỗi không làm gãy cả vòng lặp và
+                // bỏ lỡ hiệu ứng của những player còn lại phía sau trong danh sách.
                 e.printStackTrace();
             }
         }
@@ -2447,6 +2468,32 @@ public class Service {
 
     public static void send_eff_haki_bavuong(Player p) throws IOException {
         send_eff_haki(p, (short) 26, 20000);
+    }
+
+    // FIX: Gói tin RIÊNG để client của chính người dùng skill tự vẽ hiệu ứng lên
+    // nhân vật mình. Đây là kênh khác hoàn toàn với send_eff_haki() (opcode 74,
+    // broadcast cho người khác thấy). Trước đây chỉ có client/Buff.java gửi gói
+    // này, còn map/Map.java (use_skill - đường kích hoạt khi đang có mục tiêu
+    // được chọn) không gửi, khiến người bấm skill không tự thấy hiệu ứng dù
+    // người khác vẫn thấy bình thường.
+    public static void send_haki_self_effect(Player p, short idSkill, short idIcon, short effId, int time)
+            throws IOException {
+        if (p == null || p.conn == null)
+            return;
+        Message m = new Message(20);
+        m.writer().writeByte(1);
+        m.writer().writeShort(idSkill);
+        m.writer().writeShort(p.index_map);
+        m.writer().writeByte(0);
+        m.writer().writeShort(idIcon);
+        m.writer().writeShort(effId);
+        m.writer().writeInt(time > 0 ? time : 20000);
+        m.writer().writeByte(0);
+        m.writer().writeByte(1);
+        m.writer().writeShort(p.index_map);
+        m.writer().writeByte(0); // không có option buff nào kèm theo ở đường này
+        p.conn.addmsg(m);
+        m.cleanup();
     }
 
     public static void send_eff_sword_splash(int id, Player p) throws IOException {

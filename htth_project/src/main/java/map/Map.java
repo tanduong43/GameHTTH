@@ -633,7 +633,8 @@ public class Map implements Runnable {
                         try {
                             Service.use_potion(pl, 0, pl.hp);
                             Service.use_potion(pl, 1, pl.mp);
-                        } catch (Exception e) {}
+                        } catch (Exception e) {
+                        }
                         pl.time_can_mob_atk = now + 2000L;
                         pl.x = (pl.type_pk == 4) ? (short) 220 : (short) 460;
                         pl.y = (short) 240;
@@ -660,12 +661,15 @@ public class Map implements Runnable {
                             activities.PvpClan.send_revive_countdown(pl, 0);
                             // Gửi lại bảng điểm số Kill
                             activities.PvpClan.send_pvp_clan_score(pl, this);
-                        } catch (Exception e) { e.printStackTrace(); }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
 
-            // 2. GIAI ĐOẠN 1: HẾT GIỜ 5 PHÚT -> Tính điểm, thưởng XP/Ruby Băng, hiện BẢNG NHẬN QUÀ, đếm ngược 8 giây về làng
+            // 2. GIAI ĐOẠN 1: HẾT GIỜ 5 PHÚT -> Tính điểm, thưởng XP/Ruby Băng, hiện BẢNG
+            // NHẬN QUÀ, đếm ngược 8 giây về làng
             if (!this.map_pvp_clan.is_notified && now >= this.map_pvp_clan.time_end) {
                 this.map_pvp_clan.is_notified = true;
                 this.map_pvp_clan.time_return_village = now + 8_000L; // Đếm ngược 8 giây
@@ -702,7 +706,12 @@ public class Map implements Runnable {
                     for (int i1 = 0; i1 < this.map_pvp_clan.clan1.members.size(); i1++) {
                         Player p0 = Map.get_player_by_name_allmap(this.map_pvp_clan.clan1.members.get(i1).name);
                         if (p0 != null) {
-                            try { Clan.set_data(p0, false); Clan.send_money(p0, false); } catch (IOException e) { e.printStackTrace(); }
+                            try {
+                                Clan.set_data(p0, false);
+                                Clan.send_money(p0, false);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                     if (!this.map_pvp_clan.clan1.members.isEmpty()) {
@@ -714,7 +723,9 @@ public class Map implements Runnable {
                                             + " (Tỷ số Kill: " + score1 + " - " + score2
                                             + "): nhận được " + xp1 + " xp băng và " + rb1 + " ruby băng",
                                     -3);
-                        } catch (IOException e) { e.printStackTrace(); }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
@@ -724,7 +735,12 @@ public class Map implements Runnable {
                     for (int i1 = 0; i1 < this.map_pvp_clan.clan2.members.size(); i1++) {
                         Player p0 = Map.get_player_by_name_allmap(this.map_pvp_clan.clan2.members.get(i1).name);
                         if (p0 != null) {
-                            try { Clan.set_data(p0, false); Clan.send_money(p0, false); } catch (IOException e) { e.printStackTrace(); }
+                            try {
+                                Clan.set_data(p0, false);
+                                Clan.send_money(p0, false);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                     if (!this.map_pvp_clan.clan2.members.isEmpty()) {
@@ -736,17 +752,24 @@ public class Map implements Runnable {
                                             + " (Tỷ số Kill: " + score2 + " - " + score1
                                             + "): nhận được " + xp2 + " xp băng và " + rb2 + " ruby băng",
                                     -3);
-                        } catch (IOException e) { e.printStackTrace(); }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
-                // Hiển thị BẢNG NHẬN QUÀ (chỉ hiển thị quà của Clan) và đếm ngược 8s tới tất cả người chơi trong map
+                // Hiển thị BẢNG NHẬN QUÀ (chỉ hiển thị quà của Clan) và đếm ngược 8s tới tất cả
+                // người chơi trong map
                 for (int i = 0; i < players.size(); i++) {
                     Player pl = players.get(i);
                     if (pl != null && pl.conn != null) {
                         try {
-                            int xp = (score1 == score2) ? 1200 : ((score1 > score2) ? ((pl.type_pk == 4) ? xp1 : xp2) : ((pl.type_pk == 5) ? xp2 : xp1));
-                            int rb = (score1 == score2) ? 300 : ((score1 > score2) ? ((pl.type_pk == 4) ? rb1 : rb2) : ((pl.type_pk == 5) ? rb2 : rb1));
+                            int xp = (score1 == score2) ? 1200
+                                    : ((score1 > score2) ? ((pl.type_pk == 4) ? xp1 : xp2)
+                                            : ((pl.type_pk == 5) ? xp2 : xp1));
+                            int rb = (score1 == score2) ? 300
+                                    : ((score1 > score2) ? ((pl.type_pk == 4) ? rb1 : rb2)
+                                            : ((pl.type_pk == 5) ? rb2 : rb1));
                             int res = 0;
                             if (score1 > score2) {
                                 res = (pl.type_pk == 4) ? 1 : -1;
@@ -755,22 +778,29 @@ public class Map implements Runnable {
                             }
                             String resTitle = (res == 1) ? "Chiến Thắng" : ((res == -1) ? "Thất Bại" : "Hòa");
                             List<template.GiftBox> gifts = activities.PvpClan.get_gift_pvp_clan(pl, xp, rb);
-                            core.Service.send_gift(pl, 1, "PVP Băng [" + resTitle + "]", "Tỷ số: " + score1 + " - " + score2, gifts, true);
+                            core.Service.send_gift(pl, 1, "PVP Băng [" + resTitle + "]",
+                                    "Tỷ số: " + score1 + " - " + score2, gifts, true);
 
                             // Gửi đếm ngược 8 giây về làng
                             activities.PvpClan.send_return_village_countdown(pl, 8);
-                        } catch (Exception e) { e.printStackTrace(); }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
-                if (this.map_pvp_clan.clan1 != null) this.map_pvp_clan.clan1.map_create = null;
-                if (this.map_pvp_clan.clan2 != null) this.map_pvp_clan.clan2.map_create = null;
+                if (this.map_pvp_clan.clan1 != null)
+                    this.map_pvp_clan.clan1.map_create = null;
+                if (this.map_pvp_clan.clan2 != null)
+                    this.map_pvp_clan.clan2.map_create = null;
                 this.map_pvp_clan.clan1 = null;
                 this.map_pvp_clan.clan2 = null;
             }
 
-            // 3. GIAI ĐOẠN 2: HẾT 8 GIÂY ĐẾM NGƯỢC -> Đưa tất cả người chơi trong map về làng
-            if (this.map_pvp_clan.is_notified && !this.map_pvp_clan.is_finish && now >= this.map_pvp_clan.time_return_village) {
+            // 3. GIAI ĐOẠN 2: HẾT 8 GIÂY ĐẾM NGƯỢC -> Đưa tất cả người chơi trong map về
+            // làng
+            if (this.map_pvp_clan.is_notified && !this.map_pvp_clan.is_finish
+                    && now >= this.map_pvp_clan.time_return_village) {
                 this.map_pvp_clan.is_finish = true;
 
                 Vgo vgo = new Vgo();
@@ -817,7 +847,8 @@ public class Map implements Runnable {
                         try {
                             Service.use_potion(pl, 0, pl.hp);
                             Service.use_potion(pl, 1, pl.mp);
-                        } catch (Exception e) {}
+                        } catch (Exception e) {
+                        }
                         pl.time_can_mob_atk = now + 2000L;
                         pl.x = (pl.type_pk == 4) ? (short) 300 : (short) 900;
                         pl.y = (short) 210;
@@ -841,7 +872,9 @@ public class Map implements Runnable {
                             mRevive.cleanup();
 
                             activities.PvpClan.send_revive_countdown(pl, 0);
-                        } catch (Exception e) { e.printStackTrace(); }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -853,8 +886,10 @@ public class Map implements Runnable {
 
                 int score1 = this.map_dao_hoa.score_clan1;
                 int score2 = this.map_dao_hoa.score_clan2;
-                Clan winnerClan = (score1 > score2) ? this.map_dao_hoa.clan1 : ((score2 > score1) ? this.map_dao_hoa.clan2 : null);
-                Clan loserClan = (score1 > score2) ? this.map_dao_hoa.clan2 : ((score2 > score1) ? this.map_dao_hoa.clan1 : null);
+                Clan winnerClan = (score1 > score2) ? this.map_dao_hoa.clan1
+                        : ((score2 > score1) ? this.map_dao_hoa.clan2 : null);
+                Clan loserClan = (score1 > score2) ? this.map_dao_hoa.clan2
+                        : ((score2 > score1) ? this.map_dao_hoa.clan1 : null);
 
                 event.GuildWarDaoHoa.finishWar(winnerClan, loserClan, this.players);
 
@@ -865,14 +900,17 @@ public class Map implements Runnable {
                     }
                 }
 
-                if (this.map_dao_hoa.clan1 != null) this.map_dao_hoa.clan1.map_create = null;
-                if (this.map_dao_hoa.clan2 != null) this.map_dao_hoa.clan2.map_create = null;
+                if (this.map_dao_hoa.clan1 != null)
+                    this.map_dao_hoa.clan1.map_create = null;
+                if (this.map_dao_hoa.clan2 != null)
+                    this.map_dao_hoa.clan2.map_create = null;
                 this.map_dao_hoa.clan1 = null;
                 this.map_dao_hoa.clan2 = null;
             }
 
             // 3. Sau 8s đưa về làng
-            if (this.map_dao_hoa.is_notified && !this.map_dao_hoa.is_finish && now >= this.map_dao_hoa.time_return_village) {
+            if (this.map_dao_hoa.is_notified && !this.map_dao_hoa.is_finish
+                    && now >= this.map_dao_hoa.time_return_village) {
                 this.map_dao_hoa.is_finish = true;
 
                 Vgo vgo = new Vgo();
@@ -2287,7 +2325,8 @@ public class Map implements Runnable {
                     }
                 }
             } else {
-                // Đội vẫn còn người sống -> gửi đồng hồ đếm ngược chờ qua tầng (type 3 - watchRevice để client ẩn bảng hồi sinh / về làng)
+                // Đội vẫn còn người sống -> gửi đồng hồ đếm ngược chờ qua tầng (type 3 -
+                // watchRevice để client ẩn bảng hồi sinh / về làng)
                 Service.send_time_cool_down(p0, hd.stageEndTime, "Chờ qua tầng", 3);
             }
 
@@ -2344,7 +2383,8 @@ public class Map implements Runnable {
     }
 
     public void leave_map(Player p, int type) {
-        if (this.template.id == 2026 || this.template.id == 1001 || this.map_pvp_clan != null || this.map_dao_hoa != null) {
+        if (this.template.id == 2026 || this.template.id == 1001 || this.map_pvp_clan != null
+                || this.map_dao_hoa != null) {
             p.type_pk = -1; // Tháo cờ khi rời Map Đấu Trường / Đảo Ruby / PVP Clan / Đảo Đào Hoa
             if (this.map_pvp_clan != null) {
                 activities.PvpClan.clear_pvp_clan_score(p);
@@ -2459,7 +2499,8 @@ public class Map implements Runnable {
             }
         }
         // [DEBUG HAKI] Map not found - nguyen nhan man hinh den
-        System.err.println("[DEBUG HAKI] get_map_by_id NOT FOUND map " + id + "! Total maps loaded: " + Map.ENTRYS.size());
+        System.err.println(
+                "[DEBUG HAKI] get_map_by_id NOT FOUND map " + id + "! Total maps loaded: " + Map.ENTRYS.size());
         return null;
     }
 
@@ -2677,10 +2718,13 @@ public class Map implements Runnable {
             p.mp -= sk_temp.temp.manaLost;
             if (sk_temp.temp.indexSkillInServer == 900) {
                 Service.send_eff_haki(p, (short) 21); // Haki Quan Sát (eff 21)
+                Service.send_haki_self_effect(p, idSkill, sk_temp.temp.idIcon, (short) 21, 20000);
             } else if (sk_temp.temp.indexSkillInServer == 901) {
                 Service.send_eff_haki(p, (short) 18); // Haki Vũ Trang (eff 18)
+                Service.send_haki_self_effect(p, idSkill, sk_temp.temp.idIcon, (short) 18, 20000);
             } else if (sk_temp.temp.indexSkillInServer == 902) {
                 Service.send_eff_haki(p, (short) 26); // Haki Bá Vương (eff 26)
+                Service.send_haki_self_effect(p, idSkill, sk_temp.temp.idIcon, (short) 26, 20000);
                 Buff.apply_haki_bavuong_stun(p, 5, 250, 5000);
             }
             long dame = p.body.get_dame(true);
@@ -2795,7 +2839,10 @@ public class Map implements Runnable {
                         if (hq.temp != null && Skill_Template.learn_skill(hq)) {
                             p.skill_point.add(hq);
                             p.send_skill(); // Gui skill list cho client
-                            try { Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Quan Sát!"); } catch (Exception e) {}
+                            try {
+                                Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Quan Sát!");
+                            } catch (Exception e) {
+                            }
                         }
                     } else if (p.haki_monster_killed == 1500) {
                         Skill_info hv = new Skill_info();
@@ -2803,7 +2850,10 @@ public class Map implements Runnable {
                         if (hv.temp != null && Skill_Template.learn_skill(hv)) {
                             p.skill_point.add(hv);
                             p.send_skill(); // Gui skill list cho client
-                            try { Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Vũ Trang!"); } catch (Exception e) {}
+                            try {
+                                Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Vũ Trang!");
+                            } catch (Exception e) {
+                            }
                         }
                     } else if (p.haki_monster_killed == 2000) {
                         Skill_info hb = new Skill_info();
@@ -2811,7 +2861,10 @@ public class Map implements Runnable {
                         if (hb.temp != null && Skill_Template.learn_skill(hb)) {
                             p.skill_point.add(hb);
                             p.send_skill(); // Gui skill list cho client
-                            try { Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Bá Vương!"); } catch (Exception e) {}
+                            try {
+                                Service.send_box_ThongBao_OK(p, "Chúc mừng bạn đã lĩnh ngộ được Haki Bá Vương!");
+                            } catch (Exception e) {
+                            }
                         }
                     }
                     for (Skill_info sk : p.skill_point) {
@@ -2823,10 +2876,12 @@ public class Map implements Runnable {
                                     if (Skill_Template.upgrade_skill(sk, p.clazz)) {
                                         sk.exp -= exp_max;
                                         try {
-                                            Service.send_box_ThongBao_OK(p, "Kỹ năng " + sk.temp.name + " đã thăng cấp!");
+                                            Service.send_box_ThongBao_OK(p,
+                                                    "Kỹ năng " + sk.temp.name + " đã thăng cấp!");
                                             // Gui cap nhat skill day du khi len cap
                                             p.send_skill();
-                                        } catch (Exception e) {}
+                                        } catch (Exception e) {
+                                        }
                                     } else {
                                         sk.exp = exp_max - 1;
                                     }
@@ -2834,7 +2889,8 @@ public class Map implements Runnable {
                                 // Gui cap nhat skill cho client (hien thi thanh exp)
                                 try {
                                     activities.Learn_Skill.send_skill_percent(p, sk);
-                                } catch (Exception e) {}
+                                } catch (Exception e) {
+                                }
                             }
                         }
                     }
@@ -2845,8 +2901,10 @@ public class Map implements Runnable {
                         pet.addExp(1); // Đánh quái tại Đảo Huấn Luyện Pet nhận +1 EXP cho Pet khi bật Cờ Đen
                         if (pet.exp > oldExp && pet.canLevelUp()) {
                             try {
-                                Service.send_box_ThongBao_OK(p, "🎉 Thú cưng [" + pet.template.name + "] đã tích lũy đủ EXP Huấn Luyện!\nHãy gặp Huấn Luyện Sư để Đột Phá Cấp Độ mới!");
-                            } catch (Exception ignored) {}
+                                Service.send_box_ThongBao_OK(p, "🎉 Thú cưng [" + pet.template.name
+                                        + "] đã tích lũy đủ EXP Huấn Luyện!\nHãy gặp Huấn Luyện Sư để Đột Phá Cấp Độ mới!");
+                            } catch (Exception ignored) {
+                            }
                         }
                     }
                     if (exp_up[0] > 0) {
@@ -3637,19 +3695,22 @@ public class Map implements Runnable {
                     dame2 -= (dame2 * Util.random(10)) / 100;
                 }
                 long dame_to_target = dame2 + dame_inf.dameM;
-                if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN && dame_to_target > 0) {
+                if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
+                        && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
                     EventTrungThu.getInstance().onBossDamaged(p, 1);
                 }
-                if (event.EventTet.isEvent() && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU && dame_to_target > 0) {
+                if (event.EventTet.isEvent() && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                        && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
                     event.EventTet.getInstance().onBossDamaged(p, 1);
                 }
-                if (event.Event2011.isEvent() && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU && dame_to_target > 0) {
+                if (event.Event2011.isEvent() && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU
+                        && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
@@ -3688,7 +3749,8 @@ public class Map implements Runnable {
                             && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN
                             && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU
                             && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU) {
-                        // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) và Boss Lân chỉ nhận quà khi giết
+                        // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) và Boss Lân chỉ
+                        // nhận quà khi giết
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
@@ -4025,14 +4087,16 @@ public class Map implements Runnable {
                     if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN) {
                         EventTrungThu.getInstance().onBossKilled(p);
                     }
-                    if (event.EventTet.isEvent() && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU) {
+                    if (event.EventTet.isEvent()
+                            && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU) {
                         event.EventTet.getInstance().onBossKilled(p);
                     }
                     // Event 20/11: Drop Trang Giấy & Cánh Hoa Phượng khi giết quái
                     if (event.Event2011.isEvent() && mob_target.boss_info == null) {
                         event.Event2011.onMobKill(p, mob_target);
                     }
-                    if (event.Event2011.isEvent() && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU) {
+                    if (event.Event2011.isEvent()
+                            && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU) {
                         event.Event2011.getInstance().onBossKilled(p);
                     }
                     // update quest relative to
@@ -4691,10 +4755,12 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 9);
                 else if (cmd.equals("resethangdong") || cmd.equals("reset_hangdong"))
                     MenuController.Menu_Admin(p, (byte) 10);
-                else if (cmd.equals("reloadpart") || cmd.equals("reload_part") || cmd.equals("updatepart") || cmd.equals("update_part")) {
+                else if (cmd.equals("reloadpart") || cmd.equals("reload_part") || cmd.equals("updatepart")
+                        || cmd.equals("update_part")) {
                     try {
                         core.Manager.reload_parts();
-                        Service.send_box_ThongBao_OK(p, "Đã reload toàn bộ parts từ database và đồng bộ tới toàn bộ người chơi!");
+                        Service.send_box_ThongBao_OK(p,
+                                "Đã reload toàn bộ parts từ database và đồng bộ tới toàn bộ người chơi!");
                     } catch (Exception e) {
                         e.printStackTrace();
                         Service.send_box_ThongBao_OK(p, "Lỗi reload parts: " + e.getMessage());
@@ -4707,12 +4773,14 @@ public class Map implements Runnable {
                             ids[i - 1] = Short.parseShort(raw[i]);
                         }
                         core.Manager.reload_parts(ids);
-                        Service.send_box_ThongBao_OK(p, "Đã reload parts " + cmd.substring(raw[0].length() + 1) + " thành công!");
+                        Service.send_box_ThongBao_OK(p,
+                                "Đã reload parts " + cmd.substring(raw[0].length() + 1) + " thành công!");
                     } catch (Exception e) {
                         e.printStackTrace();
                         Service.send_box_ThongBao_OK(p, "Lỗi reload parts: " + e.getMessage());
                     }
-                } else if (cmd.startsWith("addfashion ") || cmd.startsWith("add_fashion ") || cmd.startsWith("fashion ")) {
+                } else if (cmd.startsWith("addfashion ") || cmd.startsWith("add_fashion ")
+                        || cmd.startsWith("fashion ")) {
                     try {
                         short fId = Short.parseShort(cmd.split(" ")[1]);
                         ItemFashion itf = ItemFashion.get_item(fId);
@@ -4729,7 +4797,8 @@ public class Map implements Runnable {
                                 Service.charWearing(p, p0, false);
                             }
                             Service.UpdateInfoMaincharInfo(p);
-                            Service.send_box_ThongBao_OK(p, "Đã trang bị thời trang: " + itf.name + " (ID " + fId + ")");
+                            Service.send_box_ThongBao_OK(p,
+                                    "Đã trang bị thời trang: " + itf.name + " (ID " + fId + ")");
                         } else {
                             Service.send_box_ThongBao_OK(p, "Không tìm thấy thời trang ID " + fId);
                         }
@@ -4765,7 +4834,8 @@ public class Map implements Runnable {
                 } else if (cmd.equals("event 2011 on") || cmd.equals("event 2011 1") || cmd.equals("event 2011 true")) {
                     event.Event2011.setEvent(true);
                     Service.send_box_ThongBao_OK(p, "Đã bật sự kiện 20/11!");
-                } else if (cmd.equals("event 2011 off") || cmd.equals("event 2011 0") || cmd.equals("event 2011 false")) {
+                } else if (cmd.equals("event 2011 off") || cmd.equals("event 2011 0")
+                        || cmd.equals("event 2011 false")) {
                     event.Event2011.setEvent(false);
                     Service.send_box_ThongBao_OK(p, "Đã tắt sự kiện 20/11!");
                 } else if (cmd.equals("event 2011 status")) {
@@ -4780,7 +4850,8 @@ public class Map implements Runnable {
                     event.Event2011.getInstance().claimLeaderboardReward(p);
                 } else if (cmd.equals("event 2011 menu") || cmd.equals("2011 menu")) {
                     event.Event2011Craft.showCraftHelp(p);
-                } else if (cmd.equals("event tt menu") || cmd.equals("tt menu") || cmd.equals("trungthu") || cmd.equals("ghép") || cmd.equals("ghep")) {
+                } else if (cmd.equals("event tt menu") || cmd.equals("tt menu") || cmd.equals("trungthu")
+                        || cmd.equals("ghép") || cmd.equals("ghep")) {
                     event.TrungThuCraft.showCraftMenu(p);
                 } else if (cmd.startsWith("ghép ") || cmd.startsWith("ghep ")) {
                     try {
@@ -4805,13 +4876,20 @@ public class Map implements Runnable {
                         }
                         // Xác định level trang bị dựa theo level nhân vật
                         short itLevel = 10;
-                        if (p.level >= 70) itLevel = 70;
-                        else if (p.level >= 60) itLevel = 60;
-                        else if (p.level >= 50) itLevel = 50;
-                        else if (p.level >= 40) itLevel = 40;
-                        else if (p.level >= 30) itLevel = 30;
-                        else if (p.level >= 20) itLevel = 20;
-                        else itLevel = 10;
+                        if (p.level >= 70)
+                            itLevel = 70;
+                        else if (p.level >= 60)
+                            itLevel = 60;
+                        else if (p.level >= 50)
+                            itLevel = 50;
+                        else if (p.level >= 40)
+                            itLevel = 40;
+                        else if (p.level >= 30)
+                            itLevel = 30;
+                        else if (p.level >= 20)
+                            itLevel = 20;
+                        else
+                            itLevel = 10;
                         int created = 0;
                         // 6 slot: 0=vũ khí, 1=áo, 2=giáp, 3=nón, 4=giày, 5=trang sức
                         for (byte slot = 0; slot < 6; slot++) {
@@ -4835,7 +4913,8 @@ public class Map implements Runnable {
                             }
                         }
                         p.item.update_Inventory(4, false);
-                        Service.send_box_ThongBao_OK(p, "Đã tạo " + created + "/6 món đồ hoàn mỹ cấp +" + lvl + " (đồ level " + itLevel + ") vào hành trang!");
+                        Service.send_box_ThongBao_OK(p, "Đã tạo " + created + "/6 món đồ hoàn mỹ cấp +" + lvl
+                                + " (đồ level " + itLevel + ") vào hành trang!");
                     } catch (Exception e) {
                         Service.send_box_ThongBao_OK(p, "Cú pháp sai. VD: admin setdo 16");
                     }
@@ -4845,12 +4924,15 @@ public class Map implements Runnable {
                         short effId = Short.parseShort(parts[1]);
                         byte typemove = 0;
                         byte loop = -1;
-                        if (parts.length > 2) typemove = Byte.parseByte(parts[2]);
-                        if (parts.length > 3) loop = Byte.parseByte(parts[3]);
+                        if (parts.length > 2)
+                            typemove = Byte.parseByte(parts[2]);
+                        if (parts.length > 3)
+                            loop = Byte.parseByte(parts[3]);
 
                         // Gửi DATA + lệnh PLAY cho từng player theo đúng thứ tự (DATA trước, PLAY sau)
                         for (Player p0 : this.players) {
-                            if (p0 == null || p0.conn == null) continue;
+                            if (p0 == null || p0.conn == null)
+                                continue;
                             Service.send_effect_data(p0.conn, effId);
                             Message mTest = new Message(74);
                             mTest.writer().writeByte(1);
@@ -4862,12 +4944,15 @@ public class Map implements Runnable {
                             p0.conn.addmsg(mTest);
                             mTest.cleanup();
                         }
-                        
-                        System.out.println("[Debug Admin] Sent eff command with id=" + effId + " to map. TypeMove: " + typemove + ", Loop: " + loop);
-                        Service.send_box_ThongBao_OK(p, "Đang hiển thị Effect ID: " + effId + " (TypeMove: " + typemove + ", Loop: " + loop + ")");
+
+                        System.out.println("[Debug Admin] Sent eff command with id=" + effId + " to map. TypeMove: "
+                                + typemove + ", Loop: " + loop);
+                        Service.send_box_ThongBao_OK(p, "Đang hiển thị Effect ID: " + effId + " (TypeMove: " + typemove
+                                + ", Loop: " + loop + ")");
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin eff <id> [typemove] [loop]. VD: admin eff 36 0 -1");
+                        Service.send_box_ThongBao_OK(p,
+                                "Cú pháp: admin eff <id> [typemove] [loop]. VD: admin eff 36 0 -1");
                     }
                 } else if (cmd.startsWith("rmeff ")) {
                     try {
@@ -4972,7 +5057,7 @@ public class Map implements Runnable {
             }
             return;
         }
-        
+
         // Lệnh sự kiện Trung Thu - cho tất cả người chơi
         if (txt.equals("trungthu") || txt.equals("ghép") || txt.equals("ghep")) {
             if (EventTrungThu.isEvent()) {
@@ -4994,7 +5079,7 @@ public class Map implements Runnable {
             }
             return;
         }
-        
+
         this.send_chat_popup(0, p.index_map, s, false);
     }
 
@@ -5247,7 +5332,8 @@ public class Map implements Runnable {
                     msgDH.writer().writeInt(DanhHieu.get_Id(p0.id_danh_hieu_su_dung).nframe);
                     p.conn.addmsg(msgDH);
                     msgDH.cleanup();
-                    System.out.println("[DanhHieu Debug] Map send title of " + p0.name + " to " + p.name + " successful");
+                    System.out
+                            .println("[DanhHieu Debug] Map send title of " + p0.name + " to " + p.name + " successful");
                 }
             } catch (Exception e) {
                 System.err.println("[DanhHieu Error] Error map send title 1: " + e.getMessage());
@@ -5265,7 +5351,8 @@ public class Map implements Runnable {
                     msgDH2.writer().writeInt(DanhHieu.get_Id(p.id_danh_hieu_su_dung).nframe);
                     p0.conn.addmsg(msgDH2);
                     msgDH2.cleanup();
-                    System.out.println("[DanhHieu Debug] Map send title of " + p.name + " to " + p0.name + " successful");
+                    System.out
+                            .println("[DanhHieu Debug] Map send title of " + p.name + " to " + p0.name + " successful");
                 }
             } catch (Exception e) {
                 System.err.println("[DanhHieu Error] Error map send title 2: " + e.getMessage());
@@ -5656,7 +5743,8 @@ public class Map implements Runnable {
 
     public void send_data(Player p) throws IOException {
         // [DEBUG HAKI] Log khi gui map data
-        System.out.println("[DEBUG HAKI] send_data - mapId: " + this.template.id + ", zone: " + this.zone_id + ", player: " + p.name);
+        System.out.println("[DEBUG HAKI] send_data - mapId: " + this.template.id + ", zone: " + this.zone_id
+                + ", player: " + p.name);
         Message m = new Message(0);
         m.writer().writeShort(this.template.id);
         m.writer().writeByte(this.zone_id);
