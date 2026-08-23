@@ -17,6 +17,8 @@ import core.Service;
 import core.Util;
 import database.SQL;
 import io.SessionManager;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONValue;
 
 /**
  * Quản lý tính năng NPC Ngân Hàng:
@@ -551,16 +553,26 @@ public class Bank {
                 return;
             }
 
-            // Tính toán cấp VIP mới
-            psSelectTichNap = conn.prepareStatement("SELECT `tichnap`, `vip` FROM `accounts` WHERE BINARY `user` = ? LIMIT 1;");
+            // Tính toán cấp VIP mới & lấy danh sách nhân vật
+            psSelectTichNap = conn.prepareStatement("SELECT `tichnap`, `vip`, `char` FROM `accounts` WHERE BINARY `user` = ? LIMIT 1;");
             psSelectTichNap.setString(1, targetUser);
             rs.close();
             rs = psSelectTichNap.executeQuery();
             int newTichNap = 0;
             int currentVip = 0;
+            String charNameFromAcc = null;
             if (rs.next()) {
                 newTichNap = rs.getInt("tichnap");
                 currentVip = rs.getInt("vip");
+                try {
+                    String charStr = rs.getString("char");
+                    if (charStr != null && !charStr.trim().isEmpty()) {
+                        JSONArray jsChar = (JSONArray) JSONValue.parse(charStr);
+                        if (jsChar != null && jsChar.size() > 0) {
+                            charNameFromAcc = jsChar.get(0).toString();
+                        }
+                    }
+                } catch (Exception e) {}
             }
             int newVip = calculateVip(newTichNap);
             if (newVip > currentVip) {
@@ -574,6 +586,7 @@ public class Bank {
 
             // Đồng bộ trực tiếp với Session đang online nếu có
             boolean isOnline = false;
+            String playerName = null;
             synchronized (SessionManager.CLIENT_ENTRYS) {
                 for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
                     io.Session sess = SessionManager.CLIENT_ENTRYS.get(i);
@@ -586,6 +599,9 @@ public class Bank {
                             sess.vip = newVip;
                         }
                         if (sess.p != null) {
+                            if (sess.p.name != null && !sess.p.name.trim().isEmpty()) {
+                                playerName = sess.p.name;
+                            }
                             try {
                                 sess.p.update_money();
                                 activities.ListTichNap.syncAccountTichNap(sess.p);
@@ -606,15 +622,43 @@ public class Bank {
                 }
             }
 
+            // Truy vấn tên nhân vật từ bảng `players` nếu người chơi đang offline
+            if (playerName == null || playerName.trim().isEmpty()) {
+                if (charNameFromAcc != null && !charNameFromAcc.trim().isEmpty()) {
+                    PreparedStatement psPlayer = null;
+                    ResultSet rsPlayer = null;
+                    try {
+                        psPlayer = conn.prepareStatement("SELECT `name` FROM `players` WHERE BINARY `name` = ? LIMIT 1;");
+                        psPlayer.setString(1, charNameFromAcc);
+                        rsPlayer = psPlayer.executeQuery();
+                        if (rsPlayer.next()) {
+                            playerName = rsPlayer.getString("name");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            if (rsPlayer != null) rsPlayer.close();
+                            if (psPlayer != null) psPlayer.close();
+                        } catch (Exception e) {}
+                    }
+                }
+            }
+
+            // Fallback nếu tài khoản chưa tạo nhân vật
+            if (playerName == null || playerName.trim().isEmpty()) {
+                playerName = (charNameFromAcc != null && !charNameFromAcc.trim().isEmpty()) ? charNameFromAcc : targetUser;
+            }
+
             String adminMultiplierNote = DEPOSIT_MULTIPLIER > 1
                     ? " (x" + DEPOSIT_MULTIPLIER + " → +" + Util.number_format(coinGain) + " Coin)"
                     : "";
             Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã duyệt thành công đơn nạp " + Util.number_format(targetAmount)
-                    + " VNĐ cho tài khoản [" + targetUser + "]!" + adminMultiplierNote
+                    + " VNĐ cho nhân vật [" + playerName + "] (Tài khoản: " + targetUser + ")!" + adminMultiplierNote
                     + (isOnline ? " (Người chơi đang Online)" : " (Người chơi Offline)"));
 
             // Thông báo toàn server
-            Manager.gI().chatKTG(0, "Thông báo: Người chơi [" + targetUser + "] vừa nạp thành công " + Util.number_format(targetAmount) + " VNĐ vào Ngân Hàng!", 5);
+            Manager.gI().chatKTG(0, "Thông báo: Người chơi [" + playerName + "] vừa nạp thành công " + Util.number_format(targetAmount) + " VNĐ vào Ngân Hàng!", 5);
 
             // Xóa cache danh sách để tải lại lần sau
             PENDING_MAP.remove(adminPlayer.name);
