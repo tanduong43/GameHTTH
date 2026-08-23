@@ -33,19 +33,19 @@ public class DataTemplate {
                         "Gạt Hưu", "Tai Thỏ", "Lông Cò Trắng", "Mang cá Mập", "Răng Thuồng Luồng",
                         "Vali tiền", "Chìa khóa"};
         public final static String[] AttriKichAn = new String[] {
-                        "Bất tử\nKhi nhận đòn đánh sẽ ngẩu nhiên kích hoạt né chiêu và bất tử trong 5s.Hồi chiêu: 60s.",
-                        "Lời cảm ơn\nKhi nhận đòn đánh sẽ ngẩu nhiên kích hoạt né chiêu và hút 20% sát thương chuyển thành máu. Hồi chiêu: 60s.",
-                        "Là chắn\nKhi nhận đòn đánh sẽ ngẩu nhiên kích hoạt né chiêu và làm choáng lại đối thủ 5s.Hồi chiêu: 60s.",
-                        "Khóa năng lượng\nKhi nhận đòn đánh sẽ ngẩu nhiên kích hoạt né chiêu đồng thời hút hết năng lượng của đối thủ. "
+                        "Bất tử\nKhi nhận đòn đánh sẽ ngẫu nhiên kích hoạt né chiêu và bất tử trong 5s. Hồi chiêu: 60s.",
+                        "Lời cảm ơn\nKhi nhận đòn đánh sẽ ngẫu nhiên kích hoạt né chiêu và hút 20% sát thương chuyển thành máu. Hồi chiêu: 60s.",
+                        "Lá chắn\nKhi nhận đòn đánh sẽ ngẫu nhiên kích hoạt né chiêu và làm choáng lại đối thủ 5s. Hồi chiêu: 60s.",
+                        "Khóa năng lượng\nKhi nhận đòn đánh sẽ ngẫu nhiên kích hoạt né chiêu đồng thời hút hết năng lượng của đối thủ. "
                                         + "Hồi chiêu: 60s.",
-                        "Bộc phá\nKhi tung chiêu sẽ ngẩu nhiên kích hoạt tăng 50% sát thương. Hồi chiêu: 60s.",
-                        "Tập trung cao độ\nKhi tung chiêu sẽ ngẩu nhiên kích hoạt liên hoàn Chí mạng trong 10s. Hồi chiêu: 60s.",
-                        "Ma cà rồng\nKhi tung chiêu sẽ ngẩu nhiên kích hoạt biến 20% sát thương thành máu. Hồi chiêu: 60s.",
+                        "Bộc phá\nKhi tung chiêu sẽ ngẫu nhiên kích hoạt tăng 50% sát thương. Hồi chiêu: 60s.",
+                        "Tập trung cao độ\nKhi tung chiêu sẽ ngẫu nhiên kích hoạt liên hoàn Chí mạng trong 10s. Hồi chiêu: 60s.",
+                        "Ma cà rồng\nKhi tung chiêu sẽ ngẫu nhiên kích hoạt biến 20% sát thương thành máu. Hồi chiêu: 60s.",
                         "Đánh là choáng\nKhi tung đủ chiêu thức sẽ kích hoạt choáng đối thủ 5s. Hồi chiêu: 60s.",
-                        "Thanh lọc\nKhi tung đủ chiêu thức sẽ kích hoạt thời gian của tất cả chiêu thức về 0.Hồi chiêu: 60s.",
+                        "Thanh lọc\nKhi tung đủ chiêu thức sẽ kích hoạt thời gian của tất cả chiêu thức về 0. Hồi chiêu: 60s.",
                         "Nén đau\nKhi nhận đủ chiêu từ đối phương sẽ kích hoạt thời gian của tất cả chiêu thức về 0. Hồi chiêu: 60s.",
                         "Giải phóng năng lượng\nKhi nhận đủ chiêu từ đối phương sẽ kích hoạt làm choáng đối thủ trong 5s. Hồi chiêu: 60s.",
-                        "Người bất tử\nMỗi đòn đánh vời đối phương sẽ hút về 1% máu tối đa.",
+                        "Người bất tử\nMỗi đòn đánh với đối phương sẽ hút về 1% máu tối đa.",
                         "Mở khóa\nTrang bị này sẽ không bao giờ bị khóa.",};
         public final static int[][] mSea = new int[][] { //
                         new int[] {6, 7, 2, 370, 155, -1}, //
