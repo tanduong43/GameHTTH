@@ -1030,8 +1030,10 @@ public class MessageHandler {
                 }
                 conn.p.dungeon = null;
             }
-            // Safety check: nếu out game khi đang trong Map Đấu Trường (2026) hoặc Đảo Ruby (1001) thì khi vào lại chuyển về Làng Cối Xay Gió (Map 1)
-            if (conn.p.map != null && (conn.p.map.template.id == 2026 || conn.p.map.template.id == 1001)) {
+            // Safety check: nếu out game khi đang trong Map Đấu Trường (2026), Đảo Ruby (1001), Luyện Haki (2000), Đảo Huấn Luyện Pet (2028) thì khi vào lại chuyển về Làng Cối Xay Gió (Map 1)
+            if (conn.p.map != null && (conn.p.map.template.id == 2026 || conn.p.map.template.id == 1001
+                    || conn.p.map.template.id == 2000 || conn.p.map.template.id == 2028
+                    || conn.p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID)) {
                 System.out.println("[MapRedirect] Login safety: player " + conn.p.name
                         + " logged in while in map (" + conn.p.map.template.id + "), redirecting to Windmill Village (Map 1)");
                 map.Map[] villageMap = map.Map.get_map_by_id(1);
@@ -1041,6 +1043,11 @@ public class MessageHandler {
                     conn.p.y = 250;
                 }
                 conn.p.type_pk = -1;
+                if (conn.p.isdie) {
+                    conn.p.isdie = false;
+                    conn.p.hp = conn.p.body.get_hp_max(true);
+                    conn.p.mp = conn.p.body.get_mp_max(true);
+                }
             }
 
             // Safety check: nếu out game khi đang trong Map Đảo Đào Hoa (2027) thì khi vào lại chuyển về Nhà hàng Baratie (Map 33)

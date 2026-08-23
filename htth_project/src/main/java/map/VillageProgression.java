@@ -72,7 +72,7 @@ public class VillageProgression {
     public static boolean isSpecialBypassMap(int mapId) {
         return mapId == 1000 || mapId == 1001 || mapId == 1002 || mapId == 2000 || mapId == 2027 || mapId == 2028
                 || mapId == 123 || (mapId >= 167 && mapId <= 176) || (mapId >= 500 && mapId <= 512)
-                || mapId == 62;
+                || mapId == 62 || activities.BossHunt.isBossHuntMap(mapId);
     }
 
     /**
@@ -111,46 +111,69 @@ public class VillageProgression {
      * Kiểm tra xem Boss đó có phải là Boss chốt mốc để thăng Tier cho người chơi không.
      */
     public static void onBossKilled(Player p, Mob mobTarget, Map map) {
-        if (p == null || mobTarget == null || map == null) return;
+        if (mobTarget == null || map == null) return;
         int mapId = map.template.id;
+
+        // Không tính qua làng khi đang trong phó bản Săn Trùm (BossHunt) hoặc các phó bản khác
+        if (map.map_bossHunt != null || activities.BossHunt.isBossHuntMap(mapId)
+                || (p != null && p.bossHunt != null) || Map.is_map_dungeon(mapId)) {
+            return;
+        }
 
         // Xác định mốc hiện tại dựa theo map của boss
         int unlockTier = 0;
         String bossName = mobTarget.mob_template != null ? mobTarget.mob_template.name : "Boss";
         String unlockedVillages = "";
 
-        // Mốc 1 -> 2: Boss ở vùng Orange (Maps 17 - 24)
-        if (mapId >= 17 && mapId <= 24) {
+        // Mốc 1 -> 2: Boss ở các Maps 1 - 24 (Vùng Orange, Vỏ Sò, Cối Xay Gió)
+        if (mapId >= 1 && mapId <= 24) {
             unlockTier = 2;
             unlockedVillages = "Làng Syrup, Nhà Hàng Baratie, Làng Hạt Dẻ";
         }
-        // Mốc 2 -> 3: Boss ở vùng Làng Hạt Dẻ (Maps 41 - 48)
-        else if (mapId >= 41 && mapId <= 48) {
+        // Mốc 2 -> 3: Boss ở các Maps 25 - 48 (Vùng Syrup, Baratie, Hạt Dẻ)
+        else if (mapId >= 25 && mapId <= 48) {
             unlockTier = 3;
             unlockedVillages = "Thị Trấn Khởi Đầu, Mỏm Sinh Đôi, Núi Đảo Nghịch";
         }
-        // Mốc 3 -> 4: Boss ở vùng Núi Đảo Nghịch / Loguetown (Maps 49 - 78)
+        // Mốc 3 -> 4: Boss ở các Maps 49 - 78 (Vùng Núi Đảo Nghịch / Loguetown)
         else if (mapId >= 49 && mapId <= 78) {
             unlockTier = 4;
             unlockedVillages = "Thị Trấn Whiskey, Little Garden, Đảo Cự Nhân";
         }
-        // Mốc 4 -> 5: Boss ở vùng Cự Nhân / Little Garden (Maps 83 - 106)
-        else if (mapId >= 83 && mapId <= 106) {
+        // Mốc 4 -> 5: Boss ở các Maps 79 - 106 (Vùng Whiskey, Little Garden, Cự Nhân)
+        else if (mapId >= 79 && mapId <= 106) {
+            unlockTier = 5;
+            unlockedVillages = "Đảo Drum, Vương Quốc Alabasta, Đảo Trên Trời";
+        }
+        // Mốc 5+: Boss ở các Maps 107+ (Drum, Alabasta, Skypiea, v.v.)
+        else if (mapId >= 107) {
             unlockTier = 5;
             unlockedVillages = "Đảo Drum, Vương Quốc Alabasta, Đảo Trên Trời";
         }
 
         if (unlockTier > 0) {
-            // Thăng cấp cho người tiêu diệt
-            applyTierUnlock(p, unlockTier, bossName, unlockedVillages);
+            // Thăng cấp cho tất cả người chơi có mặt trong Map khi Boss bị tiêu diệt
+            if (map.players != null) {
+                for (int i = 0; i < map.players.size(); i++) {
+                    Player pl = map.players.get(i);
+                    if (pl != null && pl.conn != null) {
+                        applyTierUnlock(pl, unlockTier, bossName, unlockedVillages);
+                    }
+                }
+            }
 
-            // Nếu người chơi có Party, kiểm tra và thăng cấp cho các thành viên trong cùng map
-            if (p.party != null) {
-                for (Player memInList : p.party.list) {
-                    if (memInList != null && !memInList.name.equals(p.name)) {
-                        Player member = Map.get_player_by_name_allmap(memInList.name);
-                        if (member != null && member.map != null && member.map.equals(p.map)) {
-                            applyTierUnlock(member, unlockTier, bossName, unlockedVillages);
+            // Thăng cấp cho người tiêu diệt trực tiếp (đảm bảo không sót)
+            if (p != null) {
+                applyTierUnlock(p, unlockTier, bossName, unlockedVillages);
+
+                // Thăng cấp cho tất cả thành viên trong Party
+                if (p.party != null && p.party.list != null) {
+                    for (Player memInList : p.party.list) {
+                        if (memInList != null) {
+                            Player member = Map.get_player_by_name_allmap(memInList.name);
+                            if (member != null && member.conn != null) {
+                                applyTierUnlock(member, unlockTier, bossName, unlockedVillages);
+                            }
                         }
                     }
                 }
@@ -159,7 +182,7 @@ public class VillageProgression {
     }
 
     private static void applyTierUnlock(Player pl, int newTier, String bossName, String unlockedVillages) {
-        if (pl != null && pl.village_tier == newTier - 1) {
+        if (pl != null && pl.village_tier < newTier) {
             pl.village_tier = (byte) newTier;
             try {
                 Service.send_box_ThongBao_OK(pl,

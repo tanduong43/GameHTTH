@@ -554,9 +554,12 @@ public class Player {
             int savedMapId = Integer.parseInt(js.get(0).toString());
             boolean wasBossHuntMap = activities.BossHunt.isBossHuntMap(savedMapId);
             boolean wasNamieMap = activities.NamieTreasureDefense.isDefenseMap(savedMapId);
-            if (wasBossHuntMap) {
-                System.out.println("[BossHunt] Player " + this.name + " saved map was BossHunt map (" + savedMapId
-                        + "). Redirecting to map 1 (Village).");
+            boolean wasSpecialRedirectMap = (savedMapId == 2000 || savedMapId == 2028 
+                    || savedMapId == activities.PetTraining.MAP_TRAIN_PET_ID 
+                    || savedMapId == 2026 || savedMapId == 1001);
+            if (wasBossHuntMap || wasSpecialRedirectMap) {
+                System.out.println("[MapRedirect] Player " + this.name + " saved map was (" + savedMapId
+                        + "). Redirecting to map 1 (Windmill Village).");
                 savedMapId = 1;
             }
             if (wasNamieMap) {
@@ -576,8 +579,8 @@ public class Player {
             this.map = map[zone_goto];
             this.hp = Integer.parseInt(js.get(2).toString());
             this.mp = Integer.parseInt(js.get(3).toString());
-            if (wasBossHuntMap || wasNamieMap) {
-                x = 300;
+            if (wasBossHuntMap || wasNamieMap || wasSpecialRedirectMap) {
+                x = 611;
                 y = 250;
             } else {
                 x = Short.parseShort(js.get(4).toString());
@@ -1016,7 +1019,16 @@ public class Player {
             js.clear();
             ps.setNString(2, p.date.toString());
             js = new JSONArray();
-            if (Map.map_cant_save_site(p.map.template.id)) {
+            if (p.map.template.id == 2000 || p.map.template.id == 2028
+                    || p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID
+                    || p.map.template.id == 2026 || p.map.template.id == 1001) {
+                js.add(1);
+                js.add(0);
+                js.add(p.hp);
+                js.add(p.mp);
+                js.add(611);
+                js.add(250);
+            } else if (Map.map_cant_save_site(p.map.template.id)) {
                 //
                 int x_save = -1, y_save = -1;
                 Map[] map_get = Map.get_map_by_id(p.id_map_save);

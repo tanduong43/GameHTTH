@@ -4137,8 +4137,11 @@ public class Map implements Runnable {
                                 + " | LevelBoss: " + boss.levelBoss
                                 + " | Village/Map ID: " + this.template.id);
 
-                        // Kích hoạt tiến trình mở khóa làng khi tiêu diệt boss
-                        VillageProgression.onBossKilled(p, mob_target, this);
+                        // Kích hoạt tiến trình mở khóa làng khi tiêu diệt boss (loại trừ phó bản BossHunt)
+                        if (this.map_bossHunt == null && !activities.BossHunt.isBossHuntMap(this.template.id)
+                                && (p == null || p.bossHunt == null)) {
+                            VillageProgression.onBossKilled(p, mob_target, this);
+                        }
 
                         String notice = "Tiêu diệt siêu trùm nhận: ";
                         List<GiftBox> list_gift = new ArrayList<>();
@@ -5436,6 +5439,7 @@ public class Map implements Runnable {
         }
         return check || id == 64 || id == 984 || id == 1000 || id == 9998 || id == 9999 || id == 115
                 || id == 81 || id == 120 || id == 122 || id == 123 || id == 119 || id == 58
+                || id == 2000 || id == 2028 || id == 2026 || id == 1001
                 || Map.is_map_boss(id) || Map.is_map_dungeon(id)
                 || activities.BossHunt.isBossHuntMap(id);
     }
@@ -5825,6 +5829,18 @@ public class Map implements Runnable {
             }
             if (this.template.id == 2026) {
                 this.change_flag(p, 3); // Tự động bật Cờ Đen khi vào Đấu Trường Sinh Tồn
+            }
+            if (this.template.id == activities.PetTraining.MAP_TRAIN_PET_ID || this.template.id == 2028) {
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(3000L);
+                        if (p != null && p.conn != null && p.map != null
+                                && (p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID || p.map.template.id == 2028)) {
+                            Service.send_box_ThongBao_OK(p, "Lưu ý: Bạn cần phải BẬT CỜ ĐEN (Cờ Đồ Sát) thì Thú Cưng mới có thể nhận EXP Huấn Luyện!");
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }, "PetTrainNotifyDelay").start();
             }
             if (this.map_pvp_clan != null) {
                 activities.PvpClan.send_pvp_clan_score(p, this);
