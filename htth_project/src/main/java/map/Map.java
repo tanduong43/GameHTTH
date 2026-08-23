@@ -2833,7 +2833,7 @@ public class Map implements Runnable {
             if (exp_up != null) { // update exp
                 if (this.template.id == 2000) {
                     p.haki_monster_killed += 1;
-                    if (p.haki_monster_killed == 1000) {
+                    if (p.haki_monster_killed == 10) {
                         Skill_info hq = new Skill_info();
                         hq.temp = Skill_Template.get_temp(900, -1);
                         if (hq.temp != null && Skill_Template.learn_skill(hq)) {
@@ -2844,7 +2844,7 @@ public class Map implements Runnable {
                             } catch (Exception e) {
                             }
                         }
-                    } else if (p.haki_monster_killed == 1500) {
+                    } else if (p.haki_monster_killed == 15) {
                         Skill_info hv = new Skill_info();
                         hv.temp = Skill_Template.get_temp(901, -1);
                         if (hv.temp != null && Skill_Template.learn_skill(hv)) {
@@ -2855,7 +2855,7 @@ public class Map implements Runnable {
                             } catch (Exception e) {
                             }
                         }
-                    } else if (p.haki_monster_killed == 2000) {
+                    } else if (p.haki_monster_killed == 20) {
                         Skill_info hb = new Skill_info();
                         hb.temp = Skill_Template.get_temp(902, -1);
                         if (hb.temp != null && Skill_Template.learn_skill(hb)) {

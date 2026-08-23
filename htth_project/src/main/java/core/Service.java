@@ -2418,22 +2418,22 @@ public class Service {
         }
     }
 
-    public static void send_eff_haki(Player p, short effId, int time) throws IOException {
+    private static void send_eff_haki_once(Player p, short effId, int time) {
         if (p == null || p.map == null)
             return;
 
-        // FIX: chụp snapshot danh sách player trong khối synchronized(p.map),
-        // vì Map.players.add()/remove() (khi player join/leave map) đang được
-        // khoá bằng synchronized(this) ở map/Map.java. Nếu duyệt trực tiếp
-        // p.map.players mà không khoá, việc join/leave map cùng lúc có thể
-        // ném ConcurrentModificationException giữa vòng lặp, làm ngắt ngang
-        // việc gửi hiệu ứng -> chỉ một phần người chơi nhận được hiệu ứng
-        // (đây là nguyên nhân hiện tượng "lúc hiện lúc không").
+        // Chụp snapshot danh sách player trong khối synchronized(p.map), vì
+        // Map.players.add()/remove() (khi player join/leave map) đang được khoá
+        // bằng synchronized(this) ở map/Map.java. Nếu duyệt trực tiếp
+        // p.map.players mà không khoá, việc join/leave map cùng lúc có thể ném
+        // ConcurrentModificationException giữa vòng lặp, làm ngắt ngang việc gửi
+        // hiệu ứng -> chỉ một phần người chơi nhận được hiệu ứng.
         java.util.List<Player> snapshot;
         synchronized (p.map) {
             snapshot = new java.util.ArrayList<>(p.map.players);
         }
 
+        int sentCount = 0;
         // Gửi DATA + lệnh PLAY cho từng player riêng lẻ theo đúng thứ tự:
         // DATA trước → PLAY sau. Cách này tránh race condition khi gửi cho tất cả
         // vì addmsg là queue nên đảm bảo thứ tự trong cùng 1 connection.
@@ -2453,13 +2453,42 @@ public class Service {
                 mPlay.writer().writeByte(-1); // loop: -1 (lặp liên tục)
                 p0.conn.addmsg(mPlay);
                 mPlay.cleanup();
+                sentCount++;
             } catch (Exception e) {
-                // FIX: bọc cả send_effect_data() vào try-catch này (trước đây nó nằm
-                // ngoài try-catch), để 1 connection lỗi không làm gãy cả vòng lặp và
-                // bỏ lỡ hiệu ứng của những player còn lại phía sau trong danh sách.
+                // Bọc cả send_effect_data() vào try-catch này để 1 connection lỗi không
+                // làm gãy cả vòng lặp và bỏ lỡ hiệu ứng của những player còn lại.
                 e.printStackTrace();
             }
         }
+        System.out.println("[Haki Debug] send_eff_haki_once caster=" + p.name + " effId=" + effId
+                + " -> sent to " + sentCount + "/" + snapshot.size() + " player(s) in map");
+    }
+
+    public static void send_eff_haki(Player p, short effId, int time) throws IOException {
+        if (p == null || p.map == null)
+            return;
+        final int t = time > 0 ? time : 20000;
+
+        // Gửi lần 1 ngay lập tức.
+        send_eff_haki_once(p, effId, t);
+
+        // FIX: Gửi lặp lại lần 2 sau một khoảng trễ nhỏ. Đây là biện pháp phòng
+        // ngừa race/timing phía client (client J2ME cũ đôi khi bỏ lỡ gói do độ
+        // trễ mạng hoặc do nhiều gói đến gần như cùng lúc). Vì loop 20 (byte -1)
+        // nên gửi lại không gây giật hình, chỉ đảm bảo chắc chắn hiển thị.
+        final Player pf = p;
+        final short effIdF = effId;
+        Thread resend = new Thread(() -> {
+            try {
+                Thread.sleep(200);
+                send_eff_haki_once(pf, effIdF, t);
+            } catch (InterruptedException ignored) {
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, "haki-eff-resend");
+        resend.setDaemon(true);
+        resend.start();
     }
 
     public static void send_eff_haki(Player p, short effId) throws IOException {
@@ -2470,30 +2499,59 @@ public class Service {
         send_eff_haki(p, (short) 26, 20000);
     }
 
-    // FIX: Gói tin RIÊNG để client của chính người dùng skill tự vẽ hiệu ứng lên
+    private static void send_haki_self_effect_once(Player p, short idSkill, short idIcon, short effId, int time) {
+        if (p == null || p.conn == null)
+            return;
+        try {
+            Message m = new Message(20);
+            m.writer().writeByte(1);
+            m.writer().writeShort(idSkill);
+            m.writer().writeShort(p.index_map);
+            m.writer().writeByte(0);
+            m.writer().writeShort(idIcon);
+            m.writer().writeShort(effId);
+            m.writer().writeInt(time > 0 ? time : 20000);
+            m.writer().writeByte(0);
+            m.writer().writeByte(1);
+            m.writer().writeShort(p.index_map);
+            m.writer().writeByte(0); // không có option buff nào kèm theo ở đường này
+            p.conn.addmsg(m);
+            m.cleanup();
+            System.out.println("[Haki Debug] send_haki_self_effect_once caster=" + p.name + " effId=" + effId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Gói tin RIÊNG để client của chính người dùng skill tự vẽ hiệu ứng lên
     // nhân vật mình. Đây là kênh khác hoàn toàn với send_eff_haki() (opcode 74,
-    // broadcast cho người khác thấy). Trước đây chỉ có client/Buff.java gửi gói
-    // này, còn map/Map.java (use_skill - đường kích hoạt khi đang có mục tiêu
-    // được chọn) không gửi, khiến người bấm skill không tự thấy hiệu ứng dù
-    // người khác vẫn thấy bình thường.
+    // broadcast cho người khác thấy).
     public static void send_haki_self_effect(Player p, short idSkill, short idIcon, short effId, int time)
             throws IOException {
         if (p == null || p.conn == null)
             return;
-        Message m = new Message(20);
-        m.writer().writeByte(1);
-        m.writer().writeShort(idSkill);
-        m.writer().writeShort(p.index_map);
-        m.writer().writeByte(0);
-        m.writer().writeShort(idIcon);
-        m.writer().writeShort(effId);
-        m.writer().writeInt(time > 0 ? time : 20000);
-        m.writer().writeByte(0);
-        m.writer().writeByte(1);
-        m.writer().writeShort(p.index_map);
-        m.writer().writeByte(0); // không có option buff nào kèm theo ở đường này
-        p.conn.addmsg(m);
-        m.cleanup();
+        final int t = time > 0 ? time : 20000;
+
+        // Gửi lần 1 ngay lập tức.
+        send_haki_self_effect_once(p, idSkill, idIcon, effId, t);
+
+        // FIX: Gửi lặp lại lần 2 sau một khoảng trễ nhỏ, cùng lý do như
+        // send_eff_haki() ở trên - phòng ngừa race/timing phía client.
+        final Player pf = p;
+        final short idSkillF = idSkill;
+        final short idIconF = idIcon;
+        final short effIdF = effId;
+        Thread resend = new Thread(() -> {
+            try {
+                Thread.sleep(200);
+                send_haki_self_effect_once(pf, idSkillF, idIconF, effIdF, t);
+            } catch (InterruptedException ignored) {
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, "haki-self-eff-resend");
+        resend.setDaemon(true);
+        resend.start();
     }
 
     public static void send_eff_sword_splash(int id, Player p) throws IOException {

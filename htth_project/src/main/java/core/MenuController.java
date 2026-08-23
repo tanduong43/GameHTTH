@@ -3207,14 +3207,14 @@ public class MenuController {
     sb.append("🗡️ TIẾN ĐỘ LUYỆN HAKI (MAP 2000)\n");
     sb.append("• Số quái đã hạ gục: ").append(p.haki_monster_killed).append(" con\n\n");
     sb.append("📌 Các mốc lĩnh ngộ Haki:\n");
-    sb.append("• 1.000 quái: Haki Quan Sát ")
-        .append(p.haki_monster_killed >= 1000 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/1.000)"))
+    sb.append("• 10 quái: Haki Quan Sát ")
+        .append(p.haki_monster_killed >= 10 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/10)"))
         .append("\n");
-    sb.append("• 1.500 quái: Haki Vũ Trang ")
-        .append(p.haki_monster_killed >= 1500 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/1.500)"))
+    sb.append("• 15 quái: Haki Vũ Trang ")
+        .append(p.haki_monster_killed >= 15 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/15)"))
         .append("\n");
-    sb.append("• 2.000 quái: Haki Bá Vương ")
-        .append(p.haki_monster_killed >= 2000 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/2.000)"))
+    sb.append("• 20 quái: Haki Bá Vương ")
+        .append(p.haki_monster_killed >= 20 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/20)"))
         .append("\n\n");
     sb.append("💡 Sau khi mở khóa, tiếp tục hạ quái tại Đảo Luyện Haki để tích EXP thăng cấp kỹ năng Haki!");
     Service.send_box_ThongBao_OK(p, sb.toString());
