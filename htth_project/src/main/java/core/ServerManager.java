@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import io.GameWebSocketServer;
 import io.Session;
 import io.SessionManager;
 
@@ -17,6 +18,7 @@ public class ServerManager implements Runnable {
     private ServerEventManager serverEventManager;
     private boolean running;
     private ServerSocket server;
+    private GameWebSocketServer wsServer;
     private final long time;
 
     public ServerManager() {
@@ -50,6 +52,17 @@ public class ServerManager implements Runnable {
         //
         serverEventManager = new ServerEventManager();
         serverEventManager.init();
+
+        // Start WebSocket server for WebGL clients
+        try {
+            int wsPort = Manager.gI().ws_port;
+            wsServer = new GameWebSocketServer(wsPort);
+            wsServer.start();
+            System.out.println("LISTEN WS PORT " + wsPort + "...");
+        } catch (Exception e) {
+            System.err.println("Failed to start WebSocket server: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void run() {
@@ -78,6 +91,9 @@ public class ServerManager implements Runnable {
         serverEventManager.close();
         running = false;
         server.close();
+        if (wsServer != null) {
+            wsServer.shutdown();
+        }
         instance = null;
     }
 
@@ -85,3 +101,4 @@ public class ServerManager implements Runnable {
         return this.server;
     }
 }
+

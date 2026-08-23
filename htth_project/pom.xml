@@ -78,6 +78,13 @@
             <version>2.13.0</version>
         </dependency>
 
+        <!-- WebSocket server for WebGL client support -->
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.6</version>
+        </dependency>
+
     </dependencies>
 
     <build>

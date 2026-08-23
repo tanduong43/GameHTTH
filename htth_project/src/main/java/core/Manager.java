@@ -38,6 +38,7 @@ public class Manager {
     public String mysql_user;
     public String mysql_pass;
     public int server_port;
+    public int ws_port;
     public int exp;
     public static int RATE_EXP = 1;
     public static int RATE_EXP_SKILL = 1;
@@ -1227,6 +1228,11 @@ public class Manager {
             this.max_ccu = Integer.parseInt(configMap.get("max-ccu"));
         } else {
             this.max_ccu = 500;
+        }
+        if (configMap.containsKey("ws-port")) {
+            this.ws_port = Integer.parseInt(configMap.get("ws-port"));
+        } else {
+            this.ws_port = this.server_port + 1;
         }
         // Event Trung Thu config
         if (configMap.containsKey("event-trung-thu")) {

@@ -39,16 +39,17 @@ import template.*;
  */
 public class Session implements Runnable {
     private static final byte[] KEYS = "truongbk@".getBytes();
-    private final Socket socket;
-    private DataInputStream dis;
-    private DataOutputStream dos;
-    private Thread sendd;
-    private Thread receiv;
+    protected static byte[] getKeys() { return KEYS; }
+    protected final Socket socket;
+    protected DataInputStream dis;
+    protected DataOutputStream dos;
+    protected Thread sendd;
+    protected Thread receiv;
     public boolean connected;
-    private final BlockingQueue<Message> list_msg;
-    private boolean sendKeyComplete;
-    private byte curR;
-    private byte curW;
+    protected final BlockingQueue<Message> list_msg;
+    protected boolean sendKeyComplete;
+    protected byte curR;
+    protected byte curW;
     public String user;
     public String pass;
     private final MessageHandler controller;
@@ -78,6 +79,18 @@ public class Session implements Runnable {
 
     public Session(Socket socket) {
         this.socket = socket;
+        this.list_msg = new LinkedBlockingQueue<Message>();
+        this.sendKeyComplete = false;
+        this.connected = false;
+        this.controller = new MessageHandler(this);
+    }
+
+    /**
+     * Protected constructor for subclasses (e.g. WebSocketSession)
+     * that don't use a TCP Socket.
+     */
+    protected Session() {
+        this.socket = null;
         this.list_msg = new LinkedBlockingQueue<Message>();
         this.sendKeyComplete = false;
         this.connected = false;
@@ -115,6 +128,14 @@ public class Session implements Runnable {
 
     public void disconnect() {
         SessionManager.client_disconnect(this);
+    }
+
+    /**
+     * Protected method for subclasses to process messages through the controller.
+     * Needed because the controller field is private.
+     */
+    protected void processMessageInternal(Message m) throws IOException {
+        controller.process_msg(m);
     }
 
     public void addmsg(Message m) throws IOException {
@@ -157,7 +178,7 @@ public class Session implements Runnable {
         }
     }
 
-    private void send_msg(Message msg) throws IOException {
+    protected void send_msg(Message msg) throws IOException {
         byte[] data = msg.getData();
         // Debug log cho packet -102 (Danh Hiệu)
         if (msg.cmd == -102) {
@@ -216,7 +237,7 @@ public class Session implements Runnable {
         msg.cleanup();
     }
 
-    private Message read_msg() throws IOException {
+    protected Message read_msg() throws IOException {
         byte cmd = dis.readByte();
         if (sendKeyComplete) {
             cmd = readKey(cmd);
@@ -246,7 +267,7 @@ public class Session implements Runnable {
         return new Message(cmd, data);
     }
 
-    private byte readKey(final byte b) {
+    protected byte readKey(final byte b) {
         final byte curR = this.curR;
         this.curR = (byte) (curR + 1);
         final byte i = (byte) ((KEYS[curR] & 0xFF) ^ (b & 0xFF));
@@ -256,7 +277,7 @@ public class Session implements Runnable {
         return i;
     }
 
-    private byte writeKey(final byte b) {
+    protected byte writeKey(final byte b) {
         final byte curW = this.curW;
         this.curW = (byte) (curW + 1);
         final byte i = (byte) ((KEYS[curW] & 0xFF) ^ (b & 0xFF));
@@ -1156,7 +1177,7 @@ public class Session implements Runnable {
             ss.receiv = null;
         }
         try {
-            if (!ss.socket.isClosed()) {
+            if (ss.socket != null && !ss.socket.isClosed()) {
                 ss.socket.close();
             }
         } catch (IOException e) {
