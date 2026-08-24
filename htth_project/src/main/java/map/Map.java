@@ -4561,6 +4561,8 @@ public class Map implements Runnable {
                         Service.send_gift(p, 0, "Phần thưởng Săn Quái", "Phần thưởng", listGift,
                                 true);
                         p.map_boss_info.mob.clear();
+                        // Kích hoạt tiến trình mở khóa qua làng khi tiêu diệt boss map 1.000 ruby
+                        VillageProgression.onBossKilled(p, mob_target, this);
                     }
                 }
                 // update exp

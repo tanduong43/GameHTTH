@@ -112,10 +112,15 @@ public class VillageProgression {
      * Kiểm tra xem Boss đó có phải là Boss chốt mốc để thăng Tier cho người chơi không.
      */
     public static void onBossKilled(Player p, Mob mobTarget, Map map) {
-        if (mobTarget == null || map == null) return;
+        if (mobTarget == null || map == null || p == null) return;
 
-        // Chỉ boss làng (thegioi == 2) mới kích hoạt mở khóa qua làng
-        if (mobTarget.boss_info == null || mobTarget.boss_info.thegioi != 2) {
+        // Kích hoạt khi tiêu diệt:
+        // 1. Boss làng thế giới (thegioi == 2)
+        // 2. Boss map cuối làng 1.000 ruby (Map.is_map_boss)
+        boolean isWorldVillageBoss = (mobTarget.boss_info != null && mobTarget.boss_info.thegioi == 2);
+        boolean isMapBossRuby = Map.is_map_boss(map.template.id);
+
+        if (!isWorldVillageBoss && !isMapBossRuby) {
             return;
         }
 
@@ -123,7 +128,7 @@ public class VillageProgression {
 
         // Không tính qua làng khi đang trong phó bản Săn Trùm (BossHunt) hoặc các phó bản khác
         if (map.map_bossHunt != null || activities.BossHunt.isBossHuntMap(mapId)
-                || isSpecialBypassMap(mapId) || (p != null && p.bossHunt != null) || Map.is_map_dungeon(mapId)) {
+                || isSpecialBypassMap(mapId) || p.bossHunt != null || Map.is_map_dungeon(mapId)) {
             return;
         }
 
@@ -158,33 +163,9 @@ public class VillageProgression {
             unlockedVillages = "Đảo Drum, Vương Quốc Alabasta, Đảo Trên Trời";
         }
 
-        if (unlockTier > 0) {
-            // Thăng cấp cho tất cả người chơi có mặt trong Map khi Boss bị tiêu diệt
-            if (map.players != null) {
-                for (int i = 0; i < map.players.size(); i++) {
-                    Player pl = map.players.get(i);
-                    if (pl != null && pl.conn != null) {
-                        applyTierUnlock(pl, unlockTier, bossName, unlockedVillages);
-                    }
-                }
-            }
-
-            // Thăng cấp cho người tiêu diệt trực tiếp (đảm bảo không sót)
-            if (p != null) {
-                applyTierUnlock(p, unlockTier, bossName, unlockedVillages);
-
-                // Thăng cấp cho tất cả thành viên trong Party
-                if (p.party != null && p.party.list != null) {
-                    for (Player memInList : p.party.list) {
-                        if (memInList != null) {
-                            Player member = Map.get_player_by_name_allmap(memInList.name);
-                            if (member != null && member.conn != null) {
-                                applyTierUnlock(member, unlockTier, bossName, unlockedVillages);
-                            }
-                        }
-                    }
-                }
-            }
+        if (unlockTier > 0 && p != null && p.conn != null) {
+            // Chỉ thăng cấp mở khóa qua làng cho người trực tiếp tiêu diệt Boss
+            applyTierUnlock(p, unlockTier, bossName, unlockedVillages);
         }
     }
 
