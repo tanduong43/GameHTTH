@@ -4137,8 +4137,8 @@ public class Map implements Runnable {
                                 + " | LevelBoss: " + boss.levelBoss
                                 + " | Village/Map ID: " + this.template.id);
 
-                        // Kích hoạt tiến trình mở khóa làng khi tiêu diệt boss (loại trừ phó bản BossHunt)
-                        if (this.map_bossHunt == null && !activities.BossHunt.isBossHuntMap(this.template.id)
+                        // Kích hoạt tiến trình mở khóa làng khi tiêu diệt boss làng (thegioi == 2) (loại trừ phó bản BossHunt)
+                        if (boss.thegioi == 2 && this.map_bossHunt == null && !activities.BossHunt.isBossHuntMap(this.template.id)
                                 && (p == null || p.bossHunt == null)) {
                             VillageProgression.onBossKilled(p, mob_target, this);
                         }

@@ -552,33 +552,43 @@ public class Session implements Runnable {
                 String path = "data/datafromsver/x" + this.zoomlv;
                 File folder = new File(path);
                 if (folder.isDirectory()) {
-                    File[] files = folder.listFiles();
-                    Arrays.sort(files, new Comparator<File>() {
-                        @Override
-                        public int compare(File o1, File o2) {
-                            int name1 = solve_name(o1.getName());
-                            int name2 = solve_name(o2.getName());
-                            return (name1 > name2) ? 1 : -1;
-                        }
-
-                        private int solve_name(String name) {
-                            String num = "";
-                            for (int i = 0; i < name.length(); i++) {
-                                if (name.charAt(i) == '_') {
-                                    break;
-                                }
-                                num += name.charAt(i);
+                    File[] files = folder.listFiles((dir, name) -> name != null && name.contains("_msg_"));
+                    if (files != null && files.length > 0) {
+                        Arrays.sort(files, new Comparator<File>() {
+                            @Override
+                            public int compare(File o1, File o2) {
+                                int name1 = solve_name(o1.getName());
+                                int name2 = solve_name(o2.getName());
+                                return Integer.compare(name1, name2);
                             }
-                            return Integer.parseInt(num);
+
+                            private int solve_name(String name) {
+                                try {
+                                    int idx = name.indexOf('_');
+                                    if (idx != -1) {
+                                        return Integer.parseInt(name.substring(0, idx));
+                                    }
+                                    return Integer.parseInt(name);
+                                } catch (Exception e) {
+                                    return 0;
+                                }
+                            }
+                        });
+                        for (int i = 0; i < files.length; i++) {
+                            String name = files[i].getName();
+                            int idx = name.lastIndexOf("_msg_");
+                            if (idx != -1) {
+                                try {
+                                    int cmd = Integer.parseInt(name.substring(idx + 5));
+                                    Service.send_msg_data(this, cmd, files[i].getAbsolutePath(), false);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
-                    });
-                    for (int i = 0; i < files.length; i++) {
-                        int cmd = Integer.parseInt(files[i].getName().substring(
-                                (files[i].getName().length() - 3), files[i].getName().length()));
-                        Service.send_msg_data(this, cmd, files[i].getAbsolutePath(), false);
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });

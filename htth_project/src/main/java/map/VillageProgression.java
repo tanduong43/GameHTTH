@@ -71,7 +71,8 @@ public class VillageProgression {
      */
     public static boolean isSpecialBypassMap(int mapId) {
         return mapId == 1000 || mapId == 1001 || mapId == 1002 || mapId == 2000 || mapId == 2027 || mapId == 2028
-                || mapId == 123 || (mapId >= 167 && mapId <= 176) || (mapId >= 500 && mapId <= 512)
+                || (mapId >= 119 && mapId <= 123)
+                || (mapId >= 167 && mapId <= 176) || (mapId >= 500 && mapId <= 512)
                 || mapId == 62 || activities.BossHunt.isBossHuntMap(mapId);
     }
 
@@ -112,11 +113,17 @@ public class VillageProgression {
      */
     public static void onBossKilled(Player p, Mob mobTarget, Map map) {
         if (mobTarget == null || map == null) return;
+
+        // Chỉ boss làng (thegioi == 2) mới kích hoạt mở khóa qua làng
+        if (mobTarget.boss_info == null || mobTarget.boss_info.thegioi != 2) {
+            return;
+        }
+
         int mapId = map.template.id;
 
         // Không tính qua làng khi đang trong phó bản Săn Trùm (BossHunt) hoặc các phó bản khác
         if (map.map_bossHunt != null || activities.BossHunt.isBossHuntMap(mapId)
-                || (p != null && p.bossHunt != null) || Map.is_map_dungeon(mapId)) {
+                || isSpecialBypassMap(mapId) || (p != null && p.bossHunt != null) || Map.is_map_dungeon(mapId)) {
             return;
         }
 
