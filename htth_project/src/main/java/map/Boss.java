@@ -41,7 +41,7 @@ public class Boss {
     public short yOrigin;
 
     public int id;
-    public int thegioi; // 1: Boss thế giới, 2: Boss làng, 3: Boss 24/7, 4: Boss map cố định
+    public int thegioi; // 1: Boss thế giới, 2: Boss làng, 3: Boss 24/7
     public Mob mob;
     public byte levelBoss;
     public short[] skill;
@@ -284,8 +284,6 @@ public class Boss {
                 return new int[] { 10, 50 };
             case 172:
                 return new int[] { 11, 0 };
-            case 173:
-                return new int[] { 0, 0 };
             default:
                 return new int[] { 0, 0 }; // mặc định xuất hiện ngay lúc 00:00
         }
@@ -323,49 +321,40 @@ public class Boss {
         boss.mob.index = boss.index_mob_save;
         boss.updateHpForLevel();
 
-        if (boss.thegioi == 4) {
-            // Boss map cố định: spawn đúng vị trí site trong DB (vd: map 1001)
-            if (boss.mapOrigin != null) {
-                boss.mob.map = boss.mapOrigin;
-                boss.mob.x = boss.xOrigin;
-                boss.mob.y = boss.yOrigin;
-            }
+        List<Integer> allowedMaps;
+        if (boss.thegioi == 2) {
+            // Boss làng: random 1 map trong list đã định nghĩa sẵn theo mob_id
+            allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
+        } else if (boss.thegioi == 3) {
+            allowedMaps = new ArrayList<>(ALLOWED_MAP_IDS);
         } else {
-            List<Integer> allowedMaps;
-            if (boss.thegioi == 2) {
-                // Boss làng: random 1 map trong list đã định nghĩa sẵn theo mob_id
-                allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
-            } else if (boss.thegioi == 3) {
-                allowedMaps = new ArrayList<>(ALLOWED_MAP_IDS);
-            } else {
-                allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
-            }
+            allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
+        }
 
-            Map[] zones = null;
-            if (allowedMaps != null && allowedMaps.size() > 0) {
-                int randomMapId = allowedMaps.get(Util.random(allowedMaps.size()));
-                zones = Map.get_map_by_id(randomMapId);
-            }
+        Map[] zones = null;
+        if (allowedMaps != null && allowedMaps.size() > 0) {
+            int randomMapId = allowedMaps.get(Util.random(allowedMaps.size()));
+            zones = Map.get_map_by_id(randomMapId);
+        }
 
-            if (zones != null && zones.length > 0) {
-                Map randomMap = zones[Util.random(zones.length)];
-                boss.mob.map = randomMap;
+        if (zones != null && zones.length > 0) {
+            Map randomMap = zones[Util.random(zones.length)];
+            boss.mob.map = randomMap;
 
-                short temp_x = 300;
-                short temp_y = 300;
-                if (randomMap.template.npcs.size() > 0) {
-                    Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
-                    temp_x = npc.x;
-                    temp_y = npc.y;
-                }
-                boss.mob.x = temp_x;
-                boss.mob.y = temp_y;
-            } else if (boss.mapOrigin != null) {
-                // Fallback nếu mob_id chưa có trong getMapIdsForMob
-                boss.mob.map = boss.mapOrigin;
-                boss.mob.x = boss.xOrigin;
-                boss.mob.y = boss.yOrigin;
+            short temp_x = 300;
+            short temp_y = 300;
+            if (randomMap.template.npcs.size() > 0) {
+                Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
+                temp_x = npc.x;
+                temp_y = npc.y;
             }
+            boss.mob.x = temp_x;
+            boss.mob.y = temp_y;
+        } else if (boss.mapOrigin != null) {
+            // Fallback nếu mob_id chưa có trong getMapIdsForMob
+            boss.mob.map = boss.mapOrigin;
+            boss.mob.x = boss.xOrigin;
+            boss.mob.y = boss.yOrigin;
         }
 
         if (boss.mob.map == null) {
@@ -379,8 +368,7 @@ public class Boss {
         boss.TopDame.clear();
 
         try {
-            String label = boss.thegioi == 2 ? "Boss làng"
-                    : (boss.thegioi == 4 ? "Boss sự kiện" : "Siêu trùm");
+            String label = boss.thegioi == 2 ? "Boss làng" : "Siêu trùm";
             Manager.gI().chatKTG(0,
                     (label + " " + boss.mob.mob_template.name + " đã xuất hiện tại "
                             + boss.mob.map.template.name + " khu "
@@ -497,10 +485,9 @@ public class Boss {
         }
     }
 
-    /** Boss làng: mỗi con tự hồi sau 10 phút. Boss thegioi=3/4: 30 phút. */
+    /** Boss làng: mỗi con tự hồi sau 10 phút. Boss thegioi=3: 30 phút. */
     public static final long RESPAWN_LANG_MS = 600_000L; // 10 phút
     public static final long RESPAWN_TG3_MS = 1_800_000L; // 30 phút
-    public static final long RESPAWN_TG4_MS = 1_800_000L; // 30 phút
 
     public static void update_bosses() {
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
@@ -510,14 +497,12 @@ public class Boss {
             }
             // thegioi=2: boss làng — mỗi con hồi độc lập
             // thegioi=3: boss 24/7
-            // thegioi=4: boss map cố định (vd: map 1001)
-            if (boss.thegioi != 2 && boss.thegioi != 3 && boss.thegioi != 4) {
+            if (boss.thegioi != 2 && boss.thegioi != 3) {
                 continue;
             }
 
             long now = System.currentTimeMillis();
-            long respawnMs = boss.thegioi == 2 ? RESPAWN_LANG_MS
-                    : (boss.thegioi == 4 ? RESPAWN_TG4_MS : RESPAWN_TG3_MS);
+            long respawnMs = boss.thegioi == 2 ? RESPAWN_LANG_MS : RESPAWN_TG3_MS;
 
             if (boss.status == STATUS_RESPAWNING) {
                 spawn_boss_at_origin(boss);

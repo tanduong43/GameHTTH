@@ -3736,8 +3736,6 @@ public class Map implements Runnable {
                     int value1 = 0;
                     int value2 = 0;
                     int percent = 0;
-                    boolean isBossMapFixed = mob_target.boss_info != null
-                            && mob_target.boss_info.thegioi == 4;
                     boolean isQuaiMap1001 = mob_target.boss_info == null && this.template.id == 1001;
 
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
@@ -3752,7 +3750,7 @@ public class Map implements Runnable {
                         percent = max_hp / 10;
                         value1 = (mob_target.hp - 1) / percent;
                     } else if (isQuaiMap1001) {
-                        // Tính mốc 10% máu cho quái thường ở map 1001
+                        // Tính mốc 10% máu cho quái thường ở map 1001 (Quái vật tuyết)
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
                         if (percent > 0) {
@@ -3769,37 +3767,21 @@ public class Map implements Runnable {
                     if ((mob_target.boss_info != null || isQuaiMap1001) && percent > 0) { // hp 10% reward
                         value2 = (mob_target.hp - 1) / percent;
                     }
-                    if (isBossMapFixed && percent > 0 && value1 > value2) {
-                        // Boss thegioi=4: mỗi mốc 10% máu, tất cả người trong map nhận 100-200 ruby
-                        for (int j = value1 - 1; j >= value2; j--) {
-                            int hpPercent = (10 - j) * 10;
-                            for (int pi = 0; pi < players.size(); pi++) {
-                                Player p0 = players.get(pi);
-                                if (p0.conn != null && !p0.isdie) {
-                                    int ruby = Util.random(100, 201);
-                                    p0.update_ngoc(ruby);
-                                    p0.update_money();
-                                    Service.send_box_ThongBao_OK(p0,
-                                            "Boss mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
-                                }
-                            }
-                        }
-                    }
 
                     if (isQuaiMap1001 && percent > 0 && value1 > value2) {
-                        // Quái thường map 1001: mỗi mốc 10% máu, người đánh nhận 1-5 ruby
+                        // Quái vật tuyết map 1001: mỗi mốc 10% máu, chỉ người trực tiếp đánh nhận 100-200 ruby
                         for (int j = value1 - 1; j >= value2; j--) {
                             int hpPercent = (10 - j) * 10;
-                            int ruby = Util.random(1, 6);
+                            int ruby = Util.random(100, 201);
                             p.update_ngoc(ruby);
                             p.update_money();
                             Service.send_box_ThongBao_OK(p,
-                                    "Quái mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
+                                    mob_target.mob_template.name + " mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
                         }
                     }
                     boolean ch = false;
                     List<GiftBox> list_gift = new ArrayList<>();
-                    if (!isBossMapFixed) {
+                    if (!isQuaiMap1001 && mob_target.boss_info != null) {
                         for (int j = value1 - 1; j >= value2; j--) { // 10%
                             //
                             int beri_receiv = (mob_target.mob_template.mob_id - 130) * 1000;
@@ -3935,7 +3917,7 @@ public class Map implements Runnable {
                             }
                         }
                     }
-                    if (!isBossMapFixed && value1 > 4 && value2 <= 4) { // 50%
+                    if (!isQuaiMap1001 && mob_target.boss_info != null && value1 > 4 && value2 <= 4) { // 50%
                         //
                         list_gift.clear();
                         //
@@ -4122,8 +4104,6 @@ public class Map implements Runnable {
                         core.BXH.updateTopBoss(boss);
                         if (boss.thegioi == 3) {
                             boss.timeNextRespawn = boss.timeDeath + 1800000; // 30 minutes
-                        } else if (boss.thegioi == 4) {
-                            boss.timeNextRespawn = boss.timeDeath + Boss.RESPAWN_TG4_MS;
                         } else if (boss.thegioi == 2) {
                             boss.timeNextRespawn = boss.timeDeath + Boss.RESPAWN_LANG_MS; // 10 phút, độc lập từng boss
                         }
@@ -4314,18 +4294,6 @@ public class Map implements Runnable {
                                 giftRedChest.color = 0;
                                 list_gift.add(giftRedChest);
                                 notice += "x1 " + it_rdo.name + ", ";
-                            }
-                        } else if (boss.thegioi == 4) {
-                            boss.status = Boss.STATUS_DEAD;
-                            boss.mob.isdie = true;
-                            this.remove_obj(mob_target.index, 1);
-                            try {
-                                Manager.gI().chatKTG(0,
-                                        p.name + " đã tiêu diệt " + mob_target.mob_template.name
-                                                + " tại " + this.template.name + "!",
-                                        5);
-                            } catch (IOException e) {
-                                e.printStackTrace();
                             }
                         } else if (boss.mob.mob_template.mob_id == 121) {
                             // Boss Mèo truyền thuyết - kết thúc sự kiện
