@@ -2328,6 +2328,17 @@ public class Service {
         }
     }
 
+    // Giới hạn kích thước gói tin cmd=74 (effect data): header dùng field 2-byte
+    // cho độ dài, tối đa 65535 bytes. Nếu ảnh hiệu ứng ở zoom cao vượt mức này,
+    // gói tin sẽ bị TRÀN SỐ khi ghi header -> hỏng gói + lệch dữ liệu các gói
+    // tiếp theo trên cùng kết nối. Đây là nguyên nhân effId 18 (Haki Vũ Trang)
+    // không hiển thị được cho các player dùng zoom x3/x4 trong khi zoom x1/x2
+    // vẫn thấy bình thường - phụ thuộc ngẫu nhiên vào cài đặt zoom của từng máy.
+    // Không đổi opcode/giao thức (client gốc không có source, không thể chắc nó
+    // hỗ trợ header 4-byte cho cmd 74), nên chặn tại nguồn: nếu ảnh quá lớn,
+    // tự động fallback về zoom nhỏ hơn thay vì gửi gói hỏng.
+    private static final int MAX_EFFECT_PACKET_BODY = 60000; // chừa margin an toàn dưới 65535
+
     public static byte[][] get_effect_data_bytes(short effId, byte zoomlv) {
         if (zoomlv <= 0) {
             zoomlv = 4;
@@ -2342,6 +2353,14 @@ public class Service {
             data1 = Util.loadfile("data/template/skill/x" + z + "/data/" + effId);
             data2 = Util.loadfile("data/template/skill/x" + z + "/img/" + effId + ".png");
             if (data1 != null && data2 != null) {
+                if (data1.length + data2.length > MAX_EFFECT_PACKET_BODY) {
+                    System.out.println("[Haki Debug] effId=" + effId + " zoom=x" + z
+                            + " qua lon (" + (data1.length + data2.length)
+                            + " bytes) -> bo qua, thu zoom khac");
+                    data1 = null;
+                    data2 = null;
+                    continue;
+                }
                 return new byte[][] { data1, data2 };
             }
         }
@@ -2352,6 +2371,11 @@ public class Service {
             data1 = Util.loadfile("data/danhhieu/effect/x" + z + "/data/DataEffect_" + effId);
             data2 = Util.loadfile("data/danhhieu/effect/x" + z + "/img/ImgEffect_" + effId + ".png");
             if (data1 != null && data2 != null) {
+                if (data1.length + data2.length > MAX_EFFECT_PACKET_BODY) {
+                    data1 = null;
+                    data2 = null;
+                    continue;
+                }
                 return new byte[][] { data1, data2 };
             }
         }
@@ -2362,6 +2386,11 @@ public class Service {
             data1 = Util.loadfile("data/nro/data/effect/x" + z + "/data/DataEffect_" + effId);
             data2 = Util.loadfile("data/nro/data/effect/x" + z + "/img/ImgEffect_" + effId + ".png");
             if (data1 != null && data2 != null) {
+                if (data1.length + data2.length > MAX_EFFECT_PACKET_BODY) {
+                    data1 = null;
+                    data2 = null;
+                    continue;
+                }
                 return new byte[][] { data1, data2 };
             }
         }
@@ -2373,6 +2402,11 @@ public class Service {
                 data1 = Util.loadfile("data/nro/data/effect/x" + z + "/data/DataEffect_" + subId);
                 data2 = Util.loadfile("data/nro/data/effect/x" + z + "/img/ImgEffect_" + subId + ".png");
                 if (data1 != null && data2 != null) {
+                    if (data1.length + data2.length > MAX_EFFECT_PACKET_BODY) {
+                        data1 = null;
+                        data2 = null;
+                        continue;
+                    }
                     return new byte[][] { data1, data2 };
                 }
             }
@@ -2385,7 +2419,7 @@ public class Service {
                 if (data2 == null) {
                     data2 = Util.loadfile("data/icon/x" + z + "/" + effId + ".png");
                 }
-                if (data2 != null) {
+                if (data2 != null && data1.length + data2.length <= MAX_EFFECT_PACKET_BODY) {
                     return new byte[][] { data1, data2 };
                 }
             }
@@ -2419,50 +2453,63 @@ public class Service {
         }
     }
 
-    private static void send_eff_haki_once(Player p, short effId, int time) {
-        if (p == null || p.map == null)
+    public static void send_eff_haki_to_player(Player caster, Player receiver, short effId, int time) {
+        if (caster == null || receiver == null || receiver.conn == null || time <= 0)
             return;
+        try {
+            send_effect_data(receiver.conn, effId);
+            Message mPlay = new Message(74);
+            mPlay.writer().writeByte(1);
+            mPlay.writer().writeShort(caster.index_map);
+            mPlay.writer().writeShort(effId);
+            mPlay.writer().writeInt(time);
+            mPlay.writer().writeByte(0); // typemove: 0 (tại chỗ)
+            mPlay.writer().writeByte(-1); // loop: -1 (lặp liên tục)
+            receiver.conn.addmsg(mPlay);
+            mPlay.cleanup();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-        // Chụp snapshot danh sách player trong khối synchronized(p.map), vì
-        // Map.players.add()/remove() (khi player join/leave map) đang được khoá
-        // bằng synchronized(this) ở map/Map.java. Nếu duyệt trực tiếp
-        // p.map.players mà không khoá, việc join/leave map cùng lúc có thể ném
-        // ConcurrentModificationException giữa vòng lặp, làm ngắt ngang việc gửi
-        // hiệu ứng -> chỉ một phần người chơi nhận được hiệu ứng.
+    public static void send_eff_haki_to_map(Player caster, short effId, int time) {
+        if (caster == null || caster.map == null || time <= 0)
+            return;
+        java.util.List<Player> snapshot;
+        synchronized (caster.map) {
+            snapshot = new java.util.ArrayList<>(caster.map.players);
+        }
+        for (Player p0 : snapshot) {
+            if (p0 != null && p0.conn != null) {
+                send_eff_haki_to_player(caster, p0, effId, time);
+            }
+        }
+    }
+
+    public static void send_eff_haki_stop_once(Player p, short effId) {
+        if (p == null)
+            return;
+        p.remove_active_haki(effId);
+        if (p.map == null)
+            return;
         java.util.List<Player> snapshot;
         synchronized (p.map) {
             snapshot = new java.util.ArrayList<>(p.map.players);
         }
-
-        int sentCount = 0;
-        // Gửi DATA + lệnh PLAY cho từng player riêng lẻ theo đúng thứ tự:
-        // DATA trước → PLAY sau. Cách này tránh race condition khi gửi cho tất cả
-        // vì addmsg là queue nên đảm bảo thứ tự trong cùng 1 connection.
         for (Player p0 : snapshot) {
             if (p0 == null || p0.conn == null)
                 continue;
             try {
-                // Bước 1: Gửi DATA effect cho player này trước
-                send_effect_data(p0.conn, effId);
-                // Bước 2: Gửi lệnh PLAY effect ngay sau DATA trong cùng queue của player này
-                Message mPlay = new Message(74);
-                mPlay.writer().writeByte(1);
-                mPlay.writer().writeShort(p.index_map);
-                mPlay.writer().writeShort(effId);
-                mPlay.writer().writeInt(time > 0 ? time : 20000); // thời gian buff Haki
-                mPlay.writer().writeByte(0); // typemove: 0 (tại chỗ)
-                mPlay.writer().writeByte(-1); // loop: -1 (lặp liên tục)
-                p0.conn.addmsg(mPlay);
-                mPlay.cleanup();
-                sentCount++;
+                Message mStop = new Message(74);
+                mStop.writer().writeByte(2); // sub-command 2 = XÓA effect
+                mStop.writer().writeShort(p.index_map);
+                mStop.writer().writeShort(effId);
+                p0.conn.addmsg(mStop);
+                mStop.cleanup();
             } catch (Exception e) {
-                // Bọc cả send_effect_data() vào try-catch này để 1 connection lỗi không
-                // làm gãy cả vòng lặp và bỏ lỡ hiệu ứng của những player còn lại.
                 e.printStackTrace();
             }
         }
-        System.out.println("[Haki Debug] send_eff_haki_once caster=" + p.name + " effId=" + effId
-                + " -> sent to " + sentCount + "/" + snapshot.size() + " player(s) in map");
     }
 
     public static void send_eff_haki(Player p, short effId, int time) throws IOException {
@@ -2470,19 +2517,25 @@ public class Service {
             return;
         final int t = time > 0 ? time : 20000;
 
-        // Gửi lần 1 ngay lập tức.
-        send_eff_haki_once(p, effId, t);
+        // 1. Lưu trạng thái Haki đang active trên Player
+        p.add_active_haki(effId, t);
 
-        // FIX: Gửi lặp lại lần 2 sau một khoảng trễ nhỏ. Đây là biện pháp phòng
-        // ngừa race/timing phía client (client J2ME cũ đôi khi bỏ lỡ gói do độ
-        // trễ mạng hoặc do nhiều gói đến gần như cùng lúc). Vì loop 20 (byte -1)
-        // nên gửi lại không gây giật hình, chỉ đảm bảo chắc chắn hiển thị.
+        // 2. Gửi ngay lập tức cho toàn map
+        send_eff_haki_to_map(p, effId, t);
+
+        // 3. Gửi lại sau 200ms để đảm bảo client nhận trọn vẹn
         final Player pf = p;
         final short effIdF = effId;
         Thread resend = new Thread(() -> {
             try {
-                Thread.sleep(200);
-                send_eff_haki_once(pf, effIdF, t);
+                Thread.sleep(200L);
+                if (pf.map != null) {
+                    java.util.Map<Short, Integer> rem = pf.get_remaining_haki_effects();
+                    Integer remainTime = rem.get(effIdF);
+                    if (remainTime != null && remainTime > 0) {
+                        send_eff_haki_to_map(pf, effIdF, remainTime);
+                    }
+                }
             } catch (InterruptedException ignored) {
             } catch (Exception e) {
                 e.printStackTrace();
@@ -2490,6 +2543,19 @@ public class Service {
         }, "haki-eff-resend");
         resend.setDaemon(true);
         resend.start();
+
+        // 4. Hẹn giờ xóa effect đúng thời điểm hết buff
+        Thread autoStop = new Thread(() -> {
+            try {
+                Thread.sleep(t + 200L);
+                send_eff_haki_stop_once(pf, effIdF);
+            } catch (InterruptedException ignored) {
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, "haki-eff-autostop");
+        autoStop.setDaemon(true);
+        autoStop.start();
     }
 
     public static void send_eff_haki(Player p, short effId) throws IOException {
@@ -2500,59 +2566,10 @@ public class Service {
         send_eff_haki(p, (short) 26, 20000);
     }
 
-    private static void send_haki_self_effect_once(Player p, short idSkill, short idIcon, short effId, int time) {
-        if (p == null || p.conn == null)
-            return;
-        try {
-            Message m = new Message(20);
-            m.writer().writeByte(1);
-            m.writer().writeShort(idSkill);
-            m.writer().writeShort(p.index_map);
-            m.writer().writeByte(0);
-            m.writer().writeShort(idIcon);
-            m.writer().writeShort(effId);
-            m.writer().writeInt(time > 0 ? time : 20000);
-            m.writer().writeByte(0);
-            m.writer().writeByte(1);
-            m.writer().writeShort(p.index_map);
-            m.writer().writeByte(0); // không có option buff nào kèm theo ở đường này
-            p.conn.addmsg(m);
-            m.cleanup();
-            System.out.println("[Haki Debug] send_haki_self_effect_once caster=" + p.name + " effId=" + effId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Gói tin RIÊNG để client của chính người dùng skill tự vẽ hiệu ứng lên
-    // nhân vật mình. Đây là kênh khác hoàn toàn với send_eff_haki() (opcode 74,
-    // broadcast cho người khác thấy).
+    @Deprecated
     public static void send_haki_self_effect(Player p, short idSkill, short idIcon, short effId, int time)
             throws IOException {
-        if (p == null || p.conn == null)
-            return;
-        final int t = time > 0 ? time : 20000;
-
-        // Gửi lần 1 ngay lập tức.
-        send_haki_self_effect_once(p, idSkill, idIcon, effId, t);
-
-        // FIX: Gửi lặp lại lần 2 sau một khoảng trễ nhỏ, cùng lý do như
-        // send_eff_haki() ở trên - phòng ngừa race/timing phía client.
-        final Player pf = p;
-        final short idSkillF = idSkill;
-        final short idIconF = idIcon;
-        final short effIdF = effId;
-        Thread resend = new Thread(() -> {
-            try {
-                Thread.sleep(200);
-                send_haki_self_effect_once(pf, idSkillF, idIconF, effIdF, t);
-            } catch (InterruptedException ignored) {
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, "haki-self-eff-resend");
-        resend.setDaemon(true);
-        resend.start();
+        // Đã hợp nhất với send_eff_haki qua opcode 74
     }
 
     public static void send_eff_sword_splash(int id, Player p) throws IOException {

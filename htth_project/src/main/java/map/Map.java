@@ -2718,13 +2718,10 @@ public class Map implements Runnable {
             p.mp -= sk_temp.temp.manaLost;
             if (sk_temp.temp.indexSkillInServer == 900) {
                 Service.send_eff_haki(p, (short) 21); // Haki Quan Sát (eff 21)
-                Service.send_haki_self_effect(p, idSkill, sk_temp.temp.idIcon, (short) 21, 20000);
             } else if (sk_temp.temp.indexSkillInServer == 901) {
                 Service.send_eff_haki(p, (short) 18); // Haki Vũ Trang (eff 18)
-                Service.send_haki_self_effect(p, idSkill, sk_temp.temp.idIcon, (short) 18, 20000);
             } else if (sk_temp.temp.indexSkillInServer == 902) {
                 Service.send_eff_haki(p, (short) 26); // Haki Bá Vương (eff 26)
-                Service.send_haki_self_effect(p, idSkill, sk_temp.temp.idIcon, (short) 26, 20000);
                 Buff.apply_haki_bavuong_stun(p, 5, 250, 5000);
             }
             long dame = p.body.get_dame(true);
@@ -5361,6 +5358,24 @@ public class Map implements Runnable {
                 System.err.println("[DanhHieu Error] Error map send title 2: " + e.getMessage());
                 e.printStackTrace();
             }
+            // Gửi hiệu ứng Haki đang active của p0 cho p
+            try {
+                java.util.Map<Short, Integer> p0Haki = p0.get_remaining_haki_effects();
+                for (java.util.Map.Entry<Short, Integer> entry : p0Haki.entrySet()) {
+                    Service.send_eff_haki_to_player(p0, p, entry.getKey(), entry.getValue());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            // Gửi hiệu ứng Haki đang active của p cho p0
+            try {
+                java.util.Map<Short, Integer> pHaki = p.get_remaining_haki_effects();
+                for (java.util.Map.Entry<Short, Integer> entry : pHaki.entrySet()) {
+                    Service.send_eff_haki_to_player(p, p0, entry.getKey(), entry.getValue());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             //
             this.update_boat(p0, p, false);
             this.update_boat(p, p0, false);
@@ -5915,6 +5930,15 @@ public class Map implements Runnable {
         // Service.send_Quest(p,true);
         this.send_boat(p, true);
         this.update_boat(p, p, true);
+        // Khôi phục hiệu ứng Haki đang active của chính p khi vào zone/map mới
+        try {
+            java.util.Map<Short, Integer> myHaki = p.get_remaining_haki_effects();
+            for (java.util.Map.Entry<Short, Integer> entry : myHaki.entrySet()) {
+                Service.send_eff_haki_to_player(p, p, entry.getKey(), entry.getValue());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void update_boat(Player p0, Player p, boolean cache) throws IOException {

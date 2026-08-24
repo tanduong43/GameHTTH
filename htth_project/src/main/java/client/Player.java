@@ -213,6 +213,27 @@ public class Player {
     public long time_can_mob_atk;
     public long time_revive_pvp_clan = 0; // Thời gian tự hồi sinh trong Phó bản PVP Băng (ms)
     public boolean is_show_weapon;
+    public final java.util.Map<Short, Long> activeHakiEffects = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public void add_active_haki(short effId, int durationMs) {
+        activeHakiEffects.put(effId, System.currentTimeMillis() + durationMs);
+    }
+
+    public void remove_active_haki(short effId) {
+        activeHakiEffects.remove(effId);
+    }
+
+    public java.util.Map<Short, Integer> get_remaining_haki_effects() {
+        java.util.Map<Short, Integer> map = new java.util.HashMap<>();
+        long now = System.currentTimeMillis();
+        for (java.util.Map.Entry<Short, Long> entry : activeHakiEffects.entrySet()) {
+            long remain = entry.getValue() - now;
+            if (remain > 0) {
+                map.put(entry.getKey(), (int) remain);
+            }
+        }
+        return map;
+    }
     public Player targetFight;
     private int wanted_price;
     public Wanted_Chest[] wanted_chest;
@@ -2763,6 +2784,15 @@ public class Player {
             }
         } catch (Exception e) {
             System.err.println("[DanhHieu Error] update_info_to_all exception: " + e.getMessage());
+            e.printStackTrace();
+        }
+        // Gửi các hiệu ứng Haki đang active của player cho toàn map thấy
+        try {
+            java.util.Map<Short, Integer> remHaki = this.get_remaining_haki_effects();
+            for (java.util.Map.Entry<Short, Integer> entry : remHaki.entrySet()) {
+                Service.send_eff_haki_to_map(this, entry.getKey(), entry.getValue());
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
