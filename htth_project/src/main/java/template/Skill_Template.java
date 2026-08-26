@@ -34,8 +34,36 @@ public class Skill_Template {
     public byte typeDevil;
     public int percentDame = 100;
 
+    public int getBasePercentDame() {
+        if (info == null || info.isBlank()) {
+            return 100;
+        }
+        Pattern pattern = Pattern.compile("[\\d]+(?=%)");
+        Matcher matcher = pattern.matcher(info);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group());
+            } catch (Exception ignored) {}
+        }
+        pattern = Pattern.compile("[\\d]+");
+        matcher = pattern.matcher(info);
+        String percent = "";
+        while (matcher.find()) {
+            percent = matcher.group();
+        }
+        if (!percent.isBlank()) {
+            try {
+                return Integer.parseInt(percent);
+            } catch (Exception ignored) {}
+        }
+        return 100;
+    }
+
     public String getInfo(byte level, int clazz) {
         String result = info;
+        if (result == null) {
+            return "";
+        }
         switch (clazz) {
             case 2: {
                 result = result.replace("Quả đấm tốc độ", "Nhất kiếm");
@@ -55,39 +83,44 @@ public class Skill_Template {
             }
         }
         String percent = "";
-        Pattern pattern = Pattern.compile("[\\d]+");
+        Pattern pattern = Pattern.compile("[\\d]+(?=%)");
         Matcher matcher = pattern.matcher(info);
-        while (matcher.find()) {
+        if (matcher.find()) {
             percent = matcher.group();
+        } else {
+            pattern = Pattern.compile("[\\d]+");
+            matcher = pattern.matcher(info);
+            while (matcher.find()) {
+                percent = matcher.group();
+            }
         }
         if (!percent.isBlank()) {
-            int value = Integer.parseInt(percent);
-            switch (level) {
-                case 1: {
-                    value = (value * 11) / 10;
-                    break;
+            try {
+                int value = Integer.parseInt(percent);
+                switch (level) {
+                    case 1: {
+                        value = (value * 11) / 10;
+                        break;
+                    }
+                    case 2: {
+                        value = (value * 125) / 100;
+                        break;
+                    }
+                    case 3: {
+                        value = (value * 145) / 100;
+                        break;
+                    }
+                    case 4: {
+                        value = (value * 17) / 10;
+                        break;
+                    }
+                    case 5: {
+                        value *= 2;
+                        break;
+                    }
                 }
-                case 2: {
-                    value = (value * 125) / 100;
-                    break;
-                }
-                case 3: {
-                    value = (value * 145) / 100;
-                    break;
-                }
-                case 4: {
-                    value = (value * 17) / 10;
-                    break;
-                }
-                case 5: {
-                    value *= 2;
-                    break;
-                }
-            }
-            if (!percent.isBlank()) {
                 result = result.replace(percent, (value + ""));
-                percentDame = value;
-            }
+            } catch (Exception ignored) {}
         }
         return result;
     }

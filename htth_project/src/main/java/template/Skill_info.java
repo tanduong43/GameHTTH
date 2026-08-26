@@ -72,9 +72,11 @@ public class Skill_info {
     public int get_dame(Player p) {
         int result = this.temp.damage;
         if (this.temp.ID >= 2000) {
-            result = (p.skill_point.get(0).get_dame(p) * this.temp.percentDame) / 100;
+            Skill_info sk0 = (p != null && p.skill_point != null && !p.skill_point.isEmpty()) ? p.skill_point.get(0) : null;
+            int baseDame = (sk0 != null) ? sk0.get_dame(p) : this.temp.damage;
+            result = (baseDame * this.temp.getBasePercentDame()) / 100;
         }
-        if (this.temp.ID == 0 || this.temp.ID == 1 || this.temp.ID == 2) {
+        if (this.temp.ID == 0 || this.temp.ID == 1 || this.temp.ID == 2 || (this.temp.ID >= 2000 && this.temp.ID < 3000)) {
             switch (this.lvdevil) {
                 case 1: {
                     result = (result * 11) / 10;
@@ -94,29 +96,6 @@ public class Skill_info {
                 }
                 case 5: {
                     result *= 2;
-                    break;
-                }
-            }
-        } else if (this.temp.ID >= 2000 && this.temp.ID < 3000) {
-            switch (this.lvdevil) {
-                case 1: {
-                    result = (result * 121) / 100;
-                    break;
-                }
-                case 2: {
-                    result = (result * 1567) / 1000;
-                    break;
-                }
-                case 3: {
-                    result = (result * 2106) / 1000;
-                    break;
-                }
-                case 4: {
-                    result = (result * 2889) / 1000;
-                    break;
-                }
-                case 5: {
-                    result *= 4;
                     break;
                 }
             }
