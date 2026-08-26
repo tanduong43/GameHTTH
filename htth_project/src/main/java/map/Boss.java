@@ -353,7 +353,7 @@ public class Boss {
                 temp.ishuman = 0;
                 temp.typemonster = 2;
                 temp.icon = 84;
-                temp.skill = new short[] { 72, 73 };
+                temp.skill = new short[] { 195, 196, 197 };
                 template.MobTemplate.ENTRYS.add(temp);
             } else {
                 temp.icon = 84;
@@ -361,6 +361,7 @@ public class Boss {
                 temp.hOne = 120;
                 temp.typemonster = 2;
                 temp.hp_max = 2000000000;
+                temp.skill = new short[] { 195, 196, 197 };
             }
             saturn.mob.mob_template = temp;
             saturn.mob.hp_max = 2000000000;
@@ -373,7 +374,7 @@ public class Boss {
             saturn.mob.phong_thu = 50000;        // Phòng thủ 50,000
             saturn.mob.mien_thuong = 70;         // Miễn thương 70% (giảm 70% sát thương nhận vào)
             saturn.mob.max_dame_per_hit = 2000000;// Mỗi hit mất tối đa 2,000,000 HP (chống oneshot)
-            saturn.mob.final_dame = 80000;       // Sát thương tấn công người chơi (80,000 dame)
+            saturn.mob.final_dame = 180000;      // Sát thương tấn công người chơi (180,000 dame)
             saturn.mob.ne_don = 10;              // 10% tỷ lệ né đòn
             saturn.mob.phan_dame = 5;            // 5% phản sát thương lại người đánh
             int curIndex = Manager.gI().getIndexMob();
@@ -381,7 +382,7 @@ public class Boss {
             saturn.index_mob_save = curIndex;
             Manager.gI().setIndexMob(curIndex + 10);
             saturn.mob.boss_info = saturn;
-            saturn.skill = new short[] { 72, 73 };
+            saturn.skill = new short[] { 195, 196, 197 };
             saturn.time_atk = new long[saturn.skill.length];
             saturn.TopDame = new ArrayList<>();
             saturn.levelBoss = 1;
@@ -390,6 +391,20 @@ public class Boss {
                 Boss.ENTRYS = new ArrayList<>();
             }
             Boss.ENTRYS.add(saturn);
+        } else {
+            saturn.skill = new short[] { 195, 196, 197 };
+            saturn.time_atk = new long[saturn.skill.length];
+            if (saturn.mob != null) {
+                if (saturn.mob.mob_template != null) {
+                    saturn.mob.mob_template.skill = new short[] { 195, 196, 197 };
+                }
+                saturn.mob.final_dame = 180000;
+                saturn.mob.phong_thu = 50000;
+                saturn.mob.mien_thuong = 70;
+                saturn.mob.max_dame_per_hit = 2000000;
+                saturn.mob.ne_don = 10;
+                saturn.mob.phan_dame = 5;
+            }
         }
 
         if (saturn.mob.map != null && !saturn.mob.isdie) {

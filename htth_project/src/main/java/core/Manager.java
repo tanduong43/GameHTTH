@@ -215,6 +215,9 @@ public class Manager {
                     temp.skill[i] = Short.parseShort(js.get(i).toString());
                 }
                 js.clear();
+                if (temp.mob_id == 174 || (temp.name != null && temp.name.toLowerCase().contains("saturn"))) {
+                    temp.skill = new short[] { 195, 196, 197 };
+                }
                 MobTemplate.ENTRYS.add(temp);
             }
             rs.close();
@@ -843,6 +846,18 @@ public class Manager {
                     for (int i2 = 0; i2 < boss_temp.skill.length; i2++) {
                         boss_temp.skill[i2] = Short.parseShort(js.get(i2).toString());
                     }
+                    if (mob_id == 174 || id == 28 || (boss_temp.mob.mob_template != null && (boss_temp.mob.mob_template.mob_id == 174 || (boss_temp.mob.mob_template.name != null && boss_temp.mob.mob_template.name.toLowerCase().contains("saturn"))))) {
+                        boss_temp.skill = new short[] { 195, 196, 197 };
+                        if (boss_temp.mob.mob_template != null) {
+                            boss_temp.mob.mob_template.skill = new short[] { 195, 196, 197 };
+                        }
+                        boss_temp.mob.final_dame = 180000;
+                        boss_temp.mob.phong_thu = 50000;
+                        boss_temp.mob.mien_thuong = 70;
+                        boss_temp.mob.max_dame_per_hit = 2000000;
+                        boss_temp.mob.ne_don = 10;
+                        boss_temp.mob.phan_dame = 5;
+                    }
                     boss_temp.time_atk = new long[boss_temp.skill.length];
                     boss_temp.TopDame = new ArrayList<>();
                     boss_temp.levelBoss = 1;
@@ -1440,6 +1455,9 @@ public class Manager {
                 temp.skill[i] = Short.parseShort(js.get(i).toString());
             }
             js.clear();
+            if (temp.mob_id == 174 || (temp.name != null && temp.name.toLowerCase().contains("saturn"))) {
+                temp.skill = new short[] { 195, 196, 197 };
+            }
             list.add(temp);
         }
         rs.close();

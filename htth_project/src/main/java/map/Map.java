@@ -2020,11 +2020,25 @@ public class Map implements Runnable {
                 if (!mob.isdie && !p0.wait_change_map && !p0.isdie
                         && p0.time_can_mob_atk < System.currentTimeMillis()) {
                     int dame;
-                    if (((mob.map.map_bossHunt != null)
+                    boolean isSaturn = (mob.mob_template != null && (mob.mob_template.mob_id == 174
+                            || (mob.mob_template.name != null && mob.mob_template.name.toLowerCase().contains("saturn"))))
+                            || (mob.boss_info != null && (mob.boss_info.id == 28 || (mob.boss_info.mob != null
+                                    && mob.boss_info.mob.mob_template != null
+                                    && (mob.boss_info.mob.mob_template.mob_id == 174 || (mob.boss_info.mob.mob_template.name != null && mob.boss_info.mob.mob_template.name.toLowerCase().contains("saturn"))))));
+
+                    if (isSaturn) {
+                        dame = (mob.final_dame > 0 ? mob.final_dame : 180000) + Util.random(20000);
+                    } else if (((mob.map.map_bossHunt != null)
                             || (mob.map.map_dungeon != null && mob.map.map_dungeon instanceof activities.HangDong)
                             || mob.boss_info != null)
                             && mob.final_dame > 0) {
                         dame = mob.final_dame;
+                    } else if (mob.boss_info != null) {
+                        if (mob.boss_info.thegioi == 1) {
+                            dame = mob.level * 800 + Util.random(10000, 20000);
+                        } else {
+                            dame = mob.level * 500 + Util.random(5000, 10000);
+                        }
                     } else {
                         // Đảm bảo mob.level >= 1 để tránh lỗi Util.random
                         int safeLevel = Math.max(1, mob.level);
@@ -2046,31 +2060,53 @@ public class Map implements Runnable {
                         }
                     }
 
-                    // update hp target
-                    if (p0.hp == p0.body.get_hp_max(true) && dame >= p0.hp) {
-                        p0.hp = 1;
-                    } else {
-                        p0.hp -= dame;
-                    }
-                    long def = p0.body.get_def(true);
-                    def = (def * (1000L + (long) p0.body.get_def_percent(true))) / 10_000L;
-                    dame -= def;
-                    // miss enemy
+                    // 1. Kiểm tra Né đòn
                     int get_miss = p0.body.get_miss(true) - p0.body.get_miss_reduce();
                     boolean miss = ((p0.get_eff(205) != null || get_miss > Util.random(1000)));
-                    if (miss) { // miss
+
+                    if (miss) {
                         dame = 0;
+                    } else {
+                        // 2. Trừ Giáp (Phòng thủ)
+                        long def = p0.body.get_def(true);
+                        def = (def * (1000L + (long) p0.body.get_def_percent(true))) / 10_000L;
+                        if (isSaturn) {
+                            // Saturn có khả năng xuyên một phần giáp và gây sát thương tối thiểu lớn
+                            long effectiveDef = Math.min(def, (long) (dame * 0.7));
+                            dame = Math.max(25000, (int) (dame - effectiveDef));
+                        } else if (mob.boss_info != null) {
+                            dame = Math.max(100, (int) (dame - def));
+                        } else {
+                            dame = Math.max(1, (int) (dame - def));
+                        }
+
+                        // 3. Trừ % Miễn thương
+                        int mienThuong = p0.body.get_dame_skip(true);
+                        if (mienThuong > 0) {
+                            int mt = Math.min(isSaturn ? 600 : 800, mienThuong);
+                            dame = (int) ((dame * (1000L - mt)) / 1000L);
+                        }
+
+                        dame = Math.max(1, dame);
+
+                        // 4. Cập nhật HP của mục tiêu
+                        if (p0.hp == p0.body.get_hp_max(true) && dame >= p0.hp) {
+                            p0.hp = 1;
+                        } else {
+                            p0.hp = Math.max(0, p0.hp - dame);
+                        }
                     }
-                    // System.out.println(p0.hp);
+
                     if (p0.hp <= 0) {
                         p0.hp = 0;
                         p0.isdie = true;
                         mob.id_target = -1;
                         mob_non_focus(mob);
                     }
-                    //
+
+                    // 5. Phản đòn
                     long dame_mine = 0;
-                    if (p0.body.get_dame_react(true) > Util.random(1000)) {
+                    if (dame > 0 && p0.body.get_dame_react(true) > Util.random(1000)) {
                         dame_mine = dame;
                     }
                     if (dame_mine > 0) {
@@ -2080,16 +2116,25 @@ public class Map implements Runnable {
                         }
                         this.update_hp_mp_eff(null, mob, 1, (int) -dame_mine);
                     }
-                    //
+
+                    // 6. Skill ID
+                    short skillId;
+                    if (isSaturn) {
+                        short[] saturnSkills = new short[] { 195, 196, 197 };
+                        skillId = saturnSkills[Util.random(saturnSkills.length)];
+                    } else if (mob.boss_info != null && mob.boss_info.skill != null && mob.boss_info.skill.length > 0) {
+                        skillId = mob.boss_info.skill[Util.random(mob.boss_info.skill.length)];
+                    } else if (mob.mob_template != null && mob.mob_template.skill != null && mob.mob_template.skill.length > 0) {
+                        skillId = mob.mob_template.skill[Util.random(mob.mob_template.skill.length)];
+                    } else {
+                        skillId = 0;
+                    }
+
                     Message m = new Message(100);
                     m.writer().writeShort(mob.index);
                     m.writer().writeByte(1);
                     m.writer().writeInt(mob.hp); // hp
                     m.writer().writeInt(mob.hp); // mp
-                    short skillId = (mob.boss_info != null && mob.boss_info.skill != null
-                            && mob.boss_info.skill.length > 0)
-                                    ? mob.boss_info.skill[Util.random(mob.boss_info.skill.length)]
-                                    : mob.mob_template.skill[Util.random(mob.mob_template.skill.length)];
                     m.writer().writeShort(skillId);
                     m.writer().writeByte(1); // size target
                     m.writer().writeShort(id_target);
@@ -2100,7 +2145,7 @@ public class Map implements Runnable {
                     m.writer().writeByte(0);
                     send_msg_all_p(m, p0, true);
                     m.cleanup();
-                    //
+
                     if (p0.hp <= 0) {
                         die_player(p0, p0);
                     }

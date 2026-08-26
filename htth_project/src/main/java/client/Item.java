@@ -229,7 +229,7 @@ public class Item {
         dos.writeByte(it.template.typeEquip);
         dos.writeShort(it.template.icon);
         dos.writeShort(it.template.level);
-        dos.writeByte((it.levelup > 15) ? 15 : it.levelup);
+        dos.writeByte(it.levelup);
         dos.writeByte(it.template.color);
         dos.writeByte(0);
         dos.writeByte(it.typelock);
