@@ -4,7 +4,7 @@ package template;
  * @author Truongbk
  */
 public class DataTemplate {
-        public static int VerdataMon = 126;
+        public static int VerdataMon = 127;
         public final static int VerdataPotion = 315;
         public final static int VerdataAttri = 791;
         public final static int VerdataNameMap = 369;

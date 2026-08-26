@@ -2949,7 +2949,7 @@ public class MenuController {
     for (int i = 0; i < p.skill_point.size(); i++) {
       Skill_info temp = p.skill_point.get(i);
       if ((temp.temp.ID < 4 && temp.temp.Lv_RQ == -1)
-          || (temp.temp.ID > 3 && temp.temp.ID < 2000 && temp.temp.Lv_RQ < 5)) {
+          || (temp.temp.ID >= 1000 && temp.temp.ID < 2000 && temp.temp.Lv_RQ < 5)) {
         index--;
         if (index == -1) {
           p.data_yesno = new int[] { i };
@@ -2959,7 +2959,7 @@ public class MenuController {
                 new String[] { "10.000", "Không" }, new byte[] { 6, -1 });
           } else {
             Skill_Template sk_temp = null;
-            if (temp.temp.ID > 3 && temp.temp.ID < 2000 && temp.temp.Lv_RQ > -1) {
+            if (temp.temp.ID >= 1000 && temp.temp.ID < 2000 && temp.temp.Lv_RQ > -1) {
               sk_temp = Skill_Template.get_temp((temp.temp.indexSkillInServer + 1), 0);
             }
             Service.send_box_yesno(p, 3, "Thông báo",
@@ -2981,11 +2981,16 @@ public class MenuController {
         for (int i = 0; i < p.skill_point.size(); i++) {
           Skill_info temp = p.skill_point.get(i);
           if ((temp.temp.ID < 4 && temp.temp.Lv_RQ == -1)
-              || (temp.temp.ID > 3 && temp.temp.ID < 2000 && temp.temp.Lv_RQ < 5)) {
-            if (temp.temp.ID > 3 && temp.temp.ID < 2000 && temp.temp.Lv_RQ > -1) {
+              || (temp.temp.ID >= 1000 && temp.temp.ID < 2000 && temp.temp.Lv_RQ < 5)) {
+            if (temp.temp.ID >= 1000 && temp.temp.ID < 2000 && temp.temp.Lv_RQ > -1) {
               Skill_Template sk_temp = Skill_Template.get_temp((temp.temp.indexSkillInServer + 1), 0);
-              str_.add(sk_temp.name);
-              icon_.add((int) (sk_temp.idIcon));
+              if (sk_temp != null) {
+                str_.add(sk_temp.name);
+                icon_.add((int) (sk_temp.idIcon));
+              } else {
+                str_.add(temp.temp.name);
+                icon_.add((int) (temp.temp.idIcon));
+              }
             } else {
               str_.add(temp.temp.name);
               icon_.add((int) (temp.temp.idIcon));

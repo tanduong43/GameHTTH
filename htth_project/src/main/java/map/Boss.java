@@ -349,7 +349,7 @@ public class Boss {
                 temp.level = 99;
                 temp.hOne = 120;
                 temp.hp_max = 2000000000;
-                temp.typemove = 6;
+                temp.typemove = 16;
                 temp.ishuman = 0;
                 temp.typemonster = 2;
                 temp.icon = 84;
@@ -357,7 +357,7 @@ public class Boss {
                 template.MobTemplate.ENTRYS.add(temp);
             } else {
                 temp.icon = 84;
-                temp.typemove = 6;
+                temp.typemove = 16;
                 temp.hOne = 120;
                 temp.typemonster = 2;
                 temp.hp_max = 2000000000;
