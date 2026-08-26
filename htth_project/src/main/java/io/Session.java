@@ -768,7 +768,7 @@ public class Session implements Runnable {
         Service.send_msg_data(this, 72, "data/msg/login/x2msg_72_638026480840482549", false);
         Service.send_msg_data(this, 72, "data/msg/login/x2msg_72_638026480840808702", false);
         //
-        if (this.zoomlv < 2) {
+        {
             Message m22 = new Message(-7);
             m22.writer().writeByte(15);
             m22.writer().writeShort(MobTemplate.ENTRYS.size());

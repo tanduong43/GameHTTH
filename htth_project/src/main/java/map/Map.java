@@ -2021,7 +2021,8 @@ public class Map implements Runnable {
                         && p0.time_can_mob_atk < System.currentTimeMillis()) {
                     int dame;
                     if (((mob.map.map_bossHunt != null)
-                            || (mob.map.map_dungeon != null && mob.map.map_dungeon instanceof activities.HangDong))
+                            || (mob.map.map_dungeon != null && mob.map.map_dungeon instanceof activities.HangDong)
+                            || mob.boss_info != null)
                             && mob.final_dame > 0) {
                         dame = mob.final_dame;
                     } else {
@@ -3713,6 +3714,22 @@ public class Map implements Runnable {
                     dame_inf.dameM = 0;
                     event.Event2011.getInstance().onBossDamaged(p, 1);
                 }
+                if (dame_to_target > 0) {
+                    dame_to_target = mob_target.calculate_damage_taken(dame_to_target);
+                    dame2 = Math.max(0, dame_to_target - dame_inf.dameM);
+                }
+                // Phản sát thương lại người chơi nếu Mob/Boss có chỉ số phản đòn
+                if (dame_to_target > 0 && mob_target.phan_dame > 0 && p != null && !p.isdie) {
+                    long dame_phan = (dame_to_target * (long) mob_target.phan_dame) / 100L;
+                    if (dame_phan > 0) {
+                        if (p.hp - dame_phan > 0) {
+                            p.hp -= dame_phan;
+                        } else {
+                            p.hp = 1;
+                        }
+                        this.update_hp_mp_eff(p, null, 1, (int) -dame_phan);
+                    }
+                }
                 if (mob_target.boss_info != null && dame_to_target > 0) {
                     Top_Dame topdame = null;
                     for (int j = 0; j < mob_target.boss_info.TopDame.size(); j++) {
@@ -4693,7 +4710,16 @@ public class Map implements Runnable {
         String txt = s.trim().toLowerCase();
 
         if (p.conn.user.equals("admin")) {
-            if (txt.equals("menu")) {
+            if (txt.equals("saturn") || txt.equals("goisaturn") || txt.equals("goi saturn")) {
+                map.Boss b = map.Boss.spawn_saturn(p, false);
+                Service.send_box_ThongBao_OK(p, "Đã gọi Boss Ngũ Lão Tinh Saturn xuất hiện tại "
+                        + (b.mob.map != null ? b.mob.map.template.name : "map") + "!");
+                return;
+            } else if (txt.equals("saturn here") || txt.equals("goisaturn here")) {
+                map.Boss b = map.Boss.spawn_saturn(p, true);
+                Service.send_box_ThongBao_OK(p, "Đã triệu hồi Boss Ngũ Lão Tinh Saturn ngay tại vị trí của bạn!");
+                return;
+            } else if (txt.equals("menu")) {
                 MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[] { "Bao tri",
                         "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tao Giftcode",
                         "Reset Tich Luy", "Reset Tich Tieu", "Reset Hang Dong" },
@@ -4776,6 +4802,14 @@ public class Map implements Runnable {
                         e.printStackTrace();
                         Service.send_box_ThongBao_OK(p, "Lệnh sai cú pháp! Ví dụ: admin addfashion 236");
                     }
+                } else if (cmd.equals("reloadmob") || cmd.equals("reload_mob") || cmd.equals("updatemob")) {
+                    try {
+                        core.Manager.reload_mobs();
+                        Service.send_box_ThongBao_OK(p, "Đã reload toàn bộ Mobs từ database và đồng bộ tới toàn bộ người chơi!");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Service.send_box_ThongBao_OK(p, "Lỗi reload mobs: " + e.getMessage());
+                    }
                 } else if (cmd.equals("reloadfashion") || cmd.equals("reload_fashion")) {
                     try {
                         core.Manager.reload_fashion();
@@ -4787,6 +4821,34 @@ public class Map implements Runnable {
                 } else if (cmd.equals("dualboss")) {
                     map.Boss.spawnDualEventBosses();
                     Service.send_box_ThongBao_OK(p, "Đã gọi sự kiện Boss Mèo truyền thuyết!");
+                } else if (cmd.equals("saturn") || cmd.equals("goisaturn") || cmd.equals("goi saturn")
+                        || cmd.equals("boss saturn") || cmd.equals("call saturn")) {
+                    map.Boss b = map.Boss.spawn_saturn(p, false);
+                    Service.send_box_ThongBao_OK(p, "Đã gọi Boss Ngũ Lão Tinh Saturn xuất hiện tại "
+                            + (b.mob.map != null ? b.mob.map.template.name : "map") + "!");
+                } else if (cmd.equals("saturn here") || cmd.equals("goisaturn here") || cmd.equals("saturnhere")) {
+                    map.Boss b = map.Boss.spawn_saturn(p, true);
+                    Service.send_box_ThongBao_OK(p, "Đã triệu hồi Boss Ngũ Lão Tinh Saturn ngay tại vị trí của bạn!");
+                } else if (cmd.startsWith("goiboss ") || cmd.startsWith("spawnboss ")) {
+                    try {
+                        String idStr = cmd.substring(cmd.indexOf(" ") + 1).trim();
+                        if (idStr.equalsIgnoreCase("saturn") || idStr.equals("174") || idStr.equals("28")) {
+                            map.Boss b = map.Boss.spawn_saturn(p, true);
+                            Service.send_box_ThongBao_OK(p, "Đã triệu hồi Boss Ngũ Lão Tinh Saturn ngay tại vị trí của bạn!");
+                        } else {
+                            int targetId = Integer.parseInt(idStr);
+                            map.Boss b = map.Boss.spawn_boss_by_id(p, targetId, true);
+                            if (b != null) {
+                                Service.send_box_ThongBao_OK(p, "Đã triệu hồi Boss " + b.mob.mob_template.name + " (ID "
+                                        + targetId + ") tại đây!");
+                            } else {
+                                Service.send_box_ThongBao_OK(p,
+                                        "Không tìm thấy Boss có ID " + targetId + " trong database!");
+                            }
+                        }
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin goiboss <id>");
+                    }
                 } else if (cmd.equals("boss") || cmd.equals("bosstg") || cmd.equals("boss_thegioi")) {
                     int n = map.Boss.force_spawn_all_thegioi1();
                     Service.send_box_ThongBao_OK(p, "Đã gọi " + n + " boss thế giới (thegioi=1) xuất hiện!");
@@ -5168,16 +5230,16 @@ public class Map implements Runnable {
             }
         }
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
-            if (!Boss.ENTRYS.get(i).mob.isdie && Boss.ENTRYS.get(i).mob.map.equals(p.map)) {
+            Boss bEntry = Boss.ENTRYS.get(i);
+            if (bEntry != null && bEntry.mob != null && !bEntry.mob.isdie && bEntry.mob.map != null && bEntry.mob.map.equals(this)) {
                 Message m_local = new Message(1);
                 m_local.writer().writeByte(1);
-                m_local.writer().writeShort(Boss.ENTRYS.get(i).mob.index);
-                m_local.writer().writeShort(Boss.ENTRYS.get(i).mob.x);
-                m_local.writer().writeShort(Boss.ENTRYS.get(i).mob.y);
+                m_local.writer().writeShort(bEntry.mob.index);
+                m_local.writer().writeShort(bEntry.mob.x);
+                m_local.writer().writeShort(bEntry.mob.y);
                 p.conn.addmsg(m_local);
                 m_local.cleanup();
                 haveBoss = true;
-                break;
             }
         }
         // send mob

@@ -7,6 +7,7 @@ import java.util.Set;
 
 import client.Player;
 import core.Manager;
+import core.Service;
 import core.Util;
 import io.Message;
 import template.Option;
@@ -310,6 +311,182 @@ public class Boss {
      */
     public static boolean isWorldBoss(int mobId) {
         return mobId >= 135 && mobId <= 140;
+    }
+
+    public static Boss spawn_saturn(Player p, boolean atPlayer) {
+        Boss saturn = null;
+        if (Boss.ENTRYS != null) {
+            for (Boss b : Boss.ENTRYS) {
+                if (b != null && b.mob != null && b.mob.mob_template != null) {
+                    if (b.mob.mob_template.mob_id == 174 || b.id == 28
+                            || (b.mob.mob_template.name != null
+                                    && b.mob.mob_template.name.toLowerCase().contains("saturn"))) {
+                        saturn = b;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (saturn == null) {
+            saturn = new Boss();
+            saturn.id = 28;
+            saturn.thegioi = 3;
+            saturn.mob = new Mob();
+            template.MobTemplate temp = null;
+            if (template.MobTemplate.ENTRYS != null) {
+                for (template.MobTemplate mt : template.MobTemplate.ENTRYS) {
+                    if (mt.mob_id == 174 || (mt.name != null && mt.name.toLowerCase().contains("saturn"))) {
+                        temp = mt;
+                        break;
+                    }
+                }
+            }
+            if (temp == null) {
+                temp = new template.MobTemplate();
+                temp.mob_id = 174;
+                temp.name = "Ngũ Lão Tinh Saturn";
+                temp.level = 99;
+                temp.hOne = 120;
+                temp.hp_max = 2000000000;
+                temp.typemove = 6;
+                temp.ishuman = 0;
+                temp.typemonster = 2;
+                temp.icon = 84;
+                temp.skill = new short[] { 72, 73 };
+                template.MobTemplate.ENTRYS.add(temp);
+            } else {
+                temp.icon = 84;
+                temp.typemove = 6;
+                temp.hOne = 120;
+                temp.typemonster = 2;
+                temp.hp_max = 2000000000;
+            }
+            saturn.mob.mob_template = temp;
+            saturn.mob.hp_max = 2000000000;
+            saturn.hp_max_origin = 2000000000;
+            saturn.mob.hp = 2000000000;
+            saturn.mob.level = 99;
+            saturn.mob.isdie = false;
+            saturn.mob.id_target = -1;
+            // Chỉ số trâu bò của Ngũ Lão Tinh Saturn
+            saturn.mob.phong_thu = 50000;        // Phòng thủ 50,000
+            saturn.mob.mien_thuong = 70;         // Miễn thương 70% (giảm 70% sát thương nhận vào)
+            saturn.mob.max_dame_per_hit = 2000000;// Mỗi hit mất tối đa 2,000,000 HP (chống oneshot)
+            saturn.mob.final_dame = 80000;       // Sát thương tấn công người chơi (80,000 dame)
+            saturn.mob.ne_don = 10;              // 10% tỷ lệ né đòn
+            saturn.mob.phan_dame = 5;            // 5% phản sát thương lại người đánh
+            int curIndex = Manager.gI().getIndexMob();
+            saturn.mob.index = curIndex;
+            saturn.index_mob_save = curIndex;
+            Manager.gI().setIndexMob(curIndex + 10);
+            saturn.mob.boss_info = saturn;
+            saturn.skill = new short[] { 72, 73 };
+            saturn.time_atk = new long[saturn.skill.length];
+            saturn.TopDame = new ArrayList<>();
+            saturn.levelBoss = 1;
+            Mob.ENTRYS.put(saturn.mob.index, saturn.mob);
+            if (Boss.ENTRYS == null) {
+                Boss.ENTRYS = new ArrayList<>();
+            }
+            Boss.ENTRYS.add(saturn);
+        }
+
+        if (saturn.mob.map != null && !saturn.mob.isdie) {
+            try {
+                saturn.mob.map.remove_obj(saturn.mob.index, 1);
+            } catch (Exception e) {
+            }
+        }
+
+        if (atPlayer && p != null && p.map != null) {
+            saturn.mob.map = p.map;
+            saturn.mob.x = (short) (p.x + 40);
+            saturn.mob.y = p.y;
+        } else if (saturn.mob.map == null) {
+            Map[] maps = Map.get_map_by_id(1001);
+            if (maps != null && maps.length > 0) {
+                saturn.mob.map = maps[0];
+                saturn.mob.x = 300;
+                saturn.mob.y = 200;
+            } else if (p != null && p.map != null) {
+                saturn.mob.map = p.map;
+                saturn.mob.x = p.x;
+                saturn.mob.y = p.y;
+            }
+        }
+
+        long now = System.currentTimeMillis();
+        saturn.mob.isdie = false;
+        saturn.mob.hp = saturn.mob.hp_max;
+        saturn.mob.id_target = -1;
+        saturn.levelBoss = 1;
+        saturn.mob.index = saturn.index_mob_save;
+        saturn.timeSpawn = now;
+        saturn.status = STATUS_ALIVE;
+        saturn.TopDame.clear();
+
+        try {
+            Manager.gI().chatKTG(0,
+                    ("Siêu trùm " + saturn.mob.mob_template.name + " đã xuất hiện tại "
+                            + saturn.mob.map.template.name + " khu "
+                            + (saturn.mob.map.zone_id + 1) + ". Hãy mau mau đi săn thôi!"),
+                    5);
+        } catch (Exception e) {
+        }
+
+        Mob.ENTRYS.put(saturn.mob.index, saturn.mob);
+        for (int j = 0; j < 10; j++) {
+            Mob.ENTRYS.put(saturn.mob.index + j, saturn.mob);
+        }
+
+        try {
+            Message m_local = new Message(1);
+            m_local.writer().writeByte(1);
+            m_local.writer().writeShort(saturn.mob.index);
+            m_local.writer().writeShort(saturn.mob.x);
+            m_local.writer().writeShort(saturn.mob.y);
+            saturn.mob.map.send_msg_all_p(m_local, null, true);
+            m_local.cleanup();
+
+            for (int i = 0; i < saturn.mob.map.players.size(); i++) {
+                Player pMap = saturn.mob.map.players.get(i);
+                if (pMap != null && pMap.conn != null) {
+                    Service.send_mob_info(pMap, saturn.mob);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return saturn;
+    }
+
+    public static Boss spawn_boss_by_id(Player p, int targetId, boolean atPlayer) {
+        if (targetId == 174 || targetId == 28) {
+            return spawn_saturn(p, atPlayer);
+        }
+        Boss targetBoss = null;
+        if (Boss.ENTRYS != null) {
+            for (Boss b : Boss.ENTRYS) {
+                if (b != null && b.mob != null && b.mob.mob_template != null) {
+                    if (b.id == targetId || b.mob.mob_template.mob_id == targetId) {
+                        targetBoss = b;
+                        break;
+                    }
+                }
+            }
+        }
+        if (targetBoss != null) {
+            if (atPlayer && p != null && p.map != null) {
+                targetBoss.mob.map = p.map;
+                targetBoss.mob.x = (short) (p.x + 40);
+                targetBoss.mob.y = p.y;
+            }
+            spawn_boss_at_origin(targetBoss);
+            return targetBoss;
+        }
+        return null;
     }
 
     public static void spawn_boss_at_origin(Boss boss) {

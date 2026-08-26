@@ -1404,4 +1404,91 @@ public class Manager {
         ps.close();
         conn.close();
     }
+
+    public static void reload_mobs() throws Exception {
+        String query = "SELECT * FROM `mobs`;";
+        List<MobTemplate> list = new ArrayList<>();
+        Connection conn = database.SQL.gI().getCon();
+        Statement ps = conn.createStatement();
+        ResultSet rs = ps.executeQuery(query);
+        while (rs.next()) {
+            MobTemplate temp = new MobTemplate();
+            temp.mob_id = Short.parseShort(rs.getString("id"));
+            temp.name = rs.getString("name");
+            temp.level = Short.parseShort(rs.getString("level"));
+            temp.hp_max = Integer.parseInt(rs.getString("hp"));
+            temp.hOne = Short.parseShort(rs.getString("hOne"));
+            temp.typemove = Byte.parseByte(rs.getString("typemove"));
+            temp.ishuman = Byte.parseByte(rs.getString("ishuman"));
+            temp.typemonster = Byte.parseByte(rs.getString("typemonster"));
+            JSONArray js = (JSONArray) JSONValue.parse(rs.getString("idicon"));
+            if (temp.ishuman == 0) {
+                temp.icon = Short.parseShort(js.get(1).toString());
+            } else if (temp.ishuman == 1) {
+                temp.head = Short.parseShort(js.get(1).toString());
+                temp.hair = Short.parseShort(js.get(2).toString());
+                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(3).toString());
+                temp.wearing = new short[js2.size()];
+                for (int i = 0; i < temp.wearing.length; i++) {
+                    temp.wearing[i] = Short.parseShort(js2.get(i).toString());
+                }
+            }
+            js.clear();
+            js = (JSONArray) JSONValue.parse(rs.getString("skill"));
+            temp.skill = new short[js.size()];
+            for (int i = 0; i < temp.skill.length; i++) {
+                temp.skill[i] = Short.parseShort(js.get(i).toString());
+            }
+            js.clear();
+            list.add(temp);
+        }
+        rs.close();
+        ps.close();
+        conn.close();
+        MobTemplate.ENTRYS = list;
+        DataTemplate.VerdataMon++;
+
+        // Send updated monster template packet to all online players
+        Message m22 = new Message(-7);
+        m22.writer().writeByte(15);
+        m22.writer().writeShort(MobTemplate.ENTRYS.size());
+        for (int i = 0; i < MobTemplate.ENTRYS.size(); i++) {
+            MobTemplate temp = MobTemplate.ENTRYS.get(i);
+            m22.writer().writeShort(temp.mob_id);
+            m22.writer().writeUTF(temp.name);
+            m22.writer().writeShort(temp.level);
+            m22.writer().writeShort(temp.hOne);
+            m22.writer().writeInt(temp.hp_max);
+            m22.writer().writeByte(temp.typemove);
+            m22.writer().writeByte(temp.ishuman);
+            m22.writer().writeByte(temp.typemonster);
+            if (temp.ishuman == 1) {
+                m22.writer().writeShort(temp.head);
+                m22.writer().writeShort(temp.hair);
+                m22.writer().writeByte(temp.wearing.length);
+                for (int j = 0; j < temp.wearing.length; j++) {
+                    if (temp.wearing[j] != -1) {
+                        m22.writer().writeByte(1);
+                        m22.writer().writeShort(temp.wearing[j]);
+                    } else {
+                        m22.writer().writeByte(-1);
+                    }
+                }
+            } else {
+                m22.writer().writeShort(temp.icon);
+            }
+        }
+        m22.writer().writeShort(DataTemplate.VerdataMon);
+        for (Map[] mapall : Map.ENTRYS) {
+            for (Map map : mapall) {
+                for (int i = 0; i < map.players.size(); i++) {
+                    Player p0 = map.players.get(i);
+                    if (p0.conn != null) {
+                        p0.conn.addmsg(m22);
+                    }
+                }
+            }
+        }
+        m22.cleanup();
+    }
 }
