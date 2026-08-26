@@ -4119,7 +4119,7 @@ public class Map implements Runnable {
                         Boss boss = mob_target.boss_info;
                         boss.timeDeath = System.currentTimeMillis();
                         core.BXH.updateTopBoss(boss);
-                        if (boss.thegioi == 3) {
+                        if (boss.thegioi == 3 || boss.thegioi == 5) {
                             boss.timeNextRespawn = boss.timeDeath + 1800000; // 30 minutes
                         } else if (boss.thegioi == 2) {
                             boss.timeNextRespawn = boss.timeDeath + Boss.RESPAWN_LANG_MS; // 10 phút, độc lập từng boss

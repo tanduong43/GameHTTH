@@ -331,7 +331,7 @@ public class Boss {
         if (saturn == null) {
             saturn = new Boss();
             saturn.id = 28;
-            saturn.thegioi = 3;
+            saturn.thegioi = 5;
             saturn.mob = new Mob();
             template.MobTemplate temp = null;
             if (template.MobTemplate.ENTRYS != null) {
@@ -673,8 +673,8 @@ public class Boss {
                 continue;
             }
             // thegioi=2: boss làng — mỗi con hồi độc lập
-            // thegioi=3: boss 24/7
-            if (boss.thegioi != 2 && boss.thegioi != 3) {
+            // thegioi=3, 5: boss 24/7 / Ngũ Lão Tinh
+            if (boss.thegioi != 2 && boss.thegioi != 3 && boss.thegioi != 5) {
                 continue;
             }
 
