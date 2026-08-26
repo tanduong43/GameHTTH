@@ -376,6 +376,7 @@ public class Item {
                         par++;
                     }
                 }
+                break;
             }
             case 4:
             case 5:

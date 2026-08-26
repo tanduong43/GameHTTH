@@ -91,6 +91,31 @@
         font-size: 13px;
         color: #a0aec0;
       }
+      #fullscreen-btn {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        z-index: 9999;
+        background: rgba(13, 27, 42, 0.82);
+        border: 1.5px solid rgba(230, 126, 34, 0.7);
+        color: #f39c12;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        transition: background 0.2s, transform 0.15s;
+        outline: none;
+        backdrop-filter: blur(4px);
+      }
+      #fullscreen-btn:hover {
+        background: rgba(230, 126, 34, 0.25);
+        transform: scale(1.1);
+      }
     </style>
   </head>
   <body>
@@ -108,12 +133,60 @@
       </div>
     </div>
 
+    <!-- Nút Toàn Màn Hình -->
+    <button id="fullscreen-btn" title="Toàn màn hình">⛶</button>
+
     <script src="Build/Web.loader.js"></script>
     <script>
       const canvas = document.querySelector("#unity-canvas");
       const loadingCover = document.querySelector("#loading-cover");
       const loadingBar = document.querySelector("#loading-bar");
       const loadingText = document.querySelector("#loading-text");
+      const fullscreenBtn = document.querySelector("#fullscreen-btn");
+
+      // === Fullscreen Logic ===
+      function getFullscreenIcon() {
+        const isFs = !!(
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement
+        );
+        return isFs ? "⊡" : "⛶";
+      }
+
+      function toggleFullscreen() {
+        const isFs = !!(
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement
+        );
+        if (!isFs) {
+          const el = document.documentElement;
+          if (el.requestFullscreen) el.requestFullscreen();
+          else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+          else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+          else if (el.msRequestFullscreen) el.msRequestFullscreen();
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+          else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+          else if (document.msExitFullscreen) document.msExitFullscreen();
+        }
+      }
+
+      fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+      document.addEventListener("fullscreenchange", () => {
+        fullscreenBtn.textContent = getFullscreenIcon();
+      });
+      document.addEventListener("webkitfullscreenchange", () => {
+        fullscreenBtn.textContent = getFullscreenIcon();
+      });
+      document.addEventListener("mozfullscreenchange", () => {
+        fullscreenBtn.textContent = getFullscreenIcon();
+      });
 
       const config = {
         dataUrl: "Build/Web.data",
@@ -131,9 +204,12 @@
         loadingText.innerText = "Đang nạp tài nguyên game... " + percent + "%";
       }).then((unityInstance) => {
         loadingCover.style.display = "none";
+        // Hiện nút fullscreen sau khi game load xong
+        fullscreenBtn.style.display = "flex";
       }).catch((message) => {
         alert("Lỗi tải WebGL: " + message);
       });
     </script>
   </body>
 </html>
+

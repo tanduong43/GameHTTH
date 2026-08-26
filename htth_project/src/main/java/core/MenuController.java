@@ -3358,7 +3358,7 @@ public class MenuController {
         }
         case 7: {
           Service.input_text(p, 32005, "Tạo Giftcode",
-              new String[] { "Tên mã", "Số Beri", "Số Ruby", "Giới hạn", "Loại Item (-1 nếu ko có)", "ID Item",
+              new String[] { "Tên mã", "Số Beri", "Số Ruby", "Giới hạn", "Loại Item (3: Đồ, 4: Rương/Thuốc, 7: NL, -1: Không)", "ID Item",
                   "Số lượng Item", "MTV (1: Có, 0: Không)" });
           break;
         }
