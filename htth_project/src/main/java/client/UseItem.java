@@ -1973,7 +1973,6 @@ public class UseItem {
                 int id_add = random_red_equip_id(bound1, bound2, p.clazz, sameClazz);
                 if (id_add > 0) {
                     temp.setup_template_by_id(id_add);
-                    increaseOptions(temp);
                     list_receiv.add(temp);
                     if (temp.template != null) {
                         temp.numLoKham = (byte) ((50 > Util.random(120)) ? 0
@@ -1994,7 +1993,6 @@ public class UseItem {
                 int id_add = random_red_equip_id(bound1, bound2, p.clazz, true);
                 if (id_add > 0) {
                     temp.setup_template_by_id(id_add);
-                    increaseOptions(temp);
 
                     list_receiv.add(temp);
                     if (temp.template != null) {
@@ -2263,17 +2261,6 @@ public class UseItem {
                     p.item.update_Inventory(-1, false);
                 }
             }
-        }
-    }
-
-    private static void increaseOptions(Item_wear item) {
-        int numOptionsToAdd = Util.random(11, 12);
-        for (int i = 0; i < numOptionsToAdd; i++) {
-            int optionIndex = Util.random(item.option_item.size());
-            Option option = item.option_item.get(optionIndex);
-            int currentParam = option.getParam();
-            int newParam = currentParam + numOptionsToAdd;
-            option.setParam(newParam);
         }
     }
 }
