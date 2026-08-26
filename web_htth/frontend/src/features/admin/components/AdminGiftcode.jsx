@@ -506,14 +506,18 @@ function AdminGiftcode() {
               {items.map((it, idx) => (
                 <div key={idx} style={styles.itemRow}>
                   <div style={styles.itemFlexItem}>
-                    <input
-                      type="number"
-                      placeholder="Loại (Type)"
+                    <select
                       value={it.type}
-                      onChange={(e) => handleItemChange(idx, 'type', e.target.value)}
+                      onChange={(e) => handleItemChange(idx, 'type', Number(e.target.value))}
                       style={styles.input}
-                      title="Loại vật phẩm (thường là 3)"
-                    />
+                      title="Loại vật phẩm"
+                    >
+                      <option value={4}>4 - Rương / Dược phẩm (Item4)</option>
+                      <option value={3}>3 - Trang bị / Vũ khí (Item3)</option>
+                      <option value={7}>7 - Nguyên liệu (Item7)</option>
+                      <option value={8}>8 - Thú cưng (Pet)</option>
+                      <option value={11}>11 - Thời trang (Fashion)</option>
+                    </select>
                   </div>
                   <div style={styles.itemFlexItem}>
                     <input

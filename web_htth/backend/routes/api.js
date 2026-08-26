@@ -1014,5 +1014,254 @@ router.get('/recharge/bank_config', async (req, res) => {
 
 
 
+// ==========================================
+// GAME ITEMS & TEMPLATES MANAGEMENT (CRUD)
+// ==========================================
+
+const ALLOWED_ITEM_TABLES = {
+    item4: {
+        primaryKey: ['id'],
+        searchColumns: ['name'],
+        columns: ['id', 'name', 'icon', 'indexInfoPotion', 'price', 'priceruby', 'istrade', 'hpmpother', 'timedelay', 'value', 'timeactive', 'nameuse']
+    },
+    item3: {
+        primaryKey: ['id'],
+        searchColumns: ['name'],
+        columns: ['id', 'name', 'clazz', 'typeequip', 'icon', 'level', 'color', 'typelock', 'numHoleDaDuc', 'chetac', 'ishoanmy', 'valuekichan', 'op_1', 'op_2', 'numlokham', 'mdakham', 'part', 'beri', 'ruby']
+    },
+    item7: {
+        primaryKey: ['id'],
+        searchColumns: ['name'],
+        columns: ['id', 'name', 'type', 'icon', 'price', 'priceruby', 'istrade']
+    },
+    item4_info: {
+        primaryKey: ['id'],
+        searchColumns: ['info'],
+        columns: ['id', 'info']
+    },
+    shoptichluy: {
+        primaryKey: ['id', 'type'],
+        searchColumns: ['info'],
+        columns: ['id', 'type', 'point', 'info', 'limit', 'limit_data']
+    },
+    pet_template: {
+        primaryKey: ['id'],
+        searchColumns: ['name'],
+        columns: ['id', 'name', 'icon', 'type', 'frame', 'op', 'show']
+    },
+    itemhair: {
+        primaryKey: ['id'],
+        searchColumns: ['name'],
+        columns: ['id', 'name', 'icon', 'beri', 'ruby']
+    },
+    fashiontemplate: {
+        primaryKey: ['id'],
+        searchColumns: ['name', 'info'],
+        columns: ['id', 'icon', 'name', 'info', 'mwear', 'op', 'price']
+    },
+    danhhieu: {
+        primaryKey: ['id'],
+        searchColumns: ['name'],
+        columns: ['id', 'name', 'idicon', 'nframe', 'op', 'vnd', 'sell']
+    }
+};
+
+// GET /api/admin/items/search
+router.get('/admin/items/search', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const { table, keyword } = req.query;
+        const page = parseInt(req.query.page) || 1;
+        const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
+
+        if (!table || !ALLOWED_ITEM_TABLES[table]) {
+            return res.json({ success: false, message: 'Bảng dữ liệu không hợp lệ!' });
+        }
+
+        // Yêu cầu: Không hiển thị trước dữ liệu, chỉ tìm kiếm mới hiển thị
+        if (!keyword || !keyword.trim()) {
+            return res.json({
+                success: true,
+                table,
+                data: [],
+                total: 0,
+                page: 1,
+                limit,
+                totalPages: 0
+            });
+        }
+
+        const tableMeta = ALLOWED_ITEM_TABLES[table];
+        const kw = keyword.trim();
+        const whereClauses = [];
+        const params = [];
+
+        // Check if keyword is a valid integer (for exact ID search)
+        if (/^\d+$/.test(kw)) {
+            whereClauses.push('`id` = ?');
+            params.push(parseInt(kw));
+        }
+
+        // Text search across designated search columns
+        for (const col of tableMeta.searchColumns) {
+            whereClauses.push(`\`${col}\` LIKE ?`);
+            params.push(`%${kw}%`);
+        }
+
+        const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' OR ')}` : '';
+
+        // Total count matching query
+        const [[{ total }]] = await db.execute(
+            `SELECT COUNT(*) as total FROM \`${table}\` ${whereSql}`,
+            params
+        );
+
+        const totalPages = Math.ceil(total / limit);
+        const currentPage = Math.min(Math.max(1, page), Math.max(1, totalPages));
+        const offset = (currentPage - 1) * limit;
+
+        // Query rows with pagination
+        const [rows] = await db.execute(
+            `SELECT * FROM \`${table}\` ${whereSql} ORDER BY \`id\` ASC LIMIT ${limit} OFFSET ${offset}`,
+            params
+        );
+
+        return res.json({
+            success: true,
+            table,
+            data: rows,
+            total,
+            page: currentPage,
+            limit,
+            totalPages
+        });
+    } catch (err) {
+        console.error('Admin search items error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/admin/items/create
+router.post('/admin/items/create', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const { table, itemData } = req.body;
+
+        if (!table || !ALLOWED_ITEM_TABLES[table]) {
+            return res.json({ success: false, message: 'Bảng dữ liệu không hợp lệ!' });
+        }
+
+        if (!itemData || typeof itemData !== 'object') {
+            return res.json({ success: false, message: 'Dữ liệu vật phẩm không hợp lệ!' });
+        }
+
+        const tableMeta = ALLOWED_ITEM_TABLES[table];
+        const insertKeys = [];
+        const insertValues = [];
+        const placeholders = [];
+
+        for (const col of tableMeta.columns) {
+            if (itemData[col] !== undefined && itemData[col] !== null) {
+                insertKeys.push(`\`${col}\``);
+                insertValues.push(itemData[col]);
+                placeholders.push('?');
+            }
+        }
+
+        if (insertKeys.length === 0) {
+            return res.json({ success: false, message: 'Không có dữ liệu hợp lệ để thêm!' });
+        }
+
+        const query = `INSERT INTO \`${table}\` (${insertKeys.join(', ')}) VALUES (${placeholders.join(', ')})`;
+        await db.execute(query, insertValues);
+
+        return res.json({ success: true, message: `Thêm bản ghi vào ${table} thành công!` });
+    } catch (err) {
+        console.error('Admin create item error:', err);
+        return res.json({ success: false, message: `Lỗi thêm vật phẩm: ${err.message}` });
+    }
+});
+
+// POST /api/admin/items/update
+router.post('/admin/items/update', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const { table, itemData, originalKey } = req.body;
+
+        if (!table || !ALLOWED_ITEM_TABLES[table]) {
+            return res.json({ success: false, message: 'Bảng dữ liệu không hợp lệ!' });
+        }
+
+        if (!itemData || typeof itemData !== 'object' || !originalKey) {
+            return res.json({ success: false, message: 'Dữ liệu cập nhật không hợp lệ!' });
+        }
+
+        const tableMeta = ALLOWED_ITEM_TABLES[table];
+        const updateSets = [];
+        const updateParams = [];
+
+        for (const col of tableMeta.columns) {
+            if (itemData[col] !== undefined) {
+                updateSets.push(`\`${col}\` = ?`);
+                updateParams.push(itemData[col]);
+            }
+        }
+
+        if (updateSets.length === 0) {
+            return res.json({ success: false, message: 'Không có trường nào cần cập nhật!' });
+        }
+
+        // Build WHERE clause based on original primary key(s)
+        const whereClauses = [];
+        for (const pkCol of tableMeta.primaryKey) {
+            if (originalKey[pkCol] === undefined || originalKey[pkCol] === null) {
+                return res.json({ success: false, message: `Thiếu khóa chính ${pkCol} để cập nhật!` });
+            }
+            whereClauses.push(`\`${pkCol}\` = ?`);
+            updateParams.push(originalKey[pkCol]);
+        }
+
+        const query = `UPDATE \`${table}\` SET ${updateSets.join(', ')} WHERE ${whereClauses.join(' AND ')}`;
+        await db.execute(query, updateParams);
+
+        return res.json({ success: true, message: `Cập nhật bản ghi trong ${table} thành công!` });
+    } catch (err) {
+        console.error('Admin update item error:', err);
+        return res.json({ success: false, message: `Lỗi cập nhật vật phẩm: ${err.message}` });
+    }
+});
+
+// POST /api/admin/items/delete
+router.post('/admin/items/delete', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const { table, key } = req.body;
+
+        if (!table || !ALLOWED_ITEM_TABLES[table]) {
+            return res.json({ success: false, message: 'Bảng dữ liệu không hợp lệ!' });
+        }
+
+        if (!key || typeof key !== 'object') {
+            return res.json({ success: false, message: 'Thiếu thông tin khóa chính để xóa!' });
+        }
+
+        const tableMeta = ALLOWED_ITEM_TABLES[table];
+        const whereClauses = [];
+        const deleteParams = [];
+
+        for (const pkCol of tableMeta.primaryKey) {
+            if (key[pkCol] === undefined || key[pkCol] === null) {
+                return res.json({ success: false, message: `Thiếu khóa chính ${pkCol} để xóa!` });
+            }
+            whereClauses.push(`\`${pkCol}\` = ?`);
+            deleteParams.push(key[pkCol]);
+        }
+
+        const query = `DELETE FROM \`${table}\` WHERE ${whereClauses.join(' AND ')}`;
+        await db.execute(query, deleteParams);
+
+        return res.json({ success: true, message: `Đã xóa bản ghi khỏi ${table} thành công!` });
+    } catch (err) {
+        console.error('Admin delete item error:', err);
+        return res.json({ success: false, message: `Lỗi xóa vật phẩm: ${err.message}` });
+    }
+});
+
 module.exports = router;
 
