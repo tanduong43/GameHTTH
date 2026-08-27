@@ -5141,8 +5141,42 @@ public class Map implements Runnable {
             } catch (Exception e) {
             }
             return;
-        } else if (txt.equals("addpet") || txt.equals("/addpet") || txt.equals("fullpet")) {
+        } else if (txt.startsWith("addpet ") || txt.startsWith("/addpet ")) {
             try {
+                int petId = Integer.parseInt(txt.split(" ")[1].trim());
+                client.Pet targetTemplate = client.Pet.getTemplate(petId);
+                if (targetTemplate == null) {
+                    Service.send_box_ThongBao_OK(p, "Không tìm thấy Pet template ID: " + petId);
+                    return;
+                }
+                // Dọn dẹp pet lỗi
+                p.my_pet.removeIf(mp -> mp == null || mp.template == null || client.Pet.getTemplate(mp.template.id) == null);
+                boolean has = false;
+                for (client.MyPet mp : p.my_pet) {
+                    if (mp.template != null && mp.template.id == targetTemplate.id) {
+                        has = true;
+                        break;
+                    }
+                }
+                if (!has) {
+                    client.MyPet newPet = new client.MyPet();
+                    newPet.id = (short) p.my_pet.size();
+                    newPet.template = targetTemplate;
+                    newPet.isUse = false;
+                    newPet.expiryTime = -1;
+                    p.my_pet.add(newPet);
+                    Service.send_box_ThongBao_OK(p, "Đã thêm Pet [" + targetTemplate.name + "] (ID " + petId + ") vào rương Pet!");
+                } else {
+                    Service.send_box_ThongBao_OK(p, "Bạn đã sở hữu Pet [" + targetTemplate.name + "] rồi!");
+                }
+            } catch (Exception e) {
+                Service.send_box_ThongBao_OK(p, "Cú pháp: /addpet <id>");
+            }
+            return;
+        } else if (txt.equals("addpet") || txt.equals("/addpet") || txt.equals("fullpet") || txt.equals("/fullpet")) {
+            try {
+                // Dọn dẹp pet lỗi trước
+                p.my_pet.removeIf(mp -> mp == null || mp.template == null || client.Pet.getTemplate(mp.template.id) == null);
                 int count = 0;
                 for (client.Pet tempPet : client.Pet.ENTRY) {
                     boolean has = false;
@@ -5154,7 +5188,7 @@ public class Map implements Runnable {
                     }
                     if (!has) {
                         client.MyPet newPet = new client.MyPet();
-                        newPet.id = (short) (p.my_pet.size() + 1);
+                        newPet.id = (short) p.my_pet.size();
                         newPet.template = tempPet;
                         newPet.isUse = false;
                         newPet.expiryTime = -1;
@@ -5163,6 +5197,14 @@ public class Map implements Runnable {
                     }
                 }
                 Service.send_box_ThongBao_OK(p, "Đã thêm " + count + " Pet vào rương Pet của bạn!");
+            } catch (Exception e) {
+            }
+            return;
+        } else if (txt.equals("clearpet") || txt.equals("/clearpet") || txt.equals("xoapet") || txt.equals("/xoapet")) {
+            try {
+                p.my_pet.clear();
+                p.update_info_to_all();
+                Service.send_box_ThongBao_OK(p, "Đã xóa toàn bộ Pet trong rương Pet của bạn!");
             } catch (Exception e) {
             }
             return;

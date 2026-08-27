@@ -20,7 +20,6 @@ public class VongQuayPet {
     }
 
     private static java.util.List<Pet> getRollablePets() {
-        Pet.checkDefaultPets();
         java.util.List<Pet> list = new java.util.ArrayList<>();
         for (Pet pTemplate : Pet.ENTRY) {
             if (pTemplate.isShow == 1) {

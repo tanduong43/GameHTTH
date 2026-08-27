@@ -1473,7 +1473,6 @@ public class UseItem {
                         return false;
                     }
                     case 1014: { // Trứng Pet (Icon 2663)
-                        Pet.checkDefaultPets();
                         List<Pet> listPetShow0 = new ArrayList<>();
                         for (Pet petTemp : Pet.ENTRY) {
                             if (petTemp.isShow == 0) {
