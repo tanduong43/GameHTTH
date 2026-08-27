@@ -1057,6 +1057,8 @@ public class Service {
                 p.update_money();
                 ItemFashionP2 temp2 = new ItemFashionP2();
                 temp2.id = itf.ID;
+                long dur = ItemFashion.getDefaultDurationMs(itf.ID);
+                temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                 p.fashion.add(temp2);
                 p.update_fashionP2(temp2);
                 for (int i = 0; i < p.map.players.size(); i++) {
@@ -1416,6 +1418,8 @@ public class Service {
                             p.update_TichLuy(-diemtichluy);
                             ItemFashionP2 temp2 = new ItemFashionP2();
                             temp2.id = itf.ID;
+                            long dur = ItemFashion.getDefaultDurationMs(itf.ID);
+                            temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                             p.fashion.add(temp2);
                             p.update_fashionP2(temp2);
                             for (int i = 0; i < p.map.players.size(); i++) {
@@ -2060,6 +2064,8 @@ public class Service {
                     if (p.check_fashion(temp.id) == null) {
                         template.ItemFashionP2 temp2 = new template.ItemFashionP2();
                         temp2.id = temp.id;
+                        long dur = ItemFashion.getDefaultDurationMs(temp.id);
+                        temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                         p.fashion.add(temp2);
                         // Tự động kích hoạt thời trang
                         p.update_fashionP2(temp2);

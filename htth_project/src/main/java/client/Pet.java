@@ -26,6 +26,7 @@ public class Pet {
         if (act == 3) { // show table
             Pet.show_inven(p);
         } else if (act == 4) {
+            check_expiry_pet(p, true);
             try {
                 byte type = m2.reader().readByte();
                 short id = m2.reader().readShort();
@@ -271,23 +272,49 @@ public class Pet {
         return true;
     }
 
-    public static void show_inven(Player p) throws IOException {
+    public static boolean check_expiry_pet(Player p, boolean sendNotice) {
+        if (p == null || p.my_pet == null || p.my_pet.isEmpty()) {
+            return false;
+        }
         long currentTime = System.currentTimeMillis();
         boolean hasExpired = false;
+        boolean wasUsingExpired = false;
         for (int i = p.my_pet.size() - 1; i >= 0; i--) {
             MyPet pet = p.my_pet.get(i);
-            if (pet.expiryTime != -1 && currentTime > pet.expiryTime) {
+            if (pet != null && pet.expiryTime != -1 && currentTime > pet.expiryTime) {
                 if (pet.isUse) {
                     pet.isUse = false;
-                    p.update_info_to_all();
+                    wasUsingExpired = true;
                 }
                 p.my_pet.remove(i);
                 hasExpired = true;
             }
         }
         if (hasExpired) {
-            Service.send_box_ThongBao_OK(p, "Một số pet của bạn đã hết hạn sử dụng và bị thu hồi.");
+            if (wasUsingExpired) {
+                try {
+                    p.update_info_to_all();
+                    if (p.map != null) {
+                        for (int i = 0; i < p.map.players.size(); i++) {
+                            Player p0 = p.map.players.get(i);
+                            Service.pet(p, p0, false);
+                        }
+                    }
+                } catch (Exception e) {
+                }
+            }
+            if (sendNotice && p.conn != null && p.conn.connected) {
+                try {
+                    Service.send_box_ThongBao_OK(p, "Một số pet của bạn đã hết hạn sử dụng và bị thu hồi.");
+                } catch (Exception e) {
+                }
+            }
         }
+        return hasExpired;
+    }
+
+    public static void show_inven(Player p) throws IOException {
+        check_expiry_pet(p, true);
 
         Message m = new Message(-80);
         m.writer().writeByte(3);

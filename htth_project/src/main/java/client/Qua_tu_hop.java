@@ -162,6 +162,8 @@ public class Qua_tu_hop {
                     
                     ItemFashionP2 temp2 = new ItemFashionP2();
                     temp2.id = fashion.ID;
+                    long dur = ItemFashion.getDefaultDurationMs(fashion.ID);
+                    temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                     p.fashion.add(temp2);
                     p.update_fashionP2(temp2);
                     
@@ -195,6 +197,8 @@ public class Qua_tu_hop {
                     
                     ItemFashionP2 temp2 = new ItemFashionP2();
                     temp2.id = fashion.ID;
+                    long dur = ItemFashion.getDefaultDurationMs(fashion.ID);
+                    temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                     p.fashion.add(temp2);
                     p.update_fashionP2(temp2);
                     
@@ -226,6 +230,8 @@ public class Qua_tu_hop {
                         
                         ItemFashionP2 temp2 = new ItemFashionP2();
                         temp2.id = fashion.ID;
+                        long dur = ItemFashion.getDefaultDurationMs(fashion.ID);
+                        temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                         p.fashion.add(temp2);
                         p.update_fashionP2(temp2);
                         
@@ -260,6 +266,8 @@ public class Qua_tu_hop {
                         
                         ItemFashionP2 temp2 = new ItemFashionP2();
                         temp2.id = fashion.ID;
+                        long dur = ItemFashion.getDefaultDurationMs(fashion.ID);
+                        temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                         p.fashion.add(temp2);
                         p.update_fashionP2(temp2);
                         
@@ -294,6 +302,8 @@ public class Qua_tu_hop {
                         
                         ItemFashionP2 temp2 = new ItemFashionP2();
                         temp2.id = fashion.ID;
+                        long dur = ItemFashion.getDefaultDurationMs(fashion.ID);
+                        temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                         p.fashion.add(temp2);
                         p.update_fashionP2(temp2);
                         
@@ -328,6 +338,8 @@ public class Qua_tu_hop {
                         
                         ItemFashionP2 temp2 = new ItemFashionP2();
                         temp2.id = fashion.ID;
+                        long dur = ItemFashion.getDefaultDurationMs(fashion.ID);
+                        temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                         p.fashion.add(temp2);
                         p.update_fashionP2(temp2);
                         

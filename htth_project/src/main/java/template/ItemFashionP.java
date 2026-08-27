@@ -64,6 +64,7 @@ public class ItemFashionP {
                 break;
             }
             case 105: {
+                p.check_expiry_fashion(true);
                 int ver_ = p.conn.getVersionInt();
                 Message m = new Message(-19);
                 m.writer().writeByte(105);
@@ -78,6 +79,23 @@ public class ItemFashionP {
                     if (myFashion != null && myFashion.level > 0) {
                         info += "\n (+" + myFashion.level + ") Toàn bộ chỉ số được + "
                                 + Upgrade_Skin_Info.get_op_level(myFashion.level) + "%";
+                    }
+                    if (myFashion != null && myFashion.expiryTime != -1) {
+                        long remaining = myFashion.expiryTime - System.currentTimeMillis();
+                        if (remaining > 0) {
+                            long days = remaining / (24 * 60 * 60 * 1000L);
+                            long hours = (remaining % (24 * 60 * 60 * 1000L)) / (60 * 60 * 1000L);
+                            long mins = (remaining % (60 * 60 * 1000L)) / (60 * 1000L);
+                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm dd/MM/yyyy");
+                            info += "\n[HSD: " + sdf.format(new java.util.Date(myFashion.expiryTime)) + "]";
+                            if (days > 0) {
+                                info += "\n(Còn " + days + " ngày " + hours + " giờ)";
+                            } else if (hours > 0) {
+                                info += "\n(Còn " + hours + " giờ " + mins + " phút)";
+                            } else {
+                                info += "\n(Còn " + mins + " phút)";
+                            }
+                        }
                     }
                     m.writer().writeUTF(info);
                     m.writer().writeShort(ItemFashion.ENTRYS.get(i).idIcon);

@@ -1760,6 +1760,12 @@ public class Map implements Runnable {
                     p0.is_combo = null;
                     Service.start_combo(p0, 0);
                 }
+                // Kiểm tra hạn sử dụng của Pet & Thời trang mỗi 5 giây
+                if (p0.time_check_expiry < System.currentTimeMillis()) {
+                    p0.time_check_expiry = System.currentTimeMillis() + 5_000L;
+                    client.Pet.check_expiry_pet(p0, true);
+                    p0.check_expiry_fashion(true);
+                }
                 //
                 if ((this.template.id == 81 && this.map_little_garden != null) || this.template.id == 2026) {
                     if (p0.isdie && p0.time_hs_little_garden <= System.currentTimeMillis()) {
@@ -4830,6 +4836,8 @@ public class Map implements Runnable {
                             if (temp2 == null) {
                                 temp2 = new ItemFashionP2();
                                 temp2.id = itf.ID;
+                                long dur = ItemFashion.getDefaultDurationMs(itf.ID);
+                                temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                                 p.fashion.add(temp2);
                             }
                             p.update_fashionP2(temp2);

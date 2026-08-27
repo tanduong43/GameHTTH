@@ -39,4 +39,33 @@ public class ItemFashion {
         }
         return null;
     }
+
+    public static long getDefaultDurationMs(int fashionId) {
+        ItemFashion item = get_item(fashionId);
+        if (item == null) {
+            return -1;
+        }
+        if (item.info != null) {
+            String lower = item.info.toLowerCase();
+            if (lower.contains("vĩnh viễn")) {
+                return -1;
+            }
+            if (lower.contains("24 giờ") || lower.contains("24h") || lower.contains("1 ngày")) {
+                return 24L * 60 * 60 * 1000L;
+            }
+            if (lower.contains("3 ngày")) {
+                return 3L * 24 * 60 * 60 * 1000L;
+            }
+            if (lower.contains("7 ngày")) {
+                return 7L * 24 * 60 * 60 * 1000L;
+            }
+            if (lower.contains("30 ngày")) {
+                return 30L * 24 * 60 * 60 * 1000L;
+            }
+        }
+        if (fashionId == 130) {
+            return 24L * 60 * 60 * 1000L;
+        }
+        return -1;
+    }
 }

@@ -722,6 +722,8 @@ public class ClientInput {
                                             template.ItemFashionP2 temp2 = new template.ItemFashionP2();
                                             temp2.id = temp.id[i];
                                             temp2.is_use = false;
+                                            long dur = template.ItemFashion.getDefaultDurationMs(temp.id[i]);
+                                            temp2.expiryTime = (dur > 0) ? (System.currentTimeMillis() + dur) : -1;
                                             p.fashion.add(temp2);
                                         }
                                         break;

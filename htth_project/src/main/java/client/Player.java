@@ -246,6 +246,7 @@ public class Player {
     public int thosan_bounty = 0;
     public long time_bounty_posted = 0;
     public long last_bounty_announce_time = 0;
+    public long time_check_expiry = 0;
 
     public int diemdanh;
     public int diemdanhvip;
@@ -851,6 +852,11 @@ public class Player {
                 tempf.id = Short.parseShort(js_temp.get(0).toString());
                 tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
                 tempf.level = Byte.parseByte(js_temp.get(2).toString());
+                if (js_temp.size() > 3) {
+                    tempf.expiryTime = Long.parseLong(js_temp.get(3).toString());
+                } else {
+                    tempf.expiryTime = -1;
+                }
                 this.fashion.add(tempf);
             }
             js_temp_2 = (JSONArray) JSONValue.parse(js.get(2).toString());
@@ -884,6 +890,9 @@ public class Player {
             js.clear();
             //
             body = new Body(this);
+            // Kiểm tra và thu hồi Pet & Thời trang hết hạn khi đăng nhập
+            Pet.check_expiry_pet(this, false);
+            this.check_expiry_fashion(false);
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -1255,6 +1264,7 @@ public class Player {
                 js14.add(p.fashion.get(i).id);
                 js14.add(p.fashion.get(i).is_use ? 1 : 0);
                 js14.add(p.fashion.get(i).level);
+                js14.add(p.fashion.get(i).expiryTime);
                 js_temp_22.add(js14);
             }
             js.add(js_temp_22);
@@ -2349,7 +2359,49 @@ public class Player {
         return null;
     }
 
+    public boolean check_expiry_fashion(boolean sendNotice) {
+        if (this.fashion == null || this.fashion.isEmpty()) {
+            return false;
+        }
+        long currentTime = System.currentTimeMillis();
+        boolean hasExpired = false;
+        boolean wasUsingExpired = false;
+        for (int i = this.fashion.size() - 1; i >= 0; i--) {
+            ItemFashionP2 f = this.fashion.get(i);
+            if (f != null && f.expiryTime != -1 && currentTime > f.expiryTime) {
+                if (f.is_use) {
+                    f.is_use = false;
+                    wasUsingExpired = true;
+                }
+                this.fashion.remove(i);
+                hasExpired = true;
+            }
+        }
+        if (hasExpired) {
+            if (wasUsingExpired) {
+                try {
+                    this.update_info_to_all();
+                    if (this.map != null) {
+                        for (int pi = 0; pi < this.map.players.size(); pi++) {
+                            Player p0 = this.map.players.get(pi);
+                            Service.charWearing(this, p0, false);
+                        }
+                    }
+                } catch (Exception e) {
+                }
+            }
+            if (sendNotice && this.conn != null && this.conn.connected) {
+                try {
+                    Service.send_box_ThongBao_OK(this, "Một số thời trang của bạn đã hết hạn sử dụng và bị thu hồi.");
+                } catch (Exception e) {
+                }
+            }
+        }
+        return hasExpired;
+    }
+
     public ItemFashionP2 check_fashion(int id) {
+        check_expiry_fashion(false);
         // Client nhận ID thời trang qua writeByte/sbyte nên ID > 127 bị lệch dấu
         // (vd 130 -> -126). So khớp cả dạng byte giống ItemFashion.get_item.
         for (int i = 0; i < this.fashion.size(); i++) {
@@ -2372,6 +2424,7 @@ public class Player {
     }
 
     public short[] get_fashion() {
+        check_expiry_fashion(false);
         if (get_eff(21) != null) {
             return new short[] { -1, -2, -1, 766, -1, 767, 765, -2 };
         }
@@ -3215,6 +3268,7 @@ public class Player {
     }
 
     public MyPet get_pet() {
+        Pet.check_expiry_pet(this, false);
         for (int i = 0; i < this.my_pet.size(); i++) {
             if (this.my_pet.get(i).isUse) {
                 return this.my_pet.get(i);

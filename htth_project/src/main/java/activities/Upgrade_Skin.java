@@ -65,6 +65,7 @@ public class Upgrade_Skin {
     }
 
     public static void show_table(Player p) throws IOException {
+        p.check_expiry_fashion(true);
         p.upgrade_skin = new Upgrade_Skin_Info();
         p.upgrade_skin.upgrade_skin_data = new short[] {-1, -1, -1, -1, -1, -1};
         //
