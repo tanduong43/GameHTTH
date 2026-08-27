@@ -1472,6 +1472,65 @@ public class UseItem {
                         m.cleanup();
                         return false;
                     }
+                    case 1014: { // Trứng Pet (Icon 2663)
+                        Pet.checkDefaultPets();
+                        List<Pet> listPetShow0 = new ArrayList<>();
+                        for (Pet petTemp : Pet.ENTRY) {
+                            if (petTemp.isShow == 0) {
+                                listPetShow0.add(petTemp);
+                            }
+                        }
+                        if (listPetShow0.isEmpty()) {
+                            Service.send_box_ThongBao_OK(p, "Hiện tại không có dữ liệu Pet trong Trứng!");
+                            return false;
+                        }
+
+                        // Lọc các Pet mà người chơi chưa sở hữu
+                        List<Pet> unownedPets = new ArrayList<>();
+                        for (Pet pTemp : listPetShow0) {
+                            boolean hasPet = false;
+                            for (MyPet mp : p.my_pet) {
+                                if (mp.template != null && mp.template.id == pTemp.id) {
+                                    hasPet = true;
+                                    break;
+                                }
+                            }
+                            if (!hasPet) {
+                                unownedPets.add(pTemp);
+                            }
+                        }
+
+                        // Nếu đã sở hữu tất cả pet show = 0
+                        if (unownedPets.isEmpty()) {
+                            Service.send_box_ThongBao_OK(p, "Bạn đã sở hữu hết pet của trứng.");
+                            return false;
+                        }
+
+                        // Random 1 pet chưa sở hữu
+                        Pet selectedPet = unownedPets.get(Util.random(0, unownedPets.size()));
+                        MyPet newPet = new MyPet();
+                        newPet.id = (short) p.my_pet.size();
+                        newPet.template = selectedPet;
+                        newPet.isUse = false;
+                        newPet.expiryTime = -1; // Vĩnh viễn
+                        p.my_pet.add(newPet);
+
+                        // Hiển thị hộp quà (không icon, chỉ tên pet)
+                        Message m = new Message(-34);
+                        m.writer().writeByte(21);
+                        m.writer().writeShort(-1);
+                        m.writer().writeUTF("Mở Trứng Pet");
+                        m.writer().writeUTF("Chúc mừng bạn đã nhận được");
+                        m.writer().writeByte(1);
+                        m.writer().writeByte(4);
+                        m.writer().writeUTF(selectedPet.name);
+                        m.writer().writeShort(-1); // Không hiển thị icon
+                        m.writer().writeInt(1);
+                        m.writer().writeByte(3);
+                        p.conn.addmsg(m);
+                        m.cleanup();
+                        break;
+                    }
                     case 112:
                     case 113:
                     case 114:

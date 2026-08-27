@@ -34,12 +34,12 @@ public class Pet {
                 if (type == 1) { // mac
                     MyPet pet_select = null;
                     for (int i = 0; i < p.my_pet.size(); i++) {
-                        p.my_pet.get(i).isUse = false;
-                        if (p.my_pet.get(i).id == id && !p.my_pet.get(i).isUse) {
+                        if (p.my_pet.get(i).id == id) {
                             pet_select = p.my_pet.get(i);
                         }
+                        p.my_pet.get(i).isUse = false;
                     }
-                    if (pet_select != null && !pet_select.isUse) {
+                    if (pet_select != null) {
                         pet_select.isUse = true;
                         Pet.show_inven(p);
                         Service.send_box_ThongBao_OK(p,
@@ -51,11 +51,11 @@ public class Pet {
                     for (int i = 0; i < p.my_pet.size(); i++) {
                         if (p.my_pet.get(i).id == id && p.my_pet.get(i).isUse) {
                             pet_select = p.my_pet.get(i);
+                            pet_select.isUse = false;
                             break;
                         }
                     }
-                    if (pet_select != null && pet_select.isUse) {
-                        pet_select.isUse = false;
+                    if (pet_select != null) {
                         Pet.show_inven(p);
                         Service.send_box_ThongBao_OK(p,
                                 "Tháo " + pet_select.template.name + " thành công");
@@ -294,12 +294,6 @@ public class Pet {
             if (wasUsingExpired) {
                 try {
                     p.update_info_to_all();
-                    if (p.map != null) {
-                        for (int i = 0; i < p.map.players.size(); i++) {
-                            Player p0 = p.map.players.get(i);
-                            Service.pet(p, p0, false);
-                        }
-                    }
                 } catch (Exception e) {
                 }
             }
@@ -346,11 +340,6 @@ public class Pet {
         }
         p.conn.addmsg(m);
         m.cleanup();
-        //
-        for (int i = 0; i < p.map.players.size(); i++) {
-            Player p0 = p.map.players.get(i);
-            Service.pet(p, p0, false);
-        }
     }
 
     public static Pet getTemplate(int id) {

@@ -767,14 +767,14 @@ public class Service {
             m.writer().writeByte(0);
             m.writer().writeShort(p0.index_map);
             m.writer().writeShort(p0.index_map);
-            m.writer().writeShort(pet_select.template.frame); // 977
-            m.writer().writeByte(pet_select.template.type); // 5
+            m.writer().writeShort(pet_select.template.frame);
+            m.writer().writeByte(pet_select.template.type);
             if (save_cache) {
                 p.list_msg_cache.add(m);
             } else {
                 p.conn.addmsg(m);
+                m.cleanup();
             }
-            m.cleanup();
         } else {
             Message m = new Message(-80);
             m.writer().writeByte(1);
@@ -784,8 +784,8 @@ public class Service {
                 p.list_msg_cache.add(m);
             } else {
                 p.conn.addmsg(m);
+                m.cleanup();
             }
-            m.cleanup();
         }
     }
 
