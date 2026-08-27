@@ -4146,6 +4146,12 @@ public class Map implements Runnable {
                             && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU) {
                         event.Event2011.getInstance().onBossKilled(p);
                     }
+                    // Tiêu diệt quái/Boss ID 174 (Saturn) nhận Trứng Pet
+                    if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174 && mob_target.boss_info == null) {
+                        p.item.add_item_bag47(4, 1014, 1);
+                        p.item.update_Inventory(-1, false);
+                        Service.send_box_ThongBao_OK(p, "Tiêu diệt Boss thành công!\nBạn nhận được: 1x Trứng Pet");
+                    }
                     // update quest relative to
                     if (!id_mob_die.containsKey((int) mob_target.mob_template.mob_id)) {
                         id_mob_die.put((int) mob_target.mob_template.mob_id, 1);
@@ -4411,6 +4417,25 @@ public class Map implements Runnable {
                             boss.status = Boss.STATUS_DEAD;
                             boss.mob.isdie = true;
                             this.remove_obj(mob_target.index, 1);
+
+                            // Thưởng Trứng Pet khi tiêu diệt Boss ID 174 (Saturn)
+                            if (mob_target.mob_template.mob_id == 174
+                                    || (boss.mob != null && boss.mob.mob_template != null && boss.mob.mob_template.mob_id == 174)
+                                    || boss.id == 28) {
+                                ItemTemplate4 it_egg = ItemTemplate4.get_it_by_id(1014);
+                                if (it_egg != null) {
+                                    GiftBox giftEgg = new GiftBox();
+                                    giftEgg.id = 1014;
+                                    giftEgg.type = 4;
+                                    giftEgg.name = it_egg.name;
+                                    giftEgg.icon = it_egg.icon;
+                                    giftEgg.num = 1;
+                                    giftEgg.color = 0;
+                                    list_gift.add(giftEgg);
+                                    notice += "x1 " + it_egg.name + ", ";
+                                }
+                            }
+
                             // 1. Gift 1: Búa siêu cấp (tỉ lệ 5%)
                             if (Util.random(100) < 5) {
                                 ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(323);
