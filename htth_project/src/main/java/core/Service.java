@@ -494,7 +494,7 @@ public class Service {
                     }
                 }
                 if (data != null) {
-                    byte cmd = (byte) ((conn.zoomlv > 2 && data.length > 60000) ? -101 : -51);
+                    byte cmd = (byte) (data.length > 60000 ? -101 : -51);
                     Message m2 = new Message(cmd);
                     m2.writer().writeShort(id);
                     m2.writer().write(data);
