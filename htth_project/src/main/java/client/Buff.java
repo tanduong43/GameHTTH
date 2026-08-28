@@ -60,9 +60,26 @@ public class Buff {
             if (time_buff <= 0) {
                 time_buff = 20000; // 20 giây
             }
-            sk_info.temp.timeDelay = 60000; // 60 giây cooldown
+            if (sk_info.temp.indexSkillInServer == 902) {
+                sk_info.temp.timeDelay = 90000; // 90 giây cooldown
+            } else {
+                sk_info.temp.timeDelay = 60000; // 60 giây cooldown
+            }
         }
-        if (sk_info != null && time_buff > 0 && cat == 0 && size == 1) {
+        if (sk_info == null) {
+            return;
+        }
+        if (p.time_sk[sk_info.temp.ID] > System.currentTimeMillis()) {
+            return;
+        }
+        if (time_buff > 0 && cat == 0 && size == 1) {
+            if ((sk_info.temp.indexSkillInServer >= 900 && sk_info.temp.indexSkillInServer <= 902)
+                    || (sk_info.temp.ID >= 1010 && sk_info.temp.ID <= 1014)) {
+                p.time_sk[sk_info.temp.ID] = System.currentTimeMillis() + sk_info.temp.timeDelay;
+            } else {
+                p.time_sk[sk_info.temp.ID] = System.currentTimeMillis() + sk_info.temp.timeDelay
+                        - ((sk_info.temp.timeDelay * p.body.get_agility(true)) / 1_000);
+            }
             Service.use_potion(p, 1, -sk_info.temp.manaLost);
             Service.pet(p, p, false);
             Service.UpdateInfoMaincharInfo(p);

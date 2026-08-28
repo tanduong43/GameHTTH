@@ -2749,8 +2749,11 @@ public class Map implements Runnable {
             if (p.time_sk[sk_temp.temp.ID] > System.currentTimeMillis()) {
                 return;
             }
-            if (sk_temp.temp.indexSkillInServer == 902 || sk_temp.temp.ID == 902
-                    || (sk_temp.temp.name != null && sk_temp.temp.name.toLowerCase().contains("bá vương"))) {
+            if ((sk_temp.temp.indexSkillInServer >= 900 && sk_temp.temp.indexSkillInServer <= 902)
+                    || (sk_temp.temp.ID >= 900 && sk_temp.temp.ID <= 902)
+                    || (sk_temp.temp.name != null && (sk_temp.temp.name.toLowerCase().contains("bá vương")
+                            || sk_temp.temp.name.toLowerCase().contains("haki")))
+                    || (sk_temp.temp.ID >= 1010 && sk_temp.temp.ID <= 1014)) {
                 p.time_sk[sk_temp.temp.ID] = System.currentTimeMillis() + sk_temp.temp.timeDelay;
             } else {
                 p.time_sk[sk_temp.temp.ID] = System.currentTimeMillis() + sk_temp.temp.timeDelay

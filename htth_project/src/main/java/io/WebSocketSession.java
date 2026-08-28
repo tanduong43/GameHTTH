@@ -197,7 +197,7 @@ public class WebSocketSession extends Session {
         if (data != null) {
             int size = data.length;
             if (sendKeyComplete) {
-                if ((msg.cmd == -39) || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || (msg.cmd == -102 && this.zoomlv > 1)) {
+                if ((msg.cmd == -39) || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || msg.cmd == -102) {
                     out.writeByte(writeKey((byte) (size >> 24)));
                     out.writeByte(writeKey((byte) (size >> 16)));
                     out.writeByte(writeKey((byte) (size >> 8)));
@@ -208,7 +208,7 @@ public class WebSocketSession extends Session {
                     int byte2 = writeKey((byte) (size));
                     out.writeByte(byte2);
                 }
-            } else if (msg.cmd == -39 || (msg.cmd == -102 && this.zoomlv > 1)) {
+            } else if (msg.cmd == -39 || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || msg.cmd == -102) {
                 out.writeInt(size);
             } else {
                 final int byte1 = (byte) (size >> 8);

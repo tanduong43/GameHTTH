@@ -205,7 +205,7 @@ public class Session implements Runnable {
         if (data != null) {
             int size = data.length;
             if (sendKeyComplete) {
-                if ((msg.cmd == -39) || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || (msg.cmd == -102 && this.zoomlv > 1)) {
+                if ((msg.cmd == -39) || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || msg.cmd == -102) {
                     dos.writeByte(writeKey((byte) (size >> 24)));
                     dos.writeByte(writeKey((byte) (size >> 16)));
                     dos.writeByte(writeKey((byte) (size >> 8)));
@@ -216,7 +216,7 @@ public class Session implements Runnable {
                     int byte2 = writeKey((byte) (size));
                     dos.writeByte(byte2);
                 }
-            } else if (msg.cmd == -39 || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || (msg.cmd == -102 && this.zoomlv > 1)) {
+            } else if (msg.cmd == -39 || msg.cmd == -101 || msg.cmd == -93 || msg.cmd == 76 || msg.cmd == -102) {
                 dos.writeInt(size);
             } else {
                 final int byte1 = (byte) (size >> 8);
