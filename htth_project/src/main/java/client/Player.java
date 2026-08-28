@@ -1637,7 +1637,6 @@ public class Player {
             this.map.goto_map(this);
             //
             Service.update_PK(this, this, true);
-            Service.pet(this, this, true);
             this.map.send_boat(this, send_boat);
             Quest.update_map_have_side_quest(this, true);
             this.map.update_boat(this, this, true);
@@ -2008,7 +2007,6 @@ public class Player {
         }
         item.update_Inventory(-1, false);
         //
-        Service.pet(this, this, false);
         Service.UpdateInfoMaincharInfo(this);
         //
         if (it.template.typeEquip == 7) {
@@ -2815,9 +2813,6 @@ public class Player {
             Player p0 = this.map.players.get(i);
             if (p0.index_map != this.index_map) {
                 this.map.send_char_in4_inmap(p0, this.index_map);
-                Service.getThanhTich(this, p0);
-                Service.update_PK(this, p0, false);
-                Service.pet(this, p0, false);
             }
         }
         // Gửi danh hiệu đang dùng cho toàn map thấy (protocol -102)

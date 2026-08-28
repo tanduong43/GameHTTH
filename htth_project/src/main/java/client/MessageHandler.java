@@ -1085,7 +1085,6 @@ public class MessageHandler {
             conn.p.map.goto_map(conn.p);
             //
             Service.update_PK(conn.p, conn.p, true);
-            Service.pet(conn.p, conn.p, true);
             conn.p.item.update_Inventory(-1, true);
             conn.p.item.update_assets_Inventory(true);
             Service.ChestWanted(conn.p, true);
