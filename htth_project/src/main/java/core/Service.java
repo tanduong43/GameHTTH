@@ -494,6 +494,9 @@ public class Service {
                     }
                 }
                 if (data != null) {
+                    if (id >= 1070 && id <= 1200) {
+                        System.out.println("[PET ICON REQUEST] Client requested pet icon id=" + id + " (zoomlv=" + zoomlv + ", data=" + data.length + " bytes) -> SENT OK");
+                    }
                     byte cmd = (byte) (data.length > 60000 ? -101 : -51);
                     Message m2 = new Message(cmd);
                     m2.writer().writeShort(id);
@@ -501,6 +504,9 @@ public class Service {
                     conn.addmsg(m2);
                     m2.cleanup();
                 } else {
+                    if (id >= 1070 && id <= 1200) {
+                        System.err.println("[PET ICON REQUEST] Client requested pet icon id=" + id + " BUT FILE NOT FOUND: " + path);
+                    }
                     if (Manager.gI().server_admin) {
                         System.out.println("icon id not found " + path);
                     }
@@ -763,6 +769,7 @@ public class Service {
     public static void pet(Player p0, Player p, boolean save_cache) throws IOException {
         MyPet pet_select = p0.get_pet();
         if (pet_select != null) {
+            System.out.println("[PET PACKET] Send pet SPAWN to " + (p != null ? p.name : "null") + " for owner " + p0.name + ": petTemplateId=" + pet_select.template.id + " (" + pet_select.template.name + "), frame=" + pet_select.template.frame + ", type=" + pet_select.template.type + ", save_cache=" + save_cache);
             Message m = new Message(-80);
             m.writer().writeByte(0);
             m.writer().writeShort(p0.index_map);
@@ -776,6 +783,10 @@ public class Service {
                 m.cleanup();
             }
         } else {
+            // Không spam log despawn nếu player không có pet từ đầu
+            if (p0.my_pet != null && !p0.my_pet.isEmpty()) {
+                System.out.println("[PET PACKET] Send pet DESPAWN to " + (p != null ? p.name : "null") + " for owner " + p0.name + " (pet_select=null, total my_pet=" + p0.my_pet.size() + "), save_cache=" + save_cache);
+            }
             Message m = new Message(-80);
             m.writer().writeByte(1);
             m.writer().writeShort(-1);

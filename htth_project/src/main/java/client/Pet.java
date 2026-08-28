@@ -282,6 +282,7 @@ public class Pet {
         for (int i = p.my_pet.size() - 1; i >= 0; i--) {
             MyPet pet = p.my_pet.get(i);
             if (pet == null || pet.template == null || getTemplate(pet.template.id) == null) {
+                System.err.println("[PET WARNING] Removing invalid pet from player " + (p != null ? p.name : "unknown") + " at index " + i + " (pet=" + pet + ", template=" + (pet != null ? (pet.template != null ? pet.template.id : "null") : "null") + ")");
                 if (pet != null && pet.isUse) {
                     pet.isUse = false;
                     wasUsingExpired = true;
@@ -290,6 +291,7 @@ public class Pet {
                 continue;
             }
             if (pet.expiryTime != -1 && currentTime > pet.expiryTime) {
+                System.out.println("[PET INFO] Pet " + pet.template.name + " of player " + p.name + " has expired and will be removed.");
                 if (pet.isUse) {
                     pet.isUse = false;
                     wasUsingExpired = true;

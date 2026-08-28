@@ -483,13 +483,16 @@ public class Player {
             }
             js.clear();
             my_pet = new ArrayList<>();
-            js = (JSONArray) JSONValue.parse(rs.getString("mypet"));
+            String mypetStr = rs.getString("mypet");
+            js = (JSONArray) JSONValue.parse(mypetStr);
             if (js != null) {
+                System.out.println("[PET DEBUG] Player " + this.name + " raw mypet DB: " + mypetStr);
                 for (int i = 0; i < js.size(); i++) {
                     JSONArray js_in2 = (JSONArray) js.get(i);
                     MyPet tempPet = new MyPet();
                     tempPet.id = Short.parseShort(js_in2.get(0).toString());
-                    tempPet.template = Pet.getTemplate(Short.parseShort(js_in2.get(1).toString()));
+                    short templateId = Short.parseShort(js_in2.get(1).toString());
+                    tempPet.template = Pet.getTemplate(templateId);
                     tempPet.isUse = Byte.parseByte(js_in2.get(2).toString()) == 1;
                     if (js_in2.size() > 3) {
                         tempPet.expiryTime = Long.parseLong(js_in2.get(3).toString());
@@ -524,6 +527,11 @@ public class Player {
                     }
                     if (tempPet.template != null) {
                         my_pet.add(tempPet);
+                        if (tempPet.isUse) {
+                            System.out.println("[PET DEBUG] Player " + this.name + " equipped pet: " + tempPet.template.name + " (templateId=" + templateId + ", frame=" + tempPet.template.frame + ", type=" + tempPet.template.type + ")");
+                        }
+                    } else {
+                        System.err.println("[PET ERROR] Player " + this.name + ": Pet template ID " + templateId + " NOT FOUND in Pet.ENTRY (Total templates loaded=" + Pet.ENTRY.size() + ")! Check if database `pet_template` has ID " + templateId);
                     }
                 }
             }

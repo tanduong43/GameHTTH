@@ -1065,7 +1065,22 @@ public class Manager {
                 Pet.ENTRY.add(tempPet);
             }
             rs.close();
-            System.out.println("load pet ok");
+            System.out.println("load pet ok. Total pet templates loaded: " + Pet.ENTRY.size());
+            boolean hasNewPets = false;
+            for (Pet p : Pet.ENTRY) {
+                if (p.id >= 70) {
+                    hasNewPets = true;
+                    break;
+                }
+            }
+            if (!hasNewPets) {
+                System.err.println("==========================================================================");
+                System.err.println("[PET WARNING] Database `pet_template` only has " + Pet.ENTRY.size() + " templates (MISSING PETS 70..112)!");
+                System.err.println("[PET WARNING] Please import `database/updatepet2708.sql` to MySQL database `full_db_htth`!");
+                System.err.println("==========================================================================");
+            } else {
+                System.out.println("[PET INFO] New pets 70..112 loaded successfully into memory.");
+            }
             query = "SELECT * FROM `market`;";
             rs = ps.executeQuery(query);
             while (rs.next()) {
