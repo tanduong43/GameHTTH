@@ -136,7 +136,7 @@
     <!-- Nút Toàn Màn Hình -->
     <button id="fullscreen-btn" title="Toàn màn hình">⛶</button>
 
-    <script src="Build/Web.loader.js"></script>
+    <script src="Build/WebClient.loader.js"></script>
     <script>
       const canvas = document.querySelector("#unity-canvas");
       const loadingCover = document.querySelector("#loading-cover");
@@ -189,9 +189,9 @@
       });
 
       const config = {
-        dataUrl: "Build/Web.data",
-        frameworkUrl: "Build/Web.framework.js",
-        codeUrl: "Build/Web.wasm",
+        dataUrl: "Build/WebClient.data",
+        frameworkUrl: "Build/WebClient.framework.js",
+        codeUrl: "Build/WebClient.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "NguyenDuong",
         productName: "TheGioiHaiTac",

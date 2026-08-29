@@ -66,7 +66,10 @@ export function SocketProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5000`;
+    const socketUrl = import.meta.env.VITE_SOCKET_URL ||
+      ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? `http://${window.location.hostname}:5000`
+        : window.location.origin);
     const socketInstance = io(socketUrl);
     setSocket(socketInstance);
 
