@@ -2522,8 +2522,7 @@ public class MenuController {
         }
         case 5:
         case 6: {
-          // UI danh hiệu chuẩn CodeTemp (Message -102) — hiện tất cả từ bảng danhhieu
-          activities.DanhHieu.show(p);
+          Menu_DanhHieu(p, (byte) 0);
           break;
         }
 
@@ -3855,7 +3854,18 @@ public class MenuController {
   }
 
   public static void Menu_DanhHieu(Player p, byte type) throws IOException {
-    activities.DanhHieu.show(p);
+    if (p.conn != null && p.conn.zoomlv <= 1) {
+      java.util.List<String> list = new java.util.ArrayList<>();
+      list.add("Cất danh hiệu");
+      for (activities.DanhHieu dh : activities.DanhHieu.ENY) {
+        boolean has = p.check_id_danhhieu(dh.id);
+        boolean isEquipped = (dh.id == p.id_danh_hieu_su_dung);
+        list.add((isEquipped ? "[Đang dùng] " : (has ? "[Đã có] " : "[Chưa có] ")) + dh.Name);
+      }
+      send_dynamic_menu(p, 9090, "Danh Hiệu", list.toArray(new String[0]), null);
+    } else {
+      activities.DanhHieu.show(p);
+    }
   }
 
 }

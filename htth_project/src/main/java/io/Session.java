@@ -179,6 +179,13 @@ public class Session implements Runnable {
     }
 
     protected void send_msg(Message msg) throws IOException {
+        if (msg == null) {
+            return;
+        }
+        // Nếu là client JAR (zoomlv <= 1), bỏ qua không gửi packet -102 vì client JAR không hỗ trợ 4-byte size cho cmd -102
+        if (msg.cmd == -102 && this.zoomlv <= 1) {
+            return;
+        }
         byte[] data = msg.getData();
         // Debug log cho packet -102 (Danh Hiệu)
         if (msg.cmd == -102) {

@@ -5957,8 +5957,22 @@ public class Map implements Runnable {
                 }
             }
         }
-        m.writer().writeByte(this.template.IDBack);
-        m.writer().writeShort(this.template.HBack);
+        byte sendIDBack = this.template.IDBack;
+        short sendHBack = (short) this.template.HBack;
+        if (p.conn != null && p.conn.zoomlv <= 1) {
+            if (sendIDBack == 81 || sendIDBack == 87 || sendIDBack > 63 || sendIDBack < 0) {
+                Map[] map2 = Map.get_map_by_id(2);
+                if (map2 != null && map2.length > 0 && map2[0].template != null) {
+                    sendIDBack = map2[0].template.IDBack;
+                    sendHBack = (short) map2[0].template.HBack;
+                } else {
+                    sendIDBack = 0;
+                    sendHBack = 280;
+                }
+            }
+        }
+        m.writer().writeByte(sendIDBack);
+        m.writer().writeShort(sendHBack);
         m.writer().writeByte(this.template.id_eff_map);
         m.writer().writeByte(this.template.level);
         m.writer().writeByte(this.template.typeChangeMap);

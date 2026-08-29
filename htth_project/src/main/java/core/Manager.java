@@ -411,6 +411,18 @@ public class Manager {
                     map_temp.maxW = 0;
                     map_temp.maxH = 0;
                 }
+                if (id_map == 2000) {
+                    map_temp.IDBack = (byte) 81;
+                    if (map_temp.HBack <= 0) {
+                        map_temp.HBack = 280;
+                    }
+                }
+                if (id_map == 2028) {
+                    map_temp.IDBack = (byte) 87;
+                    if (map_temp.HBack <= 0) {
+                        map_temp.HBack = 280;
+                    }
+                }
                 js_npc.clear();
                 map_temp.id_eff_map = rs.getByte("id_eff_map");
                 map_temp.level = rs.getByte("level");
@@ -480,8 +492,8 @@ public class Manager {
                     petMapTemp.max_zone = (byte) 10;
                     petMapTemp.max_player = (byte) 30;
                     petMapTemp.data = temp2.data;
-                    petMapTemp.IDBack = temp2.IDBack;
-                    petMapTemp.HBack = temp2.HBack;
+                    petMapTemp.IDBack = (byte) 87;
+                    petMapTemp.HBack = 280;
                     petMapTemp.maxW = temp2.maxW;
                     petMapTemp.maxH = temp2.maxH;
                     petMapTemp.type_view_p = 0;
