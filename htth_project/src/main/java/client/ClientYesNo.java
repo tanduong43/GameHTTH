@@ -2198,7 +2198,7 @@ public class ClientYesNo {
                 }
                 case 28: {
                     if (p.item.it_heart != null && p.item.it_heart.levelup < 99) {
-                        long vang_req = 1_200_000 + p.item.it_heart.levelup * 200_000L;
+                        long vang_req = UpgradeItem.get_vang_upgrade_heart(p.item.it_heart.levelup);
                         if (p.get_vang() < vang_req) {
                             Service.send_box_ThongBao_OK(p,
                                     "Không đủ " + Util.number_format(vang_req) + " beri");

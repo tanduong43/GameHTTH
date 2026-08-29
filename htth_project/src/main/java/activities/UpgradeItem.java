@@ -225,14 +225,26 @@ public class UpgradeItem {
                 if ((p.item.it_heart.levelup % 5) == 4) {
                     ruby_req = ((p.item.it_heart.levelup / 5) + 1) * 10;
                 }
+                long vang_req = get_vang_upgrade_heart(p.item.it_heart.levelup);
                 Service.send_box_yesno(p, 28, "Thông báo",
                         ("Để tiến hành phẫu thuật tim, bạn cần có "
-                                + Util.number_format(
-                                        1_200_000L + (p.item.it_heart.levelup * 200_000L))
+                                + Util.number_format(vang_req)
                                 + " beri" + ((ruby_req > 0) ? (" và " + ruby_req + " ruby ") : "")
                                 + ". " + "Bạn thật sự muốn phẫu thuật?"),
                         new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
             }
+        }
+    }
+
+    public static long get_vang_upgrade_heart(int level) {
+        if (level < 10) {
+            return 1_200_000L + level * 300_000L;
+        } else if (level < 20) {
+            return 4_400_000L + (level - 10) * 500_000L;
+        } else if (level < 50) {
+            return 9_900_000L + (level - 20) * 1_000_000L;
+        } else {
+            return 40_400_000L + (level - 50) * 1_500_000L;
         }
     }
 
