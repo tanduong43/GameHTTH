@@ -115,6 +115,23 @@ public class Body {
                     if (temp.id == 59 && id == 10 && p.has_devil_fruit_set()) {
                         par += 100;
                     }
+                    // Thời trang Râu Đen (ID 74):
+                    // - Khi kết hợp với Trái Bóng Tối: Kích hoạt 5% chỉ số Hấp thụ HP (id 59)
+                    if (temp.id == 74 && id == 59 && p.has_devil_fruit_bong_toi()) {
+                        par += 50;
+                    }
+                    // - Khi kích hoạt cả 2 Trái (Bóng Tối + Chấn Thiên):
+                    if (temp.id == 74 && p.has_dual_devil_fruit()) {
+                        if (id == 11) { // +15% Sát thương chí mạng
+                            par += 150;
+                        }
+                        if (id == 13) { // +10% Xuyên giáp
+                            par += 100;
+                        }
+                        if (id == 53) { // +5% Miễn thương
+                            par += 50;
+                        }
+                    }
                     // Trang phục Kaido Bách Thú (ID 234): Tăng 50% sức tấn công bản thân
                     if (temp.id == 234 && id == 1) {
                         par += 500;

@@ -1004,8 +1004,14 @@ public class UseItem {
                     case 800:
                     case 801:
                     case 802: {
+                        String promptMsg = "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name;
+                        if (id == 240 && p.has_devil_fruit_bong_toi() && p.can_have_dual_devil_fruit()) {
+                            promptMsg = "Bạn đang mặc Thời Trang Râu Đen và có Trái Bóng Tối. Ăn Trái Chấn Thiên sẽ kích hoạt cơ thể 2 Trái Ác Quỷ! Bạn có muốn sử dụng?";
+                        } else if (p.has_dual_devil_fruit()) {
+                            promptMsg = "Bạn đang sở hữu 2 Trái Ác Quỷ (Bóng Tối & Chấn Thiên). Ăn " + ItemTemplate4.get_it_by_id(id).name + " sẽ xóa cả 2 Trái cũ, hoàn trả đầy đủ Exp vào Hộp bảo lưu và nhận Trái mới. Bạn có chắc muốn sử dụng?";
+                        }
                         Service.send_box_yesno(p, (id + 4000), "Thông báo",
-                                "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name,
+                                promptMsg,
                                 new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });
                         return false;
                     }

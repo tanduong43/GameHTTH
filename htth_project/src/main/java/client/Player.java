@@ -2521,49 +2521,61 @@ public class Player {
 
     public void get_skill_taq_new(int id) throws IOException {
         id += 4000;
+        // Chỉ người đang có Trái Bóng Tối + Mặc Thời Trang Râu Đen mới ăn được thêm Trái Chấn Thiên
+        boolean isEatingChanThienWithBongToi = (id == 4240 && has_devil_fruit_bong_toi() && can_have_dual_devil_fruit());
+        boolean isDualFruitAwakened = isEatingChanThienWithBongToi;
+
         List<Skill_info> list_remove = new ArrayList<>();
+        int exp_total = 0;
         for (int i = 0; i < this.skill_point.size(); i++) {
             Skill_info temp = this.skill_point.get(i);
-            if (temp.temp.ID > 2000 && !(temp.temp.indexSkillInServer >= 660
-                    && temp.temp.indexSkillInServer <= 666)) {
-                // exp ac quy
+            if (temp != null && temp.temp != null && temp.temp.ID > 2000 
+                    && !(temp.temp.indexSkillInServer >= 660 && temp.temp.indexSkillInServer <= 666)
+                    && !(temp.temp.indexSkillInServer >= 900 && temp.temp.indexSkillInServer <= 902)) {
+                
+                // Nếu ăn Chấn Thiên khi đang có Bóng Tối + Thời Trang Râu Đen: Giữ lại Trái Bóng Tối (656..659)
+                if (isEatingChanThienWithBongToi && temp.temp.indexSkillInServer >= 656 && temp.temp.indexSkillInServer <= 659) {
+                    continue;
+                }
+
+                // Tính exp trả về Hộp bảo lưu exp ác quỷ
                 if (temp.devilpercent > 0 || temp.lvdevil > 0) {
-                    int exp_total = 0;
                     switch (temp.lvdevil) {
                         case 1: {
-                            exp_total = 10;
+                            exp_total += 10;
                             break;
                         }
                         case 2: {
-                            exp_total = 25;
+                            exp_total += 25;
                             break;
                         }
                         case 3: {
-                            exp_total = 32;
+                            exp_total += 32;
                             break;
                         }
                         case 4: {
-                            exp_total = 52;
+                            exp_total += 52;
                             break;
                         }
                         case 5: {
-                            exp_total = 81;
+                            exp_total += 81;
                             break;
                         }
                     }
-                    Item_wear it_add = new Item_wear();
-                    it_add.setup_template_by_id(11001);
-                    if (it_add.template != null) {
-                        it_add.option_item.add(new Option(39, exp_total));
-                        this.item.add_item_bag3(it_add);
-                        it_add.typelock = 1;
-                    }
-                    this.item.update_Inventory(-1, false);
                 }
-                //
                 Learn_Skill.remove_skill(this, temp);
                 list_remove.add(temp);
             }
+        }
+        if (exp_total > 0) {
+            Item_wear it_add = new Item_wear();
+            it_add.setup_template_by_id(11001);
+            if (it_add.template != null) {
+                it_add.option_item.add(new Option(39, exp_total));
+                this.item.add_item_bag3(it_add);
+                it_add.typelock = 1;
+            }
+            this.item.update_Inventory(-1, false);
         }
         this.skill_point.removeAll(list_remove);
         list_remove.clear();
@@ -2781,6 +2793,9 @@ public class Player {
         list_remove.clear();
         this.send_skill();
         this.update_info_to_all();
+        if (isDualFruitAwakened) {
+            Service.send_box_ThongBao_OK(this, "Bạn đã kích hoạt cơ thể dị biệt của Tứ Hoàng Râu Đen, sở hữu đồng thời Trái Bóng Tối và Trái Chấn Thiên!");
+        }
     }
 
     public void get_skill_haki_new(int id) throws IOException {
@@ -3410,5 +3425,92 @@ public class Player {
             }
         }
         return false;
+    }
+
+    public boolean can_have_dual_devil_fruit() {
+        ItemFashionP2 itF = this.check_fashion(74); // Thời trang Râu Đen
+        return (itF != null && itF.is_use);
+    }
+
+    public boolean has_fashion_rau_den() {
+        return this.check_fashion(74) != null;
+    }
+
+    public boolean has_dual_devil_fruit() {
+        return has_devil_fruit_bong_toi() && has_devil_fruit_chan_thien();
+    }
+
+    public void remove_devil_fruit_bong_toi() throws IOException {
+        List<Skill_info> toRemove = new ArrayList<>();
+        int exp_total = 0;
+        if (this.skill_point != null) {
+            for (Skill_info sk : this.skill_point) {
+                if (sk != null && sk.temp != null && sk.temp.indexSkillInServer >= 656 && sk.temp.indexSkillInServer <= 659) {
+                    if (sk.devilpercent > 0 || sk.lvdevil > 0) {
+                        switch (sk.lvdevil) {
+                            case 1: exp_total += 10; break;
+                            case 2: exp_total += 25; break;
+                            case 3: exp_total += 32; break;
+                            case 4: exp_total += 52; break;
+                            case 5: exp_total += 81; break;
+                        }
+                    }
+                    Learn_Skill.remove_skill(this, sk);
+                    toRemove.add(sk);
+                }
+            }
+        }
+        if (exp_total > 0) {
+            Item_wear it_add = new Item_wear();
+            it_add.setup_template_by_id(11001);
+            if (it_add.template != null) {
+                it_add.option_item.add(new Option(39, exp_total));
+                this.item.add_item_bag3(it_add);
+                it_add.typelock = 1;
+            }
+            this.item.update_Inventory(-1, false);
+        }
+        if (this.skill_point != null) {
+            this.skill_point.removeAll(toRemove);
+        }
+        this.send_skill();
+        this.update_info_to_all();
+    }
+
+    public void remove_devil_fruit_chan_thien() throws IOException {
+        List<Skill_info> toRemove = new ArrayList<>();
+        int exp_total = 0;
+        if (this.skill_point != null) {
+            for (Skill_info sk : this.skill_point) {
+                if (sk != null && sk.temp != null && sk.temp.indexSkillInServer >= 539 && sk.temp.indexSkillInServer <= 542) {
+                    if (sk.devilpercent > 0 || sk.lvdevil > 0) {
+                        switch (sk.lvdevil) {
+                            case 1: exp_total += 10; break;
+                            case 2: exp_total += 25; break;
+                            case 3: exp_total += 32; break;
+                            case 4: exp_total += 52; break;
+                            case 5: exp_total += 81; break;
+                        }
+                    }
+                    Learn_Skill.remove_skill(this, sk);
+                    toRemove.add(sk);
+                }
+            }
+        }
+        if (exp_total > 0) {
+            Item_wear it_add = new Item_wear();
+            it_add.setup_template_by_id(11001);
+            if (it_add.template != null) {
+                it_add.option_item.add(new Option(39, exp_total));
+                this.item.add_item_bag3(it_add);
+                it_add.typelock = 1;
+            }
+            this.item.update_Inventory(-1, false);
+        }
+        if (this.skill_point != null) {
+            this.skill_point.removeAll(toRemove);
+        }
+        this.send_skill();
+        this.update_info_to_all();
     }
 }
