@@ -4787,6 +4787,7 @@ public class Map implements Runnable {
     public void send_chat(Player p, Message m2) throws IOException {
         String s = m2.reader().readUTF();
         String txt = s.trim().toLowerCase();
+        System.out.println("[Chat Debug] Player: " + p.name + " (user: " + p.conn.user + ", index_map: " + p.index_map + ") -> " + s);
 
         if (p.conn.user.equals("admin")) {
             if (txt.equals("saturn") || txt.equals("goisaturn") || txt.equals("goi saturn")) {
@@ -5232,6 +5233,131 @@ public class Map implements Runnable {
             } else {
                 Service.send_box_ThongBao_OK(p, "Sự kiện Trung Thu chưa được kích hoạt!");
             }
+            return;
+        }
+
+        // Lệnh test hiệu ứng Skill / Effect mới (Hỗ trợ /eff, eff, /teff, teff)
+        if (txt.startsWith("eff ") || txt.startsWith("/eff ") || txt.startsWith("teff ") || txt.startsWith("/teff ")
+                || txt.startsWith("testeff ") || txt.startsWith("/testeff ") || txt.equals("eff") || txt.equals("/eff")) {
+            try {
+                String clean = txt.startsWith("/") ? txt.substring(1) : txt;
+                String[] parts = clean.split("\\s+");
+                if (parts.length == 1 || (parts.length >= 2 && (parts[1].equals("list") || parts[1].equals("help") || parts[1].equals("menu")))) {
+                    Service.send_box_ThongBao_OK(p, "DANH SÁCH EFFECT MỚI (ĐỒNG BỘ ID):\n"
+                            + "• Skill 24 (ID 37-41 / 124-128): 37(Tụ lực), 38(Hào quang), 39(Tia đạn), 40(Trúng đích), 41(Nổ vỡ)\n"
+                            + "• Skill 25 (ID 42-48 / 130-136): 42(Thế đánh), 43(Cầu năng lượng), 44(Bắn tia), 45(Chùm tia), 46(Va chạm), 47(Nổ to), 48(Chớp nổ)\n"
+                            + "• Skill 26 (ID 49-54 / 140-145): 49(Xuất chiêu), 50(Tụ chưởng), 51(Chưởng lớn), 52(Cột năng lượng), 53(Nổ quét), 54(Xung kích)\n\n"
+                            + "Cú pháp: /eff <id> [số_giây/loop/once]\n"
+                            + "Ví dụ: /eff 37 hoặc /eff 124\n"
+                            + "Tắt: /rmeff <id> hoặc /cleareff");
+                    return;
+                }
+                if (parts.length >= 2 && (parts[1].equals("demo") || parts[1].equals("testall"))) {
+                    short[] demoIds = new short[] { 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54 };
+                    new Thread(() -> {
+                        try {
+                            for (short dId : demoIds) {
+                                for (Player p0 : this.players) {
+                                    if (p0 != null && p0.conn != null) {
+                                        Service.send_effect_data(p0.conn, dId);
+                                        Message mTest = new Message(74);
+                                        mTest.writer().writeByte(1);
+                                        mTest.writer().writeShort(p.index_map);
+                                        mTest.writer().writeShort(dId);
+                                        mTest.writer().writeInt(3000); // 3 giây
+                                        mTest.writer().writeByte(0);
+                                        mTest.writer().writeByte(0);
+                                        p0.conn.addmsg(mTest);
+                                        mTest.cleanup();
+                                    }
+                                }
+                                Thread.sleep(3000);
+                            }
+                        } catch (Exception e) {}
+                    }).start();
+                    Service.send_box_ThongBao_OK(p, "Đang chạy Demo lần lượt tất cả Effect mới (3 giây / effect)!");
+                    return;
+                }
+
+                short effId = Short.parseShort(parts[1]);
+                int duration = 15_000; // Mặc định 15s
+                byte typemove = 0;
+                byte loop = -1; // Mặc định lặp
+
+                if (parts.length > 2) {
+                    String opt = parts[2].toLowerCase();
+                    if (opt.equals("loop") || opt.equals("-1")) {
+                        duration = 3_600_000; // 1 tiếng
+                        loop = -1;
+                    } else if (opt.equals("once") || opt.equals("0")) {
+                        duration = 5_000;
+                        loop = 0;
+                    } else {
+                        try {
+                            int sec = Integer.parseInt(opt);
+                            duration = sec * 1000;
+                        } catch (Exception ignored) {}
+                    }
+                }
+                if (parts.length > 3) {
+                    try {
+                        typemove = Byte.parseByte(parts[3]);
+                    } catch (Exception ignored) {}
+                }
+
+                System.out.println("[EFF Server] Player " + p.name + " (map " + this.template.name + ") executing /eff id=" + effId + " duration=" + duration + " typemove=" + typemove + " loop=" + loop);
+
+                // Gửi Data + Play Effect tới mọi người trong map
+                for (Player p0 : this.players) {
+                    if (p0 == null || p0.conn == null) continue;
+                    Service.send_effect_data(p0.conn, effId);
+                    Message mTest = new Message(74);
+                    mTest.writer().writeByte(1);
+                    mTest.writer().writeShort(p.index_map);
+                    mTest.writer().writeShort(effId);
+                    mTest.writer().writeInt(duration);
+                    mTest.writer().writeByte(typemove);
+                    mTest.writer().writeByte(loop);
+                    p0.conn.addmsg(mTest);
+                    mTest.cleanup();
+                }
+
+                Service.send_box_ThongBao_OK(p, "Đang test Effect ID: " + effId + " (" + (duration / 1000) + "s)\n"
+                        + "Gõ /rmeff " + effId + " hoặc /cleareff để tắt.");
+            } catch (Exception e) {
+                Service.send_box_ThongBao_OK(p, "Cú pháp: /eff <id> [số_giây/loop/once]\nVD: /eff 37 hoặc /eff 124\nXem danh sách: /eff list");
+            }
+            return;
+        } else if (txt.startsWith("rmeff ") || txt.startsWith("/rmeff ")) {
+            try {
+                String clean = txt.startsWith("/") ? txt.substring(1) : txt;
+                String[] parts = clean.split("\\s+");
+                short effId = Short.parseShort(parts[1]);
+                Message mTest = new Message(74);
+                mTest.writer().writeByte(2); // 2 = Xóa effect
+                mTest.writer().writeShort(p.index_map);
+                mTest.writer().writeShort(effId);
+                this.send_msg_all_p(mTest, null, true);
+                mTest.cleanup();
+                Service.send_box_ThongBao_OK(p, "Đã xóa Effect ID: " + effId);
+            } catch (Exception e) {
+                Service.send_box_ThongBao_OK(p, "Cú pháp: /rmeff <id>. VD: /rmeff 37");
+            }
+            return;
+        } else if (txt.equals("cleareff") || txt.equals("/cleareff") || txt.equals("rmeff") || txt.equals("/rmeff")) {
+            short[] testIds = new short[] {
+                37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
+                124, 125, 126, 127, 128, 130, 131, 132, 133, 134, 135, 136, 140, 141, 142, 143, 144, 145
+            };
+            for (short tId : testIds) {
+                Message mTest = new Message(74);
+                mTest.writer().writeByte(2);
+                mTest.writer().writeShort(p.index_map);
+                mTest.writer().writeShort(tId);
+                this.send_msg_all_p(mTest, null, true);
+                mTest.cleanup();
+            }
+            Service.send_box_ThongBao_OK(p, "Đã xóa toàn bộ Effect test trên người bạn!");
             return;
         }
 

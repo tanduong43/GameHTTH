@@ -2461,9 +2461,12 @@ public class Service {
                 mData.writer().write(datas[1]);
                 conn.addmsg(mData);
                 mData.cleanup();
+                System.out.println("[EFF Server] Sent effect data id=" + effId + " to player "
+                        + (conn.p != null ? conn.p.name : "session") + " (zoom=x" + zoomlv + ", data="
+                        + datas[0].length + "b, img=" + datas[1].length + "b)");
             } else {
                 System.out.println(
-                        "[Effect Error] Khong tim thay du lieu effect id=" + effId + " (zoom=x" + zoomlv + ")");
+                        "[EFF Server Error] Khong tim thay du lieu effect id=" + effId + " (zoom=x" + zoomlv + ")");
             }
         } catch (Exception e) {
             e.printStackTrace();
