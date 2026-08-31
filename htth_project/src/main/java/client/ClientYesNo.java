@@ -2067,7 +2067,7 @@ public class ClientYesNo {
                             }
                             //
                             Message m = new Message(-67);
-                            m.writer().writeByte(20);
+                            m.writer().writeByte(suc ? 20 : 21);
                             m.writer()
                                     .writeUTF(suc
                                             ? ("Chúc mừng bạn đã kích ẩn thành công "
@@ -2178,7 +2178,7 @@ public class ClientYesNo {
                             }
                             //
                             Message m = new Message(-67);
-                            m.writer().writeByte(20);
+                            m.writer().writeByte(suc ? 20 : 21);
                             m.writer()
                                     .writeUTF(suc
                                             ? ("Chúc mừng bạn đã hoàn mỹ thành công "
