@@ -286,7 +286,7 @@ public class ClientInput {
                     clan.opAttri = new short[] { 0, 0, 0, 0, 0 };
                     clan.pointAttri = 2;
                     clan.maxAttri = 20;
-                    clan.icon = 0;
+                    clan.icon = Clan.get_first_available_icon();
                     clan.level = 1;
                     clan.xp = 0;
                     clan.thongbao = "";
@@ -325,15 +325,31 @@ public class ClientInput {
                                 Clan.send_me_to_other(p, p.map.players.get(i), false);
                             }
                         }
+                        List<Short> availableIcons = new ArrayList<>();
+                        for (short i = 0; i < 10; i++) {
+                            if (!Clan.is_icon_used(i, p.clan)) {
+                                availableIcons.add(i);
+                            }
+                        }
+                        if (availableIcons.isEmpty()) {
+                            for (short i = 0; i < 278; i++) {
+                                if (!Clan.is_icon_used(i, p.clan)) {
+                                    availableIcons.add(i);
+                                    if (availableIcons.size() >= 10) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                         Message m = new Message(-19); // show table select icon
                         m.writer().writeByte(98);
                         m.writer().writeUTF("Cửa hàng biểu tượng");
                         m.writer().writeByte(107);
-                        m.writer().writeShort(10);
-                        for (int i = 0; i < 10; i++) {
-                            m.writer().writeShort(i);
-                            m.writer().writeShort(i);
-                            m.writer().writeUTF("Huy hiệu " + (i + 1));
+                        m.writer().writeShort(availableIcons.size());
+                        for (short iconId : availableIcons) {
+                            m.writer().writeShort(iconId);
+                            m.writer().writeShort(iconId);
+                            m.writer().writeUTF("Huy hiệu " + (iconId + 1));
                             m.writer().writeUTF(
                                     "Được làm từ gì đấy không biết nữa, mua đeo vào rất đẹp");
                             m.writer().writeShort(0);

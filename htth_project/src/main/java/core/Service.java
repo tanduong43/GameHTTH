@@ -1236,8 +1236,12 @@ public class Service {
                 Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
         } else if (p.clan != null && TypeShop == 98 && value == 1 && cat == -1 && id >= 0
-                && id < 10) {
-            p.clan.icon = id;
+                && id < 402) {
+            if (Clan.is_icon_used(id, p.clan)) {
+                Service.send_box_ThongBao_OK(p, "Biểu tượng này đã được clan khác sử dụng!");
+                return;
+            }
+            p.clan.icon = (short) id;
             Clan.update();
             Clan.send_info(p, false);
             for (int i = 0; i < p.map.players.size(); i++) {
@@ -1250,10 +1254,18 @@ public class Service {
             m.writer().writeUTF("Đăng ký băng hải tặc " + p.clan.name + " thành công");
             p.conn.addmsg(m);
             m.cleanup();
-        } else if (p.clan != null && TypeShop == 97 && value == 1 && cat == -1 && id >= 0
-                && id < 402) {
-            if (id < 10) {
-                p.clan.icon = id;
+        } else if (p.clan != null && p.clan.members.get(0).name.equals(p.name) && TypeShop == 97
+                && value == 1 && cat == -1 && id >= 0 && id < 402) {
+            if (Clan.is_icon_used(id, p.clan)) {
+                Service.send_box_ThongBao_OK(p, "Biểu tượng này đã được clan khác sử dụng!");
+                return;
+            }
+            int ngoc_quant = Clan.get_ngoc_icon((short) id);
+            if (p.clan.get_ngoc() < ngoc_quant) {
+                Service.send_box_ThongBao_OK(p, "Không đủ " + ngoc_quant + " ruby băng");
+            } else {
+                p.clan.update_ruby(-ngoc_quant);
+                p.clan.icon = (short) id;
                 Clan.update();
                 for (int i2 = 0; i2 < p.clan.members.size(); i2++) {
                     Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i2).name);
@@ -1271,31 +1283,6 @@ public class Service {
                 m.writer().writeUTF("Đổi icon băng thành công");
                 p.conn.addmsg(m);
                 m.cleanup();
-            } else {
-                int ngoc_quant = Clan.get_ngoc_icon(id);
-                if (p.clan.get_ngoc() < ngoc_quant) {
-                    Service.send_box_ThongBao_OK(p, "Không đủ " + ngoc_quant + " ruby băng");
-                } else {
-                    p.clan.update_ruby(-ngoc_quant);
-                    p.clan.icon = id;
-                    Clan.update();
-                    for (int i2 = 0; i2 < p.clan.members.size(); i2++) {
-                        Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i2).name);
-                        if (p0 != null) {
-                            Clan.send_info(p0, false);
-                            for (int i = 0; i < p0.map.players.size(); i++) {
-                                if (!p0.map.players.get(i).equals(p0)) {
-                                    Clan.send_me_to_other(p0, p0.map.players.get(i), false);
-                                }
-                            }
-                        }
-                    }
-                    Message m = new Message(-52);
-                    m.writer().writeByte(21);
-                    m.writer().writeUTF("Đổi icon băng thành công");
-                    p.conn.addmsg(m);
-                    m.cleanup();
-                }
             }
         } else if (p.clan != null && p.clan.members.get(0).name.equals(p.name) && TypeShop == 110
                 && value <= 20 && value > 0 && cat == -1) {

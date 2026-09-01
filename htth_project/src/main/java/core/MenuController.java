@@ -24,6 +24,7 @@ import activities.UpgradeSuperItem;
 import activities.Upgrade_Skin;
 import activities.VongQuay;
 import activities.Vong_quay_oc_sen;
+import client.Clan;
 import client.Clazz;
 import client.Player;
 import database.SQL;
@@ -978,44 +979,51 @@ public class MenuController {
           break;
         }
         case 979: {
+          if (p.clan == null) {
+            return;
+          }
           if (index == 0) {
+            List<Short> listIcons = new ArrayList<>();
+            for (short i = 0; i < 278; i++) {
+              if (!Clan.is_icon_used(i, null)) {
+                listIcons.add(i);
+              }
+            }
             Message m = new Message(-19); // show table select icon
             m.writer().writeByte(97);
             m.writer().writeUTF("Cửa hàng biểu tượng thường");
             m.writer().writeByte(107);
-            m.writer().writeShort(278);
-            for (int i = 0; i < 278; i++) {
-              m.writer().writeShort(i);
-              m.writer().writeShort(i);
-              m.writer().writeUTF("Huy hiệu " + (i + 1));
+            m.writer().writeShort(listIcons.size());
+            for (short iconId : listIcons) {
+              m.writer().writeShort(iconId);
+              m.writer().writeShort(iconId);
+              m.writer().writeUTF("Huy hiệu " + (iconId + 1));
               m.writer().writeUTF("Được làm từ gì đấy không biết nữa, mua đeo vào rất đẹp");
-              if (i < 10) {
-                m.writer().writeShort(0);
-              } else {
-                m.writer().writeShort(50);
-              }
+              m.writer().writeShort(Clan.get_ngoc_icon(iconId));
             }
             p.conn.addmsg(m);
             m.cleanup();
           } else if (index == 1) {
+            List<Short> listIcons = new ArrayList<>();
+            for (short i = 293; i < 370; i++) {
+              if (i == 303) {
+                continue;
+              }
+              if (!Clan.is_icon_used(i, null)) {
+                listIcons.add(i);
+              }
+            }
             Message m = new Message(-19); // show table select icon
             m.writer().writeByte(97);
             m.writer().writeUTF("Cửa hàng biểu tượng cao cấp");
             m.writer().writeByte(107);
-            m.writer().writeShort(76);
-            for (int i = 293; i < 370; i++) {
-              if (i == 303) {
-                continue;
-              }
-              m.writer().writeShort(i);
-              m.writer().writeShort(i);
-              m.writer().writeUTF("Huy hiệu " + (i + 1));
+            m.writer().writeShort(listIcons.size());
+            for (short iconId : listIcons) {
+              m.writer().writeShort(iconId);
+              m.writer().writeShort(iconId);
+              m.writer().writeUTF("Huy hiệu " + (iconId + 1));
               m.writer().writeUTF("Được làm từ gì đấy không biết nữa, mua đeo vào rất đẹp");
-              if (i < 10) {
-                m.writer().writeShort(0);
-              } else {
-                m.writer().writeShort(200);
-              }
+              m.writer().writeShort(Clan.get_ngoc_icon(iconId));
             }
             p.conn.addmsg(m);
             m.cleanup();

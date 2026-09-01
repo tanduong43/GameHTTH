@@ -422,6 +422,28 @@ router.post('/admin/reset_hangdong', jwtRequired, isAdmin, async (req, res) => {
     }
 });
 
+// POST /api/admin/reset_pvp/
+router.post('/admin/reset_pvp', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        await db.execute("UPDATE players SET pvppoint = 0");
+        return res.json({ success: true, message: 'Đã reset điểm PVP của toàn bộ nhân vật về 0 thành công!' });
+    } catch (err) {
+        console.error('Admin reset pvp error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/admin/reset_truyna/
+router.post('/admin/reset_truyna', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        await db.execute("UPDATE players SET wanted_point = 0, point_inven = CASE WHEN JSON_VALID(point_inven) AND JSON_EXTRACT(point_inven, '$[11]') IS NOT NULL THEN JSON_SET(point_inven, '$[11]', 0) ELSE point_inven END");
+        return res.json({ success: true, message: 'Đã reset điểm truy nã (bounty) của toàn bộ nhân vật về 0 thành công!' });
+    } catch (err) {
+        console.error('Admin reset truyna error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
 // GET /api/admin/accounts/
 router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
     try {
@@ -701,7 +723,7 @@ router.put('/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
 });
 
 // DELETE /api/admin/giftcode/:id
-router.delete('/api/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
+router.delete('/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
     const { id } = req.params;
 
     try {

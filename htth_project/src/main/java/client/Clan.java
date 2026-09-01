@@ -64,6 +64,51 @@ public class Clan {
         return -1;
     }
 
+    public synchronized static boolean is_icon_used(int iconId, Clan excludeClan) {
+        if (ENTRY == null) {
+            return false;
+        }
+        for (int i = 0; i < ENTRY.size(); i++) {
+            Clan c = ENTRY.get(i);
+            if (c != null) {
+                if (excludeClan != null && c.id == excludeClan.id) {
+                    continue;
+                }
+                if (c.icon == iconId) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public synchronized static boolean is_icon_used(int iconId) {
+        return is_icon_used(iconId, null);
+    }
+
+    public synchronized static short get_first_available_icon() {
+        if (ENTRY == null) {
+            return 0;
+        }
+        for (short i = 0; i < 10; i++) {
+            if (!is_icon_used(i, null)) {
+                return i;
+            }
+        }
+        for (short i = 10; i < 278; i++) {
+            if (!is_icon_used(i, null)) {
+                return i;
+            }
+        }
+        for (short i = 293; i < 370; i++) {
+            if (i == 303) continue;
+            if (!is_icon_used(i, null)) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
     public static Clan get_my_clan(String name) {
         for (int i = 0; i < ENTRY.size(); i++) {
             for (int j = 0; j < ENTRY.get(i).members.size(); j++) {
@@ -1696,9 +1741,9 @@ public class Clan {
     }
 
     public static int get_ngoc_icon(short id) {
-        int result = 50;
+        int result = 2000;
         if (id >= 293 && id < 370) {
-            result = 200;
+            result = 5000;
         }
         return result;
     }

@@ -139,6 +139,38 @@ function AdminCoin() {
     }
   };
 
+  const handleResetPvp = async () => {
+    const confirmReset = window.confirm(
+      "⚠️ CẢNH BÁO CỰC KỲ QUAN TRỌNG ⚠️\n\n" +
+      "Hành động này sẽ đặt lại Điểm PVP của TOÀN BỘ nhân vật về 0 (giữ nguyên chỉ số Thắng/Thua).\n" +
+      "Bạn có chắc chắn muốn thực hiện reset không? Thao tác này không thể hoàn tác!"
+    );
+    if (!confirmReset) return;
+
+    try {
+      const res = await api.post('admin/reset_pvp');
+      showMessage(res.data.success ? 'success' : 'error', res.data.message);
+    } catch {
+      showMessage('error', 'Lỗi kết nối máy chủ khi reset PVP!');
+    }
+  };
+
+  const handleResetTruyNa = async () => {
+    const confirmReset = window.confirm(
+      "⚠️ CẢNH BÁO CỰC KỲ QUAN TRỌNG ⚠️\n\n" +
+      "Hành động này sẽ đặt lại Điểm Truy Nã (Bounty / Tiền Thưởng Hải Tặc) của TOÀN BỘ nhân vật về 0.\n" +
+      "Bạn có chắc chắn muốn thực hiện reset không? Thao tác này không thể hoàn tác!"
+    );
+    if (!confirmReset) return;
+
+    try {
+      const res = await api.post('admin/reset_truyna');
+      showMessage(res.data.success ? 'success' : 'error', res.data.message);
+    } catch {
+      showMessage('error', 'Lỗi kết nối máy chủ khi reset điểm truy nã!');
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '30px', justifyContent: 'center', alignItems: 'flex-start', padding: '20px' }}>
       {/* Form cộng coin nhanh */}
@@ -213,7 +245,7 @@ function AdminCoin() {
         <p style={{ color: '#aaa', fontSize: '13.5px', marginBottom: '22px', lineHeight: '1.6', textAlign: 'center' }}>
           Đặt lại điểm tích lũy nạp của **TẤT CẢ** tài khoản về 0 và xóa trạng thái nhận quà mốc nạp. 
           <br />
-          <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>*Khuyên nghị nên làm khi bảo trì.*</span>
+          <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>*Khuyến nghị nên làm khi bảo trì.*</span>
         </p>
 
         <button 
@@ -280,6 +312,60 @@ function AdminCoin() {
           }}
           onMouseOver={(e) => e.target.style.backgroundColor = '#722ed1'}
           onMouseOut={(e) => e.target.style.backgroundColor = '#9254de'}
+        >
+          Xác Nhận Reset Toàn Bộ
+        </button>
+      </div>
+
+      {/* Card Reset Điểm PVP */}
+      <div style={{ ...styles.formContainer, margin: '0', flex: '1 1 300px', maxWidth: '420px' }}>
+        <h3 style={{ ...styles.title, color: '#fa541c', background: 'linear-gradient(135deg, #fa541c 0%, #ff7a45 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          ⚔️ RESET ĐIỂM PVP
+        </h3>
+        
+        <p style={{ color: '#aaa', fontSize: '13.5px', marginBottom: '22px', lineHeight: '1.6', textAlign: 'center' }}>
+          Đặt lại điểm PVP của **TẤT CẢ** nhân vật về 0 (giữ nguyên số trận thắng/thua). 
+          <br />
+          <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>*Khuyến nghị nên làm khi bảo trì.*</span>
+        </p>
+
+        <button 
+          type="button" 
+          onClick={handleResetPvp}
+          style={{
+            ...styles.btnSubmit,
+            backgroundColor: '#fa541c',
+            boxShadow: '0 4px 12px rgba(250, 84, 28, 0.25)',
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#d4380d'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#fa541c'}
+        >
+          Xác Nhận Reset Toàn Bộ
+        </button>
+      </div>
+
+      {/* Card Reset Điểm Truy Nã */}
+      <div style={{ ...styles.formContainer, margin: '0', flex: '1 1 300px', maxWidth: '420px' }}>
+        <h3 style={{ ...styles.title, color: '#eb2f96', background: 'linear-gradient(135deg, #eb2f96 0%, #f759ab 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          📜 RESET ĐIỂM TRUY NÃ
+        </h3>
+        
+        <p style={{ color: '#aaa', fontSize: '13.5px', marginBottom: '22px', lineHeight: '1.6', textAlign: 'center' }}>
+          Đặt lại điểm truy nã (bounty / tiền thưởng hải tặc) của **TẤT CẢ** nhân vật về 0. 
+          <br />
+          <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>*Khuyến nghị nên làm khi bảo trì.*</span>
+        </p>
+
+        <button 
+          type="button" 
+          onClick={handleResetTruyNa}
+          style={{
+            ...styles.btnSubmit,
+            backgroundColor: '#eb2f96',
+            boxShadow: '0 4px 12px rgba(235, 47, 150, 0.25)',
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#c41d7f'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#eb2f96'}
         >
           Xác Nhận Reset Toàn Bộ
         </button>
