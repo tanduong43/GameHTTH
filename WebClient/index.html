@@ -10,6 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d1b2a">
     <title>TheGioiHaiTac - Mobile Web Client</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏴‍☠️</text></svg>">
     <style>
       * {
         box-sizing: border-box;
@@ -299,6 +300,17 @@
         lastTouchEnd = now;
       }, false);
 
+      // === Tự động kích hoạt Audio khi người dùng tương tác lần đầu ===
+      function resumeAudioContext() {
+        if (typeof WEBAudio !== "undefined" && WEBAudio.audioContext && WEBAudio.audioContext.state === "suspended") {
+          WEBAudio.audioContext.resume();
+        }
+        window.removeEventListener("click", resumeAudioContext);
+        window.removeEventListener("touchstart", resumeAudioContext);
+      }
+      window.addEventListener("click", resumeAudioContext);
+      window.addEventListener("touchstart", resumeAudioContext);
+
       // === Fullscreen Logic ===
       function getFullscreenIcon() {
         const isFs = !!(
@@ -352,16 +364,55 @@
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
       };
 
-      createUnityInstance(canvas, config, (progress) => {
-        const percent = Math.round(100 * progress);
-        loadingBar.style.width = percent + "%";
-        loadingText.innerText = "Đang nạp tài nguyên game... " + percent + "%";
-      }).then((unityInstance) => {
-        loadingCover.style.display = "none";
-        fullscreenBtn.style.display = "flex";
-      }).catch((message) => {
-        alert("Lỗi tải WebGL: " + message);
-      });
+      function startUnityClient() {
+        createUnityInstance(canvas, config, (progress) => {
+          const percent = Math.round(100 * progress);
+          loadingBar.style.width = percent + "%";
+          loadingText.innerText = "Đang nạp tài nguyên game... " + percent + "%";
+        }).then((unityInstance) => {
+          loadingCover.style.display = "none";
+          fullscreenBtn.style.display = "flex";
+        }).catch((message) => {
+          console.error("Lỗi WebGL:", message);
+          if (!sessionStorage.getItem("htth_auto_healed")) {
+            sessionStorage.setItem("htth_auto_healed", "1");
+            if (window.indexedDB && window.indexedDB.databases) {
+              window.indexedDB.databases().then((dbs) => {
+                return Promise.all(dbs.map((db) => window.indexedDB.deleteDatabase(db.name)));
+              }).finally(() => {
+                window.location.reload();
+              });
+            } else {
+              window.location.reload();
+            }
+          } else {
+            alert("Lỗi tải WebGL: " + message);
+          }
+        });
+      }
+
+      // === Tự động dọn dẹp cache cũ khi có phiên bản mới mà người chơi không cần thao tác gì ===
+      const CLIENT_BUILD_VER = "1.3.0";
+      const localVer = localStorage.getItem("htth_web_ver");
+      if (localVer !== CLIENT_BUILD_VER) {
+        if (window.indexedDB && window.indexedDB.databases) {
+          window.indexedDB.databases().then((dbs) => {
+            dbs.forEach((db) => {
+              if (db.name && (db.name.includes("idbfs") || db.name.includes("UnityCache"))) {
+                window.indexedDB.deleteDatabase(db.name);
+              }
+            });
+          }).finally(() => {
+            localStorage.setItem("htth_web_ver", CLIENT_BUILD_VER);
+            startUnityClient();
+          });
+        } else {
+          localStorage.setItem("htth_web_ver", CLIENT_BUILD_VER);
+          startUnityClient();
+        }
+      } else {
+        startUnityClient();
+      }
     </script>
   </body>
 </html>

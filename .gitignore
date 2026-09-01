@@ -92,7 +92,4 @@ Hashirama
 !WebClient/**
 !WebClient/Build/**
 
-# Decompiled files
-decompiled/
-decompiled_apk/
-*decompiled*
+
