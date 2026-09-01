@@ -528,6 +528,7 @@ public class Bank {
             String targetUser = rs.getString("username");
             int targetAmount = rs.getInt("amount");
             int coinGain = (targetAmount / 1000) * DEPOSIT_MULTIPLIER;
+            int ticketQuantity = targetAmount / 1000; // Số vé tặng kèm (1k VND = 1 vé)
 
             // Cập nhật trạng thái đơn nạp
             psUpdateHistory = conn.prepareStatement(
@@ -605,6 +606,15 @@ public class Bank {
                             try {
                                 sess.p.update_money();
                                 activities.ListTichNap.syncAccountTichNap(sess.p);
+                                // Tặng vé nạp (item ID 360, category 4) cho player đang online
+                                String ticketMsg = "";
+                                if (ticketQuantity > 0) {
+                                    boolean addedTicket = sess.p.item.add_item_bag47(4, 360, ticketQuantity);
+                                    if (addedTicket) {
+                                        sess.p.item.update_Inventory(-1, false);
+                                        ticketMsg = "\n• Tặng kèm: +" + Util.number_format(ticketQuantity) + " Vé tặng 10 ruby";
+                                    }
+                                }
                                 String multiplierNote = DEPOSIT_MULTIPLIER > 1
                                         ? " (x" + DEPOSIT_MULTIPLIER + ")"
                                         : "";
@@ -612,6 +622,7 @@ public class Bank {
                                         + "Đơn nạp " + Util.number_format(targetAmount) + " VNĐ của bạn đã được Admin duyệt thành công.\n"
                                         + "• Nhận được: +" + Util.number_format(coinGain) + " Coin" + multiplierNote + "\n"
                                         + "• Tích nạp: +" + Util.number_format(targetAmount) + " điểm"
+                                        + ticketMsg
                                         + (newVip > currentVip ? ("\n• Chúc mừng bạn đã được nâng cấp lên VIP " + newVip + "!") : ""));
                             } catch (Exception ex) {
                                 ex.printStackTrace();
@@ -642,6 +653,63 @@ public class Bank {
                             if (psPlayer != null) psPlayer.close();
                         } catch (Exception e) {}
                     }
+                }
+            }
+
+            // Tặng vé nạp cho player OFFLINE - cập nhật trực tiếp vào DB (cột bag47 bảng players)
+            if (!isOnline && ticketQuantity > 0 && charNameFromAcc != null && !charNameFromAcc.trim().isEmpty()) {
+                PreparedStatement psGetBag = null;
+                PreparedStatement psUpdateBag = null;
+                ResultSet rsBag = null;
+                try {
+                    psGetBag = conn.prepareStatement("SELECT `bag47` FROM `players` WHERE BINARY `name` = ? LIMIT 1;");
+                    psGetBag.setString(1, charNameFromAcc);
+                    rsBag = psGetBag.executeQuery();
+                    if (rsBag.next()) {
+                        String bag47Str = rsBag.getString("bag47");
+                        JSONArray bag47Json = (JSONArray) JSONValue.parse(bag47Str);
+                        if (bag47Json == null) {
+                            bag47Json = new JSONArray();
+                        }
+                        // Tìm xem đã có item 360 chưa, nếu có thì cộng dồn
+                        boolean found = false;
+                        for (int idx = 0; idx < bag47Json.size(); idx++) {
+                            JSONArray entry = (JSONArray) JSONValue.parse(bag47Json.get(idx).toString());
+                            if (entry != null && entry.size() >= 3) {
+                                int cat = Integer.parseInt(entry.get(0).toString());
+                                int itemId = Integer.parseInt(entry.get(1).toString());
+                                if (cat == 4 && itemId == 360) {
+                                    int oldQuant = Integer.parseInt(entry.get(2).toString());
+                                    JSONArray newEntry = new JSONArray();
+                                    newEntry.add(4);
+                                    newEntry.add(360);
+                                    newEntry.add(oldQuant + ticketQuantity);
+                                    bag47Json.set(idx, newEntry);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found) {
+                            JSONArray newEntry = new JSONArray();
+                            newEntry.add(4);
+                            newEntry.add(360);
+                            newEntry.add(ticketQuantity);
+                            bag47Json.add(newEntry);
+                        }
+                        psUpdateBag = conn.prepareStatement("UPDATE `players` SET `bag47` = ? WHERE BINARY `name` = ?;");
+                        psUpdateBag.setString(1, bag47Json.toJSONString());
+                        psUpdateBag.setString(2, charNameFromAcc);
+                        psUpdateBag.executeUpdate();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (rsBag != null) rsBag.close();
+                        if (psGetBag != null) psGetBag.close();
+                        if (psUpdateBag != null) psUpdateBag.close();
+                    } catch (Exception e) {}
                 }
             }
 

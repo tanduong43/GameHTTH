@@ -303,6 +303,56 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
                 [newBalance, newSumAmount, newVip, newTichNap, username]
             );
 
+            // Add Item 360 (Vé tặng 10 ruby, category 4) to player's inventory in `players` table (1k VND = 1 ticket)
+            const ticketQuantity = Math.floor(actualAmount / 1000);
+            if (ticketQuantity > 0) {
+                try {
+                    const [accRows] = await db.execute('SELECT `char` FROM accounts WHERE user = ? LIMIT 1', [username]);
+                    let charName = null;
+                    if (accRows.length > 0 && accRows[0].char) {
+                        const parsedChar = typeof accRows[0].char === 'string' ? JSON.parse(accRows[0].char) : accRows[0].char;
+                        if (Array.isArray(parsedChar) && parsedChar.length > 0) {
+                            charName = parsedChar[0];
+                        }
+                    }
+                    if (charName) {
+                        const [pRows] = await db.execute('SELECT `bag47` FROM players WHERE name = ? LIMIT 1', [charName]);
+                        if (pRows.length > 0) {
+                            let bag47 = [];
+                            try {
+                                bag47 = typeof pRows[0].bag47 === 'string' ? JSON.parse(pRows[0].bag47) : pRows[0].bag47;
+                            } catch (e) {}
+                            if (!Array.isArray(bag47)) {
+                                bag47 = [];
+                            }
+
+                            let found = false;
+                            for (let i = 0; i < bag47.length; i++) {
+                                const entry = typeof bag47[i] === 'string' ? JSON.parse(bag47[i]) : bag47[i];
+                                if (Array.isArray(entry) && entry.length >= 3) {
+                                    const cat = parseInt(entry[0], 10);
+                                    const itemId = parseInt(entry[1], 10);
+                                    if (cat === 4 && itemId === 360) {
+                                        entry[2] = parseInt(entry[2], 10) + ticketQuantity;
+                                        bag47[i] = entry;
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!found) {
+                                bag47.push([4, 360, ticketQuantity]);
+                            }
+
+                            await db.execute('UPDATE players SET bag47 = ? WHERE name = ?', [JSON.stringify(bag47), charName]);
+                            console.log(`[Admin Buff] Added ${ticketQuantity} tickets (Item 360) to player ${charName} (account: ${username})`);
+                        }
+                    }
+                } catch (itemErr) {
+                    console.error('[Admin Buff] Error adding ticket 360 to player:', itemErr.message);
+                }
+            }
+
             // Record transaction log if available
             try {
                 await db.execute(

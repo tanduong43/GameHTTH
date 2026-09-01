@@ -111,6 +111,7 @@ public class Player {
     public byte type_pk_wait;
     public boolean pvp_accept;
     public Player fight_click_target;
+    public Player tang_ruby_target;
     public int fight_ruby_bet; // số ruby cược khi gửi lời mời siêu hạng (type_map=3)
     public int pvp_win;
     public int pvp_lose;

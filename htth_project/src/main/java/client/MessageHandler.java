@@ -442,6 +442,17 @@ public class MessageHandler {
                 Trade.process(conn.p, m);
                 break;
             }
+            case 59: {
+                if (conn.p != null) {
+                    byte action = m.reader().readByte();
+                    short idObj = m.reader().readShort();
+                    byte cat = m.reader().readByte();
+                    if (action == 2) {
+                        activities.GiftRuby.handleGiftRubyRequest(conn.p, idObj);
+                    }
+                }
+                break;
+            }
             case -67: {
                 if (conn.p != null) {
                     Rebuild_Item.process(conn.p, m);

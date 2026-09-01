@@ -46,6 +46,10 @@ public class ClientInput {
                 activities.Bank.processExchangeCoinInput(p, name);
                 break;
             }
+            case activities.GiftRuby.INPUT_ID_GIFT_RUBY: {
+                activities.GiftRuby.processGiftRubyInput(p, name);
+                break;
+            }
             case Fight.INPUT_ID_FIGHT_RUBY: { // Nhập số ruby cược cho thách đấu siêu hạng
                 if (name.length == 1) {
                     if (!Util.isnumber(name[0])) {
