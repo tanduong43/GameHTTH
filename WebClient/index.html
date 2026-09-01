@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TheGioiHaiTac">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0d1b2a">
+    <meta name="theme-color" content="#000000">
     <title>TheGioiHaiTac - Mobile Web Client</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏴‍☠️</text></svg>">
     <style>
@@ -32,6 +32,8 @@
         user-select: none;
         -webkit-touch-callout: none;
       }
+
+      /* === Container chính - tự động xoay khi ở portrait === */
       #unity-container {
         width: 100%;
         height: 100%;
@@ -43,6 +45,24 @@
         align-items: center;
         background: #000000;
       }
+
+      /* Khi ở chế độ dọc (portrait) trên mobile: xoay container 90 độ
+         và hoán đổi width/height để fill toàn màn hình ngang */
+      @media (orientation: portrait) and (max-width: 1024px) {
+        #unity-container {
+          transform: rotate(90deg);
+          transform-origin: center center;
+          width: 100vh;
+          width: 100dvh;
+          height: 100vw;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          margin-top: calc(-50vw);
+          margin-left: calc(-50vh);
+        }
+      }
+
       #unity-canvas {
         width: 100% !important;
         height: 100% !important;
@@ -112,88 +132,6 @@
         color: #a0aec0;
       }
 
-      /* === Màn hình nhắc xoay ngang điện thoại (Portrait Notice) === */
-      #rotate-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        height: 100dvh;
-        background: rgba(13, 27, 42, 0.96);
-        z-index: 99999;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 24px;
-        backdrop-filter: blur(10px);
-      }
-      .phone-icon-wrapper {
-        width: 80px;
-        height: 80px;
-        margin-bottom: 24px;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .phone-rotate-anim {
-        width: 44px;
-        height: 74px;
-        border: 3px solid #f39c12;
-        border-radius: 8px;
-        position: relative;
-        animation: rotatePhone 2s ease-in-out infinite;
-        box-shadow: 0 0 16px rgba(243, 156, 18, 0.4);
-      }
-      .phone-rotate-anim::before {
-        content: '';
-        position: absolute;
-        top: 4px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 12px;
-        height: 3px;
-        background: #f39c12;
-        border-radius: 2px;
-      }
-      .phone-rotate-anim::after {
-        content: '';
-        position: absolute;
-        bottom: 4px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 6px;
-        height: 6px;
-        border: 1.5px solid #f39c12;
-        border-radius: 50%;
-      }
-      @keyframes rotatePhone {
-        0%, 15% {
-          transform: rotate(0deg);
-        }
-        50%, 85% {
-          transform: rotate(-90deg);
-        }
-        100% {
-          transform: rotate(0deg);
-        }
-      }
-      .rotate-title {
-        font-size: 20px;
-        font-weight: bold;
-        color: #f1c40f;
-        margin-bottom: 10px;
-      }
-      .rotate-subtitle {
-        font-size: 14px;
-        color: #cbd5e1;
-        max-width: 320px;
-        line-height: 1.5;
-      }
-
       /* === Nút Toàn Màn Hình === */
       #fullscreen-btn {
         position: fixed;
@@ -223,15 +161,6 @@
     </style>
   </head>
   <body>
-    <!-- Màn hình hướng dẫn xoay ngang trên điện thoại -->
-    <div id="rotate-overlay">
-      <div class="phone-icon-wrapper">
-        <div class="phone-rotate-anim"></div>
-      </div>
-      <div class="rotate-title">Vui lòng xoay ngang điện thoại</div>
-      <div class="rotate-subtitle">Xoay ngang màn hình để trải nghiệm góc nhìn rộng và đầy đủ phím cảm ứng như trên điện thoại iOS / Android.</div>
-    </div>
-
     <!-- Unity Container -->
     <div id="unity-container">
       <canvas id="unity-canvas" tabindex="-1"></canvas>
@@ -257,31 +186,10 @@
       const loadingBar = document.querySelector("#loading-bar");
       const loadingText = document.querySelector("#loading-text");
       const fullscreenBtn = document.querySelector("#fullscreen-btn");
-      const rotateOverlay = document.querySelector("#rotate-overlay");
 
       // === Kiểm tra thiết bị Mobile ===
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                        (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
-
-      // === Kiểm tra và hiển thị nhắc nhở xoay ngang ===
-      function checkOrientation() {
-        if (!isMobile) {
-          rotateOverlay.style.display = "none";
-          return;
-        }
-        const isPortrait = window.innerHeight > window.innerWidth;
-        if (isPortrait) {
-          rotateOverlay.style.display = "flex";
-        } else {
-          rotateOverlay.style.display = "none";
-        }
-      }
-
-      window.addEventListener("resize", checkOrientation);
-      window.addEventListener("orientationchange", () => {
-        setTimeout(checkOrientation, 200);
-      });
-      checkOrientation();
 
       // === Chặn Zoom / Pull-to-refresh trên iOS Safari ===
       document.addEventListener("gesturestart", (e) => e.preventDefault());
@@ -311,46 +219,88 @@
       window.addEventListener("click", resumeAudioContext);
       window.addEventListener("touchstart", resumeAudioContext);
 
-      // === Fullscreen Logic ===
+      // === Fullscreen Logic (không dùng Fullscreen API để tránh thông báo trình duyệt) ===
+      // Dùng Navigation Bar hide bằng cách scroll trick trên mobile
+      let isFullscreenMode = false;
+
       function getFullscreenIcon() {
-        const isFs = !!(
-          document.fullscreenElement ||
-          document.webkitFullscreenElement ||
-          document.mozFullScreenElement ||
-          document.msFullscreenElement
-        );
-        return isFs ? "⊡" : "⛶";
+        return isFullscreenMode ? "⊡" : "⛶";
       }
 
       function toggleFullscreen() {
-        const isFs = !!(
-          document.fullscreenElement ||
-          document.webkitFullscreenElement ||
-          document.mozFullScreenElement ||
-          document.msFullscreenElement
-        );
-        if (!isFs) {
-          const el = document.documentElement;
-          if (el.requestFullscreen) el.requestFullscreen();
-          else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-          else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
-          else if (el.msRequestFullscreen) el.msRequestFullscreen();
+        if (!isFullscreenMode) {
+          // Trên mobile: ẩn thanh địa chỉ bằng scroll trick
+          // Trên desktop: vẫn dùng Fullscreen API vì không gây vấn đề
+          if (!isMobile) {
+            const el = document.documentElement;
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+            else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+            else if (el.msRequestFullscreen) el.msRequestFullscreen();
+          } else {
+            // Trên mobile: scroll để ẩn thanh address bar
+            window.scrollTo(0, 1);
+          }
+          isFullscreenMode = true;
         } else {
-          if (document.exitFullscreen) document.exitFullscreen();
-          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-          else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
-          else if (document.msExitFullscreen) document.msExitFullscreen();
+          if (!isMobile) {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+          }
+          isFullscreenMode = false;
         }
+        fullscreenBtn.textContent = getFullscreenIcon();
       }
 
       fullscreenBtn.addEventListener("click", toggleFullscreen);
 
+      // Cập nhật icon khi desktop fullscreen thay đổi
       document.addEventListener("fullscreenchange", () => {
+        const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        isFullscreenMode = isFs;
         fullscreenBtn.textContent = getFullscreenIcon();
       });
       document.addEventListener("webkitfullscreenchange", () => {
+        const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        isFullscreenMode = isFs;
         fullscreenBtn.textContent = getFullscreenIcon();
       });
+
+      // === Xử lý bàn phím ảo trên mobile (tránh lỗi layout khi nhập tin nhắn) ===
+      if (isMobile) {
+        // Khi bàn phím ảo hiện lên, visualViewport sẽ thay đổi
+        // Ta cần giữ nguyên kích thước canvas, không cho nó co lại
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", () => {
+            // Giữ body luôn full kích thước màn hình thực, 
+            // không bị ảnh hưởng bởi bàn phím ảo
+            document.body.style.height = window.screen.height + "px";
+          });
+
+          window.visualViewport.addEventListener("scroll", () => {
+            // Ngăn viewport scroll khi bàn phím hiện
+            window.scrollTo(0, 0);
+          });
+        }
+
+        // Ngăn resize event làm thay đổi layout khi bàn phím ảo mở/đóng
+        let initialHeight = window.innerHeight;
+        let initialWidth = window.innerWidth;
+        
+        window.addEventListener("resize", () => {
+          // Nếu chỉ thay đổi chiều cao (bàn phím mở/đóng), giữ nguyên layout
+          if (window.innerWidth === initialWidth && window.innerHeight < initialHeight) {
+            document.body.style.height = initialHeight + "px";
+            window.scrollTo(0, 0);
+          } else {
+            // Thay đổi orientation thật sự
+            initialHeight = window.innerHeight;
+            initialWidth = window.innerWidth;
+          }
+        });
+      }
 
       // === Cấu hình Unity WebGL Instance ===
       const config = {
