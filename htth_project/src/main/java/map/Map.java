@@ -1543,8 +1543,8 @@ public class Map implements Runnable {
 
                         // Add EXP level and EXP skill directly to player
                         long exp_lv_gain = 50000L * (mode_dungeon + 1);
-                        long exp_skill_gain = 5000L * (mode_dungeon + 1);
-                        p0.update_exp(exp_lv_gain, true);
+                        long exp_skill_gain = 500L * (mode_dungeon + 1);
+                        p0.update_exp(exp_lv_gain, false);
                         for (int sk_id = 0; sk_id < 4; sk_id++) {
                             p0.update_skill_exp(sk_id, exp_skill_gain);
                         }
