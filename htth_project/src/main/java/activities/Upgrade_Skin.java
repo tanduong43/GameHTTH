@@ -13,21 +13,21 @@ import java.util.List;
  * @author Truongbk
  */
 public class Upgrade_Skin {
-    public static byte[] PERCENT = new byte[] {1, 3, 4, 5, 10, 20};
+    public static byte[] PERCENT = new byte[] {3, 5, 6, 7, 12, 22};
 
     public static int get_material_percent(int level) {
         if (level < 6) {
-            return PERCENT[5]; // 20%
+            return PERCENT[5]; // 22%
         } else if (level < 12) {
-            return PERCENT[4]; // 10%
+            return PERCENT[4]; // 12%
         } else if (level < 18) {
-            return PERCENT[3]; // 5%
+            return PERCENT[3]; // 7%
         } else if (level < 24) {
-            return PERCENT[2]; // 4%
+            return PERCENT[2]; // 6%
         } else if (level < 30) {
-            return PERCENT[1]; // 3%
+            return PERCENT[1]; // 5%
         } else {
-            return PERCENT[0]; // 1%
+            return PERCENT[0]; // 3%
         }
     }
 
