@@ -112,7 +112,7 @@ public class Body {
                         par += 100;
                     }
                     // Kích hoạt: +10% Chí mạng khi kết hợp với Trái Sét
-                    if (temp.id == 59 && id == 10 && p.has_devil_fruit_set()) {
+                    if ((temp.id == 59 || temp.id == 209) && id == 10 && p.has_devil_fruit_set()) {
                         par += 100;
                     }
                     // Thời trang Râu Đen (ID 74):

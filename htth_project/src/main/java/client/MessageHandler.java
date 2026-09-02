@@ -1088,6 +1088,7 @@ public class MessageHandler {
             //
             Service.UpdateInfoMaincharInfo(conn.p);
             Service.Main_char_Info(conn.p);
+            Service.send_info_fashion(conn.p);
             Service.UpdatePvpPoint(conn.p);
             Service.update_PK(conn.p, conn.p, false);
             Service.getThanhTich(conn.p, conn.p);

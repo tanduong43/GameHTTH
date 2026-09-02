@@ -2461,7 +2461,7 @@ public class Service {
     }
 
     public static void send_eff_haki_to_player(Player caster, Player receiver, short effId, int time) {
-        if (caster == null || receiver == null || receiver.conn == null || time <= 0)
+        if (caster == null || receiver == null || receiver.conn == null || (time <= 0 && time != -1))
             return;
         try {
             send_effect_data(receiver.conn, effId);
@@ -2480,7 +2480,7 @@ public class Service {
     }
 
     public static void send_eff_haki_to_map(Player caster, short effId, int time) {
-        if (caster == null || caster.map == null || time <= 0)
+        if (caster == null || caster.map == null || (time <= 0 && time != -1))
             return;
         java.util.List<Player> snapshot;
         synchronized (caster.map) {
@@ -2490,6 +2490,60 @@ public class Service {
             if (p0 != null && p0.conn != null) {
                 send_eff_haki_to_player(caster, p0, effId, time);
             }
+        }
+    }
+
+    public static void send_eff_fashion(Player p, short effId) {
+        if (p == null || p.map == null)
+            return;
+        p.add_active_haki(effId, Integer.MAX_VALUE / 2);
+        send_eff_haki_to_map(p, effId, -1);
+    }
+
+    public static void send_eff_fashion_stop(Player p, short effId) {
+        if (p == null)
+            return;
+        p.remove_active_haki(effId);
+        send_eff_haki_stop_once(p, effId);
+    }
+
+    public static void send_info_fashion(Player p) {
+        if (p == null || p.conn == null)
+            return;
+        try {
+            // Case 2: idEffBody, idPlayFrameHead, idWeaponF
+            Message m2 = new Message(72);
+            m2.writer().writeByte(2);
+            short[] idEffBody = new short[] { 798, 799, 801, 802, 794 };
+            m2.writer().writeShort(idEffBody.length);
+            for (short s : idEffBody) {
+                m2.writer().writeShort(s);
+            }
+            short[] idPlayFrameHead = new short[] { 815 };
+            m2.writer().writeShort(idPlayFrameHead.length);
+            for (short s : idPlayFrameHead) {
+                m2.writer().writeShort(s);
+            }
+            short[] idWeaponF = new short[] { 803, 804, 805, 806, 796 };
+            m2.writer().writeShort(idWeaponF.length);
+            for (short s : idWeaponF) {
+                m2.writer().writeShort(s);
+            }
+            p.conn.addmsg(m2);
+            m2.cleanup();
+
+            // Case 0: ListLechHEAD
+            Message m0 = new Message(72);
+            m0.writer().writeByte(0);
+            short[] listLechHead = new short[] { 719, 748, 751, 756, 794, 798, 799, 801, 802, 849, 851, 894, 896, 950, 963, 972 };
+            m0.writer().writeShort(listLechHead.length);
+            for (short s : listLechHead) {
+                m0.writer().writeShort(s);
+            }
+            p.conn.addmsg(m0);
+            m0.cleanup();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

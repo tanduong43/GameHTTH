@@ -41,6 +41,9 @@ public class ItemFashion {
     }
 
     public static long getDefaultDurationMs(int fashionId) {
+        if (fashionId == 130 || (byte) fashionId == (byte) 130) {
+            return 24L * 60 * 60 * 1000L;
+        }
         ItemFashion item = get_item(fashionId);
         if (item == null) {
             return -1;
@@ -62,9 +65,6 @@ public class ItemFashion {
             if (lower.contains("30 ngày")) {
                 return 30L * 24 * 60 * 60 * 1000L;
             }
-        }
-        if (fashionId == 130) {
-            return 24L * 60 * 60 * 1000L;
         }
         return -1;
     }

@@ -866,6 +866,10 @@ public class Player {
                 } else {
                     tempf.expiryTime = -1;
                 }
+                long defaultDur = ItemFashion.getDefaultDurationMs(tempf.id);
+                if (tempf.expiryTime == -1 && defaultDur > 0) {
+                    tempf.expiryTime = System.currentTimeMillis() + defaultDur;
+                }
                 this.fashion.add(tempf);
             }
             js_temp_2 = (JSONArray) JSONValue.parse(js.get(2).toString());
@@ -2375,27 +2379,36 @@ public class Player {
         boolean wasUsingExpired = false;
         for (int i = this.fashion.size() - 1; i >= 0; i--) {
             ItemFashionP2 f = this.fashion.get(i);
-            if (f != null && f.expiryTime != -1 && currentTime > f.expiryTime) {
-                if (f.is_use) {
-                    f.is_use = false;
-                    wasUsingExpired = true;
+            if (f != null) {
+                long defaultDur = ItemFashion.getDefaultDurationMs(f.id);
+                if (f.expiryTime == -1 && defaultDur > 0) {
+                    f.expiryTime = currentTime + defaultDur;
                 }
-                this.fashion.remove(i);
-                hasExpired = true;
+                if (f.expiryTime != -1 && currentTime > f.expiryTime) {
+                    if (f.is_use) {
+                        f.is_use = false;
+                        wasUsingExpired = true;
+                        if (f.id == 74) {
+                            Service.send_eff_fashion_stop(this, (short) 7);
+                        }
+                    }
+                    this.fashion.remove(i);
+                    hasExpired = true;
+                }
             }
         }
         if (hasExpired) {
-            if (wasUsingExpired) {
-                try {
-                    this.update_info_to_all();
-                    if (this.map != null) {
-                        for (int pi = 0; pi < this.map.players.size(); pi++) {
-                            Player p0 = this.map.players.get(pi);
-                            Service.charWearing(this, p0, false);
-                        }
+            try {
+                this.update_info_to_all();
+                Service.UpdateInfoMaincharInfo(this);
+                if (this.map != null) {
+                    for (int pi = 0; pi < this.map.players.size(); pi++) {
+                        Player p0 = this.map.players.get(pi);
+                        Service.charWearing(this, p0, false);
                     }
-                } catch (Exception e) {
                 }
+                Service.Main_char_Info(this);
+            } catch (Exception e) {
             }
             if (sendNotice && this.conn != null && this.conn.connected) {
                 try {
@@ -2405,6 +2418,11 @@ public class Player {
             }
         }
         return hasExpired;
+    }
+
+    public boolean is_wearing_fashion(int id) {
+        ItemFashionP2 itF = this.check_fashion(id);
+        return (itF != null && itF.is_use);
     }
 
     public ItemFashionP2 check_fashion(int id) {
@@ -2421,11 +2439,17 @@ public class Player {
     }
 
     public void update_fashionP2(ItemFashionP2 temp_new) throws IOException {
+        boolean wasRauDen = is_wearing_fashion(74);
         temp_new.is_use = true;
         for (int i = 0; i < this.fashion.size(); i++) {
             if (!this.fashion.get(i).equals(temp_new)) {
                 this.fashion.get(i).is_use = false;
             }
+        }
+        if (wasRauDen && temp_new.id != 74) {
+            Service.send_eff_fashion_stop(this, (short) 7);
+        } else if (temp_new.id == 74) {
+            Service.send_eff_fashion(this, (short) 7);
         }
         this.update_info_to_all();
     }
@@ -2468,8 +2492,12 @@ public class Player {
     }
 
     public void remove_fashion() throws IOException {
+        boolean wasRauDen = is_wearing_fashion(74);
         for (int i = 0; i < this.fashion.size(); i++) {
             this.fashion.get(i).is_use = false;
+        }
+        if (wasRauDen) {
+            Service.send_eff_fashion_stop(this, (short) 7);
         }
         for (int i = 0; i < map.players.size(); i++) {
             Player p0 = map.players.get(i);

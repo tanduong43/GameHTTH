@@ -5683,6 +5683,9 @@ public class Map implements Runnable {
                 for (java.util.Map.Entry<Short, Integer> entry : p0Haki.entrySet()) {
                     Service.send_eff_haki_to_player(p0, p, entry.getKey(), entry.getValue());
                 }
+                if (p0.is_wearing_fashion(74)) {
+                    Service.send_eff_haki_to_player(p0, p, (short) 7, -1);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -5691,6 +5694,9 @@ public class Map implements Runnable {
                 java.util.Map<Short, Integer> pHaki = p.get_remaining_haki_effects();
                 for (java.util.Map.Entry<Short, Integer> entry : pHaki.entrySet()) {
                     Service.send_eff_haki_to_player(p, p0, entry.getKey(), entry.getValue());
+                }
+                if (p.is_wearing_fashion(74)) {
+                    Service.send_eff_haki_to_player(p, p0, (short) 7, -1);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -6268,6 +6274,9 @@ public class Map implements Runnable {
             java.util.Map<Short, Integer> myHaki = p.get_remaining_haki_effects();
             for (java.util.Map.Entry<Short, Integer> entry : myHaki.entrySet()) {
                 Service.send_eff_haki_to_player(p, p, entry.getKey(), entry.getValue());
+            }
+            if (p.is_wearing_fashion(74)) {
+                Service.send_eff_haki_to_player(p, p, (short) 7, -1);
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -75,6 +75,9 @@ public class UseItem {
                         if (temp.id == 122) {
                             p.tocSuper = 0;
                         }
+                        if (temp.id == 74) {
+                            Service.send_eff_fashion_stop(p, (short) 7);
+                        }
                         //
                         p.update_info_to_all();
                         for (int i = 0; i < p.map.players.size(); i++) {
