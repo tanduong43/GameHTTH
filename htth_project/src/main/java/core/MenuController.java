@@ -118,6 +118,9 @@ public class MenuController {
           if (event.Event2011.isEvent()) {
             listMenu.add("Sự Kiện 20/11");
           }
+          if (event.EventNoel.isEvent()) {
+            listMenu.add("Sự Kiện Noel");
+          }
           send_dynamic_menu(p, type, "Sự kiện", listMenu.toArray(new String[0]), null);
           break;
         }
@@ -1682,6 +1685,18 @@ public class MenuController {
           event.Event2011Craft.processCraft(p, 3 + index);
           break;
         }
+        case -2024: {
+          if (!event.EventNoel.isEvent()) {
+            Service.send_box_ThongBao_OK(p, "Sự kiện Noel chưa được kích hoạt!");
+            return;
+          }
+          Menu_Noel(p, index);
+          break;
+        }
+        case -2025: {
+          event.EventNoelCraft.processCraft(p, index + 1);
+          break;
+        }
         case 997: {
           Menu_Remove_Skill(p, index);
           break;
@@ -2834,25 +2849,55 @@ public class MenuController {
         BXH.sendTopPhaoHoa(p, 0);
         break;
       }
-      case 6: { // Sự kiện Tết hoặc 20/11
-        if (event.EventTet.isEvent()) {
-          send_dynamic_menu(p, -1003, "Sự Kiện Tết",
-              new String[] { "Làm Bánh", "Ghép Chữ Vàng", "BXH Sự Kiện Tết", "Hướng dẫn" }, null);
-        } else if (event.Event2011.isEvent()) {
-          send_dynamic_menu(p, -2011, "Sự Kiện 20/11",
-              new String[] { "Làm Điểm 10 & Thiệp", "Ghép Lẵng Hoa & Hộp Quà", "BXH Học Trò Xuất Sắc", "Nhận Thưởng Đua Top", "Hướng Dẫn" }, null);
-        } else {
-          Service.send_box_ThongBao_OK(p, "Sự kiện chưa được kích hoạt!");
-        }
-        break;
-      }
-      case 7: { // Khi cả 2 sự kiện cùng mở
-        if (event.EventTet.isEvent() && event.Event2011.isEvent()) {
-          send_dynamic_menu(p, -2011, "Sự Kiện 20/11",
-              new String[] { "Làm Điểm 10 & Thiệp", "Ghép Lẵng Hoa & Hộp Quà", "BXH Học Trò Xuất Sắc", "Nhận Thưởng Đua Top", "Hướng Dẫn" }, null);
+      case 6:
+      case 7:
+      case 8: {
+        List<String> activeEvents = new ArrayList<>();
+        if (event.EventTet.isEvent()) activeEvents.add("TET");
+        if (event.Event2011.isEvent()) activeEvents.add("2011");
+        if (event.EventNoel.isEvent()) activeEvents.add("NOEL");
+
+        int eventIdx = index - 6;
+        if (eventIdx >= 0 && eventIdx < activeEvents.size()) {
+          String evt = activeEvents.get(eventIdx);
+          if ("TET".equals(evt)) {
+            send_dynamic_menu(p, -1003, "Sự Kiện Tết",
+                new String[] { "Làm Bánh", "Ghép Chữ Vàng", "BXH Sự Kiện Tết", "Hướng dẫn" }, null);
+          } else if ("2011".equals(evt)) {
+            send_dynamic_menu(p, -2011, "Sự Kiện 20/11",
+                new String[] { "Làm Điểm 10 & Thiệp", "Ghép Lẵng Hoa & Hộp Quà", "BXH Học Trò Xuất Sắc", "Nhận Thưởng Đua Top", "Hướng Dẫn" }, null);
+          } else if ("NOEL".equals(evt)) {
+            send_dynamic_menu(p, -2024, "Sự Kiện Noel",
+                new String[] { "Chế Tạo Quà Giáng Sinh", "BXH Vua Giáng Sinh", "Hướng Dẫn Sự Kiện" }, null);
+          }
         } else {
           Service.send_box_ThongBao_OK(p, "Chức năng đang được bảo trì");
         }
+        break;
+      }
+      default: {
+        Service.send_box_ThongBao_OK(p, "Chức năng đang được bảo trì");
+        break;
+      }
+    }
+  }
+
+  private static void Menu_Noel(Player p, byte index) throws IOException {
+    switch (index) {
+      case 0: {
+        // Chế Tạo Quà Giáng Sinh
+        send_dynamic_menu(p, -2025, "Chế Tạo Quà Noel",
+            new String[] { "Đắp Người Tuyết", "Thiệp Giáng Sinh", "Hộp Quà Noel", "Hộp Quà VIP", "Rương Trang Phục", "Rương Pet Noel" }, null);
+        break;
+      }
+      case 1: {
+        // BXH Vua Giáng Sinh
+        event.EventNoel.getInstance().showLeaderboard(p);
+        break;
+      }
+      case 2: {
+        // Hướng dẫn
+        event.EventNoelCraft.showCraftHelp(p);
         break;
       }
       default: {

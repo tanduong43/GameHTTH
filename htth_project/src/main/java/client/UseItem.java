@@ -216,6 +216,43 @@ public class UseItem {
         p.item.update_Inventory(-1, false);
     }
 
+    /**
+     * Xử lý các item đặc biệt của sự kiện Noel (Giáng Sinh)
+     */
+    private static void handleEventNoelItem(Player p, int id) throws IOException {
+        if (p.item.total_item_bag_by_id(4, id) <= 0) {
+            Service.send_box_ThongBao_OK(p, "Bạn không có vật phẩm này!");
+            return;
+        }
+
+        switch (id) {
+            case event.EventNoel.ITEM_THIEP_NOEL:
+                event.EventNoel.useThiepNoel(p);
+                break;
+            case event.EventNoel.ITEM_HOP_QUA_NOEL:
+                event.EventNoel.openHopQuaNoel(p);
+                break;
+            case event.EventNoel.ITEM_TUI_GIANG_SINH:
+                event.EventNoel.openTuiGiangSinh(p);
+                break;
+            case event.EventNoel.ITEM_HOP_QUA_GIANG_SINH_VIP:
+                event.EventNoel.openHopQuaGiangSinhVIP(p);
+                break;
+            case event.EventNoel.ITEM_RUONG_TT_NOEL:
+                event.EventNoel.openRuongTrangPhucNoel(p);
+                break;
+            case event.EventNoel.ITEM_RUONG_PET_NOEL:
+                event.EventNoel.openRuongPetNoel(p);
+                break;
+            case event.EventNoel.ITEM_KEO_NOEL:
+                event.EventNoel.useKeoNoel(p);
+                break;
+            case event.EventNoel.ITEM_BONG_TUYET:
+                event.EventNoel.useBongTuyet(p);
+                break;
+        }
+    }
+
     private static boolean use_item_4(Player p, int id) throws IOException {
         boolean used = true;
         ItemTemplate4 it_temp = ItemTemplate4.get_it_by_id(id);
@@ -270,6 +307,16 @@ public class UseItem {
                         return true;
                     } catch (Exception e) {
                         System.out.println("Error handling Event 20/11 item: " + e.getMessage());
+                    }
+                }
+
+                // Event Noel: Xử lý các item sự kiện Noel
+                if (event.EventNoel.isEvent() && event.EventNoel.isEventItem(id)) {
+                    try {
+                        handleEventNoelItem(p, id);
+                        return true;
+                    } catch (Exception e) {
+                        System.out.println("Error handling Event Noel item: " + e.getMessage());
                     }
                 }
 

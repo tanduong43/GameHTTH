@@ -1287,6 +1287,10 @@ public class Manager {
         if (configMap.containsKey("event-2011")) {
             event.Event2011.setEvent(Boolean.parseBoolean(configMap.get("event-2011")));
         }
+        // Event Noel config
+        if (configMap.containsKey("event-noel")) {
+            event.EventNoel.setEvent(Boolean.parseBoolean(configMap.get("event-noel")));
+        }
         // Server Event Rate Config (x2 EXP, x2 EXP Skill)
         if (configMap.containsKey("rate-exp")) {
             RATE_EXP = Integer.parseInt(configMap.get("rate-exp"));

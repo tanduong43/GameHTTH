@@ -1095,6 +1095,7 @@ public class Map implements Runnable {
                             }
                             event.EventTrungThu.rewardPvpTruyNa(players.get(0));
                             event.Event2011.rewardPvpArena(players.get(0));
+                            event.EventNoel.rewardPvpArena(players.get(0));
                             players.get(1).pvp_lose++;
                             //
                             int chenhLech = players.get(1).get_pvpPoint() - players.get(0).get_pvpPoint();
@@ -1118,6 +1119,7 @@ public class Map implements Runnable {
                             }
                             event.EventTrungThu.rewardPvpTruyNa(players.get(1));
                             event.Event2011.rewardPvpArena(players.get(1));
+                            event.EventNoel.rewardPvpArena(players.get(1));
                             players.get(0).pvp_lose++;
                             //
                             int chenhLech = players.get(0).get_pvpPoint() - players.get(1).get_pvpPoint();
@@ -1144,6 +1146,7 @@ public class Map implements Runnable {
                             Wanted_Chest.receiv_ruong(players.get(0));
                             event.EventTrungThu.rewardPvpTruyNa(players.get(0));
                             event.Event2011.rewardPvpArena(players.get(0));
+                            event.EventNoel.rewardPvpArena(players.get(0));
 
                             Service.send_box_ThongBao_OK(players.get(0),
                                     "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win
@@ -1165,6 +1168,7 @@ public class Map implements Runnable {
                             Wanted_Chest.receiv_ruong(players.get(1));
                             event.EventTrungThu.rewardPvpTruyNa(players.get(1));
                             event.Event2011.rewardPvpArena(players.get(1));
+                            event.EventNoel.rewardPvpArena(players.get(1));
 
                             Service.send_box_ThongBao_OK(players.get(0),
                                     "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
@@ -3768,6 +3772,13 @@ public class Map implements Runnable {
                     dame_inf.dameM = 0;
                     event.Event2011.getInstance().onBossDamaged(p, 1);
                 }
+                if (event.EventNoel.isEvent() && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET
+                        && dame_to_target > 0) {
+                    dame_to_target = 1;
+                    dame_inf.dameP = 1;
+                    dame_inf.dameM = 0;
+                    event.EventNoel.getInstance().onBossDamaged(p, 1);
+                }
                 if (dame_to_target > 0) {
                     dame_to_target = mob_target.calculate_damage_taken(dame_to_target);
                     dame2 = Math.max(0, dame_to_target - dame_inf.dameM);
@@ -3814,7 +3825,8 @@ public class Map implements Runnable {
                             && mob_target.boss_info.thegioi != 2
                             && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN
                             && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU
-                            && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU) {
+                            && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU
+                            && mob_target.mob_template.mob_id != event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET) {
                         // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) và Boss Lân chỉ
                         // nhận quà khi giết
                         int max_hp = mob_target.hp_max;
@@ -4149,6 +4161,14 @@ public class Map implements Runnable {
                             && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU) {
                         event.Event2011.getInstance().onBossKilled(p);
                     }
+                    // Event Noel: Drop Nắm tuyết, Bóng tuyết, Kẹo Noel khi giết quái dã ngoại
+                    if (event.EventNoel.isEvent() && mob_target.boss_info == null) {
+                        event.EventNoel.onMobKill(p, mob_target);
+                    }
+                    if (event.EventNoel.isEvent()
+                            && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET) {
+                        event.EventNoel.getInstance().onBossKilled(p);
+                    }
                     // Tiêu diệt quái/Boss ID 174 (Saturn) nhận Trứng Pet
                     if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174 && mob_target.boss_info == null) {
                         p.item.add_item_bag47(4, 1014, 1);
@@ -4169,13 +4189,15 @@ public class Map implements Runnable {
                         if (mob_target.mob_template.mob_id == 81) {
                             event.EventTrungThu.rewardLienTangMr3(p);
                             event.Event2011.rewardDungeon(p);
+                            event.EventNoel.rewardDungeon(p);
                         }
                     }
-                    // boss (loại trừ Boss Lân, Boss Tết, Boss 20/11 - xử lý riêng)
+                    // boss (loại trừ Boss Lân, Boss Tết, Boss 20/11, Boss Noel - xử lý riêng)
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
                             && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN
                             && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU
-                            && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU) {
+                            && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU
+                            && mob_target.mob_template.mob_id != event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET) {
                         Boss boss = mob_target.boss_info;
                         boss.timeDeath = System.currentTimeMillis();
                         core.BXH.updateTopBoss(boss);
@@ -4964,6 +4986,22 @@ public class Map implements Runnable {
                     event.Event2011.getInstance().claimLeaderboardReward(p);
                 } else if (cmd.equals("event 2011 menu") || cmd.equals("2011 menu")) {
                     event.Event2011Craft.showCraftHelp(p);
+                } else if (cmd.equals("event noel on") || cmd.equals("event noel 1") || cmd.equals("event noel true")) {
+                    event.EventNoel.setEvent(true);
+                    Service.send_box_ThongBao_OK(p, "Đã bật sự kiện Giáng Sinh Noel!");
+                } else if (cmd.equals("event noel off") || cmd.equals("event noel 0") || cmd.equals("event noel false")) {
+                    event.EventNoel.setEvent(false);
+                    Service.send_box_ThongBao_OK(p, "Đã tắt sự kiện Giáng Sinh Noel!");
+                } else if (cmd.equals("event noel status")) {
+                    boolean status = event.EventNoel.isEvent();
+                    Service.send_box_ThongBao_OK(p, "Trạng thái sự kiện Noel: " + (status ? "BẬT" : "TẮT"));
+                } else if (cmd.equals("goiboss noel") || cmd.equals("boss noel") || cmd.equals("call boss noel")) {
+                    event.EventNoel.getInstance().forceSpawnBoss(p);
+                    Service.send_box_ThongBao_OK(p, "Đã gọi Quái Vật Tuyết xuất hiện!");
+                } else if (cmd.equals("bxh noel") || cmd.equals("event noel bxh")) {
+                    event.EventNoel.getInstance().showLeaderboard(p);
+                } else if (cmd.equals("event noel menu") || cmd.equals("noel menu")) {
+                    event.EventNoelCraft.showCraftHelp(p);
                 } else if (cmd.equals("event tt menu") || cmd.equals("tt menu") || cmd.equals("trungthu")
                         || cmd.equals("ghép") || cmd.equals("ghep")) {
                     event.TrungThuCraft.showCraftMenu(p);
