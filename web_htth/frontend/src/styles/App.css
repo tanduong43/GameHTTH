@@ -2170,14 +2170,49 @@ input:focus {
     margin-bottom: 15px;
 }
 
-.telegram-tag {
-    display: inline-block;
+.footer-support-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.support-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-size: 13px;
     font-weight: 600;
-    color: #ffffff;
-    background-color: #0088cc;
-    padding: 6px 16px;
+    color: #ffffff !important;
+    padding: 7px 18px;
     border-radius: 30px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.telegram-tag {
+    background: linear-gradient(135deg, #0088cc 0%, #00a2ed 100%);
+    box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+}
+
+.telegram-tag:hover {
+    background: linear-gradient(135deg, #0099e6 0%, #1ab1f8 100%);
+    box-shadow: 0 6px 18px rgba(0, 136, 204, 0.5);
+    transform: translateY(-2px);
+    color: #ffffff !important;
+}
+
+.zalo-tag {
+    background: linear-gradient(135deg, #0068ff 0%, #0084ff 100%);
+    box-shadow: 0 4px 12px rgba(0, 104, 255, 0.3);
+}
+
+.zalo-tag:hover {
+    background: linear-gradient(135deg, #1a7bff 0%, #1f94ff 100%);
+    box-shadow: 0 6px 18px rgba(0, 104, 255, 0.5);
+    transform: translateY(-2px);
+    color: #ffffff !important;
 }
 
 .footer-bottom {

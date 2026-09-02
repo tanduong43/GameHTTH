@@ -777,8 +777,27 @@ function LandingPage() {
           </div>
           <div className="footer-support">
             <h4>HỖ TRỢ KHÁCH HÀNG</h4>
-            <p>Liên hệ Admin trực tiếp qua Diễn đàn hoặc Box chat Telegram hỗ trợ kỹ thuật 24/7.</p>
-            <span className="telegram-tag">💬 Telegram: @HTTH_Support</span>
+            <p>Liên hệ Admin trực tiếp qua Diễn đàn hoặc Box chat Telegram, Zalo hỗ trợ kỹ thuật 24/7.</p>
+            <div className="footer-support-tags">
+              <a 
+                href="https://t.me/HTTH_Support" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="support-tag telegram-tag"
+                title="Box chat Telegram hỗ trợ kỹ thuật"
+              >
+                💬 Telegram: @HTTH_Support
+              </a>
+              <a 
+                href="https://zalo.me/g/5kecoibhjjidw7ffumz5" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="support-tag zalo-tag"
+                title="Box chat Zalo hỗ trợ kỹ thuật"
+              >
+                💬 Box Zalo: Tham Gia Nhóm
+              </a>
+            </div>
           </div>
         </div>
         <div className="footer-bottom">
