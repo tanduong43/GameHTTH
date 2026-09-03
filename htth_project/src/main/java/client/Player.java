@@ -1465,7 +1465,7 @@ public class Player {
             }
             js.add(p.time_bosshunt);
             js.add(p.time_tower);
-            js.add("");
+            js.add(0);
             js.add(p.time_single_dungeon);
             js.add(p.time_hangdong);
             org.json.simple.JSONArray jsDa = new org.json.simple.JSONArray();
