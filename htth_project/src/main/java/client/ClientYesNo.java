@@ -2025,8 +2025,17 @@ public class ClientYesNo {
                             p.update_ngoc(-5);
                             p.update_money();
                             //
-                            boolean suc = ((p.item_to_kham_ngoc_id_ngoc == 226) ? 25 : 0) > Util
-                                    .random(120);
+                            int rateKichAn;
+                            switch (p.item_to_kham_ngoc_id_ngoc) {
+                                case 226: rateKichAn = 25; break;
+                                case 225: rateKichAn = 18; break;
+                                case 224: rateKichAn = 13; break;
+                                case 223: rateKichAn = 9; break;
+                                case 222: rateKichAn = 6; break;
+                                case 221: rateKichAn = 3; break;
+                                default: rateKichAn = 0; break;
+                            }
+                            boolean suc = rateKichAn > Util.random(120);
                             if (suc) {
                                 it_select.valueKichAn = (byte) Util.random(13);
                                 if (it_select.valueKichAn == 12) {
@@ -2139,8 +2148,17 @@ public class ClientYesNo {
                             p.update_ngoc(-5);
                             p.update_money();
                             //
-                            boolean suc = ((p.item_to_kham_ngoc_id_ngoc == 226) ? 25 : 0) > Util
-                                    .random(150);
+                            int rateHoanMy;
+                            switch (p.item_to_kham_ngoc_id_ngoc) {
+                                case 226: rateHoanMy = 25; break;
+                                case 225: rateHoanMy = 18; break;
+                                case 224: rateHoanMy = 13; break;
+                                case 223: rateHoanMy = 9; break;
+                                case 222: rateHoanMy = 6; break;
+                                case 221: rateHoanMy = 3; break;
+                                default: rateHoanMy = 0; break;
+                            }
+                            boolean suc = rateHoanMy > Util.random(150);
                             if (suc) {
                                 it_select.isHoanMy = 1;
                             } else {
