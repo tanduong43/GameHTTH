@@ -2817,6 +2817,18 @@ public class Player {
                 }
                 break;
             }
+            case 5015: {
+                int[] id_ = new int[] { 910, 911, 912, 913 };
+                for (int i = 0; i < id_.length; i++) {
+                    Skill_info sk_add = new Skill_info();
+                    sk_add.exp = 0;
+                    sk_add.temp = Skill_Template.get_temp(id_[i], sk_add.exp);
+                    if (sk_add.temp != null) {
+                        list_remove.add(sk_add);
+                    }
+                }
+                break;
+            }
         }
         this.skill_point.addAll(list_remove);
         list_remove.clear();
@@ -3204,7 +3216,7 @@ public class Player {
 
     public boolean check_already_have_devil_fruit() {
         short[] id_check = new short[] { 32, 33, 34, 86, 87, 88, 90, 91, 92, 93, 160, 161, 219, 220,
-                240, 316, 317, 318, 427 };
+                240, 316, 317, 318, 427, 1015 };
         for (int i = 0; i < id_check.length; i++) {
             if (item.total_item_bag_by_id(4, id_check[i]) > 0
                     || item.total_item_box_by_id(4, id_check[i]) > 0) {

@@ -13,7 +13,7 @@ import java.util.List;
  * @author Truongbk
  */
 public class Upgrade_Skin {
-    public static byte[] PERCENT = new byte[] {3, 5, 6, 7, 12, 22};
+    public static byte[] PERCENT = new byte[] {6, 8, 9, 10, 15, 25};
 
     public static int get_material_percent(int level) {
         if (level < 6) {
@@ -52,7 +52,7 @@ public class Upgrade_Skin {
         }
         int total = 0;
         short star_id = p.upgrade_skin.upgrade_skin_data[1];
-        if (star_id == 16 || star_id == 17) {
+        if (star_id == 16) {
             total += get_item_percent(p, (byte) 7, star_id);
         }
         for (int i = 2; i < p.upgrade_skin.upgrade_skin_data.length; i++) {
@@ -436,6 +436,12 @@ public class Upgrade_Skin {
                 // Tính toán tỷ lệ thành công
                 int base_percent = get_material_percent(p.upgrade_skin.skin.level);
                 int total_percent = base_percent + get_total_percent(p);
+                if (star_id == 17) {
+                    total_percent *= 2;
+                }
+                if (total_percent > 100) {
+                    total_percent = 100;
+                }
                 p.update_vang(-beri_req);
                 p.update_ngoc(-ruby_req);
                 p.update_vnd(-extol_req);

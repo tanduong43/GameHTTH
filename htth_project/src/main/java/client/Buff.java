@@ -90,6 +90,10 @@ public class Buff {
             } else if (sk_info.temp.indexSkillInServer == 902) {
                 Service.send_eff_haki(p, (short) 26, time_buff); // Haki Bá Vương (eff 26)
                 apply_haki_bavuong_stun(p, 5, 250, 5000);
+            } else if (sk_info.temp.indexSkillInServer == 912) {
+                Service.send_eff_haki(p, (short) 912, time_buff); // Đệm Thịt Hộ Thể (eff 912)
+                int healHp = (int) ((long) p.body.get_hp_max(true) * 30 / 100);
+                Service.use_potion(p, 0, healHp);
             }
             // FIX: get_eff_skill() không có mapping cho 3 skill Haki
             // (indexSkillInServer 900/901/902), nên nó fallback về
@@ -98,7 +102,7 @@ public class Buff {
             // gửi RIÊNG cho chính người bấm skill (p.conn), quyết định client
             // của chính họ có vẽ hiệu ứng lên nhân vật mình hay không - độc lập
             // với gói opcode 74 (send_eff_haki) mà người chơi khác nhận được.
-            // Ghi đè trực tiếp đúng effId (21/18/26) để đảm bảo người bấm
+            // Ghi đè trực tiếp đúng effId (21/18/26/912) để đảm bảo người bấm
             // skill luôn tự thấy hiệu ứng, không phụ thuộc cấu hình DB.
             short effSkillToSend = sk_info.get_eff_skill();
             if (sk_info.temp.indexSkillInServer == 900) {
@@ -107,6 +111,8 @@ public class Buff {
                 effSkillToSend = 18; // Haki Vũ Trang
             } else if (sk_info.temp.indexSkillInServer == 902) {
                 effSkillToSend = 26; // Haki Bá Vương
+            } else if (sk_info.temp.indexSkillInServer == 912) {
+                effSkillToSend = 912; // Đệm Thịt Hộ Thể
             }
             Message m = new Message(20);
             m.writer().writeByte(1);

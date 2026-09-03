@@ -3668,6 +3668,17 @@ public class ClientYesNo {
                     }
                     break;
                 }
+                case 5015: { // trai nikyu nikyu (kuma)
+                    if (p.item.total_item_bag_by_id(4, 1015) > 0) {
+                        String[] name_ = new String[] { "Áp Lực Pháo", "Đại Hùng Chưởng", "Đệm Thịt Hộ Thể", "Phản Chấn Đệm Thịt" };
+                        int[] icon_ = new int[] { 4417, 4418, 4419, 4420 };
+                        Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
+                        p.get_skill_taq_new(id - 4000);
+                        p.item.remove_item47(4, 1015, 1);
+                        p.item.update_Inventory(-1, false);
+                    }
+                    break;
+                }
                 case 4800: {
                     // Haki Quan Sát - check bằng indexSkillInServer mới (900)
                     boolean hasHaki = false;
