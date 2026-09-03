@@ -850,27 +850,40 @@ public class Session implements Runnable {
                 while (rs.next()) {
                     List<ItemFashionP2> fashion = new ArrayList<>();
                     List<ItemFashionP> itfashionP = new ArrayList<>();
-                    JSONArray js0 = (JSONArray) JSONValue.parse(rs.getString("fashion"));
-                    JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js0.get(0).toString());
-                    for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
-                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
-                        ItemFashionP tempf = new ItemFashionP();
-                        tempf.category = Byte.parseByte(js_temp.get(0).toString());
-                        tempf.id = Short.parseShort(js_temp.get(1).toString());
-                        tempf.icon = Short.parseShort(js_temp.get(2).toString());
-                        tempf.is_use = Byte.parseByte(js_temp.get(3).toString()) == 1;
-                        itfashionP.add(tempf);
+                    try {
+                        String fashionStr = rs.getString("fashion");
+                        if (fashionStr != null && !fashionStr.isEmpty()) {
+                            JSONArray js0 = (JSONArray) JSONValue.parse(fashionStr);
+                            if (js0 != null && js0.size() > 0) {
+                                JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js0.get(0).toString());
+                                if (js_temp_2 != null) {
+                                    for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                                        ItemFashionP tempf = new ItemFashionP();
+                                        tempf.category = Byte.parseByte(js_temp.get(0).toString());
+                                        tempf.id = Short.parseShort(js_temp.get(1).toString());
+                                        tempf.icon = Short.parseShort(js_temp.get(2).toString());
+                                        tempf.is_use = Byte.parseByte(js_temp.get(3).toString()) == 1;
+                                        itfashionP.add(tempf);
+                                    }
+                                }
+                                if (js0.size() > 1) {
+                                    JSONArray js_temp_2_1 = (JSONArray) JSONValue.parse(js0.get(1).toString());
+                                    if (js_temp_2_1 != null) {
+                                        for (int i0 = 0; i0 < js_temp_2_1.size(); i0++) {
+                                            JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2_1.get(i0).toString());
+                                            ItemFashionP2 tempf = new ItemFashionP2();
+                                            tempf.id = Short.parseShort(js_temp.get(0).toString());
+                                            tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
+                                            fashion.add(tempf);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception ef) {
                     }
-                    js_temp_2.clear();
-                    js_temp_2 = (JSONArray) JSONValue.parse(js0.get(1).toString());
-                    for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
-                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
-                        ItemFashionP2 tempf = new ItemFashionP2();
-                        tempf.id = Short.parseShort(js_temp.get(0).toString());
-                        tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
-                        fashion.add(tempf);
-                    }
-                    js0.clear();
+
                     short hair_ = -1;
                     short head_ = -1;
                     short[] fashion_ = null;
@@ -884,7 +897,6 @@ public class Session implements Runnable {
                         }
                     }
                     if (fashion_ != null && fashion_.length > 6 && fashion_[6] != -1) {
-                        // hair_ = -2;
                         hair_ = (fashion_.length > 7) ? fashion_[7] : -1;
                         head_ = fashion_[6];
                     } else {
@@ -902,32 +914,68 @@ public class Session implements Runnable {
                     //
                     m2.writer().writeShort(i);
                     m2.writer().writeUTF(name);
-                    m2.writer().writeByte(rs.getByte("clazz"));
-                    JSONArray js_level = (JSONArray) JSONValue.parse(rs.getString("level"));
-                    m2.writer().writeShort(Short.parseShort(js_level.get(0).toString()));
-                    JSONArray js = (JSONArray) JSONValue.parse(rs.getString("body"));
-                    m2.writer().writeShort(
-                            (head_ != -1) ? head_ : Short.parseShort(js.get(0).toString()));
-                    m2.writer().writeShort(
-                            (hair_ != -1) ? hair_ : Short.parseShort(js.get(1).toString()));
-                    js.clear();
-                    m2.writer().writeShort(Clan.get_icon_clan(name)); // clan
+                    byte clazz = 1;
+                    try {
+                        clazz = rs.getByte("clazz");
+                    } catch (Exception e) {}
+                    m2.writer().writeByte(clazz);
+
+                    short lv = 1;
+                    try {
+                        JSONArray js_level = (JSONArray) JSONValue.parse(rs.getString("level"));
+                        if (js_level != null && js_level.size() > 0) {
+                            lv = Short.parseShort(js_level.get(0).toString());
+                        }
+                    } catch (Exception e) {}
+                    m2.writer().writeShort(lv);
+
+                    short head_def = 0;
+                    short hair_def = 28;
+                    try {
+                        JSONArray js_body = (JSONArray) JSONValue.parse(rs.getString("body"));
+                        if (js_body != null && js_body.size() >= 2) {
+                            head_def = Short.parseShort(js_body.get(0).toString());
+                            hair_def = Short.parseShort(js_body.get(1).toString());
+                        }
+                    } catch (Exception e) {}
+                    m2.writer().writeShort((head_ != -1) ? head_ : head_def);
+                    m2.writer().writeShort((hair_ != -1) ? hair_ : hair_def);
+
+                    short clanIcon = -1;
+                    try {
+                        clanIcon = (short) Clan.get_icon_clan(name);
+                    } catch (Exception e) {}
+                    m2.writer().writeShort(clanIcon);
                     m2.writer().writeByte(6);
                     //
                     Item_wear[] it = new Item_wear[8];
-                    js = (JSONArray) JSONValue.parse(rs.getString("it_body"));
-                    for (int i1 = 0; i1 < js.size(); i1++) {
-                        JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
-                        Item_wear temp = new Item_wear();
-                        Item.readUpdateItem(js2.toString(), temp);
-                        if (temp.template != null) {
-                            it[temp.index] = temp;
+                    try {
+                        String itBodyStr = rs.getString("it_body");
+                        if (itBodyStr != null && !itBodyStr.isEmpty()) {
+                            JSONArray js_it = (JSONArray) JSONValue.parse(itBodyStr);
+                            if (js_it != null) {
+                                for (int i1 = 0; i1 < js_it.size(); i1++) {
+                                    JSONArray js2 = (JSONArray) JSONValue.parse(js_it.get(i1).toString());
+                                    Item_wear temp = new Item_wear();
+                                    Item.readUpdateItem(js2.toString(), temp);
+                                    if (temp.template != null && temp.index >= 0 && temp.index < it.length) {
+                                        it[temp.index] = temp;
+                                    }
+                                }
+                            }
                         }
-                    }
-                    js.clear();
-                    js = (JSONArray) JSONValue.parse(rs.getString("site"));
-                    boolean is_show_hat = Byte.parseByte(js.get(6).toString()) == 1;
-                    js.clear();
+                    } catch (Exception e) {}
+
+                    boolean is_show_hat = true;
+                    try {
+                        String siteStr = rs.getString("site");
+                        if (siteStr != null && !siteStr.isEmpty()) {
+                            JSONArray js_site = (JSONArray) JSONValue.parse(siteStr);
+                            if (js_site != null && js_site.size() > 6) {
+                                is_show_hat = Byte.parseByte(js_site.get(6).toString()) == 1;
+                            }
+                        }
+                    } catch (Exception e) {}
                     //
                     for (int j = 0; j < 6; j++) {
                         if (it[j] == null) {
@@ -939,8 +987,14 @@ public class Session implements Runnable {
                             } else if (fashion_ != null && fashion_[j] != -1) {
                                 m2.writer().writeShort(fashion_[j]);
                             } else {
-                                m2.writer().writeShort(
-                                        ItemTemplate3.get_it_by_id(it[j].template.id).part);
+                                short partId = -1;
+                                try {
+                                    if (it[j].template != null) {
+                                        ItemTemplate3 itT = ItemTemplate3.get_it_by_id(it[j].template.id);
+                                        if (itT != null) partId = itT.part;
+                                    }
+                                } catch (Exception e) {}
+                                m2.writer().writeShort(partId);
                             }
                         }
                     }

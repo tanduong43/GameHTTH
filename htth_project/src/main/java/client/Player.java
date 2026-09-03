@@ -257,6 +257,7 @@ public class Player {
     public int[] lucthuc;
     public int hangdong_stage = 0;
     public int haki_monster_killed = 0;
+    public String setupErrorDetail = null;
 
     public Player(Session conn, String name) {
         this.conn = conn;
@@ -298,20 +299,39 @@ public class Player {
             id_danh_hieu_da_so_huu = new ArrayList<>();
             listDanhHieu = new ArrayList<>();
             index_map = (short) id;
-            clazz = rs.getByte("clazz");
-            pvppoint = rs.getInt("pvppoint");
-            diemdanh = rs.getInt("diemdanh");
-            diemdanhvip = rs.getInt("diemdanhvip");
-            JSONArray js = (JSONArray) JSONValue.parse(rs.getString("level"));
-            level = Short.parseShort(js.get(0).toString());
-            exp = Long.parseLong(js.get(1).toString());
-            thongthao = Short.parseShort(js.get(2).toString());
-            if (js.size() > 3) {
-                win_dungeon_1 = Integer.parseInt(js.get(3).toString());
-            } else {
-                win_dungeon_1 = 0;
+            try {
+                clazz = rs.getByte("clazz");
+            } catch (Exception e) {
+                clazz = 1;
             }
-            js.clear();
+            try {
+                pvppoint = rs.getInt("pvppoint");
+            } catch (Exception e) {
+                pvppoint = 0;
+            }
+            try {
+                diemdanh = rs.getInt("diemdanh");
+                diemdanhvip = rs.getInt("diemdanhvip");
+            } catch (Exception e) {
+                diemdanh = 0;
+                diemdanhvip = 0;
+            }
+
+            // Đọc Level an toàn
+            try {
+                JSONArray js = (JSONArray) JSONValue.parse(rs.getString("level"));
+                if (js != null && js.size() > 0) {
+                    level = Short.parseShort(js.get(0).toString());
+                    exp = (js.size() > 1) ? Long.parseLong(js.get(1).toString()) : 0;
+                    thongthao = (js.size() > 2) ? Short.parseShort(js.get(2).toString()) : 0;
+                    win_dungeon_1 = (js.size() > 3) ? Integer.parseInt(js.get(3).toString()) : 0;
+                } else {
+                    level = 1; exp = 0; thongthao = 0; win_dungeon_1 = 0;
+                }
+            } catch (Exception e) {
+                level = 1; exp = 0; thongthao = 0; win_dungeon_1 = 0;
+            }
+
             try {
                 String dateStr = rs.getString("date");
                 if (dateStr != null && !dateStr.isEmpty()) {
@@ -322,36 +342,64 @@ public class Player {
             } catch (Exception e) {
                 date = DateTime.now();
             }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("potential"));
-            pointAttribute = Short.parseShort(js.get(0).toString());
-            point1 = Short.parseShort(js.get(1).toString());
-            point2 = Short.parseShort(js.get(2).toString());
-            point3 = Short.parseShort(js.get(3).toString());
-            point4 = Short.parseShort(js.get(4).toString());
-            point5 = Short.parseShort(js.get(5).toString());
-            pointAttributeThongThao = Short.parseShort(js.get(6).toString());
+
+            // Đọc Tiềm năng an toàn
             list_op_thongthao = new ArrayList<>();
-            JSONArray js_in = (JSONArray) js.get(7);
-            for (int i = 0; i < js_in.size(); i++) {
-                JSONArray js_in_1 = (JSONArray) js_in.get(i);
-                list_op_thongthao.add(new Option(Byte.parseByte(js_in_1.get(0).toString()),
-                        Integer.parseInt(js_in_1.get(1).toString())));
+            try {
+                JSONArray js = (JSONArray) JSONValue.parse(rs.getString("potential"));
+                if (js != null && js.size() >= 7) {
+                    pointAttribute = Short.parseShort(js.get(0).toString());
+                    point1 = Short.parseShort(js.get(1).toString());
+                    point2 = Short.parseShort(js.get(2).toString());
+                    point3 = Short.parseShort(js.get(3).toString());
+                    point4 = Short.parseShort(js.get(4).toString());
+                    point5 = Short.parseShort(js.get(5).toString());
+                    pointAttributeThongThao = Short.parseShort(js.get(6).toString());
+                    if (js.size() > 7 && js.get(7) instanceof JSONArray) {
+                        JSONArray js_in = (JSONArray) js.get(7);
+                        for (int i = 0; i < js_in.size(); i++) {
+                            JSONArray js_in_1 = (JSONArray) js_in.get(i);
+                            list_op_thongthao.add(new Option(Byte.parseByte(js_in_1.get(0).toString()),
+                                    Integer.parseInt(js_in_1.get(1).toString())));
+                        }
+                    }
+                } else {
+                    pointAttribute = 5;
+                    point1 = 1; point2 = 1; point3 = 1; point4 = 1; point5 = 1;
+                    pointAttributeThongThao = 0;
+                }
+            } catch (Exception e) {
+                pointAttribute = 5;
+                point1 = 1; point2 = 1; point3 = 1; point4 = 1; point5 = 1;
+                pointAttributeThongThao = 0;
             }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("point_inven"));
-            vang = Long.parseLong(js.get(0).toString());
-            kimcuong = Integer.parseInt(js.get(1).toString());
-            vnd = Integer.parseInt(js.get(2).toString());
-            bua = Integer.parseInt(js.get(3).toString());
-            tichLuy = Integer.parseInt(js.get(4).toString());
-            pvp_win = Integer.parseInt(js.get(5).toString());
-            pvp_lose = Integer.parseInt(js.get(6).toString());
-            time_ship = Byte.parseByte(js.get(7).toString());
-            time_can_hs = Byte.parseByte(js.get(8).toString());
-            time_nvl = Integer.parseInt(js.get(9).toString());
-            time_ttvt = Byte.parseByte(js.get(10).toString());
-            wanted_price = Integer.parseInt(js.get(11).toString());
+            try {
+                JSONArray js = (JSONArray) JSONValue.parse(rs.getString("point_inven"));
+                if (js != null) {
+                    vang = (js.size() > 0) ? safeLongFromJson(js.get(0)) : 0;
+                    kimcuong = (js.size() > 1) ? safeIntFromJson(js.get(1)) : 0;
+                    vnd = (js.size() > 2) ? safeIntFromJson(js.get(2)) : 0;
+                    bua = (js.size() > 3) ? safeIntFromJson(js.get(3)) : 0;
+                    tichLuy = (js.size() > 4) ? safeIntFromJson(js.get(4)) : 0;
+                    pvp_win = (js.size() > 5) ? safeIntFromJson(js.get(5)) : 0;
+                    pvp_lose = (js.size() > 6) ? safeIntFromJson(js.get(6)) : 0;
+                    time_ship = (js.size() > 7) ? safeByteFromJson(js.get(7)) : 0;
+                    time_can_hs = (js.size() > 8) ? safeByteFromJson(js.get(8)) : 7;
+                    time_nvl = (js.size() > 9) ? safeIntFromJson(js.get(9)) : 0;
+                    time_ttvt = (js.size() > 10) ? safeByteFromJson(js.get(10)) : 0;
+                    wanted_price = (js.size() > 11) ? safeIntFromJson(js.get(11)) : 0;
+                }
+            } catch (Exception e) {
+                vang = 0; kimcuong = 0; vnd = 0; bua = 0; tichLuy = 0;
+                pvp_win = 0; pvp_lose = 0; time_ship = 0; time_can_hs = 7;
+                time_nvl = 0; time_ttvt = 0; wanted_price = 0;
+            }
+            JSONArray js = null;
+            try {
+                js = (JSONArray) JSONValue.parse(rs.getString("point_inven"));
+            } catch (Exception e) {
+            }
+            if (js == null) js = new JSONArray();
             // point_inven[12]: list danh hiệu đã sở hữu (theo CodeTemp)
             if (js.size() > 12) {
                 try {
@@ -468,82 +516,94 @@ public class Player {
                 this.time_bounty_posted = 0;
             }
             // Đọc tích tiêu ruby từ bảng players
-            this.tichtieu_ruby = rs.getInt("tichtieu_ruby");
+            try {
+                this.tichtieu_ruby = rs.getInt("tichtieu_ruby");
+            } catch (Exception e) {
+                this.tichtieu_ruby = 0;
+            }
             this.claimedTichtieuRuby = new ArrayList<>();
-            String valTieu = rs.getString("claimed_tichtieu_ruby");
-            if (valTieu != null && !valTieu.isEmpty()) {
-                for (String s : valTieu.split(",")) {
-                    try {
-                        this.claimedTichtieuRuby.add(Integer.parseInt(s.trim()));
-                    } catch (NumberFormatException e) {
-                        // ignore
+            try {
+                String valTieu = rs.getString("claimed_tichtieu_ruby");
+                if (valTieu != null && !valTieu.isEmpty()) {
+                    for (String s : valTieu.split(",")) {
+                        try {
+                            this.claimedTichtieuRuby.add(Integer.parseInt(s.trim()));
+                        } catch (NumberFormatException e) {
+                            // ignore
+                        }
                     }
                 }
+            } catch (Exception e) {
             }
-            js.clear();
             this.wanted_chest = new Wanted_Chest[2];
-            js = (JSONArray) JSONValue.parse(rs.getString("wanted_chest"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js_in2 = (JSONArray) js.get(i);
-                this.wanted_chest[i] = new Wanted_Chest();
-                this.wanted_chest[i].id = Short.parseShort(js_in2.get(0).toString());
-                this.wanted_chest[i].timeUse = Long.parseLong(js_in2.get(1).toString());
-                this.wanted_chest[i].maxTimeUse = Short.parseShort(js_in2.get(2).toString());
-                this.wanted_chest[i].Ruby = Short.parseShort(js_in2.get(3).toString());
+            try {
+                JSONArray jsW = (JSONArray) JSONValue.parse(rs.getString("wanted_chest"));
+                if (jsW != null) {
+                    for (int i = 0; i < jsW.size() && i < this.wanted_chest.length; i++) {
+                        JSONArray js_in2 = (JSONArray) jsW.get(i);
+                        this.wanted_chest[i] = new Wanted_Chest();
+                        this.wanted_chest[i].id = Short.parseShort(js_in2.get(0).toString());
+                        this.wanted_chest[i].timeUse = Long.parseLong(js_in2.get(1).toString());
+                        this.wanted_chest[i].maxTimeUse = Short.parseShort(js_in2.get(2).toString());
+                        this.wanted_chest[i].Ruby = Short.parseShort(js_in2.get(3).toString());
+                    }
+                }
+            } catch (Exception e) {
             }
-            js.clear();
             my_pet = new ArrayList<>();
-            String mypetStr = rs.getString("mypet");
-            js = (JSONArray) JSONValue.parse(mypetStr);
-            if (js != null) {
-                System.out.println("[PET DEBUG] Player " + this.name + " raw mypet DB: " + mypetStr);
-                for (int i = 0; i < js.size(); i++) {
-                    JSONArray js_in2 = (JSONArray) js.get(i);
-                    MyPet tempPet = new MyPet();
-                    tempPet.id = Short.parseShort(js_in2.get(0).toString());
-                    short templateId = Short.parseShort(js_in2.get(1).toString());
-                    tempPet.template = Pet.getTemplate(templateId);
-                    tempPet.isUse = Byte.parseByte(js_in2.get(2).toString()) == 1;
-                    if (js_in2.size() > 3) {
-                        tempPet.expiryTime = Long.parseLong(js_in2.get(3).toString());
-                    } else {
-                        tempPet.expiryTime = -1;
-                    }
-                    if (js_in2.size() > 4) {
-                        tempPet.level = Byte.parseByte(js_in2.get(4).toString());
-                    }
-                    if (js_in2.size() > 5) {
-                        tempPet.exp = Integer.parseInt(js_in2.get(5).toString());
-                    }
-                    if (js_in2.size() > 6) {
-                        Object extraObj = js_in2.get(6);
-                        JSONArray js_extra = null;
-                        if (extraObj instanceof JSONArray) {
-                            js_extra = (JSONArray) extraObj;
-                        } else if (extraObj instanceof String) {
-                            js_extra = (JSONArray) JSONValue.parse(extraObj.toString());
-                        }
-                        if (js_extra != null) {
-                            for (int k = 0; k < js_extra.size(); k++) {
-                                Object itemObj = js_extra.get(k);
-                                JSONArray js_op = (itemObj instanceof JSONArray) ? (JSONArray) itemObj : (JSONArray) JSONValue.parse(itemObj.toString());
-                                if (js_op != null && js_op.size() >= 2) {
-                                    int optId = Integer.parseInt(js_op.get(0).toString());
-                                    int optVal = Integer.parseInt(js_op.get(1).toString());
-                                    tempPet.extra_op.add(new Option(optId, optVal));
+            try {
+                String mypetStr = rs.getString("mypet");
+                if (mypetStr != null && !mypetStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(mypetStr);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js_in2 = (JSONArray) js.get(i);
+                                MyPet tempPet = new MyPet();
+                                tempPet.id = Short.parseShort(js_in2.get(0).toString());
+                                short templateId = Short.parseShort(js_in2.get(1).toString());
+                                tempPet.template = Pet.getTemplate(templateId);
+                                tempPet.isUse = Byte.parseByte(js_in2.get(2).toString()) == 1;
+                                if (js_in2.size() > 3) {
+                                    tempPet.expiryTime = Long.parseLong(js_in2.get(3).toString());
+                                } else {
+                                    tempPet.expiryTime = -1;
                                 }
+                                if (js_in2.size() > 4) {
+                                    tempPet.level = Byte.parseByte(js_in2.get(4).toString());
+                                }
+                                if (js_in2.size() > 5) {
+                                    tempPet.exp = Integer.parseInt(js_in2.get(5).toString());
+                                }
+                                if (js_in2.size() > 6) {
+                                    Object extraObj = js_in2.get(6);
+                                    JSONArray js_extra = null;
+                                    if (extraObj instanceof JSONArray) {
+                                        js_extra = (JSONArray) extraObj;
+                                    } else if (extraObj instanceof String) {
+                                        js_extra = (JSONArray) JSONValue.parse(extraObj.toString());
+                                    }
+                                    if (js_extra != null) {
+                                        for (int k = 0; k < js_extra.size(); k++) {
+                                            Object itemObj = js_extra.get(k);
+                                            JSONArray js_op = (itemObj instanceof JSONArray) ? (JSONArray) itemObj : (JSONArray) JSONValue.parse(itemObj.toString());
+                                            if (js_op != null && js_op.size() >= 2) {
+                                                int optId = Integer.parseInt(js_op.get(0).toString());
+                                                int optVal = Integer.parseInt(js_op.get(1).toString());
+                                                tempPet.extra_op.add(new Option(optId, optVal));
+                                            }
+                                        }
+                                    }
+                                }
+                                if (tempPet.template != null) {
+                                    my_pet.add(tempPet);
+                                }
+                            } catch (Exception ep) {
                             }
                         }
                     }
-                    if (tempPet.template != null) {
-                        my_pet.add(tempPet);
-                        if (tempPet.isUse) {
-                            System.out.println("[PET DEBUG] Player " + this.name + " equipped pet: " + tempPet.template.name + " (templateId=" + templateId + ", frame=" + tempPet.template.frame + ", type=" + tempPet.template.type + ")");
-                        }
-                    } else {
-                        System.err.println("[PET ERROR] Player " + this.name + ": Pet template ID " + templateId + " NOT FOUND in Pet.ENTRY (Total templates loaded=" + Pet.ENTRY.size() + ")! Check if database `pet_template` has ID " + templateId);
-                    }
                 }
+            } catch (Exception e) {
             }
             js.clear();
             try {
@@ -608,15 +668,18 @@ public class Player {
                 savedMapId = this.id_map_save > 0 ? this.id_map_save : 1;
             }
             Map[] map = Map.get_map_by_id(savedMapId);
+            if (map == null || map.length == 0) {
+                map = Map.get_map_by_id(0); // Fallback về Làng Cối Xay Gió
+            }
             byte zone_id = Byte.parseByte(js.get(1).toString());
-            int zone_goto = zone_id < map.length ? zone_id : 0;
-            if (zone_goto != 0) {
+            int zone_goto = (map != null && zone_id >= 0 && zone_id < map.length) ? zone_id : 0;
+            if (map != null && zone_goto != 0) {
                 while (zone_goto < (map[zone_goto].template.max_zone - 1)
                         && map[zone_goto].players.size() >= map[zone_goto].template.max_player) {
                     zone_goto++;
                 }
             }
-            this.map = map[zone_goto];
+            this.map = (map != null && zone_goto < map.length) ? map[zone_goto] : Map.get_map_by_id(0)[0];
             this.hp = Integer.parseInt(js.get(2).toString());
             this.mp = Integer.parseInt(js.get(3).toString());
             if (wasBossHuntMap || wasNamieMap || wasSpecialRedirectMap) {
@@ -683,27 +746,44 @@ public class Player {
                 num_phao_hoa = 0;
             }
             //
-            js.clear();
+            // Load Quest an toàn
             list_quest = new ArrayList<>();
-            js = (JSONArray) JSONValue.parse(rs.getString("quest"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js_q = (JSONArray) js.get(i);
-                QuestP temp = new QuestP();
-                int id_quest_get = Short.parseShort(js_q.get(0).toString());
-                temp.template = Quest.get_quest(id_quest_get);
-                JSONArray js_q2 = (JSONArray) js_q.get(1);
-                temp.data = new short[js_q2.size()][];
-                for (int j = 0; j < temp.data.length; j++) {
-                    JSONArray js_q3 = (JSONArray) js_q2.get(j);
-                    temp.data[j] = new short[js_q3.size()];
-                    for (int k = 0; k < temp.data[j].length; k++) {
-                        temp.data[j][k] = Short.parseShort(js_q3.get(k).toString());
+            try {
+                String qStr = rs.getString("quest");
+                if (qStr != null && !qStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(qStr);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js_q = (JSONArray) js.get(i);
+                                QuestP temp = new QuestP();
+                                int id_quest_get = Short.parseShort(js_q.get(0).toString());
+                                temp.template = Quest.get_quest(id_quest_get);
+                                if (js_q.size() > 1 && js_q.get(1) instanceof JSONArray) {
+                                    JSONArray js_q2 = (JSONArray) js_q.get(1);
+                                    temp.data = new short[js_q2.size()][];
+                                    for (int j = 0; j < temp.data.length; j++) {
+                                        JSONArray js_q3 = (JSONArray) js_q2.get(j);
+                                        temp.data[j] = new short[js_q3.size()];
+                                        for (int k = 0; k < temp.data[j].length; k++) {
+                                            temp.data[j][k] = Short.parseShort(js_q3.get(k).toString());
+                                        }
+                                    }
+                                } else {
+                                    temp.data = new short[0][];
+                                }
+                                if (temp.template != null) {
+                                    list_quest.add(temp);
+                                }
+                            } catch (Exception eq) {
+                            }
+                        }
                     }
                 }
-                list_quest.add(temp);
+            } catch (Exception e) {
             }
-            js.clear();
-            //
+
+            // Khởi tạo túi đồ
             item = new Item(this);
             item.bag3 = new Item_wear[item.max_bag];
             item.box3 = new Item_wear[item.max_box];
@@ -713,215 +793,408 @@ public class Player {
             item.save_item_wear = new ArrayList<>();
             item.save_item_47 = new ArrayList<>();
             daHanhTrinh = new ArrayList<>();
-            //
-            js = (JSONArray) JSONValue.parse(rs.getString("bag3"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                Item_wear temp = new Item_wear();
-                Item.readUpdateItem(js2.toString(), temp);
-                if (temp.template != null && temp.index < item.bag3.length) {
-                    item.bag3[temp.index] = temp;
-                }
-            }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("save_it3"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                Item_wear temp = new Item_wear();
-                Item.readUpdateItem(js2.toString(), temp);
-                if (temp.template != null) {
-                    item.save_item_wear.add(temp);
-                }
-            }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("box3"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                Item_wear temp = new Item_wear();
-                Item.readUpdateItem(js2.toString(), temp);
-                if (temp.template != null && temp.index < item.box3.length) {
-                    item.box3[temp.index] = temp;
-                }
-            }
-            js.clear();
-            //
-            js = (JSONArray) JSONValue.parse(rs.getString("it_body"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                Item_wear temp = new Item_wear();
-                Item.readUpdateItem(js2.toString(), temp);
-                if (temp.template != null && temp.index < item.it_body.length) {
-                    if (temp.index == 6) {
-                        item.it_heart = temp;
-                        item.it_heart.typelock = 1;
-                    } else {
-                        item.it_body[temp.index] = temp;
+
+            // Load bag3 an toàn
+            try {
+                String bag3Str = rs.getString("bag3");
+                if (bag3Str != null && !bag3Str.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(bag3Str);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                Item_wear temp = new Item_wear();
+                                Item.readUpdateItem(js2.toString(), temp);
+                                if (temp.template != null && temp.index >= 0 && temp.index < item.bag3.length) {
+                                    item.bag3[temp.index] = temp;
+                                }
+                            } catch (Exception e_it) {
+                            }
+                        }
                     }
                 }
+            } catch (Exception e) {
             }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("bag47"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                ItemBag47 temp = new ItemBag47();
-                temp.category = Byte.parseByte(js2.get(0).toString());
-                temp.id = Short.parseShort(js2.get(1).toString());
-                temp.quant = Short.parseShort(js2.get(2).toString());
-                if (temp.quant > 0) {
-                    item.bag47.add(temp);
+
+            // Load save_it3 an toàn
+            try {
+                String saveIt3Str = rs.getString("save_it3");
+                if (saveIt3Str != null && !saveIt3Str.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(saveIt3Str);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                Item_wear temp = new Item_wear();
+                                Item.readUpdateItem(js2.toString(), temp);
+                                if (temp.template != null) {
+                                    item.save_item_wear.add(temp);
+                                }
+                            } catch (Exception e_it) {
+                            }
+                        }
+                    }
                 }
+            } catch (Exception e) {
             }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("box47"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                ItemBag47 temp = new ItemBag47();
-                temp.category = Byte.parseByte(js2.get(0).toString());
-                temp.id = Short.parseShort(js2.get(1).toString());
-                temp.quant = Short.parseShort(js2.get(2).toString());
-                if (temp.quant > 0) {
-                    item.box47.add(temp);
+
+            // Load box3 an toàn
+            try {
+                String box3Str = rs.getString("box3");
+                if (box3Str != null && !box3Str.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(box3Str);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                Item_wear temp = new Item_wear();
+                                Item.readUpdateItem(js2.toString(), temp);
+                                if (temp.template != null && temp.index >= 0 && temp.index < item.box3.length) {
+                                    item.box3[temp.index] = temp;
+                                }
+                            } catch (Exception e_it) {
+                            }
+                        }
+                    }
                 }
+            } catch (Exception e) {
             }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("save_it47"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                ItemBag47 temp = new ItemBag47();
-                temp.category = Byte.parseByte(js2.get(0).toString());
-                temp.id = Short.parseShort(js2.get(1).toString());
-                temp.quant = Short.parseShort(js2.get(2).toString());
-                if (temp.quant > 0
-                        && ((temp.category == 4 && temp.id > 28) || (temp.category == 7))) {
-                    item.save_item_47.add(temp);
+
+            // Load it_body an toàn
+            try {
+                String itBodyStr = rs.getString("it_body");
+                if (itBodyStr != null && !itBodyStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(itBodyStr);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                Item_wear temp = new Item_wear();
+                                Item.readUpdateItem(js2.toString(), temp);
+                                if (temp.template != null && temp.index >= 0 && temp.index < item.it_body.length) {
+                                    if (temp.index == 6) {
+                                        item.it_heart = temp;
+                                        item.it_heart.typelock = 1;
+                                    } else {
+                                        item.it_body[temp.index] = temp;
+                                    }
+                                }
+                            } catch (Exception e_it) {
+                            }
+                        }
+                    }
                 }
+            } catch (Exception e) {
+            }
+
+            // Load bag47 an toàn
+            try {
+                String bag47Str = rs.getString("bag47");
+                if (bag47Str != null && !bag47Str.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(bag47Str);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                ItemBag47 temp = new ItemBag47();
+                                temp.category = Byte.parseByte(js2.get(0).toString());
+                                temp.id = Short.parseShort(js2.get(1).toString());
+                                temp.quant = Short.parseShort(js2.get(2).toString());
+                                if (temp.quant > 0) {
+                                    item.bag47.add(temp);
+                                }
+                            } catch (Exception e_it) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+            }
+
+            // Load box47 an toàn
+            try {
+                String box47Str = rs.getString("box47");
+                if (box47Str != null && !box47Str.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(box47Str);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                ItemBag47 temp = new ItemBag47();
+                                temp.category = Byte.parseByte(js2.get(0).toString());
+                                temp.id = Short.parseShort(js2.get(1).toString());
+                                temp.quant = Short.parseShort(js2.get(2).toString());
+                                if (temp.quant > 0) {
+                                    item.box47.add(temp);
+                                }
+                            } catch (Exception e_it) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+            }
+
+            // Load save_it47 an toàn
+            try {
+                String saveIt47Str = rs.getString("save_it47");
+                if (saveIt47Str != null && !saveIt47Str.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(saveIt47Str);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                ItemBag47 temp = new ItemBag47();
+                                temp.category = Byte.parseByte(js2.get(0).toString());
+                                temp.id = Short.parseShort(js2.get(1).toString());
+                                temp.quant = Short.parseShort(js2.get(2).toString());
+                                if (temp.quant > 0
+                                        && ((temp.category == 4 && temp.id > 28) || (temp.category == 7))) {
+                                    item.save_item_47.add(temp);
+                                }
+                            } catch (Exception e_it) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+            }
+
+            // Load hanhtrinh an toàn
+            try {
+                String hanhTrinhStr = rs.getString("hanhtrinh");
+                if (hanhTrinhStr != null && !hanhTrinhStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(hanhTrinhStr);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                ItemBag47 temp = new ItemBag47();
+                                temp.category = Byte.parseByte(js2.get(0).toString());
+                                temp.id = Short.parseShort(js2.get(1).toString());
+                                temp.quant = Short.parseShort(js2.get(2).toString());
+                                daHanhTrinh.add(temp);
+                            } catch (Exception e_it) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
             }
             js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("hanhtrinh"));
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                ItemBag47 temp = new ItemBag47();
-                temp.category = Byte.parseByte(js2.get(0).toString());
-                temp.id = Short.parseShort(js2.get(1).toString());
-                temp.quant = Short.parseShort(js2.get(2).toString());
-                daHanhTrinh.add(temp);
-            }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("rms"));
             rms = new byte[11][];
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                rms[i] = new byte[js2.size()];
-                for (int j = 0; j < rms[i].length; j++) {
-                    rms[i][j] = Byte.parseByte(js2.get(j).toString());
+            for (int i = 0; i < rms.length; i++) {
+                rms[i] = new byte[0];
+            }
+            try {
+                js = (JSONArray) JSONValue.parse(rs.getString("rms"));
+                if (js != null) {
+                    for (int i = 0; i < js.size() && i < rms.length; i++) {
+                        JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                        if (js2 != null) {
+                            rms[i] = new byte[js2.size()];
+                            for (int j = 0; j < rms[i].length; j++) {
+                                rms[i][j] = Byte.parseByte(js2.get(j).toString());
+                            }
+                        }
+                    }
                 }
+            } catch (Exception e) {
             }
             js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("skill"));
             skill_point = new ArrayList<>();
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                Skill_info skill_add = new Skill_info();
-                skill_add.exp = Long.parseLong(js2.get(1).toString());
-                skill_add.temp = Skill_Template.get_temp(Short.parseShort(js2.get(0).toString()),
-                        skill_add.exp);
-                skill_add.lvdevil = Byte.parseByte(js2.get(2).toString());
-                skill_add.devilpercent = Byte.parseByte(js2.get(3).toString());
-                skill_point.add(skill_add);
+            try {
+                js = (JSONArray) JSONValue.parse(rs.getString("skill"));
+                if (js != null) {
+                    for (int i = 0; i < js.size(); i++) {
+                        JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                        Skill_info skill_add = new Skill_info();
+                        skill_add.exp = Long.parseLong(js2.get(1).toString());
+                        skill_add.temp = Skill_Template.get_temp(Short.parseShort(js2.get(0).toString()),
+                                skill_add.exp);
+                        skill_add.lvdevil = Byte.parseByte(js2.get(2).toString());
+                        skill_add.devilpercent = Byte.parseByte(js2.get(3).toString());
+                        if (skill_add.temp != null) {
+                            skill_point.add(skill_add);
+                        }
+                    }
+                }
+            } catch (Exception e) {
             }
             js.clear();
             //
+            // Load friend an toàn
             friend_list = new ArrayList<>();
-            js = (JSONArray) JSONValue.parse(rs.getString("friend"));
-            for (int i = 0; i < js.size(); i++) {
-                FriendTemp temp = new FriendTemp((JSONArray) JSONValue.parse(js.get(i).toString()));
-                friend_list.add(temp);
-                temp.id = friend_list.indexOf(temp);
+            try {
+                String friendStr = rs.getString("friend");
+                if (friendStr != null && !friendStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(friendStr);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                FriendTemp temp = new FriendTemp((JSONArray) JSONValue.parse(js.get(i).toString()));
+                                friend_list.add(temp);
+                                temp.id = friend_list.indexOf(temp);
+                            } catch (Exception ef) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
             }
-            js.clear();
+
+            // Load enemy an toàn
             enemy_list = new ArrayList<>();
-            js = (JSONArray) JSONValue.parse(rs.getString("enemy"));
-            for (int i = 0; i < js.size(); i++) {
-                FriendTemp temp = new FriendTemp((JSONArray) JSONValue.parse(js.get(i).toString()));
-                enemy_list.add(temp);
-                temp.id = enemy_list.indexOf(temp);
+            try {
+                String enemyStr = rs.getString("enemy");
+                if (enemyStr != null && !enemyStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(enemyStr);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                FriendTemp temp = new FriendTemp((JSONArray) JSONValue.parse(js.get(i).toString()));
+                                enemy_list.add(temp);
+                                temp.id = enemy_list.indexOf(temp);
+                            } catch (Exception ef) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
             }
-            js.clear();
-            //
+
+            // Load fashion an toàn
             this.itfashionP = new ArrayList<>();
             this.fashion = new ArrayList<>();
             this.itemboat = new ArrayList<>();
-            js = (JSONArray) JSONValue.parse(rs.getString("fashion"));
-            JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js.get(0).toString());
-            for (int i = 0; i < js_temp_2.size(); i++) {
-                JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i).toString());
-                ItemFashionP tempf = new ItemFashionP();
-                tempf.category = Byte.parseByte(js_temp.get(0).toString());
-                tempf.id = Short.parseShort(js_temp.get(1).toString());
-                tempf.icon = Short.parseShort(js_temp.get(2).toString());
-                tempf.is_use = Byte.parseByte(js_temp.get(3).toString()) == 1;
-                this.itfashionP.add(tempf);
-            }
-            js_temp_2.clear();
-            js_temp_2 = (JSONArray) JSONValue.parse(js.get(1).toString());
-            for (int i = 0; i < js_temp_2.size(); i++) {
-                JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i).toString());
-                ItemFashionP2 tempf = new ItemFashionP2();
-                tempf.id = Short.parseShort(js_temp.get(0).toString());
-                tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
-                tempf.level = Byte.parseByte(js_temp.get(2).toString());
-                if (js_temp.size() > 3) {
-                    tempf.expiryTime = Long.parseLong(js_temp.get(3).toString());
-                } else {
-                    tempf.expiryTime = -1;
+            try {
+                String fashionStr = rs.getString("fashion");
+                if (fashionStr != null && !fashionStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(fashionStr);
+                    if (js != null && js.size() > 0) {
+                        try {
+                            JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js.get(0).toString());
+                            if (js_temp_2 != null) {
+                                for (int i = 0; i < js_temp_2.size(); i++) {
+                                    JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i).toString());
+                                    ItemFashionP tempf = new ItemFashionP();
+                                    tempf.category = Byte.parseByte(js_temp.get(0).toString());
+                                    tempf.id = Short.parseShort(js_temp.get(1).toString());
+                                    tempf.icon = Short.parseShort(js_temp.get(2).toString());
+                                    tempf.is_use = Byte.parseByte(js_temp.get(3).toString()) == 1;
+                                    this.itfashionP.add(tempf);
+                                }
+                            }
+                        } catch (Exception ef1) {
+                        }
+
+                        if (js.size() > 1) {
+                            try {
+                                JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js.get(1).toString());
+                                if (js_temp_2 != null) {
+                                    for (int i = 0; i < js_temp_2.size(); i++) {
+                                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i).toString());
+                                        ItemFashionP2 tempf = new ItemFashionP2();
+                                        tempf.id = Short.parseShort(js_temp.get(0).toString());
+                                        tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
+                                        tempf.level = Byte.parseByte(js_temp.get(2).toString());
+                                        tempf.expiryTime = (js_temp.size() > 3) ? Long.parseLong(js_temp.get(3).toString()) : -1;
+                                        long defaultDur = ItemFashion.getDefaultDurationMs(tempf.id);
+                                        if (tempf.expiryTime == -1 && defaultDur > 0) {
+                                            tempf.expiryTime = System.currentTimeMillis() + defaultDur;
+                                        }
+                                        this.fashion.add(tempf);
+                                    }
+                                }
+                            } catch (Exception ef2) {
+                            }
+                        }
+
+                        if (js.size() > 2) {
+                            try {
+                                JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js.get(2).toString());
+                                if (js_temp_2 != null) {
+                                    for (int i = 0; i < js_temp_2.size(); i++) {
+                                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i).toString());
+                                        ItemBoatP tempboat = new ItemBoatP();
+                                        tempboat.id = Byte.parseByte(js_temp.get(0).toString());
+                                        tempboat.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
+                                        this.itemboat.add(tempboat);
+                                    }
+                                }
+                            } catch (Exception ef3) {
+                            }
+                        }
+                    }
                 }
-                long defaultDur = ItemFashion.getDefaultDurationMs(tempf.id);
-                if (tempf.expiryTime == -1 && defaultDur > 0) {
-                    tempf.expiryTime = System.currentTimeMillis() + defaultDur;
-                }
-                this.fashion.add(tempf);
+            } catch (Exception e) {
             }
-            js_temp_2 = (JSONArray) JSONValue.parse(js.get(2).toString());
-            for (int i = 0; i < js_temp_2.size(); i++) {
-                JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i).toString());
-                ItemBoatP tempboat = new ItemBoatP();
-                tempboat.id = Byte.parseByte(js_temp.get(0).toString());
-                tempboat.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
-                this.itemboat.add(tempboat);
-            }
-            js_temp_2.clear();
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("eff"));
+
+            // Load eff an toàn
             list_eff = new ArrayList<>();
-            for (int i = 0; i < js.size(); i++) {
-                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
-                list_eff.add(new EffTemplate(Byte.parseByte(js2.get(0).toString()),
-                        Integer.parseInt(js2.get(1).toString()),
-                        (System.currentTimeMillis() + Long.parseLong(js2.get(2).toString()))));
+            try {
+                String effStr = rs.getString("eff");
+                if (effStr != null && !effStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(effStr);
+                    if (js != null) {
+                        for (int i = 0; i < js.size(); i++) {
+                            try {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
+                                list_eff.add(new EffTemplate(Byte.parseByte(js2.get(0).toString()),
+                                        Integer.parseInt(js2.get(1).toString()),
+                                        (System.currentTimeMillis() + Long.parseLong(js2.get(2).toString()))));
+                            } catch (Exception ef) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
             }
-            js.clear();
-            js = (JSONArray) JSONValue.parse(rs.getString("lucthuc"));
-            sucmanhvatly = Integer.parseInt(js.get(0).toString());
+
+            // Load lucthuc an toàn
             doriki = new int[2];
             lucthuc = new int[3];
-            doriki[0] = Integer.parseInt(js.get(1).toString());
-            doriki[1] = Integer.parseInt(js.get(2).toString());
-            lucthuc[0] = Integer.parseInt(js.get(3).toString());
-            lucthuc[1] = Integer.parseInt(js.get(4).toString());
-            lucthuc[2] = Integer.parseInt(js.get(5).toString());
-            js.clear();
-            //
-            body = new Body(this);
-            // Kiểm tra và thu hồi Pet & Thời trang hết hạn khi đăng nhập
-            Pet.check_expiry_pet(this, false);
-            this.check_expiry_fashion(false);
+            try {
+                String ltStr = rs.getString("lucthuc");
+                if (ltStr != null && !ltStr.isEmpty()) {
+                    js = (JSONArray) JSONValue.parse(ltStr);
+                    if (js != null && js.size() >= 6) {
+                        sucmanhvatly = Integer.parseInt(js.get(0).toString());
+                        doriki[0] = Integer.parseInt(js.get(1).toString());
+                        doriki[1] = Integer.parseInt(js.get(2).toString());
+                        lucthuc[0] = Integer.parseInt(js.get(3).toString());
+                        lucthuc[1] = Integer.parseInt(js.get(4).toString());
+                        lucthuc[2] = Integer.parseInt(js.get(5).toString());
+                    }
+                }
+            } catch (Exception e) {
+            }
+
+            try {
+                body = new Body(this);
+            } catch (Exception e) {
+                System.err.println("[PLAYER-SETUP] Lỗi khởi tạo Body: " + e.getMessage());
+            }
+
+            try {
+                Pet.check_expiry_pet(this, false);
+            } catch (Exception e) {
+            }
+
+            try {
+                this.check_expiry_fashion(false);
+            } catch (Exception e) {
+            }
         } catch (SQLException e) {
             System.err.println("[PLAYER-SETUP-ERROR] SQLException khi load player '" + this.name + "': " + e.getMessage());
             e.printStackTrace();
+            this.setupErrorDetail = "SQLException: " + e.getMessage();
             return false;
         } catch (Exception e) {
             System.err.println("[PLAYER-SETUP-ERROR] LỖI DỮ LIỆU player '" + this.name + "': " + e.getClass().getSimpleName() + ": " + e.getMessage());
             e.printStackTrace();
+            StackTraceElement top = (e.getStackTrace() != null && e.getStackTrace().length > 0) ? e.getStackTrace()[0] : null;
+            this.setupErrorDetail = e.getClass().getSimpleName() + ": " + e.getMessage() + (top != null ? ("\ntại " + top.getFileName() + ":" + top.getLineNumber()) : "");
             return false;
         } finally {
             try {
@@ -1047,7 +1320,35 @@ public class Player {
         }
         try {
             return Byte.parseByte(obj.toString());
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static int safeIntFromJson(Object obj) {
+        if (obj == null) return 0;
+        if (obj instanceof org.json.simple.JSONArray) {
+            org.json.simple.JSONArray arr = (org.json.simple.JSONArray) obj;
+            if (arr.isEmpty()) return 0;
+            return safeIntFromJson(arr.get(0));
+        }
+        try {
+            return Integer.parseInt(obj.toString().trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static long safeLongFromJson(Object obj) {
+        if (obj == null) return 0;
+        if (obj instanceof org.json.simple.JSONArray) {
+            org.json.simple.JSONArray arr = (org.json.simple.JSONArray) obj;
+            if (arr.isEmpty()) return 0;
+            return safeLongFromJson(arr.get(0));
+        }
+        try {
+            return Long.parseLong(obj.toString().trim());
+        } catch (Exception e) {
             return 0;
         }
     }

@@ -934,8 +934,8 @@ public class MessageHandler {
             Player p0 = new Player(conn, charName);
             try {
                 if (!p0.setup()) {
-                    System.err.println("[LOGIN-ERROR] Player.setup() trả về false cho nhân vật '" + charName + "' - dữ liệu DB bị lỗi!");
-                    conn.login_notice_public("Lỗi dữ liệu nhân vật '" + charName + "'.\nVui lòng liên hệ admin kiểm tra DB.");
+                    System.err.println("[LOGIN-ERROR] Player.setup() trả về false cho nhân vật '" + charName + "' - " + p0.setupErrorDetail);
+                    conn.login_notice_public("Lỗi dữ liệu '" + charName + "':\n" + (p0.setupErrorDetail != null ? p0.setupErrorDetail : "Không tìm thấy trong DB"));
                     return;
                 }
             } catch (Exception e) {
