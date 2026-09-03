@@ -946,7 +946,8 @@ public class Session implements Runnable {
                     }
                     m2.writer().writeByte(0);
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
+                System.err.println("[SEND_LIST_CHAR-ERROR] Lỗi đọc dữ liệu nhân vật '" + name + "': " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 e.printStackTrace();
             } finally {
                 try {
@@ -977,6 +978,10 @@ public class Session implements Runnable {
         m.writer().writeByte(0);
         addmsg(m);
         m.cleanup();
+    }
+
+    public void login_notice_public(String s) throws IOException {
+        login_notice(s);
     }
 
     public void ReadPartNew(Message m2) throws IOException {

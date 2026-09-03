@@ -312,7 +312,16 @@ public class Player {
                 win_dungeon_1 = 0;
             }
             js.clear();
-            date = DateTime.parse(rs.getString("date"));
+            try {
+                String dateStr = rs.getString("date");
+                if (dateStr != null && !dateStr.isEmpty()) {
+                    date = DateTime.parse(dateStr.replace(" ", "T"));
+                } else {
+                    date = DateTime.now();
+                }
+            } catch (Exception e) {
+                date = DateTime.now();
+            }
             js.clear();
             js = (JSONArray) JSONValue.parse(rs.getString("potential"));
             pointAttribute = Short.parseShort(js.get(0).toString());
@@ -907,6 +916,11 @@ public class Player {
             Pet.check_expiry_pet(this, false);
             this.check_expiry_fashion(false);
         } catch (SQLException e) {
+            System.err.println("[PLAYER-SETUP-ERROR] SQLException khi load player '" + this.name + "': " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            System.err.println("[PLAYER-SETUP-ERROR] LỖI DỮ LIỆU player '" + this.name + "': " + e.getClass().getSimpleName() + ": " + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {

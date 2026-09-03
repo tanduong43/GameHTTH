@@ -930,9 +930,18 @@ public class MessageHandler {
     // Đăng nhập tạo thông báo - tanduong - thongbao
     public void login_into_char_select(short id) throws IOException {
         if (conn.list_char != null && id < conn.list_char.size()) {
-            Player p0 = new Player(conn, conn.list_char.get(id));
-            if (!p0.setup()) {
-                conn.disconnect();
+            String charName = conn.list_char.get(id);
+            Player p0 = new Player(conn, charName);
+            try {
+                if (!p0.setup()) {
+                    System.err.println("[LOGIN-ERROR] Player.setup() trả về false cho nhân vật '" + charName + "' - dữ liệu DB bị lỗi!");
+                    conn.login_notice_public("Lỗi dữ liệu nhân vật '" + charName + "'.\nVui lòng liên hệ admin kiểm tra DB.");
+                    return;
+                }
+            } catch (Exception e) {
+                System.err.println("[LOGIN-ERROR] Exception khi setup nhân vật '" + charName + "': " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                e.printStackTrace();
+                conn.login_notice_public("Lỗi load nhân vật '" + charName + "':\n" + e.getClass().getSimpleName() + ": " + e.getMessage());
                 return;
             }
             p0.setin4();
