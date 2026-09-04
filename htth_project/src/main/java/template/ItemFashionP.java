@@ -76,12 +76,7 @@ public class ItemFashionP {
                     m.writer().writeUTF(ItemFashion.ENTRYS.get(i).name);
                     ItemFashionP2 myFashion = p.check_fashion(ItemFashion.ENTRYS.get(i).ID);
                     String info = ItemFashion.ENTRYS.get(i).info;
-                    if (ItemFashion.ENTRYS.get(i).ID == 238 || (byte) ItemFashion.ENTRYS.get(i).ID == (byte) 238) {
-                        info += "\n+10% Chí mạng khi kết hợp Trái Nikyu Nikyu";
-                        if (p.has_devil_fruit_nikyu() && myFashion != null && myFashion.is_use) {
-                            info += "\n(Đã kích hoạt: +10% Chí mạng)";
-                        }
-                    }
+
                     if (myFashion != null && myFashion.level > 0) {
                         info += "\n (+" + myFashion.level + ") Toàn bộ chỉ số được + "
                                 + Upgrade_Skin_Info.get_op_level(myFashion.level) + "%";

@@ -94,4 +94,10 @@ INSERT INTO `skill` (
     '[0,-1,-1]', 0, 0
 );
 
+-- 4. CẬP NHẬT THỜI TRANG KUMA (ID 238): Bỏ [10,120] khỏi op gốc, chỉ kích hoạt +10% Chí mạng khi mang + ăn Trái Nikyu
+UPDATE `fashiontemplate` 
+SET `op` = '[[63,100],[14,100],[12,100]]', 
+    `info` = 'Trang phục Kuma\n+10% Giảm miễn thương\n+10% Phản đòn\n+10% Né đòn\n-Tăng 100% sức tấn công bản thân.\n+10% Chí mạng khi kết hợp Trái Nikyu Nikyu\nHạn sử dụng vĩnh viễn'
+WHERE `id` = 238;
+
 SET SQL_SAFE_UPDATES = 1;

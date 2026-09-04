@@ -42,5 +42,11 @@ VALUES (1076, 912, 2062, 4419, 2, 1, 'Đệm Thịt Hộ Thể', 912, 120, 120, 
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `rangeLan`, `nTarget`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `percentLv`, `typeDevil`, `option`, `EffSpec`, `LvDevilSkill`, `phanTramDevilSkill`)
 VALUES (1077, 913, 2063, 4420, 3, 0, 'Phản Chấn Đệm Thịt', 0, 0, 0, 0, 0, 0, 0, 0, 'Cơ thể đệm thịt phản chấn lại mọi sát thương và áp lực, gia tăng mạnh mẽ né tránh, phản đòn, miễn thương, máu và sức mạnh tấn công.', 1, 0, 1, '[[1,300],[12,250],[14,250],[17,250],[53,150]]', '[0,-1,-1]', 0, 0);
 
+-- 5. Cập nhật Thời trang Kuma (ID 238): Bỏ [10,120] khỏi op gốc, kích hoạt +10% Chí mạng khi mang + ăn Trái Nikyu
+UPDATE `fashiontemplate` 
+SET `op` = '[[63,100],[14,100],[12,100]]', 
+    `info` = 'Trang phục Kuma\n+10% Giảm miễn thương\n+10% Phản đòn\n+10% Né đòn\n-Tăng 100% sức tấn công bản thân.\n+10% Chí mạng khi kết hợp Trái Nikyu Nikyu\nHạn sử dụng vĩnh viễn'
+WHERE `id` = 238;
+
 -- Bật lại Safe Updates
 SET SQL_SAFE_UPDATES = 1;
