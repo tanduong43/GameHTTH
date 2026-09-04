@@ -121,61 +121,62 @@ public class Service {
             m.writer().writeShort(p_pluss);
             int dem = 0;
             int[] par_show = new int[Body.Id[i].length];
+            int idx = Math.min(Math.max(p_ + p_pluss - 1, 0), 199);
             for (int j = 0; j < Body.Id[i].length; j++) {
                 switch (Body.Id[i][j]) {
                     case 1: {
-                        par_show[j] = Body.Point1_Template_atk[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point1_Template_atk[idx];
                         break;
                     }
                     case 10: {
-                        par_show[j] = Body.Point1_Template_crit[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point1_Template_crit[idx];
                         break;
                     }
                     case 13: {
-                        par_show[j] = Body.Point1_Template_pierce[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point1_Template_pierce[idx];
                         break;
                     }
                     case 4: {
-                        par_show[j] = Body.Point2_Template_def[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point2_Template_def[idx];
                         break;
                     }
                     case 26: {
-                        par_show[j] = Body.Point2_Template_resist_physical[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point2_Template_resist_physical[idx];
                         break;
                     }
                     case 27: {
-                        par_show[j] = Body.Point2_Template_resist_magic[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point2_Template_resist_magic[idx];
                         break;
                     }
                     case 15: {
-                        par_show[j] = Body.Point3_Template_hp[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point3_Template_hp[idx];
                         break;
                     }
                     case 23: {
-                        par_show[j] = Body.Point3_Template_hp_potion[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point3_Template_hp_potion[idx];
                         break;
                     }
                     case 11: {
-                        par_show[j] = Body.Point4_Template_dame_crit[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point4_Template_dame_crit[idx];
                         break;
                     }
                     case 14: { // tam thoi
-                        par_show[j] = Body.Point2_Template_resist_physical[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point2_Template_resist_physical[idx];
                         break;
                     }
                     case 16: {
-                        par_show[j] = Body.Point4_Template_mp[p_ + p_pluss - 1];
+                        par_show[j] = Body.Point4_Template_mp[idx];
                         break;
                     }
                     case 12: {
                         if (p_ + p_pluss > 0) {
-                            par_show[j] = Body.Point5_Template_miss[p_ + p_pluss - 1];
+                            par_show[j] = Body.Point5_Template_miss[idx];
                         }
                         break;
                     }
                     case 25: {
                         if (p_ + p_pluss > 0) {
-                            par_show[j] = Body.Point5_Template_cooldown[p_ + p_pluss - 1];
+                            par_show[j] = Body.Point5_Template_cooldown[idx];
                         }
                         break;
                     }
@@ -1915,10 +1916,6 @@ public class Service {
             //
             switch (temp.type) {
                 case 99: { // xp
-                    if (temp.id == -1) {
-                        // Hiển thị EXP Băng, không cộng vào exp cá nhân
-                        break;
-                    }
                     long exp_receiv = num_item;
                     int buff_percent = 100;
                     if (p.clan != null && p.clan.check_buff(0)) {

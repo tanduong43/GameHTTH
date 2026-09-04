@@ -4039,8 +4039,7 @@ public class Map implements Runnable {
                                     }
                                     break;
                                 }
-                                case 139:
-                                case 140: {
+                                case 139: {
                                     if (15 > Util.random(120)) {
                                         int id_add = (70 > Util.random(120)) ? 310
                                                 : (70 > Util.random(120)) ? 311 : 312;
@@ -4059,6 +4058,39 @@ public class Map implements Runnable {
                                     if (10 > Util.random(120)) {
                                         int id_add = (70 > Util.random(120)) ? 313
                                                 : (70 > Util.random(120)) ? 314 : 315;
+                                        GiftBox gb_manh = new GiftBox();
+                                        ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
+                                        if (it_temp4_in != null) {
+                                            gb_manh.id = it_temp4_in.id;
+                                            gb_manh.type = 4;
+                                            gb_manh.name = it_temp4_in.name;
+                                            gb_manh.icon = it_temp4_in.icon;
+                                            gb_manh.num = 1;
+                                            gb_manh.color = 0;
+                                            list_gift.add(gb_manh);
+                                        }
+                                    }
+                                    break;
+                                }
+                                case 140: {
+                                    if (15 > Util.random(120)) {
+                                        int id_add = (70 > Util.random(120)) ? 542
+                                                : (70 > Util.random(120)) ? 543 : 544;
+                                        GiftBox gb_manh = new GiftBox();
+                                        ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
+                                        if (it_temp4_in != null) {
+                                            gb_manh.id = it_temp4_in.id;
+                                            gb_manh.type = 4;
+                                            gb_manh.name = it_temp4_in.name;
+                                            gb_manh.icon = it_temp4_in.icon;
+                                            gb_manh.num = 1;
+                                            gb_manh.color = 0;
+                                            list_gift.add(gb_manh);
+                                        }
+                                    }
+                                    if (10 > Util.random(120)) {
+                                        int id_add = (70 > Util.random(120)) ? 545
+                                                : (70 > Util.random(120)) ? 546 : 547;
                                         GiftBox gb_manh = new GiftBox();
                                         ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
                                         if (it_temp4_in != null) {
@@ -4184,7 +4216,7 @@ public class Map implements Runnable {
                         }
                         //
                         if (mob_target.mob_template.mob_id >= 137
-                                && mob_target.mob_template.mob_id <= 140) {
+                                && mob_target.mob_template.mob_id <= 139) {
                             if (15 > Util.random(120)) {
                                 int id_add = (70 > Util.random(120)) ? 310
                                         : (70 > Util.random(120)) ? 311 : 312;
@@ -4203,6 +4235,37 @@ public class Map implements Runnable {
                             if (10 > Util.random(120)) {
                                 int id_add = (70 > Util.random(120)) ? 313
                                         : (70 > Util.random(120)) ? 314 : 315;
+                                GiftBox gb_manh = new GiftBox();
+                                ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
+                                if (it_temp4_in != null) {
+                                    gb_manh.id = it_temp4_in.id;
+                                    gb_manh.type = 4;
+                                    gb_manh.name = it_temp4_in.name;
+                                    gb_manh.icon = it_temp4_in.icon;
+                                    gb_manh.num = 1;
+                                    gb_manh.color = 0;
+                                    list_gift.add(gb_manh);
+                                }
+                            }
+                        } else if (mob_target.mob_template.mob_id == 140) {
+                            if (15 > Util.random(120)) {
+                                int id_add = (70 > Util.random(120)) ? 542
+                                        : (70 > Util.random(120)) ? 543 : 544;
+                                GiftBox gb_manh = new GiftBox();
+                                ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
+                                if (it_temp4_in != null) {
+                                    gb_manh.id = it_temp4_in.id;
+                                    gb_manh.type = 4;
+                                    gb_manh.name = it_temp4_in.name;
+                                    gb_manh.icon = it_temp4_in.icon;
+                                    gb_manh.num = 1;
+                                    gb_manh.color = 0;
+                                    list_gift.add(gb_manh);
+                                }
+                            }
+                            if (10 > Util.random(120)) {
+                                int id_add = (70 > Util.random(120)) ? 545
+                                        : (70 > Util.random(120)) ? 546 : 547;
                                 GiftBox gb_manh = new GiftBox();
                                 ItemTemplate4 it_temp4_in = ItemTemplate4.get_it_by_id(id_add);
                                 if (it_temp4_in != null) {
@@ -4385,6 +4448,53 @@ public class Map implements Runnable {
                                 giftCungHe.color = 0;
                                 list_gift.add(giftCungHe);
                                 notice += "x1 " + it_cunghe.name + ", ";
+                            }
+
+                            // Riêng Boss ID 140 (Siêu Thần Enel) rơi THÊM:
+                            // 1x Rương Đồ Cam Lv100, 1x Rương Cam Cùng Hệ Lv100, 1x Mảnh ghép trang bị 10x cam
+                            if (mob_target.mob_template.mob_id == 140) {
+                                // 1. Rương Đồ Cam Lv100 (Item ID 121)
+                                ItemTemplate4 it_rcam100 = ItemTemplate4.get_it_by_id(121);
+                                if (it_rcam100 != null) {
+                                    GiftBox giftChest100 = new GiftBox();
+                                    giftChest100.id = 121;
+                                    giftChest100.type = 4;
+                                    giftChest100.name = it_rcam100.name;
+                                    giftChest100.icon = it_rcam100.icon;
+                                    giftChest100.num = 1;
+                                    giftChest100.color = 0;
+                                    list_gift.add(giftChest100);
+                                    notice += "x1 " + it_rcam100.name + ", ";
+                                }
+
+                                // 2. Rương Cam Cùng Hệ Lv100 (Item ID 131)
+                                ItemTemplate4 it_cunghe100 = ItemTemplate4.get_it_by_id(131);
+                                if (it_cunghe100 != null) {
+                                    GiftBox giftCungHe100 = new GiftBox();
+                                    giftCungHe100.id = 131;
+                                    giftCungHe100.type = 4;
+                                    giftCungHe100.name = it_cunghe100.name;
+                                    giftCungHe100.icon = it_cunghe100.icon;
+                                    giftCungHe100.num = 1;
+                                    giftCungHe100.color = 0;
+                                    list_gift.add(giftCungHe100);
+                                    notice += "x1 " + it_cunghe100.name + ", ";
+                                }
+
+                                // 3. Mảnh ghép trang bị 10x cam (545: trang phục, 546: trang sức, 547: vũ khí)
+                                int idManh10x = Util.random(545, 548);
+                                ItemTemplate4 it_manh10x = ItemTemplate4.get_it_by_id(idManh10x);
+                                if (it_manh10x != null) {
+                                    GiftBox giftManh10x = new GiftBox();
+                                    giftManh10x.id = (short) idManh10x;
+                                    giftManh10x.type = 4;
+                                    giftManh10x.name = it_manh10x.name;
+                                    giftManh10x.icon = it_manh10x.icon;
+                                    giftManh10x.num = 1;
+                                    giftManh10x.color = 0;
+                                    list_gift.add(giftManh10x);
+                                    notice += "x1 " + it_manh10x.name + ", ";
+                                }
                             }
 
                             // 3. 1000 vàng (Ruby)

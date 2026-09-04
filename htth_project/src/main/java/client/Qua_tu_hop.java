@@ -142,7 +142,7 @@ public class Qua_tu_hop {
             }
         }
         if (idItem == 691 && cat == 105) { // Thời trang sơ cấp (menuId từ UseItem)
-            short[] listId = new short[]{49, 50};
+            short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237};
             if (select >= 0 && select < listId.length) {
                 ItemFashion fashion = ItemFashion.get_item(listId[select]);
                 if (fashion != null) {
@@ -177,7 +177,7 @@ public class Qua_tu_hop {
             }
         }
         if (idItem == 692 && cat == 105) { // Thời trang cao cấp (menuId từ UseItem)
-            short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237};
+            short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234};
             if (select >= 0 && select < listId.length) {
                 ItemFashion fashion = ItemFashion.get_item(listId[select]);
                 if (fashion != null) {
@@ -213,7 +213,7 @@ public class Qua_tu_hop {
         }
         if (idItem == 1001 && cat == 105) { // Thời trang sơ cấp
             if (p.item.total_item_bag_by_id(4, 1001) > 0 || p.item.total_item_bag_by_id(1, 1001) > 0) {
-                short[] listId = new short[]{49, 50};
+                short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237};
                 if (select >= 0 && select < listId.length) {
                     ItemFashion fashion = ItemFashion.get_item(listId[select]);
                     if (fashion != null) {
@@ -249,7 +249,7 @@ public class Qua_tu_hop {
         }
         if (idItem == 9910 && cat == 105) { // Thời trang sơ cấp (id cũ)
             if (p.item.total_item_bag_by_id(4, 1001) > 0 || p.item.total_item_bag_by_id(1, 1001) > 0) {
-                short[] listId = new short[]{49, 50};
+                short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237};
                 if (select >= 0 && select < listId.length) {
                     ItemFashion fashion = ItemFashion.get_item(listId[select]);
                     if (fashion != null) {
@@ -285,7 +285,7 @@ public class Qua_tu_hop {
         }
         if (idItem == 1002 && cat == 105) { // Thời trang cao cấp
             if (p.item.total_item_bag_by_id(4, 1002) > 0 || p.item.total_item_bag_by_id(1, 1002) > 0) {
-                short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237};
+                short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234};
                 if (select >= 0 && select < listId.length) {
                     ItemFashion fashion = ItemFashion.get_item(listId[select]);
                     if (fashion != null) {
@@ -321,7 +321,7 @@ public class Qua_tu_hop {
         }
         if (idItem == 9911 && cat == 105) { // Thời trang cao cấp (id cũ)
             if (p.item.total_item_bag_by_id(4, 1002) > 0 || p.item.total_item_bag_by_id(1, 1002) > 0) {
-                short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237};
+                short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234};
                 if (select >= 0 && select < listId.length) {
                     ItemFashion fashion = ItemFashion.get_item(listId[select]);
                     if (fashion != null) {

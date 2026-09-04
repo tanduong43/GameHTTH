@@ -433,7 +433,7 @@ public class Event2011 implements Runnable {
         addMaterial(p, ITEM_LO_MUC, 1);
         addMaterial(p, ITEM_GIAY_DO, 1);
         try {
-            Service.send_box_ThongBao_OK(p, "🎓 Nhận được 1 Lọ Mực & 1 Giấy Đỏ từ Nhiệm vụ lặp!");
+            activities.Chat.send_chat(p, "Hệ thống", "🎓 Nhận được 1 Lọ Mực & 1 Giấy Đỏ từ Nhiệm vụ lặp!", false);
         } catch (IOException e) {
             // ignore
         }
@@ -447,7 +447,7 @@ public class Event2011 implements Runnable {
         addMaterial(p, ITEM_SACH_CONG_THUC, 2);
         addMaterial(p, ITEM_CANH_HOA_PHUONG, 3);
         try {
-            Service.send_box_ThongBao_OK(p, "🎓 Nhận được 2 Sách Công Thức & 3 Cánh Hoa Phượng từ Hoạt động Bang!");
+            activities.Chat.send_chat(p, "Hệ thống", "🎓 Nhận được 2 Sách Công Thức & 3 Cánh Hoa Phượng từ Hoạt động Bang!", false);
         } catch (IOException e) {
             // ignore
         }

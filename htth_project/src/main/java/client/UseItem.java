@@ -96,8 +96,11 @@ public class UseItem {
                         }
                         Service.UpdateInfoMaincharInfo(p);
                         ItemFashionP.show_table(p, 105);
-                        Service.send_box_ThongBao_OK(p,
-                                "Mặc thành công " + ItemFashion.get_item(temp.id).name);
+                        String msg = "Mặc thành công " + ItemFashion.get_item(temp.id).name;
+                        if ((temp.id == 238 || (byte) temp.id == (byte) 238) && p.has_devil_fruit_nikyu()) {
+                            msg += "\n[Kích hoạt hiệu ứng: +10% Chí mạng cùng Trái Nikyu Nikyu!]";
+                        }
+                        Service.send_box_ThongBao_OK(p, msg);
                     }
                 } else {
                     Service.send_box_ThongBao_OK(p, "Chưa mua vật phẩm này!");
@@ -1060,6 +1063,8 @@ public class UseItem {
                             promptMsg = "Bạn đang mặc Thời Trang Râu Đen và có Trái Bóng Tối. Ăn Trái Chấn Thiên sẽ kích hoạt cơ thể 2 Trái Ác Quỷ! Bạn có muốn sử dụng?";
                         } else if (p.has_dual_devil_fruit()) {
                             promptMsg = "Bạn đang sở hữu 2 Trái Ác Quỷ (Bóng Tối & Chấn Thiên). Ăn " + ItemTemplate4.get_it_by_id(id).name + " sẽ xóa cả 2 Trái cũ, hoàn trả đầy đủ Exp vào Hộp bảo lưu và nhận Trái mới. Bạn có chắc muốn sử dụng?";
+                        } else if (id == 1015 && p.is_wearing_fashion(238)) {
+                            promptMsg = "Bạn đang mặc Thời trang Kuma. Ăn Trái Nikyu Nikyu sẽ kích hoạt hiệu ứng tăng 10% Chí mạng! Bạn có muốn sử dụng?";
                         }
                         Service.send_box_yesno(p, (id + 4000), "Thông báo",
                                 promptMsg,
@@ -1142,7 +1147,7 @@ public class UseItem {
                         m.writer().writeUTF("Rương Thời Trang Sơ");
                         m.writer().writeUTF("Đổi");
 
-                        short[] ids = new short[] { 49, 50 };
+                        short[] ids = new short[] { 54, 55, 59, 110, 109, 120, 118, 239, 243, 237 };
                         m.writer().writeByte(ids.length);
 
                         for (short fashionId : ids) {
@@ -1169,7 +1174,7 @@ public class UseItem {
                         m.writer().writeUTF("Rương Thời Trang Cao");
                         m.writer().writeUTF("Đổi");
 
-                        short[] ids = new short[] { 54, 55, 59, 110, 109, 120, 118, 239, 243, 237 };
+                        short[] ids = new short[] { 54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234 };
                         m.writer().writeByte(ids.length);
 
                         for (short fashionId : ids) {

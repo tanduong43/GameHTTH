@@ -1252,7 +1252,7 @@ public class EventTrungThu implements Runnable {
         p.duongReceivedToday++;
         addMaterial(p, ITEM_DUONG, 1);
         try {
-            Service.send_box_ThongBao_OK(p, "Bạn nhận được 1 Đường từ nhiệm vụ lặp!");
+            activities.Chat.send_chat(p, "Hệ thống", "Bạn nhận được 1 Đường từ nhiệm vụ lặp!", false);
         } catch (IOException e) {
             System.out.println("Error sending message: " + e.getMessage());
         }
@@ -1266,7 +1266,7 @@ public class EventTrungThu implements Runnable {
             return;
         addMaterial(p, ITEM_TRUNG_MUOI, 2);
         try {
-            Service.send_box_ThongBao_OK(p, "Bạn nhận được 2 Trứng Muối từ nhiệm vụ băng!");
+            activities.Chat.send_chat(p, "Hệ thống", "Bạn nhận được 2 Trứng Muối từ nhiệm vụ băng!", false);
         } catch (IOException e) {
             System.out.println("Error sending message: " + e.getMessage());
         }

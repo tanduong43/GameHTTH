@@ -3172,6 +3172,10 @@ public class Player {
         list_remove.clear();
         this.send_skill();
         this.update_info_to_all();
+        Service.UpdateInfoMaincharInfo(this);
+        if (id == 5015 && is_wearing_fashion_kuma()) {
+            Service.send_box_ThongBao_OK(this, "Bạn đang mặc Thời trang Kuma: Đã kích hoạt hiệu ứng bộ trang phục và Trái Nikyu Nikyu (+10% Chí mạng)!");
+        }
         if (isDualFruitAwakened) {
             Service.send_box_ThongBao_OK(this, "Bạn đã kích hoạt cơ thể dị biệt của Tứ Hoàng Râu Đen, sở hữu đồng thời Trái Bóng Tối và Trái Chấn Thiên!");
         }
@@ -3528,19 +3532,19 @@ public class Player {
 
     public int get_key_boss_max() {
         if (level < 10) {
-            return 3;
+            return 13;
         } else if (level < 20) {
-            return 4;
+            return 14;
         } else if (level < 30) {
-            return 5;
+            return 15;
         } else if (level < 40) {
-            return 6;
+            return 16;
         } else if (level < 50) {
-            return 7;
+            return 17;
         } else if (level <= 100) {
-            return 8;
+            return 18;
         } else {
-            return 3;
+            return 18;
         }
     }
 
@@ -3804,6 +3808,26 @@ public class Player {
             }
         }
         return false;
+    }
+
+    public boolean has_devil_fruit_nikyu() {
+        if (this.skill_point != null) {
+            for (int i = 0; i < this.skill_point.size(); i++) {
+                Skill_info sk = this.skill_point.get(i);
+                if (sk != null && sk.temp != null) {
+                    if ((sk.temp.indexSkillInServer >= 910 && sk.temp.indexSkillInServer <= 913)
+                            || (sk.temp.ID >= 910 && sk.temp.ID <= 913)
+                            || (sk.temp.ID >= 1074 && sk.temp.ID <= 1077)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean is_wearing_fashion_kuma() {
+        return is_wearing_fashion(238);
     }
 
     public boolean can_have_dual_devil_fruit() {

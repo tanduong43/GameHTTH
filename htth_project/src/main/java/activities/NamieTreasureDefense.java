@@ -574,13 +574,13 @@ public class NamieTreasureDefense extends Dungeon {
             }
 
             if (Util.random(100) < 30) {
-                ItemTemplate7 it7 = ItemTemplate7.get_it_by_id(158);
-                if (it7 != null) {
+                ItemTemplate4 it4 = ItemTemplate4.get_it_by_id(158);
+                if (it4 != null) {
                     GiftBox gb = new GiftBox();
-                    gb.id = it7.id;
-                    gb.type = 7;
-                    gb.name = it7.name;
-                    gb.icon = it7.icon;
+                    gb.id = it4.id;
+                    gb.type = 4;
+                    gb.name = it4.name;
+                    gb.icon = it4.icon;
                     gb.num = 1;
                     gb.color = 0;
                     list_gift.add(gb);

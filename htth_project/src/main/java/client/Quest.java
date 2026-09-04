@@ -315,18 +315,21 @@ public class Quest {
         }
         if (questP.template.id >= -1000 && questP.template.id < 0) {
             p.time_nvl++;
+            int rubyNum = 2;
             if (p.time_nvl % 10 == 0) {
-                GiftBox temp = new GiftBox();
-                temp.type = 4;
-                temp.name = "ruby";
-                temp.icon = 1;
-                temp.num = 85;
-                temp.color = 5;
-                temp.id = 1;
-                result.add(temp);
+                rubyNum += 85;
             }
-            int xptt = Util.random(1,100);
-            p.lucthuc[2]+= xptt;
+            GiftBox temp = new GiftBox();
+            temp.type = 4;
+            temp.name = "ruby";
+            temp.icon = 1;
+            temp.num = rubyNum;
+            temp.color = 5;
+            temp.id = 1;
+            result.add(temp);
+
+            int xptt = Util.random(1, 100);
+            p.lucthuc[2] += xptt;
             if (event.Event2011.isEvent()) {
                 event.Event2011.rewardQuestLap(p);
             }

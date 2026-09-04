@@ -115,6 +115,11 @@ public class Body {
                     if ((temp.id == 59 || temp.id == 209) && id == 10 && p.has_devil_fruit_set()) {
                         par += 100;
                     }
+                    // Kích hoạt: +10% Chí mạng khi mang Thời trang Kuma và ăn Trái Nikyu Nikyu no
+                    // Mi
+                    if ((temp.id == 238 || (byte) temp.id == (byte) 238) && id == 10 && p.has_devil_fruit_nikyu()) {
+                        par += 100;
+                    }
                     // Thời trang Râu Đen (ID 74):
                     // - Khi kết hợp với Trái Bóng Tối: Kích hoạt 5% chỉ số Hấp thụ HP (id 59)
                     if (temp.id == 74 && id == 59 && p.has_devil_fruit_bong_toi()) {
@@ -145,7 +150,7 @@ public class Body {
                         par += 500;
                     }
                     // Trang phục Kuma (ID 238): Tăng 100% sức tấn công bản thân
-                    if (temp.id == 238 && id == 1) {
+                    if ((temp.id == 238 || (byte) temp.id == (byte) 238) && id == 1) {
                         par += 1000;
                     }
                     break;
@@ -475,6 +480,9 @@ public class Body {
         if (type != 3 && param > 10 && p.get_eff(21) != null) {
             param = (param * 8) / 10;
         }
+        if (param > 200) {
+            param = 200;
+        }
         return param;
     }
 
@@ -780,8 +788,8 @@ public class Body {
         if (p.clan != null) {
             par += p.clan.opAttri[type - 1] + Clan.get_point_trungsinh_plus(p.clan);
         }
-        if (par > 80) {
-            par = 80;
+        if (par > 120) {
+            par = 120; // Giới hạn tiềm xanh tối đa là 120 điểm
         }
         return par;
     }
