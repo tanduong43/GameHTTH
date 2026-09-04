@@ -437,7 +437,7 @@ public class Map implements Runnable {
                     try {
                         l.key_red_line.clear();
                         if (this.map_ThuThachVeThan.isReceiv) {
-                            l.update_skill_exp(5000, 50);
+                            l.update_skill_exp(5000, 250);
                             boolean receiv_material = true;
                             if (l.time_ttvt < 50) {
                                 l.time_ttvt++;
@@ -1671,6 +1671,8 @@ public class Map implements Runnable {
                         Service.use_potion(p0, 0, -hp_decrease);
                     }
                 }
+                // Tạm thời comment cấp đồ +16, chỉ cho cấp đồ lớn nhất là +15
+                /*
                 boolean allLevelUp16 = true;
                 for (int j = 0; j < 6; j++) {
                     Item_wear it = p0.item.it_body[j];
@@ -1699,6 +1701,7 @@ public class Map implements Runnable {
                     this.send_msg_all_p(m4, null, true);
                     m4.cleanup();
                 }
+                */
                 // up hp pet ship
                 if (p0.ship_pet != null && p0.ship_pet.time_buff_hp < System.currentTimeMillis()
                         && (Map.isMapLang(this.template.id))) {
@@ -4108,7 +4111,7 @@ public class Map implements Runnable {
                     mob_target.hp = 0;
                     mob_target.isdie = true;
                     mob_target.time_refresh = System.currentTimeMillis() + Mob.TIME_RESPAWN * 500;
-                    exp_up[1] += mob_target.level * 2;
+                    exp_up[1] += mob_target.level * 10;
                     // dungeon
                     if ((Map.is_map_dungeon(this.template.id) || this.template.id == 999) && p.dungeon != null) {
                         if (p.dungeon instanceof activities.NamieTreasureDefense) {
@@ -4367,33 +4370,7 @@ public class Map implements Runnable {
                                 notice += "x1 " + itemStone.name + ", ";
                             }
 
-                            // 4. Ruong do do cung cap voi Boss (ID 803 -> 812)
-                            int bossLv = mob_target.level;
-                            if (bossLv < 10) {
-                                bossLv = 10;
-                            }
-                            if (bossLv > 100) {
-                                bossLv = 100;
-                            }
-                            int redChestId = 803 + (bossLv / 10) - 1;
-                            if (redChestId < 803) {
-                                redChestId = 803;
-                            }
-                            if (redChestId > 812) {
-                                redChestId = 812;
-                            }
-                            ItemTemplate4 it_rdo = ItemTemplate4.get_it_by_id(redChestId);
-                            if (it_rdo != null) {
-                                GiftBox giftRedChest = new GiftBox();
-                                giftRedChest.id = (short) redChestId;
-                                giftRedChest.type = 4;
-                                giftRedChest.name = it_rdo.name;
-                                giftRedChest.icon = it_rdo.icon;
-                                giftRedChest.num = 1;
-                                giftRedChest.color = 0;
-                                list_gift.add(giftRedChest);
-                                notice += "x1 " + it_rdo.name + ", ";
-                            }
+
                         } else if (boss.mob.mob_template.mob_id == 121) {
                             // Boss Mèo truyền thuyết - kết thúc sự kiện
                             notice = "Tiêu diệt mèo nhận: ";
@@ -4552,33 +4529,7 @@ public class Map implements Runnable {
                                 notice += "x1 " + it_stone.name + ", ";
                             }
 
-                            // 4. Gift 4: 100% roi Ruong do do cung he (ID 813 -> 822) cung cap voi Player
-                            int pLv = p.level;
-                            if (pLv < 10) {
-                                pLv = 10;
-                            }
-                            if (pLv > 100) {
-                                pLv = 100;
-                            }
-                            int redChestCungHeId = 813 + (pLv / 10) - 1;
-                            if (redChestCungHeId < 813) {
-                                redChestCungHeId = 813;
-                            }
-                            if (redChestCungHeId > 822) {
-                                redChestCungHeId = 822;
-                            }
-                            ItemTemplate4 it_rdo_cunghe = ItemTemplate4.get_it_by_id(redChestCungHeId);
-                            if (it_rdo_cunghe != null) {
-                                GiftBox giftRedCungHe = new GiftBox();
-                                giftRedCungHe.id = (short) redChestCungHeId;
-                                giftRedCungHe.type = 4;
-                                giftRedCungHe.name = it_rdo_cunghe.name;
-                                giftRedCungHe.icon = it_rdo_cunghe.icon;
-                                giftRedCungHe.num = 1;
-                                giftRedCungHe.color = 0;
-                                list_gift.add(giftRedCungHe);
-                                notice += "x1 " + it_rdo_cunghe.name + ", ";
-                            }
+
                             //
                             int beri_receiv = 0;
                             switch (mob_target.mob_template.mob_id) {
@@ -5045,6 +4996,9 @@ public class Map implements Runnable {
                     try {
                         String[] parts = cmd.split(" ");
                         byte lvl = Byte.parseByte(parts[1]);
+                        if (lvl > 15) {
+                            lvl = 15; // Tạm thời tối đa +15
+                        }
                         int emptyCount = 0;
                         for (int i = 0; i < p.item.bag3.length; i++) {
                             if (p.item.bag3[i] == null) {

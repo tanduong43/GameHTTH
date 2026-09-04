@@ -3253,11 +3253,12 @@ public class ClientYesNo {
                             ItemTemplate4 it_bh = null;
                             switch (p.item_chuyenhoa_save_0.levelup) {
                                 case 15:
-                                case 16:
-                                case 17:
-                                case 18:
-                                case 19:
-                                case 20: {
+                                // case 16:
+                                // case 17:
+                                // case 18:
+                                // case 19:
+                                // case 20: 
+                                {
                                     it_bh = ItemTemplate4.get_it_by_id(551);
                                     p.data_yesno = new int[] { 551 };
                                     break;

@@ -126,8 +126,10 @@ public class UpgradeSuperItem {
                 if (!UpgradeSuperItem.check_it_can_upgrade_super(p, it_select)) {
                     return;
                 }
-                if (it_select.levelup >= 20) {
-                    Service.send_box_ThongBao_OK(p, "Trang bị đã Cường hóa cấp tối đa!");
+                // Tạm thời comment cấp đồ +16, chỉ cho cấp đồ lớn nhất là +15
+                // if (it_select.levelup >= 20) {
+                if (it_select.levelup >= 15) {
+                    Service.send_box_ThongBao_OK(p, "Trang bị đã Cường hóa cấp tối đa (+15)!");
                     return;
                 }
                 if (it_select.template.typeEquip > 7) {
@@ -249,6 +251,12 @@ public class UpgradeSuperItem {
         if (it_select.levelup < 10) {
             Service.send_box_ThongBao_OK(p,
                     "Trang bị đã Cường hóa +10 mới có thể tiến hành Siêu Cường Hóa!");
+            return false;
+        }
+        // Tạm thời comment cấp đồ +16, chỉ cho cấp đồ lớn nhất là +15
+        // if (it_select.levelup >= 20) {
+        if (it_select.levelup >= 15) {
+            Service.send_box_ThongBao_OK(p, "Trang bị đã Cường hóa cấp tối đa (+15)!");
             return false;
         }
         if (it_select.template.level < 30 || it_select.template.level > 100) {
