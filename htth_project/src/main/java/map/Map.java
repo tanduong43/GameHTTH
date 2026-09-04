@@ -4848,9 +4848,10 @@ public class Map implements Runnable {
                 // exp_up_add = exp_up_add * 5;
                 // }
                 boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
-                if (Math.abs(p.level - mob_target.level) >= 10 && !isSingleDungeon) {
-                    exp_up_add = 0;
-                }
+                // Bỏ giới hạn chênh lệch 10 level - đánh quái nào cũng nhận được EXP
+                // if (Math.abs(p.level - mob_target.level) >= 10 && !isSingleDungeon) {
+                //     exp_up_add = 0;
+                // }
                 if (!isSingleDungeon && (mob_target.mob_template.mob_id == 4 || mob_target.mob_template.mob_id == 10
                         || mob_target.mob_template.mob_id == 16 || mob_target.mob_template.mob_id == 23
                         || mob_target.mob_template.mob_id == 29 || mob_target.mob_template.mob_id == 36
@@ -5393,23 +5394,54 @@ public class Map implements Runnable {
             MenuController.Menu_DanhHieu(p, (byte) 0);
             return;
         } else if (txt.startsWith("adddanhhieu ") || txt.startsWith("/adddanhhieu ")) {
+            if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
+                return;
+            }
             try {
-                int dhId = Integer.parseInt(txt.split(" ")[1]);
+                String[] parts = txt.split("\\s+");
+                if (parts.length < 2) {
+                    Service.send_box_ThongBao_OK(p, "Cú pháp: /adddanhhieu <id>");
+                    return;
+                }
+                int dhId = Integer.parseInt(parts[1]);
+                activities.DanhHieu dh = activities.DanhHieu.get_Id(dhId);
+                if (dh == null) {
+                    Service.send_box_ThongBao_OK(p, "Không tìm thấy Danh Hiệu có ID: " + dhId);
+                    return;
+                }
                 p.add_danh_hieu(dhId);
-                Service.send_box_ThongBao_OK(p, "Ban da nhan duoc danh hieu " + dhId + "!");
+                p.idDanhHieu = (short) dhId;
+                p.id_danh_hieu_su_dung = dhId;
+                p.danhhieu = (byte) dhId;
+                p.update_info_to_all();
+                Service.send_box_ThongBao_OK(p, "Đã nhận và trang bị danh hiệu: [" + dh.Name + "] (ID " + dhId + ")!");
             } catch (Exception e) {
+                Service.send_box_ThongBao_OK(p, "Cú pháp: /adddanhhieu <id>");
             }
             return;
         } else if (txt.equals("adddanhhieu") || txt.equals("/adddanhhieu")) {
+            if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
+                return;
+            }
             try {
+                int count = 0;
                 for (activities.DanhHieu dh : activities.DanhHieu.ENY) {
-                    p.add_danh_hieu(dh.id);
+                    if (!p.check_id_danhhieu(dh.id)) {
+                        p.add_danh_hieu(dh.id);
+                        count++;
+                    }
                 }
-                Service.send_box_ThongBao_OK(p, "Ban da nhan duoc TAT CA danh hieu!");
+                Service.send_box_ThongBao_OK(p, "Đã nhận thêm " + count + " danh hiệu mới vào danh sách sở hữu!\nHãy mở menu 'danhhieu' để chọn sử dụng.");
             } catch (Exception e) {
             }
             return;
         } else if (txt.startsWith("addpet ") || txt.startsWith("/addpet ")) {
+            if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
+                return;
+            }
             try {
                 int petId = Integer.parseInt(txt.split(" ")[1].trim());
                 client.Pet targetTemplate = client.Pet.getTemplate(petId);
@@ -5442,6 +5474,10 @@ public class Map implements Runnable {
             }
             return;
         } else if (txt.equals("addpet") || txt.equals("/addpet") || txt.equals("fullpet") || txt.equals("/fullpet")) {
+            if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
+                return;
+            }
             try {
                 // Dọn dẹp pet lỗi trước
                 p.my_pet.removeIf(mp -> mp == null || mp.template == null || client.Pet.getTemplate(mp.template.id) == null);
@@ -5469,6 +5505,10 @@ public class Map implements Runnable {
             }
             return;
         } else if (txt.equals("clearpet") || txt.equals("/clearpet") || txt.equals("xoapet") || txt.equals("/xoapet")) {
+            if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
+                return;
+            }
             try {
                 p.my_pet.clear();
                 p.update_info_to_all();

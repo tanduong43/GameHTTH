@@ -1921,8 +1921,8 @@ public class UseItem {
                         break;
                     }
                     case 413: {
-                        if (p.level >= 100) {
-                            Service.send_box_ThongBao_OK(p, "Cấp độ đã đạt tối đa");
+                        if (p.level >= 30) {
+                            Service.send_box_ThongBao_OK(p, "Tiến Cấp Đơn chỉ có thể sử dụng tối đa lên cấp 30!");
                             used = false;
                         } else {
                             long exp_needed = Level.ENTRYS[p.level - 1].exp - p.exp;
