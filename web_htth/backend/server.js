@@ -10,12 +10,14 @@ const initNewsTable = require('./config/init_news');
 const initIpLogTable = require('./config/init_ip_log');
 const initRechargeTable = require('./config/init_recharge');
 const initAccountsTable = require('./config/init_accounts');
+const initServerConfigTable = require('./config/init_server_config');
 
 // Initialize database tables, seed data, and schema defaults
 initNewsTable();
 initIpLogTable();
 initRechargeTable();
 initAccountsTable();
+initServerConfigTable();
 
 const app = express();
 const PORT = process.env.PORT || 8000;

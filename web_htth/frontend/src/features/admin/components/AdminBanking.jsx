@@ -15,10 +15,24 @@ export default function AdminBanking() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
   const [filter, setFilter] = useState('pending'); // 'all' | 'pending' | 'done' | 'failed'
+  const [multiplier, setMultiplier] = useState(1);
+  const [updatingMultiplier, setUpdatingMultiplier] = useState(false);
+
+  const fetchMultiplier = async () => {
+    try {
+      const res = await api.get('banking/multiplier');
+      if (res.data && res.data.success) {
+        setMultiplier(res.data.multiplier || 1);
+      }
+    } catch (e) {
+      console.error('Error fetching multiplier:', e);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      await fetchMultiplier();
       const res = await api.get('admin/banking/orders');
       if (res.data && res.data.success) {
         setOrders(res.data.orders);
@@ -36,6 +50,31 @@ export default function AdminBanking() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  const handleSetMultiplier = async (newMult) => {
+    if (newMult === multiplier) return;
+    const confirmMsg = newMult === 1
+      ? 'Bạn có chắc chắn muốn TẮT sự kiện nhân nạp, trở về tỷ lệ nạp x1 bình thường?'
+      : `Bạn có chắc chắn muốn BẬT sự kiện NẠP x${newMult}? Tất cả người chơi nạp tiền trên Web và In-Game sẽ nhận gấp ${newMult} lần Coin.`;
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      setUpdatingMultiplier(true);
+      const res = await api.post('admin/banking/multiplier', { multiplier: newMult });
+      if (res.data && res.data.success) {
+        setMultiplier(res.data.multiplier);
+        showMessage('success', res.data.message || `Đã chuyển sang chế độ nạp x${newMult}`);
+      } else {
+        showMessage('error', res.data?.message || 'Không thể đổi hệ số nạp.');
+      }
+    } catch (err) {
+      console.error('Error setting multiplier:', err);
+      showMessage('error', 'Lỗi kết nối khi cập nhật hệ số nạp.');
+    } finally {
+      setUpdatingMultiplier(false);
+    }
+  };
 
   const handleApprove = async (order) => {
     if (!window.confirm(`Xác nhận DUYỆT đơn nạp ${Number(order.amount).toLocaleString()}đ cho tài khoản "${order.username}"?`)) {
@@ -120,6 +159,72 @@ export default function AdminBanking() {
         <button onClick={fetchOrders} className="btn btn-outline" style={{ borderColor: 'rgba(255,255,255,0.15)', color: '#ccc', padding: '8px 16px', fontSize: '13px', background: 'transparent', cursor: 'pointer', borderRadius: '6px' }}>
           🔄 Tải lại
         </button>
+      </div>
+
+      {/* Event Multiplier Config Panel */}
+      <div className="glass-panel" style={{
+        padding: '18px 25px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '15px',
+        background: multiplier > 1
+          ? 'linear-gradient(135deg, rgba(255, 77, 79, 0.15) 0%, rgba(250, 140, 22, 0.1) 100%)'
+          : 'rgba(255, 255, 255, 0.03)',
+        border: multiplier > 1 ? '1px solid rgba(255, 77, 79, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '8px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '26px' }}>{multiplier > 1 ? '🔥' : '⚙️'}</span>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#fff' }}>Sự Kiện Nạp Tiền (Đồng bộ Web & Server)</span>
+              <span style={{
+                fontSize: '12px',
+                fontWeight: 'bold',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: multiplier > 1 ? '#ff4d4f' : '#52c41a',
+                color: '#fff'
+              }}>
+                Hiện tại: x{multiplier} {multiplier > 1 ? 'đang kích hoạt' : 'bình thường'}
+              </span>
+            </div>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#aaa' }}>
+              Khi đổi ở đây, hệ số Coin nạp sẽ tự động đồng bộ ngay lập tức cho cả Web và Game Server.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {[
+            { mult: 1, label: 'Nạp x1 (Chuẩn)', color: '#8c8c8c' },
+            { mult: 2, label: 'Nạp x2 (Gấp đôi)', color: '#fa8c16' },
+            { mult: 3, label: 'Nạp x3 (Gấp ba)', color: '#ff4d4f' },
+          ].map(item => (
+            <button
+              key={item.mult}
+              type="button"
+              disabled={updatingMultiplier}
+              onClick={() => handleSetMultiplier(item.mult)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                cursor: updatingMultiplier ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                border: multiplier === item.mult ? `2px solid ${item.color}` : '1px solid rgba(255,255,255,0.15)',
+                background: multiplier === item.mult ? item.color : 'rgba(255,255,255,0.05)',
+                color: '#fff',
+                boxShadow: multiplier === item.mult ? `0 0 12px ${item.color}66` : 'none'
+              }}
+            >
+              {item.label} {multiplier === item.mult ? '✔' : ''}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Filter Tabs */}

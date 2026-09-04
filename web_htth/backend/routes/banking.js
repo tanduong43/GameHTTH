@@ -26,6 +26,26 @@ if (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYO
 }
 
 /**
+ * Lấy hệ số nhân nạp hiện tại từ bảng `server_config` trong MySQL.
+ * Mặc định trả về 1 nếu chưa cấu hình.
+ */
+async function getDepositMultiplier(connection = null) {
+    try {
+        const executor = connection || db;
+        const [rows] = await executor.execute("SELECT `value` FROM `server_config` WHERE `key` = 'deposit_multiplier' LIMIT 1");
+        if (rows.length > 0 && rows[0].value) {
+            const mult = parseInt(rows[0].value.trim(), 10);
+            if (!isNaN(mult) && mult >= 1) {
+                return mult;
+            }
+        }
+    } catch (e) {
+        console.error('[Banking] Error reading deposit_multiplier:', e.message);
+    }
+    return 1;
+}
+
+/**
  * Shared function to handle atomic credit, transaction log, and realtime socket notify.
  * Safe against Race Conditions using SELECT ... FOR UPDATE inside a transaction.
  */
@@ -52,10 +72,13 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
         
         // Determine status: 1 if amount matches, 2 if wrong amount
         const status = (actualAmount === deposit.amount) ? 1 : 2;
-        const coinAmount = Math.floor(actualAmount / 1000); // Tỷ lệ: 1,000đ = 1 Coin
+        const depositMultiplier = await getDepositMultiplier(connection);
+        const baseCoin = Math.floor(actualAmount / 1000); // Tỷ lệ gốc: 1,000đ = 1 Coin
+        const coinAmount = baseCoin * depositMultiplier;
+        const multiplierTag = depositMultiplier > 1 ? ` [🔥 x${depositMultiplier}]` : '';
         const statusDesc = (status === 1) 
-            ? `Nạp tiền tự động qua ${gatewayType} thành công (${actualAmount.toLocaleString()}đ → ${coinAmount} Coin)` 
-            : `Nạp thành công sai mệnh giá (Yêu cầu ${deposit.amount}đ, thực nhận ${actualAmount}đ → ${coinAmount} Coin)`;
+            ? `Nạp tiền tự động qua ${gatewayType} thành công (${actualAmount.toLocaleString()}đ → ${coinAmount} Coin${multiplierTag})` 
+            : `Nạp thành công sai mệnh giá (Yêu cầu ${deposit.amount}đ, thực nhận ${actualAmount}đ → ${coinAmount} Coin${multiplierTag})`;
         
         // 1. Get current balance, sumamount, vip, and tichnap with lock
         const [userRows] = await connection.execute('SELECT coin, sumamount, vip, tichnap FROM accounts WHERE user = ? FOR UPDATE', [username]);
@@ -167,6 +190,7 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
             io.to(`user_${username}`).emit('deposit_success', {
                 username: username,
                 amount: coinAmount,
+                multiplier: depositMultiplier,
                 newBalance: newBalance,
                 message: statusDesc,
                 code: deposit.code,
@@ -176,14 +200,15 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
             console.log(`[Banking Socket] Emitted success event to user_${username}`);
 
             // Broadcast global notification to all users online
+            const globalMultiplierTag = depositMultiplier > 1 ? ` (🔥 x${depositMultiplier} nạp)` : '';
             io.emit('global_notification', {
                 type: 'deposit',
-                message: `⚓ Người chơi [${username}] vừa nạp thành công ${coinAmount.toLocaleString()} Coin qua Banking!`
+                message: `⚓ Người chơi [${username}] vừa nạp thành công ${coinAmount.toLocaleString()} Coin${globalMultiplierTag} qua Banking!`
             });
             console.log(`[Banking Socket] Broadcasted global deposit notification`);
         }
         
-        return true;
+        return { success: true, coinAmount, multiplier: depositMultiplier, status };
     } catch (err) {
         console.error(`[Banking Webhook] Error processing payment:`, err.message);
         await connection.rollback();
@@ -646,8 +671,9 @@ router.post('/admin/banking/approve', jwtRequired, isAdmin, async (req, res) => 
         const reference = `ADMIN_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
         const processed = await processCompletedPayment(code, actualAmount, reference, 'admin_approve', req.app.get('io'), false);
         
-        if (processed) {
-            return res.json({ success: true, message: `Duyệt thành công! Đã cộng ${actualAmount.toLocaleString()} Coin cho tài khoản.` });
+        if (processed && processed.success) {
+            const multTag = (processed.multiplier && processed.multiplier > 1) ? ` (x${processed.multiplier})` : '';
+            return res.json({ success: true, message: `Duyệt thành công! Đã cộng ${processed.coinAmount.toLocaleString()} Coin${multTag} cho tài khoản.` });
         } else {
             return res.json({ success: false, message: 'Không thể duyệt đơn nạp. Đơn có thể đã được xử lý hoặc không tìm thấy.' });
         }
@@ -713,13 +739,63 @@ router.post('/admin/banking/simulate', jwtRequired, isAdmin, async (req, res) =>
         const reference = `SIM_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
         const processed = await processCompletedPayment(code, actualAmount, reference, 'simulated_bank', req.app.get('io'), false);
         
-        if (processed) {
-            return res.json({ success: true, message: `Duyệt nạp tiền thành công! Đã cộng ${actualAmount.toLocaleString()} Coin.` });
+        if (processed && processed.success) {
+            const multTag = (processed.multiplier && processed.multiplier > 1) ? ` (x${processed.multiplier})` : '';
+            return res.json({ success: true, message: `Duyệt nạp tiền thành công! Đã cộng ${processed.coinAmount.toLocaleString()} Coin${multTag}.` });
         } else {
             return res.json({ success: false, message: 'Không thể xử lý đơn nạp. Có thể đơn đã hoàn thành hoặc không tìm thấy mã code.' });
         }
     } catch (err) {
         console.error('Admin simulate payment error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// GET /api/banking/multiplier - Lấy hệ số nhân nạp hiện tại
+router.get('/banking/multiplier', async (req, res) => {
+    try {
+        const multiplier = await getDepositMultiplier();
+        return res.json({ success: true, multiplier });
+    } catch (err) {
+        return res.json({ success: true, multiplier: 1 });
+    }
+});
+
+// POST /api/admin/banking/multiplier - Cập nhật hệ số nạp (x1, x2, x3) từ trang Admin
+router.post('/admin/banking/multiplier', jwtRequired, isAdmin, async (req, res) => {
+    const { multiplier } = req.body;
+    const mult = parseInt(multiplier, 10);
+
+    if (isNaN(mult) || mult < 1 || mult > 10) {
+        return res.json({ success: false, message: 'Hệ số nạp không hợp lệ (hỗ trợ 1, 2, 3...)' });
+    }
+
+    try {
+        await db.execute(
+            "INSERT INTO server_config (`key`, `value`, `description`) VALUES ('deposit_multiplier', ?, 'Hệ số nhân nạp thẻ / ngân hàng') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)",
+            [mult.toString()]
+        );
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('deposit_multiplier_changed', { multiplier: mult });
+            if (mult > 1) {
+                io.emit('global_notification', {
+                    type: 'event',
+                    message: `🔥 THÔNG BÁO SỰ KIỆN: Server đang diễn ra sự kiện NẠP x${mult}! Nạp ngay để nhận GẤP ${mult} Coin!`
+                });
+            } else {
+                io.emit('global_notification', {
+                    type: 'info',
+                    message: `📢 THÔNG BÁO: Sự kiện nạp nhân bội đã kết thúc. Hệ thống trở về tỷ lệ nạp bình thường (x1).`
+                });
+            }
+        }
+
+        console.log(`[Admin] Đã cập nhật hệ số nạp thành công: x${mult}`);
+        return res.json({ success: true, multiplier: mult, message: `Đã chuyển sang chế độ nạp x${mult} thành công!` });
+    } catch (err) {
+        console.error('Cập nhật hệ số nạp lỗi:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
     }
 });

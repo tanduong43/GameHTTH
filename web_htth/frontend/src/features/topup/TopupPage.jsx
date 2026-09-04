@@ -18,6 +18,7 @@ function TopupPage() {
   const [timeLeft, setTimeLeft] = useState('');
   const [confirming, setConfirming] = useState(false);
 
+  const [depositMultiplier, setDepositMultiplier] = useState(1);
   const [bankConfig, setBankConfig] = useState({
     bankId: 'MB',
     accountNo: '123456789999',
@@ -36,6 +37,9 @@ function TopupPage() {
           accountName: configRes.data.accountName,
           bankName: configRes.data.bankName,
         });
+        if (configRes.data.depositMultiplier) {
+          setDepositMultiplier(Number(configRes.data.depositMultiplier) || 1);
+        }
       }
 
       const historyRes = await api.get('banking/history');
@@ -115,7 +119,8 @@ function TopupPage() {
 
     const handleDepositSuccess = (data) => {
       console.log('TopupPage received local deposit_success:', data);
-      showMessage('success', `🎉 Nạp tiền thành công! Bạn đã được cộng ${data.amount.toLocaleString()} Coin.`);
+      const multNotice = (data.multiplier && data.multiplier > 1) ? ` (x${data.multiplier})` : '';
+      showMessage('success', `🎉 Nạp tiền thành công! Bạn đã được cộng ${data.amount.toLocaleString()} Coin${multNotice}.`);
       
       // Update activeDeposit status in real-time
       setActiveDeposit((prev) => {
@@ -181,12 +186,20 @@ function TopupPage() {
       }, 4000);
     };
 
+    const handleMultiplierChange = (data) => {
+      if (data && data.multiplier) {
+        setDepositMultiplier(Number(data.multiplier) || 1);
+      }
+    };
+
     socket.on('deposit_success', handleDepositSuccess);
     socket.on('deposit_rejected', handleDepositRejected);
+    socket.on('deposit_multiplier_changed', handleMultiplierChange);
 
     return () => {
       socket.off('deposit_success', handleDepositSuccess);
       socket.off('deposit_rejected', handleDepositRejected);
+      socket.off('deposit_multiplier_changed', handleMultiplierChange);
     };
   }, [socket, fetchUser]);
 
@@ -401,6 +414,31 @@ function TopupPage() {
 
           <h2 className="section-heading">NẠP TIỀN QUA NGÂN HÀNG (TỰ ĐỘNG)</h2>
 
+          {depositMultiplier > 1 && (
+            <div style={{
+              background: 'linear-gradient(135deg, #ff4d4f 0%, #fa541c 50%, #fa8c16 100%)',
+              color: '#fff',
+              padding: '12px 18px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              boxShadow: '0 4px 15px rgba(255, 77, 79, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+              <span style={{ fontSize: '26px' }}>🔥</span>
+              <div>
+                <strong style={{ fontSize: '15px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  SỰ KIỆN NẠP X{depositMultiplier} ĐANG DIỄN RA!
+                </strong>
+                <span style={{ fontSize: '13px', opacity: 0.95 }}>
+                  Hệ thống đang nhân <strong>gấp {depositMultiplier} lần</strong> Coin cho mọi giao dịch nạp tiền!
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="topup-balance">
             <span>Số dư hiện tại</span>
             <strong className="coin-text">{Number(user.coin || 0).toLocaleString()} Coin</strong>
@@ -506,6 +544,18 @@ function TopupPage() {
                     </div>
 
                     <div className="topup-info-block">
+                      <p className="topup-info-label">Quy đổi dự kiến nhận</p>
+                      <span className="topup-info-value" style={{ color: '#fa8c16', fontWeight: 'bold', fontSize: '16px' }}>
+                        +{((activeDeposit.amount / 1000) * depositMultiplier).toLocaleString()} Coin
+                        {depositMultiplier > 1 && (
+                          <span style={{ color: '#ff4d4f', fontSize: '12px', marginLeft: '6px', fontWeight: 'bold' }}>
+                            (🔥 Sự kiện x{depositMultiplier})
+                          </span>
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="topup-info-block">
                       <p className="topup-info-label">Nội dung chuyển khoản</p>
                       <div className="topup-transfer-code topup-transfer-code--row" style={{ margin: '4px 0' }}>
                         <span style={{ fontSize: '16px', color: '#ffac30' }}>{activeDeposit.transferContent}</span>
@@ -568,27 +618,37 @@ function TopupPage() {
                         Chọn nhanh mức nạp
                       </label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        {[100000, 200000, 500000, 1000000].map((amt) => (
-                          <button
-                            key={amt}
-                            type="button"
-                            onClick={() => {
-                              setTransferAmountOption(amt.toString());
-                              setTransferAmount(amt.toString());
-                            }}
-                            className={`btn ${transferAmount === amt.toString() ? 'btn-primary' : 'btn-outline'}`}
-                            style={{
-                              padding: '10px',
-                              fontSize: '13px',
-                              fontWeight: 'bold',
-                              borderColor: transferAmount === amt.toString() ? 'var(--primary)' : '#ccc',
-                              color: transferAmount === amt.toString() ? '#fff' : '#000',
-                              background: transferAmount === amt.toString() ? 'var(--primary)' : '#fff',
-                            }}
-                          >
-                            {amt.toLocaleString()}đ
-                          </button>
-                        ))}
+                        {[100000, 200000, 500000, 1000000].map((amt) => {
+                          const expected = (amt / 1000) * depositMultiplier;
+                          return (
+                            <button
+                              key={amt}
+                              type="button"
+                              onClick={() => {
+                                setTransferAmountOption(amt.toString());
+                                setTransferAmount(amt.toString());
+                              }}
+                              className={`btn ${transferAmount === amt.toString() ? 'btn-primary' : 'btn-outline'}`}
+                              style={{
+                                padding: '10px',
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                borderColor: transferAmount === amt.toString() ? 'var(--primary)' : '#ccc',
+                                color: transferAmount === amt.toString() ? '#fff' : '#000',
+                                background: transferAmount === amt.toString() ? 'var(--primary)' : '#fff',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '2px'
+                              }}
+                            >
+                              <span>{amt.toLocaleString()}đ</span>
+                              <span style={{ fontSize: '11px', opacity: 0.85, fontWeight: 'normal' }}>
+                                +{expected.toLocaleString()} Coin {depositMultiplier > 1 ? `(x${depositMultiplier})` : ''}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -624,15 +684,15 @@ function TopupPage() {
 
                     <div className="topup-tip topup-tip--success" style={{ marginTop: '20px' }}>
                       <p style={{ margin: 0, fontSize: '12px', color: '#52c41a', lineHeight: '1.5' }}>
-                        💡 <strong>Tỷ lệ:</strong> 1.000 VNĐ = 1 Coin = 100 Ruby = 1.000 Extol.
+                        💡 <strong>Tỷ lệ:</strong> 1.000 VNĐ = {depositMultiplier} Coin {depositMultiplier > 1 ? `(🔥 Đang x${depositMultiplier})` : ''} = {(depositMultiplier * 100).toLocaleString()} Ruby = {(depositMultiplier * 1000).toLocaleString()} Extol.
                         <br />
                         {transferAmount && !isNaN(parseInt(transferAmount, 10)) && parseInt(transferAmount, 10) >= 10000 ? (
                           <span style={{ display: 'inline-block', marginTop: '4px', padding: '4px 8px', background: 'rgba(82,196,26,0.1)', borderRadius: '4px' }}>
-                            👉 <strong>Thực nhận:</strong> {(parseInt(transferAmount, 10) / 1000).toLocaleString()} Coin = {((parseInt(transferAmount, 10) / 1000) * 100).toLocaleString()} Ruby = {((parseInt(transferAmount, 10) / 1000) * 1000).toLocaleString()} Extol
+                            👉 <strong>Thực nhận:</strong> {((parseInt(transferAmount, 10) / 1000) * depositMultiplier).toLocaleString()} Coin = {(((parseInt(transferAmount, 10) / 1000) * depositMultiplier) * 100).toLocaleString()} Ruby = {(((parseInt(transferAmount, 10) / 1000) * depositMultiplier) * 1000).toLocaleString()} Extol {depositMultiplier > 1 ? ` (🔥 Đã nhân x${depositMultiplier})` : ''}
                           </span>
                         ) : (
                           <span style={{ display: 'inline-block', marginTop: '4px' }}>
-                            (Ví dụ: 10.000đ = 10 Coin = 1.000 Ruby = 10.000 Extol)
+                            (Ví dụ: 10.000đ = {(10 * depositMultiplier).toLocaleString()} Coin = {((10 * depositMultiplier) * 100).toLocaleString()} Ruby = {((10 * depositMultiplier) * 1000).toLocaleString()} Extol)
                           </span>
                         )}
                       </p>

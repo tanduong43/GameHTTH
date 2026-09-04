@@ -1071,8 +1071,21 @@ router.post('/admin/upload', jwtRequired, isAdmin, async (req, res) => {
     }
 });
 
-// GET /api/recharge/bank_config (Lấy cấu hình ngân hàng công khai)
+// GET /api/recharge/bank_config (Lấy cấu hình ngân hàng công khai & sự kiện nạp)
 router.get('/recharge/bank_config', async (req, res) => {
+    let depositMultiplier = 1;
+    try {
+        const [rows] = await db.execute("SELECT `value` FROM `server_config` WHERE `key` = 'deposit_multiplier' LIMIT 1");
+        if (rows.length > 0 && rows[0].value) {
+            const parsed = parseInt(rows[0].value.trim(), 10);
+            if (!isNaN(parsed) && parsed >= 1) {
+                depositMultiplier = parsed;
+            }
+        }
+    } catch (e) {
+        console.error('Error fetching multiplier in bank_config:', e.message);
+    }
+
     return res.json({
         success: true,
         bankId: process.env.BANK_ID || 'MB',
@@ -1081,6 +1094,7 @@ router.get('/recharge/bank_config', async (req, res) => {
         bankName: process.env.BANK_NAME || `${process.env.BANK_ID || 'MB'} Bank`,
         momoPhone: process.env.MOMO_PHONE || '0987654321',
         momoName: process.env.MOMO_NAME || 'NGUYEN VAN A',
+        depositMultiplier: depositMultiplier
     });
 });
 
