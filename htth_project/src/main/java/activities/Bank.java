@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +85,9 @@ public class Bank {
                     new String[] { "Nạp tiền", "Đổi Coin", "Xem Coin", "Duyệt nạp", "Cấu hình nạp", "Thông tin" },
                     new short[] { 132, 140, 140, 161, 148, 148 });
         } else {
-            String napLabel = DEPOSIT_MULTIPLIER > 1
-                    ? "Nạp tiền (đang x" + DEPOSIT_MULTIPLIER + ")"
+            int mult = getDepositMultiplier();
+            String napLabel = mult > 1
+                    ? "Nạp tiền (đang x" + mult + ")"
                     : "Nạp tiền";
             MenuController.send_dynamic_menu(p, npcId, "Ngân Hàng",
                     new String[] { napLabel, "Đổi Coin", "Xem Coin", "Thông tin" },
@@ -179,8 +181,9 @@ public class Bank {
      */
     public static void requestDepositInput(Player p) throws IOException {
         String title = "Nạp Tiền Ngân Hàng";
-        if (DEPOSIT_MULTIPLIER > 1) {
-            title += " (🔥 Đang x" + DEPOSIT_MULTIPLIER + ")";
+        int mult = getDepositMultiplier();
+        if (mult > 1) {
+            title += " (🔥 Đang x" + mult + ")";
         }
         Service.input_text(p, INPUT_ID_BANK_DEPOSIT, title,
                 new String[] { "Nhập số tiền VNĐ (VD: 50000, 100000)" });
@@ -245,14 +248,15 @@ public class Bank {
             psInsert.setString(6, description);
             psInsert.executeUpdate();
 
-            int expectedCoin = (amount / 1000) * DEPOSIT_MULTIPLIER;
-            String multiplierNote = DEPOSIT_MULTIPLIER > 1
-                    ? "\n• 🔥 Sự kiện nạp x" + DEPOSIT_MULTIPLIER + " đang diễn ra!"
+            int mult = getDepositMultiplier();
+            int expectedCoin = (amount / 1000) * mult;
+            String multiplierNote = mult > 1
+                    ? "\n• 🔥 Sự kiện nạp x" + mult + " đang diễn ra!"
                     : "";
             Service.send_box_ThongBao_OK(p, "✅ Đã tạo yêu cầu nạp " + Util.number_format(amount) + " VNĐ thành công!\n"
                     + "• Mã GD: " + code + "\n"
                     + "• Quy đổi dự kiến: +" + Util.number_format(expectedCoin) + " Coin"
-                    + (DEPOSIT_MULTIPLIER > 1 ? " (" + Util.number_format(amount / 1000) + " x" + DEPOSIT_MULTIPLIER + ")" : "") + "\n"
+                    + (mult > 1 ? " (" + Util.number_format(amount / 1000) + " x" + mult + ")" : "") + "\n"
                     + "• Tích nạp dự kiến: +" + Util.number_format(amount) + " điểm"
                     + multiplierNote + "\n\n"
                     + "Vui lòng chuyển khoản đúng nội dung và đợi Admin duyệt đơn nạp của bạn nhé!");
@@ -412,9 +416,10 @@ public class Bank {
         PendingRecharge selected = list.get(index);
         SELECTED_APPROVE_MAP.put(adminPlayer.name, selected);
 
-        int coinGain = (selected.amount / 1000) * DEPOSIT_MULTIPLIER;
-        String multiplierInfo = DEPOSIT_MULTIPLIER > 1
-                ? " (x" + DEPOSIT_MULTIPLIER + ")"
+        int mult = getDepositMultiplier();
+        int coinGain = (selected.amount / 1000) * mult;
+        String multiplierInfo = mult > 1
+                ? " (x" + mult + ")"
                 : "";
 
         // Hiển thị menu con 3 lựa chọn thay vì yesno 2 nút
@@ -442,9 +447,10 @@ public class Bank {
         switch (index) {
             case 0: { // Duyệt ngay
                 adminPlayer.data_yesno = new int[] { YESNO_ID_BANK_APPROVE_DEPOSIT, selected.id, selected.amount };
-                int coinGain = (selected.amount / 1000) * DEPOSIT_MULTIPLIER;
-                String multiplierInfo = DEPOSIT_MULTIPLIER > 1
-                        ? " (x" + DEPOSIT_MULTIPLIER + ")"
+                int multAction = getDepositMultiplier();
+                int coinGain = (selected.amount / 1000) * multAction;
+                String multiplierInfo = multAction > 1
+                        ? " (x" + multAction + ")"
                         : "";
                 String confirmMsg = "Xác nhận duyệt đơn nạp tiền:\n"
                         + "• Tài khoản: " + selected.username + "\n"
@@ -527,7 +533,8 @@ public class Bank {
             }
             String targetUser = rs.getString("username");
             int targetAmount = rs.getInt("amount");
-            int coinGain = (targetAmount / 1000) * DEPOSIT_MULTIPLIER;
+            int multApprove = getDepositMultiplier();
+            int coinGain = (targetAmount / 1000) * multApprove;
             int ticketQuantity = targetAmount / 1000; // Số vé tặng kèm (1k VND = 1 vé)
 
             // Cập nhật trạng thái đơn nạp
@@ -615,8 +622,8 @@ public class Bank {
                                         ticketMsg = "\n• Tặng kèm: +" + Util.number_format(ticketQuantity) + " Vé tặng 10 ruby";
                                     }
                                 }
-                                String multiplierNote = DEPOSIT_MULTIPLIER > 1
-                                        ? " (x" + DEPOSIT_MULTIPLIER + ")"
+                                String multiplierNote = multApprove > 1
+                                        ? " (x" + multApprove + ")"
                                         : "";
                                 Service.send_box_ThongBao_OK(sess.p, "🎉 THÔNG BÁO NẠP TIỀN THÀNH CÔNG!\n\n"
                                         + "Đơn nạp " + Util.number_format(targetAmount) + " VNĐ của bạn đã được Admin duyệt thành công.\n"
@@ -718,8 +725,8 @@ public class Bank {
                 playerName = (charNameFromAcc != null && !charNameFromAcc.trim().isEmpty()) ? charNameFromAcc : targetUser;
             }
 
-            String adminMultiplierNote = DEPOSIT_MULTIPLIER > 1
-                    ? " (x" + DEPOSIT_MULTIPLIER + " → +" + Util.number_format(coinGain) + " Coin)"
+            String adminMultiplierNote = multApprove > 1
+                    ? " (x" + multApprove + " → +" + Util.number_format(coinGain) + " Coin)"
                     : "";
             Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã duyệt thành công đơn nạp " + Util.number_format(targetAmount)
                     + " VNĐ cho nhân vật [" + playerName + "] (Tài khoản: " + targetUser + ")!" + adminMultiplierNote
@@ -967,6 +974,84 @@ public class Bank {
         }
     }
 
+    /** Thời điểm lần cuối đồng bộ hệ số nạp từ Database */
+    private static volatile long lastMultiplierSyncTime = 0;
+
+    /**
+     * Tải hệ số nạp từ bảng `server_config` trong MySQL.
+     * Tự động tạo bảng nếu chưa có.
+     */
+    public static synchronized int loadDepositMultiplierFromDb() {
+        Connection conn = null;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            conn = SQL.gI().getCon();
+            if (conn == null) return DEPOSIT_MULTIPLIER;
+
+            st = conn.createStatement();
+            st.executeUpdate("CREATE TABLE IF NOT EXISTS `server_config` ("
+                    + "`key` VARCHAR(100) NOT NULL PRIMARY KEY, "
+                    + "`value` TEXT NOT NULL, "
+                    + "`description` VARCHAR(255) DEFAULT NULL, "
+                    + "`updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+                    + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            rs = st.executeQuery("SELECT `value` FROM `server_config` WHERE `key` = 'deposit_multiplier' LIMIT 1;");
+            if (rs.next()) {
+                String val = rs.getString("value");
+                int parsed = Integer.parseInt(val.trim());
+                if (parsed >= 1) {
+                    DEPOSIT_MULTIPLIER = parsed;
+                }
+            } else {
+                st.executeUpdate("INSERT INTO `server_config` (`key`, `value`, `description`) "
+                        + "VALUES ('deposit_multiplier', '" + DEPOSIT_MULTIPLIER + "', 'Hệ số nhân nạp (1 = bình thường, 2 = x2, 3 = x3)');");
+            }
+            lastMultiplierSyncTime = System.currentTimeMillis();
+            System.out.println("[Bank] Loaded deposit_multiplier = x" + DEPOSIT_MULTIPLIER + " from DB.");
+        } catch (Exception e) {
+            System.err.println("[Bank] Error loading deposit_multiplier from DB: " + e.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (st != null) st.close();
+                if (conn != null) conn.close();
+            } catch (Exception e) {}
+        }
+        return DEPOSIT_MULTIPLIER;
+    }
+
+    /**
+     * Lưu hệ số nạp vào MySQL và đồng bộ biến in-memory.
+     */
+    public static synchronized void saveDepositMultiplierToDb(int multiplier) {
+        if (multiplier < 1) multiplier = 1;
+        DEPOSIT_MULTIPLIER = multiplier;
+        lastMultiplierSyncTime = System.currentTimeMillis();
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = SQL.gI().getCon();
+            if (conn == null) return;
+
+            ps = conn.prepareStatement("INSERT INTO `server_config` (`key`, `value`, `description`) "
+                    + "VALUES ('deposit_multiplier', ?, 'Hệ số nhân nạp (1 = bình thường, 2 = x2, 3 = x3)') "
+                    + "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `description` = VALUES(`description`);");
+            ps.setString(1, String.valueOf(multiplier));
+            ps.executeUpdate();
+            System.out.println("[Bank] Saved deposit_multiplier = x" + multiplier + " to server_config.");
+        } catch (Exception e) {
+            System.err.println("[Bank] Error saving deposit_multiplier to DB: " + e.getMessage());
+        } finally {
+            try {
+                if (ps != null) ps.close();
+                if (conn != null) conn.close();
+            } catch (Exception e) {}
+        }
+    }
+
     /**
      * Hiển thị menu cấu hình nạp cho Admin (x1, x2, x3)
      */
@@ -976,8 +1061,9 @@ public class Bank {
             return;
         }
 
+        int currentMult = getDepositMultiplier();
         String currentLabel;
-        switch (DEPOSIT_MULTIPLIER) {
+        switch (currentMult) {
             case 2:  currentLabel = "x2"; break;
             case 3:  currentLabel = "x3"; break;
             default: currentLabel = "x1 (Bình thường)"; break;
@@ -986,9 +1072,9 @@ public class Bank {
         MenuController.send_dynamic_menu(adminPlayer, MENU_ID_ADMIN_CONFIG_NAP,
                 "Cấu Hình Nạp (Hiện tại: " + currentLabel + ")",
                 new String[] {
-                        "Nạp x1 (Bình thường)" + (DEPOSIT_MULTIPLIER == 1 ? " ✔" : ""),
-                        "Nạp x2" + (DEPOSIT_MULTIPLIER == 2 ? " ✔" : ""),
-                        "Nạp x3" + (DEPOSIT_MULTIPLIER == 3 ? " ✔" : ""),
+                        "Nạp x1 (Bình thường)" + (currentMult == 1 ? " ✔" : ""),
+                        "Nạp x2" + (currentMult == 2 ? " ✔" : ""),
+                        "Nạp x3" + (currentMult == 3 ? " ✔" : ""),
                         "Quay lại"
                 },
                 new short[] { 140, 148, 161, 132 });
@@ -1003,33 +1089,34 @@ public class Bank {
             return;
         }
 
+        int currentMult = getDepositMultiplier();
         switch (index) {
             case 0: { // x1
-                if (DEPOSIT_MULTIPLIER == 1) {
+                if (currentMult == 1) {
                     Service.send_box_ThongBao_OK(adminPlayer, "Hệ thống đang ở chế độ nạp x1 rồi!");
                     return;
                 }
-                DEPOSIT_MULTIPLIER = 1;
+                saveDepositMultiplierToDb(1);
                 Manager.gI().chatKTG(0, "📢 THÔNG BÁO: Sự kiện nạp nhân bội đã kết thúc. Hệ thống trở về nạp bình thường (x1).", 5);
                 Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã chuyển về chế độ nạp bình thường (x1)!");
                 break;
             }
             case 1: { // x2
-                if (DEPOSIT_MULTIPLIER == 2) {
+                if (currentMult == 2) {
                     Service.send_box_ThongBao_OK(adminPlayer, "Hệ thống đang ở chế độ nạp x2 rồi!");
                     return;
                 }
-                DEPOSIT_MULTIPLIER = 2;
+                saveDepositMultiplierToDb(2);
                 Manager.gI().chatKTG(0, "🔥 THÔNG BÁO: Hiện tại hệ thống đang có sự kiện NẠP x2! Nạp ngay để nhận GẤP ĐÔI Coin!", 5);
                 Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã bật sự kiện nạp x2! Người chơi nạp sẽ nhận gấp đôi Coin.");
                 break;
             }
             case 2: { // x3
-                if (DEPOSIT_MULTIPLIER == 3) {
+                if (currentMult == 3) {
                     Service.send_box_ThongBao_OK(adminPlayer, "Hệ thống đang ở chế độ nạp x3 rồi!");
                     return;
                 }
-                DEPOSIT_MULTIPLIER = 3;
+                saveDepositMultiplierToDb(3);
                 Manager.gI().chatKTG(0, "🔥🔥 THÔNG BÁO: Hiện tại hệ thống đang có sự kiện NẠP x3! Nạp ngay để nhận GẤP BA Coin!", 5);
                 Service.send_box_ThongBao_OK(adminPlayer, "✅ Đã bật sự kiện nạp x3! Người chơi nạp sẽ nhận gấp ba Coin.");
                 break;
@@ -1042,9 +1129,12 @@ public class Bank {
     }
 
     /**
-     * Lấy hệ số nhân nạp hiện tại (dùng cho các module khác nếu cần)
+     * Lấy hệ số nhân nạp hiện tại (tự động đồng bộ từ DB định kỳ mỗi 5s để luôn khớp với Web)
      */
     public static int getDepositMultiplier() {
+        if (System.currentTimeMillis() - lastMultiplierSyncTime > 5000L) {
+            loadDepositMultiplierFromDb();
+        }
         return DEPOSIT_MULTIPLIER;
     }
 }

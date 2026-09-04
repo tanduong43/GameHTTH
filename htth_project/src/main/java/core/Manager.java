@@ -1302,6 +1302,19 @@ public class Manager {
         } else {
             RATE_EXP_SKILL = 1;
         }
+        // Server Event Deposit Multiplier Config (x1, x2, x3 Nạp)
+        if (configMap.containsKey("rate-nap")) {
+            try {
+                int confNap = Integer.parseInt(configMap.get("rate-nap").trim());
+                if (confNap >= 1) {
+                    activities.Bank.saveDepositMultiplierToDb(confNap);
+                }
+            } catch (Exception e) {
+                activities.Bank.loadDepositMultiplierFromDb();
+            }
+        } else {
+            activities.Bank.loadDepositMultiplierFromDb();
+        }
     }
 
     public void close() {
