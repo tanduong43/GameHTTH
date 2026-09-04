@@ -79,7 +79,11 @@ public class MessageHandler {
             }
             case -35: {
                 if (conn.p != null) {
-                    Fight.process(conn.p, m);
+                    try {
+                        Fight.process(conn.p, m);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 break;
             }
@@ -1081,6 +1085,28 @@ public class MessageHandler {
                     conn.p.y = 320;
                 }
                 conn.p.type_pk = -1;
+                conn.p.isdie = false;
+                conn.p.hp = conn.p.body.get_hp_max(true);
+                conn.p.mp = conn.p.body.get_mp_max(true);
+            }
+
+            // Safety check: nếu out game khi đang trong Map Lôi Đài PK (120, 122, 123) hoặc map_pvp != null
+            if (conn.p.map != null && (conn.p.map.template.id == 120 || conn.p.map.template.id == 122
+                    || conn.p.map.template.id == 123 || conn.p.map.map_pvp != null)) {
+                int targetMapId = conn.p.id_map_save > 0 ? conn.p.id_map_save : 1;
+                System.out.println("[PVP Login safety]: player " + conn.p.name
+                        + " logged in while in PVP arena map (" + conn.p.map.template.id + "), redirecting to village " + targetMapId);
+                map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
+                if (villageMap == null || villageMap.length == 0) {
+                    villageMap = map.Map.get_map_by_id(1);
+                }
+                if (villageMap != null && villageMap.length > 0) {
+                    conn.p.map = villageMap[0];
+                    conn.p.x = 611;
+                    conn.p.y = 250;
+                }
+                conn.p.type_pk = -1;
+                conn.p.targetFight = null;
                 if (conn.p.isdie) {
                     conn.p.isdie = false;
                     conn.p.hp = conn.p.body.get_hp_max(true);

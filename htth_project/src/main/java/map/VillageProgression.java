@@ -8,29 +8,26 @@ import core.Manager;
 import core.Service;
 
 /**
- * Quản lý cơ chế Mốc Qua Làng (Village Progression).
- * Cứ cách 3 làng sẽ có 1 mốc: Người chơi phải tiêu diệt Boss làng chốt mốc
- * để mở khóa tiếp 3 làng tiếp theo trên Đại Hải Trình.
+ * Quản lý cơ chế Mốc Qua Làng (Village Progression): 1 Boss 1 Làng.
+ * - Tier 1 (Mặc định): Mở sẵn tới Làng Orange (Maps 1 - 24: Cối Xay Gió, Vỏ Sò, Orange).
+ * - Các làng tiếp theo: Tiêu diệt Boss làng/Boss map chốt của làng trước đó để mở khóa làng tiếp theo.
  *
- * - Tier 1 (Mặc định): Làng 1 (Cối Xay Gió), Làng 2 (Vỏ Sò), Làng 3 (Orange) [Maps 1 - 24]
- *   -> Diệt Boss tại vùng Orange (Maps 17-24) để mở Tier 2.
- *
- * - Tier 2: Làng 4 (Syrup), Làng 5 (Baratie), Làng 6 (Hạt Dẻ) [Maps 25 - 48]
- *   -> Diệt Boss tại vùng Hạt Dẻ (Maps 41-48) để mở Tier 3.
- *
- * - Tier 3: Làng 7 (Loguetown), Làng 8 (Mỏm Sinh Đôi), Làng 9 (Núi Đảo Nghịch) [Maps 49 - 78]
- *   -> Diệt Boss tại vùng Núi Đảo Nghịch / Loguetown (Maps 49-78) để mở Tier 4.
- *
- * - Tier 4: Làng 10 (Whiskey), Làng 11 (Little Garden), Làng 12 (Cự Nhân) [Maps 79 - 106]
- *   -> Diệt Boss tại vùng Cự Nhân / Little Garden (Maps 83-106) để mở Tier 5.
- *
- * - Tier 5: Làng 13 (Đảo Drum), Làng 14 (Alabasta), Làng 15 (Skypiea) [Maps 107+]
+ * - Tier 1 (Mặc định): Maps 1 - 24 (Cối Xay Gió, Vỏ Sò, Orange)
+ * - Tier 2: Làng Syrup [Maps 25 - 32] -> Diệt Boss tại vùng Orange (Maps 17-24) để mở.
+ * - Tier 3: Nhà Hàng Baratie [Maps 33 - 40] -> Diệt Boss tại vùng Syrup (Maps 25-32) để mở.
+ * - Tier 4: Làng Hạt Dẻ [Maps 41 - 48] -> Diệt Boss tại vùng Baratie (Maps 33-40) để mở.
+ * - Tier 5: Thị Trấn Khởi Đầu (Loguetown) [Maps 49 - 65] -> Diệt Boss tại vùng Hạt Dẻ (Maps 41-48) để mở.
+ * - Tier 6: Mỏm Sinh Đôi & TT. Whiskey [Maps 66 - 78] -> Diệt Boss tại vùng Khởi Đầu (Maps 49-65) để mở.
+ * - Tier 7: Đảo Little Garden & TT. Horn [Maps 79 - 92] -> Diệt Boss tại vùng Whiskey (Maps 66-78) để mở.
+ * - Tier 8: TT. Nanohana & Vương Quốc Alabasta [Maps 93 - 106] -> Diệt Boss tại vùng Little Garden / Horn (Maps 79-92) để mở.
+ * - Tier 9: Đảo Drum & Đảo Trên Trời (Skypiea) [Maps 107 - 127] -> Diệt Boss tại vùng Alabasta (Maps 93-106) để mở.
+ * - Tier 10: Kinh Đô Nước Water 7 [Maps 189 - 198+] -> Diệt Boss tại vùng Đảo Trên Trời (Maps 107-127) để mở.
  *
  * @author Truongbk
  */
 public class VillageProgression {
 
-    public static final int MAX_TIER = 5;
+    public static final int MAX_TIER = 10;
 
     /**
      * Xác định Tier yêu cầu của một Map.
@@ -42,25 +39,45 @@ public class VillageProgression {
             return 0;
         }
 
-        // Tier 1: Maps 1 - 24 (Cối Xay Gió, Vỏ Sò, Orange)
+        // Tier 1 (Mặc định): Maps 1 - 24 (Cối Xay Gió, Vỏ Sò, Orange)
         if (mapId >= 1 && mapId <= 24) {
             return 1;
         }
-        // Tier 2: Maps 25 - 48 (Syrup, Baratie, Hạt Dẻ)
-        if (mapId >= 25 && mapId <= 48) {
+        // Tier 2: Maps 25 - 32 (Làng Syrup)
+        if (mapId >= 25 && mapId <= 32) {
             return 2;
         }
-        // Tier 3: Maps 49 - 78 (Thị trấn khởi đầu, Mỏm sinh đôi, Núi đảo nghịch)
-        if (mapId >= 49 && mapId <= 78) {
+        // Tier 3: Maps 33 - 40 (Nhà Hàng Baratie)
+        if (mapId >= 33 && mapId <= 40) {
             return 3;
         }
-        // Tier 4: Maps 79 - 106 (Whiskey, Little Garden, Cự Nhân)
-        if (mapId >= 79 && mapId <= 106) {
+        // Tier 4: Maps 41 - 48 (Làng Hạt Dẻ)
+        if (mapId >= 41 && mapId <= 48) {
             return 4;
         }
-        // Tier 5: Maps 107+ (Drum, Alabasta, Skypiea, v.v.)
-        if (mapId >= 107) {
+        // Tier 5: Maps 49 - 65 (Thị Trấn Khởi Đầu - Loguetown)
+        if (mapId >= 49 && mapId <= 65) {
             return 5;
+        }
+        // Tier 6: Maps 66 - 78 (Mỏm Sinh Đôi & Thị Trấn Whiskey)
+        if (mapId >= 66 && mapId <= 78) {
+            return 6;
+        }
+        // Tier 7: Maps 79 - 92 (Đảo Little Garden & Thị Trấn Horn)
+        if (mapId >= 79 && mapId <= 92) {
+            return 7;
+        }
+        // Tier 8: Maps 93 - 106 (TT. Nanohana & Vương Quốc Alabasta)
+        if (mapId >= 93 && mapId <= 106) {
+            return 8;
+        }
+        // Tier 9: Maps 107 - 127 (Đảo Drum & Đảo Trên Trời - Skypiea)
+        if (mapId >= 107 && mapId <= 127) {
+            return 9;
+        }
+        // Tier 10: Maps 189+ (Kinh Đô Nước Water 7)
+        if (mapId >= 189) {
+            return 10;
         }
 
         return 1;
@@ -95,13 +112,23 @@ public class VillageProgression {
         int reqTier = getRequiredTierForMap(targetMapId);
         switch (reqTier) {
             case 2:
-                return "Bạn cần tiêu diệt Boss tại Thị trấn Orange để mở khóa hành trình đến Làng Syrup, Baratie, Hạt Dẻ!";
+                return "Bạn cần tiêu diệt Boss tại Thị trấn Orange để mở khóa hành trình đến Làng Syrup!";
             case 3:
-                return "Bạn cần tiêu diệt Boss tại Làng Hạt Dẻ để mở khóa hành trình đến Thị trấn Khởi đầu, Mỏm Sinh Đôi, Núi Đảo Nghịch!";
+                return "Bạn cần tiêu diệt Boss tại Làng Syrup để mở khóa hành trình đến Nhà Hàng Baratie!";
             case 4:
-                return "Bạn cần tiêu diệt Boss tại Núi Đảo Nghịch để mở khóa hành trình đến Thị trấn Whiskey, Little Garden, Đảo Cự Nhân!";
+                return "Bạn cần tiêu diệt Boss tại Nhà Hàng Baratie để mở khóa hành trình đến Làng Hạt Dẻ!";
             case 5:
-                return "Bạn cần tiêu diệt Boss tại Đảo Cự Nhân để mở khóa hành trình đến Đảo Drum, Alabasta, Skypiea!";
+                return "Bạn cần tiêu diệt Boss tại Làng Hạt Dẻ để mở khóa hành trình đến Thị Trấn Khởi Đầu!";
+            case 6:
+                return "Bạn cần tiêu diệt Boss tại Thị Trấn Khởi Đầu để mở khóa hành trình đến Mỏm Sinh Đôi & Thị Trấn Whiskey!";
+            case 7:
+                return "Bạn cần tiêu diệt Boss tại Thị Trấn Whiskey để mở khóa hành trình đến Đảo Little Garden & Thị Trấn Horn!";
+            case 8:
+                return "Bạn cần tiêu diệt Boss tại Đảo Little Garden / TT. Horn để mở khóa hành trình đến Vương Quốc Alabasta!";
+            case 9:
+                return "Bạn cần tiêu diệt Boss tại Vương Quốc Alabasta để mở khóa hành trình đến Đảo Drum & Đảo Trên Trời!";
+            case 10:
+                return "Bạn cần tiêu diệt Boss tại Đảo Trên Trời để mở khóa hành trình đến Kinh Đô Nước Water 7!";
             default:
                 return "Chưa thể đi đến khu vực này!";
         }
@@ -114,17 +141,21 @@ public class VillageProgression {
     public static void onBossKilled(Player p, Mob mobTarget, Map map) {
         if (mobTarget == null || map == null || p == null) return;
 
-        // Kích hoạt khi tiêu diệt:
-        // 1. Boss làng thế giới (thegioi == 2)
-        // 2. Boss map cuối làng 1.000 ruby (Map.is_map_boss)
-        boolean isWorldVillageBoss = (mobTarget.boss_info != null && mobTarget.boss_info.thegioi == 2);
-        boolean isMapBossRuby = Map.is_map_boss(map.template.id);
+        int mobId = mobTarget.mob_template != null ? mobTarget.mob_template.mob_id : -1;
+        int mapId = map.template.id;
 
-        if (!isWorldVillageBoss && !isMapBossRuby) {
+        // Kích hoạt khi tiêu diệt:
+        // 1. Boss làng thế giới (thegioi == 2 hoặc 1)
+        // 2. Boss map cuối làng 1.000 ruby (Map.is_map_boss)
+        // 3. Quái có mob_id là một trong các Boss làng chốt mốc
+        boolean isWorldVillageBoss = (mobTarget.boss_info != null && (mobTarget.boss_info.thegioi == 2 || mobTarget.boss_info.thegioi == 1));
+        boolean isMapBossRuby = Map.is_map_boss(mapId);
+        boolean isKnownBossMob = (mobId == 16 || mobId == 23 || mobId == 29 || mobId == 36
+                || mobId == 43 || mobId == 68 || mobId == 78 || mobId == 92 || mobId == 112);
+
+        if (!isWorldVillageBoss && !isMapBossRuby && !isKnownBossMob) {
             return;
         }
-
-        int mapId = map.template.id;
 
         // Không tính qua làng khi đang trong phó bản Săn Trùm (BossHunt) hoặc các phó bản khác
         if (map.map_bossHunt != null || activities.BossHunt.isBossHuntMap(mapId)
@@ -132,35 +163,55 @@ public class VillageProgression {
             return;
         }
 
-        // Xác định mốc hiện tại dựa theo map của boss
+        // Xác định mốc hiện tại dựa theo mobId và mapId của boss
         int unlockTier = 0;
         String bossName = mobTarget.mob_template != null ? mobTarget.mob_template.name : "Boss";
         String unlockedVillages = "";
 
-        // Mốc 1 -> 2: Boss ở các Maps 1 - 24 (Vùng Orange, Vỏ Sò, Cối Xay Gió)
-        if (mapId >= 1 && mapId <= 24) {
+        // Mốc 1 -> 2: Boss Orange (Buggy mob_id 16 hoặc Map 21 / Maps 16-24)
+        if (mobId == 16 || mapId == 21 || (mapId >= 16 && mapId <= 24)) {
             unlockTier = 2;
-            unlockedVillages = "Làng Syrup, Nhà Hàng Baratie, Làng Hạt Dẻ";
+            unlockedVillages = "Làng Syrup";
         }
-        // Mốc 2 -> 3: Boss ở các Maps 25 - 48 (Vùng Syrup, Baratie, Hạt Dẻ)
-        else if (mapId >= 25 && mapId <= 48) {
+        // Mốc 2 -> 3: Boss Syrup (Kuro mob_id 23 hoặc Map 29 / Maps 24-32)
+        else if (mobId == 23 || mapId == 29 || (mapId >= 24 && mapId <= 32)) {
             unlockTier = 3;
-            unlockedVillages = "Thị Trấn Khởi Đầu, Mỏm Sinh Đôi, Núi Đảo Nghịch";
+            unlockedVillages = "Nhà Hàng Baratie";
         }
-        // Mốc 3 -> 4: Boss ở các Maps 49 - 78 (Vùng Núi Đảo Nghịch / Loguetown)
-        else if (mapId >= 49 && mapId <= 78) {
+        // Mốc 3 -> 4: Boss Baratie (Krieg mob_id 29 hoặc Map 37 / Maps 32-40)
+        else if (mobId == 29 || mapId == 37 || (mapId >= 32 && mapId <= 40)) {
             unlockTier = 4;
-            unlockedVillages = "Thị Trấn Whiskey, Little Garden, Đảo Cự Nhân";
+            unlockedVillages = "Làng Hạt Dẻ";
         }
-        // Mốc 4 -> 5: Boss ở các Maps 79 - 106 (Vùng Whiskey, Little Garden, Cự Nhân)
-        else if (mapId >= 79 && mapId <= 106) {
+        // Mốc 4 -> 5: Boss Hạt Dẻ (Arlong mob_id 36 hoặc Map 45 / Maps 40-48)
+        else if (mobId == 36 || mapId == 45 || (mapId >= 40 && mapId <= 48)) {
             unlockTier = 5;
-            unlockedVillages = "Đảo Drum, Vương Quốc Alabasta, Đảo Trên Trời";
+            unlockedVillages = "Thị Trấn Khởi Đầu (Loguetown)";
         }
-        // Mốc 5+: Boss ở các Maps 107+ (Drum, Alabasta, Skypiea, v.v.)
-        else if (mapId >= 107) {
-            unlockTier = 5;
-            unlockedVillages = "Đảo Drum, Vương Quốc Alabasta, Đảo Trên Trời";
+        // Mốc 5 -> 6: Boss Khởi Đầu (Smoker mob_id 43 hoặc Map 53 / Maps 48-65)
+        else if (mobId == 43 || mapId == 53 || (mapId >= 48 && mapId <= 65)) {
+            unlockTier = 6;
+            unlockedVillages = "Mỏm Sinh Đôi & Thị Trấn Whiskey";
+        }
+        // Mốc 6 -> 7: Boss Whiskey (mob_id 68 hoặc Map 73 / Maps 66-78)
+        else if (mobId == 68 || mapId == 73 || (mapId >= 66 && mapId <= 78)) {
+            unlockTier = 7;
+            unlockedVillages = "Đảo Little Garden & Thị Trấn Horn";
+        }
+        // Mốc 7 -> 8: Boss Little Garden / Horn (mob_id 78 hoặc Map 87 / Maps 79-92)
+        else if (mobId == 78 || mapId == 87 || (mapId >= 79 && mapId <= 92)) {
+            unlockTier = 8;
+            unlockedVillages = "Thị Trấn Nanohana & Vương Quốc Alabasta";
+        }
+        // Mốc 8 -> 9: Boss Alabasta (Crocodile mob_id 92 hoặc Map 102 / Maps 93-106)
+        else if (mobId == 92 || mapId == 102 || (mapId >= 93 && mapId <= 106)) {
+            unlockTier = 9;
+            unlockedVillages = "Đảo Drum & Đảo Trên Trời (Skypiea)";
+        }
+        // Mốc 9 -> 10: Boss Đảo Trên Trời (Enel mob_id 112 hoặc Map 127 / Maps 107-127)
+        else if (mobId == 112 || mapId == 127 || (mapId >= 107 && mapId <= 127)) {
+            unlockTier = 10;
+            unlockedVillages = "Kinh Đô Nước Water 7";
         }
 
         if (unlockTier > 0 && p != null && p.conn != null) {
@@ -170,18 +221,24 @@ public class VillageProgression {
     }
 
     private static void applyTierUnlock(Player pl, int newTier, String bossName, String unlockedVillages) {
-        if (pl != null && pl.village_tier < newTier) {
-            pl.village_tier = (byte) newTier;
-            try {
+        if (pl == null || pl.conn == null) return;
+        try {
+            if (pl.village_tier < newTier) {
+                pl.village_tier = (byte) newTier;
+                System.out.println("[PROGRESSION] Player " + pl.name + " defeated " + bossName + " -> UPGRADED TO TIER " + newTier + " (" + unlockedVillages + ")");
                 Service.send_box_ThongBao_OK(pl,
                         "🎉 Chúc mừng bạn đã tiêu diệt " + bossName
                                 + "!\nBạn đã mở khóa hành trình đến: " + unlockedVillages + "!");
                 Manager.gI().chatKTG(0,
                         "Hải tặc " + pl.name + " đã tiêu diệt " + bossName + " và mở khóa vùng biển mới: " + unlockedVillages + "!",
                         5);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } else {
+                System.out.println("[PROGRESSION] Player " + pl.name + " defeated " + bossName + " -> ALREADY UNLOCKED TIER " + newTier);
+                Service.send_box_ThongBao_OK(pl,
+                        "🎉 Bạn đã tiêu diệt " + bossName + "!\nHành trình đến " + unlockedVillages + " đã được bạn mở khóa từ trước.");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

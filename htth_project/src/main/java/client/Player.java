@@ -2082,70 +2082,93 @@ public class Player {
     }
 
     public void request_live_from_die(Message m2) throws IOException {
-        if (this.map.template.id == 81 && this.map.map_little_garden != null) {
-            return;
-        }
-        if (this.dungeon instanceof activities.HangDong || (this.map != null && this.map.map_dungeon instanceof activities.HangDong)) {
-            Service.send_box_ThongBao_OK(this, "Không thể hồi sinh hay về làng trong Hang Động!");
-            return;
-        }
-        byte type = m2.reader().readByte();
-        if (type == 1) { //
-            if (Map.is_map_dungeon(this.map.template.id)) {
-                Service.send_box_ThongBao_OK(this, "Không thể hồi sinh tại chỗ trong phó bản!");
+        try {
+            if (this.map == null) {
                 return;
             }
-            if (pointPk < 20) {
-                Service.send_box_yesno(this, 14, "Thông báo",
-                        ("Hồi sinh tại chỗ mất 500 beri, bạn có muốn hồi sinh không?"),
-                        new String[] { "500", "Hủy" }, new byte[] { 6, -1 });
-            } else {
-                int fee = pointPk / 4;
-                Service.send_box_yesno(this, 14, "Thông báo",
-                        ("Hồi sinh tại chỗ mất " + fee + " ruby, bạn có muốn hồi sinh không?"),
-                        new String[] { "" + fee, "Hủy" }, new byte[] { 7, -1 });
+            if (this.map.template.id == 81 && this.map.map_little_garden != null) {
+                return;
             }
-        } else { // ve lang
-            if (this.isdie) {
-                if (this.dungeon != null) {
-                    boolean isSingle = this.dungeon.getClass() == Dungeon.class;
-                    boolean isTower = this.dungeon instanceof activities.TowerChallenge;
-                    boolean isNamie = this.dungeon instanceof activities.NamieTreasureDefense;
-                    if (isSingle || isTower || isNamie) {
-                        Service.send_box_ThongBao_OK(this, "Vui lòng đợi phó bản tự động rời sau 10 giây!");
+            if (this.dungeon instanceof activities.HangDong || this.map.map_dungeon instanceof activities.HangDong) {
+                Service.send_box_ThongBao_OK(this, "Không thể hồi sinh hay về làng trong Hang Động!");
+                return;
+            }
+            if (this.map.map_pvp != null) {
+                if (this.map.map_pvp.status_pvp < 4) {
+                    Service.send_box_ThongBao_OK(this, "Đang trong trận đấu PK, hệ thống sẽ tự động chuyển hiệp hoặc kết thúc!");
+                    return;
+                } else {
+                    Service.send_box_ThongBao_OK(this, "Trận đấu đã kết thúc, đang đưa bạn trở về làng...");
+                    return;
+                }
+            }
+            byte type = m2.reader().readByte();
+            if (type == 1) { //
+                if (Map.is_map_dungeon(this.map.template.id)) {
+                    Service.send_box_ThongBao_OK(this, "Không thể hồi sinh tại chỗ trong phó bản!");
+                    return;
+                }
+                if (pointPk < 20) {
+                    Service.send_box_yesno(this, 14, "Thông báo",
+                            ("Hồi sinh tại chỗ mất 500 beri, bạn có muốn hồi sinh không?"),
+                            new String[] { "500", "Hủy" }, new byte[] { 6, -1 });
+                } else {
+                    int fee = pointPk / 4;
+                    Service.send_box_yesno(this, 14, "Thông báo",
+                            ("Hồi sinh tại chỗ mất " + fee + " ruby, bạn có muốn hồi sinh không?"),
+                            new String[] { "" + fee, "Hủy" }, new byte[] { 7, -1 });
+                }
+            } else { // ve lang
+                if (this.isdie) {
+                    if (this.dungeon != null) {
+                        boolean isSingle = this.dungeon.getClass() == Dungeon.class;
+                        boolean isTower = this.dungeon instanceof activities.TowerChallenge;
+                        boolean isNamie = this.dungeon instanceof activities.NamieTreasureDefense;
+                        if (isSingle || isTower || isNamie) {
+                            Service.send_box_ThongBao_OK(this, "Vui lòng đợi phó bản tự động rời sau 10 giây!");
+                            return;
+                        }
+                    }
+                    if (this.dungeon instanceof activities.HangDong) {
+                        Service.send_box_ThongBao_OK(this, "Không thể trở về làng trong Hang Động!");
                         return;
                     }
-                }
-                if (this.dungeon instanceof activities.HangDong) {
-                    Service.send_box_ThongBao_OK(this, "Không thể trở về làng trong Hang Động!");
-                    return;
-                }
-                if (this.map != null && ((this.map.map_pvp_clan != null && !this.map.map_pvp_clan.is_finish)
-                        || (this.map.map_dao_hoa != null && !this.map.map_dao_hoa.is_finish))) {
-                    // Trong PVP Băng / Đảo Đào Hoa: tự hồi sinh tại căn cứ sau 5 giây (không cho về làng thủ công)
-                    Service.send_box_ThongBao_OK(this, "Đang hồi sinh! Vui lòng chờ đếm ngược hồi sinh tự động.");
-                    return;
-                }
-                this.isdie = false;
-                Vgo vgo = new Vgo();
-                vgo.map_go = Map.get_map_by_id(this.id_map_save);
-                for (int i = 0; i < vgo.map_go[0].template.npcs.size(); i++) {
-                    Npc npc_temp = vgo.map_go[0].template.npcs.get(i);
-                    if (npc_temp.namegt.equals("Bản đồ")) {
-                        vgo.xnew = npc_temp.x;
-                        if (npc_temp.y < 250) {
-                            vgo.ynew = (short) (npc_temp.y + 20);
-                        } else {
-                            vgo.ynew = (short) (npc_temp.y - 40);
-                        }
-                        break;
+                    if (this.map != null && ((this.map.map_pvp_clan != null && !this.map.map_pvp_clan.is_finish)
+                            || (this.map.map_dao_hoa != null && !this.map.map_dao_hoa.is_finish))) {
+                        // Trong PVP Băng / Đảo Đào Hoa: tự hồi sinh tại căn cứ sau 5 giây (không cho về làng thủ công)
+                        Service.send_box_ThongBao_OK(this, "Đang hồi sinh! Vui lòng chờ đếm ngược hồi sinh tự động.");
+                        return;
                     }
+                    this.isdie = false;
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = Map.get_map_by_id(this.id_map_save);
+                    if (vgo.map_go == null || vgo.map_go.length == 0) {
+                        vgo.map_go = Map.get_map_by_id(1);
+                    }
+                    if (vgo.map_go != null && vgo.map_go.length > 0) {
+                        vgo.xnew = 611;
+                        vgo.ynew = 250;
+                        for (int i = 0; i < vgo.map_go[0].template.npcs.size(); i++) {
+                            Npc npc_temp = vgo.map_go[0].template.npcs.get(i);
+                            if (npc_temp.namegt.equals("Bản đồ")) {
+                                vgo.xnew = npc_temp.x;
+                                if (npc_temp.y < 250) {
+                                    vgo.ynew = (short) (npc_temp.y + 20);
+                                } else {
+                                    vgo.ynew = (short) (npc_temp.y - 40);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    this.goto_map(vgo);
+                    int hp_after_ = this.body.get_hp_max(true) / 10;
+                    Service.use_potion(this, 0, hp_after_);
+                    this.time_can_mob_atk = System.currentTimeMillis() + 1200L;
                 }
-                this.goto_map(vgo);
-                int hp_after_ = this.body.get_hp_max(true) / 10;
-                Service.use_potion(this, 0, hp_after_);
-                this.time_can_mob_atk = System.currentTimeMillis() + 1200L;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

@@ -982,331 +982,451 @@ public class Map implements Runnable {
             System.err.println("err map wait pvp");
         }
         if (this.map_pvp != null) { // map pvp
-            this.map_pvp.time_pvp--;
-            // System.out.println(this.map_pvp.time_pvp +" "+ this.map_pvp.status_pvp);
-            if (this.map_pvp.type_map == 2) { // Wanted PvP
-                if (this.map_pvp.status_pvp == 0 && this.map_pvp.time_pvp <= 0) {
-                    for (int i = 0; i < players.size(); i++) {
-                        Pvp.pvp_notice(players.get(i), 1);
-                        Service.use_potion(players.get(i), 0, players.get(i).body.get_hp_max(true));
-                        Service.use_potion(players.get(i), 1, players.get(i).body.get_mp_max(true));
-                        change_flag(players.get(i), 0);
-                    }
+            try {
+                this.map_pvp.time_pvp--;
+
+                // 1. Kiem tra an toan so luong nguoi choi
+                if (players.isEmpty()) {
+                    running = false;
+                    this.map_pvp = null;
+                    Map.remove_map_plus(this);
+                    return;
+                }
+
+                // Neu chi con 1 nguoi choi va tran dau chua ket thuc (status_pvp < 4), xu thang ngay cho nguoi con lai
+                if (players.size() < 2 && this.map_pvp.status_pvp < 4) {
+                    this.map_pvp.status_pvp = 4;
                     this.map_pvp.time_pvp = 3;
-                    this.map_pvp.status_pvp = 2;
-                } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
-                    for (int i = 0; i < players.size(); i++) {
-                        Pvp.pvp_notice(players.get(i), 2);
-                        Pvp.show_info(players.get(i), 180, (i == 0 ? this.map_pvp.num_win_p1 : this.map_pvp.num_win_p2),
-                                (i == 0 ? this.map_pvp.num_win_p2 : this.map_pvp.num_win_p1), 3);
-                        change_flag(players.get(i), 0);
-                    }
-                    this.map_pvp.time_pvp = 180;
-                    this.map_pvp.status_pvp = 3;
-                }
-            } else { // Regular PvP
-                if (this.map_pvp.status_pvp == 0 && this.map_pvp.time_pvp <= 0) {
-                    for (int i = 0; i < players.size(); i++) {
-                        Pvp.pvp_notice(players.get(i), 0);
-                    }
-                    this.map_pvp.time_pvp = 5;
-                    this.map_pvp.status_pvp = 1;
-                } else if (this.map_pvp.status_pvp == 1 && this.map_pvp.time_pvp <= 0) {
-                    for (int i = 0; i < players.size(); i++) {
-                        Pvp.pvp_notice(players.get(i), 1);
-                        Service.use_potion(players.get(i), 0, players.get(i).body.get_hp_max(true));
-                        Service.use_potion(players.get(i), 1, players.get(i).body.get_mp_max(true));
-                    }
-                    this.map_pvp.time_pvp = 4;
-                    this.map_pvp.status_pvp = 2;
-                } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
-                    for (int i = 0; i < players.size(); i++) {
-                        Pvp.pvp_notice(players.get(i), 2);
-                        //
-                        Pvp.show_info(players.get(i), 180, 0, 0, 3);
-                        change_flag(players.get(i), (i == 0 ? 14 : 15));
-                    }
-                    this.map_pvp.time_pvp = 180;
-                    this.map_pvp.status_pvp = 3;
-                    //
-                }
-            }
-            if (this.map_pvp.status_pvp == 3 && players.size() == 2) {
-                for (int i = 0; i < players.size(); i++) {
-                    if (players.get(i).isdie) {
-                        this.map_pvp.status_pvp = 91;
-                        break;
-                    }
-                }
-                runBotAI();
-            } else if (this.map_pvp.status_pvp == 91 && players.size() == 2) {
-                this.map_pvp.status_pvp = 90;
-            } else if (this.map_pvp.status_pvp == 90 && players.size() == 2) {
-                for (int i = 0; i < players.size(); i++) {
-                    if (this.map_pvp.num_win_p1 == 3 || this.map_pvp.num_win_p2 == 3) {
-                        change_flag(players.get(i), -1);
-                    }
-                    Player pl = players.get(i);
-                    pl.isdie = false;
-                    Service.use_potion(pl, 0, pl.body.get_hp_max(true));
-                    Service.use_potion(pl, 1, pl.body.get_mp_max(true));
-
-                    Message m2 = new Message(-71);
-                    m2.writer().writeByte(1);
-                    m2.writer().writeShort(pl.index_map);
-                    m2.writer().writeByte(0);
-                    m2.writer().writeInt(60 * 30);
-                    send_msg_all_p(m2, pl, true);
-                    m2.cleanup();
-
-                    if (this.map_pvp.type_map == 2 && this.map_pvp.num_win_p1 < 3 && this.map_pvp.num_win_p2 < 3) {
-                        change_flag(pl, 0);
-                    }
-                }
-                if (this.map_pvp.type_map == 2 && this.map_pvp.num_win_p1 < 3 && this.map_pvp.num_win_p2 < 3) {
-                    this.map_pvp.time_pvp = 1;
-                    this.map_pvp.status_pvp = 0;
-                } else {
-                    this.map_pvp.status_pvp = 3;
-                }
-            } else if (this.map_pvp.status_pvp == 90) {
-                if (this.map_pvp.type_map == 2 && this.map_pvp.num_win_p1 < 3 && this.map_pvp.num_win_p2 < 3) {
-                    this.map_pvp.time_pvp = 1;
-                    this.map_pvp.status_pvp = 0;
-                } else {
-                    this.map_pvp.status_pvp = 3;
-                }
-            }
-            if (this.map_pvp.status_pvp == 3
-                    && (this.map_pvp.num_win_p1 == 3 || this.map_pvp.num_win_p2 == 3)) {
-                this.map_pvp.status_pvp = 4;
-                this.map_pvp.time_pvp = 4;
-                //
-                try {
-                    if (this.map_pvp.type_map == 0) { // la map pvp
-                        if (this.map_pvp.num_win_p1 == 3) {
-                            Pvp.pvp_notice(players.get(0), 3);
-                            Pvp.pvp_notice(players.get(1), 4);
-                            players.get(0).pvp_win++;
-                            if (players.get(0).daily_achievements[0] == 0) {
-                                players.get(0).daily_achievements[0] = 1;
-                                core.Service.send_box_ThongBao_OK(players.get(0),
-                                        "Hoàn thành Thành tích hằng ngày: PVP");
+                    Player remainingPlayer = players.get(0);
+                    if (remainingPlayer != null) {
+                        try {
+                            Pvp.pvp_notice(remainingPlayer, 3);
+                            Pvp.show_info(remainingPlayer, 3, 3, 0, 3);
+                            change_flag(remainingPlayer, -1);
+                            remainingPlayer.targetFight = null;
+                            if (this.map_pvp.type_map == 0) {
+                                remainingPlayer.update_pvpPoint(20);
+                            } else if (this.map_pvp.type_map == 3 && this.map_pvp.ruby_bet > 0) {
+                                int rubyBet = this.map_pvp.ruby_bet;
+                                int rubyWin = (int) (rubyBet * 2 * 0.9);
+                                remainingPlayer.update_ngoc(rubyWin);
+                                remainingPlayer.update_money();
+                                Service.send_box_ThongBao_OK(remainingPlayer,
+                                        "Đối thủ đã rời trận! Bạn chiến thắng và nhận được " + rubyWin + " ruby!");
+                            } else {
+                                Service.send_box_ThongBao_OK(remainingPlayer,
+                                        "Đối thủ đã rời trận! Bạn là người chiến thắng.");
                             }
-                            event.EventTrungThu.rewardPvpTruyNa(players.get(0));
-                            event.Event2011.rewardPvpArena(players.get(0));
-                            event.EventNoel.rewardPvpArena(players.get(0));
-                            players.get(1).pvp_lose++;
-                            //
-                            int chenhLech = players.get(1).get_pvpPoint() - players.get(0).get_pvpPoint();
-                            if (chenhLech > 15) {
-                                chenhLech = 15;
-                            } else if (chenhLech < -15) {
-                                chenhLech = -15;
-                            }
-                            chenhLech += 30;
-                            int diemwin = chenhLech;
-                            players.get(0).update_pvpPoint(diemwin);
-                            players.get(1).update_pvpPoint(-chenhLech);
-                        } else {
-                            Pvp.pvp_notice(players.get(1), 3);
-                            Pvp.pvp_notice(players.get(0), 4);
-                            players.get(1).pvp_win++;
-                            if (players.get(1).daily_achievements[0] == 0) {
-                                players.get(1).daily_achievements[0] = 1;
-                                core.Service.send_box_ThongBao_OK(players.get(1),
-                                        "Hoàn thành Thành tích hằng ngày: PVP");
-                            }
-                            event.EventTrungThu.rewardPvpTruyNa(players.get(1));
-                            event.Event2011.rewardPvpArena(players.get(1));
-                            event.EventNoel.rewardPvpArena(players.get(1));
-                            players.get(0).pvp_lose++;
-                            //
-                            int chenhLech = players.get(0).get_pvpPoint() - players.get(1).get_pvpPoint();
-                            if (chenhLech > 15) {
-                                chenhLech = 15;
-                            } else if (chenhLech < -15) {
-                                chenhLech = -15;
-                            }
-                            chenhLech += 30;
-                            int diemwin = chenhLech;
-                            players.get(1).update_pvpPoint(diemwin);
-                            players.get(0).update_pvpPoint(-chenhLech);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
                         }
-                    } else if (this.map_pvp.type_map == 2) { // la map truy na
-                        if (this.map_pvp.num_win_p1 == 3) {
-                            Pvp.pvp_notice(players.get(0), 3);
-                            Pvp.pvp_notice(players.get(1), 4);
-                            //
-                            long beri_win = (10_000L + (long) players.get(1).get_wanted_point()) / 100L;
-                            long beri_lose = (5_000L + (long) players.get(1).get_wanted_point()) / 100L;
-                            players.get(0).update_wanted_point((int) beri_win);
-                            players.get(1).update_wanted_point((int) -beri_lose);
-                            //
-                            Wanted_Chest.receiv_ruong(players.get(0));
-                            event.EventTrungThu.rewardPvpTruyNa(players.get(0));
-                            event.Event2011.rewardPvpArena(players.get(0));
-                            event.EventNoel.rewardPvpArena(players.get(0));
+                    }
+                }
 
-                            Service.send_box_ThongBao_OK(players.get(0),
-                                    "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win
-                                            + " điểm truy nã cùng 1 Rương Truy nã.");
-                            if (!players.get(1).isBot) {
-                                Service.send_box_ThongBao_OK(players.get(1),
-                                        "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
-                                                + " điểm truy nã.");
+                // 2. Giai doan dem nguoc chuan bi tran dau
+                if (this.map_pvp.type_map == 2) { // Wanted PvP
+                    if (this.map_pvp.status_pvp == 0 && this.map_pvp.time_pvp <= 0) {
+                        for (int i = 0; i < players.size(); i++) {
+                            Pvp.pvp_notice(players.get(i), 1);
+                            Service.use_potion(players.get(i), 0, players.get(i).body.get_hp_max(true));
+                            Service.use_potion(players.get(i), 1, players.get(i).body.get_mp_max(true));
+                            change_flag(players.get(i), 0);
+                        }
+                        this.map_pvp.time_pvp = 3;
+                        this.map_pvp.status_pvp = 2;
+                    } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
+                        for (int i = 0; i < players.size(); i++) {
+                            Pvp.pvp_notice(players.get(i), 2);
+                            Pvp.show_info(players.get(i), 180, (i == 0 ? this.map_pvp.num_win_p1 : this.map_pvp.num_win_p2),
+                                    (i == 0 ? this.map_pvp.num_win_p2 : this.map_pvp.num_win_p1), 3);
+                            change_flag(players.get(i), 0);
+                        }
+                        this.map_pvp.time_pvp = 180;
+                        this.map_pvp.status_pvp = 3;
+                    }
+                } else { // Regular PvP (type_map == 0, 1, 3)
+                    if (this.map_pvp.status_pvp == 0 && this.map_pvp.time_pvp <= 0) {
+                        for (int i = 0; i < players.size(); i++) {
+                            Pvp.pvp_notice(players.get(i), 0);
+                        }
+                        this.map_pvp.time_pvp = 5;
+                        this.map_pvp.status_pvp = 1;
+                    } else if (this.map_pvp.status_pvp == 1 && this.map_pvp.time_pvp <= 0) {
+                        for (int i = 0; i < players.size(); i++) {
+                            Pvp.pvp_notice(players.get(i), 1);
+                            Service.use_potion(players.get(i), 0, players.get(i).body.get_hp_max(true));
+                            Service.use_potion(players.get(i), 1, players.get(i).body.get_mp_max(true));
+                        }
+                        this.map_pvp.time_pvp = 4;
+                        this.map_pvp.status_pvp = 2;
+                    } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
+                        for (int i = 0; i < players.size(); i++) {
+                            Pvp.pvp_notice(players.get(i), 2);
+                            Pvp.show_info(players.get(i), 180, 0, 0, 3);
+                            change_flag(players.get(i), (i == 0 ? 14 : 15));
+                        }
+                        this.map_pvp.time_pvp = 180;
+                        this.map_pvp.status_pvp = 3;
+                    }
+                }
+
+                // 3. Giai doan thi dau (status_pvp == 3)
+                if (this.map_pvp.status_pvp == 3 && players.size() >= 2) {
+                    for (int i = 0; i < players.size(); i++) {
+                        if (players.get(i).isdie) {
+                            this.map_pvp.status_pvp = 91;
+                            break;
+                        }
+                    }
+                    runBotAI();
+                } else if (this.map_pvp.status_pvp == 91) {
+                    this.map_pvp.status_pvp = 90;
+                } else if (this.map_pvp.status_pvp == 90) {
+                    for (int i = 0; i < players.size(); i++) {
+                        if (this.map_pvp.num_win_p1 >= 3 || this.map_pvp.num_win_p2 >= 3) {
+                            change_flag(players.get(i), -1);
+                        }
+                        Player pl = players.get(i);
+                        pl.isdie = false;
+                        Service.use_potion(pl, 0, pl.body.get_hp_max(true));
+                        Service.use_potion(pl, 1, pl.body.get_mp_max(true));
+
+                        Message m2 = new Message(-71);
+                        m2.writer().writeByte(1);
+                        m2.writer().writeShort(pl.index_map);
+                        m2.writer().writeByte(0);
+                        m2.writer().writeInt(60 * 30);
+                        send_msg_all_p(m2, pl, true);
+                        m2.cleanup();
+
+                        if (this.map_pvp.type_map == 2 && this.map_pvp.num_win_p1 < 3 && this.map_pvp.num_win_p2 < 3) {
+                            change_flag(pl, 0);
+                        }
+                    }
+                    if (this.map_pvp.type_map == 2 && this.map_pvp.num_win_p1 < 3 && this.map_pvp.num_win_p2 < 3) {
+                        this.map_pvp.time_pvp = 1;
+                        this.map_pvp.status_pvp = 0;
+                    } else {
+                        this.map_pvp.status_pvp = 3;
+                    }
+                }
+
+                // 4. Kiem tra dieu kien ket thuc thang 3 hiep (num_win >= 3)
+                if (this.map_pvp.status_pvp == 3
+                        && (this.map_pvp.num_win_p1 >= 3 || this.map_pvp.num_win_p2 >= 3)) {
+                    this.map_pvp.status_pvp = 4;
+                    this.map_pvp.time_pvp = 4;
+                    try {
+                        if (this.map_pvp.type_map == 0 && players.size() >= 2) { // la map pvp
+                            if (this.map_pvp.num_win_p1 >= 3) {
+                                Pvp.pvp_notice(players.get(0), 3);
+                                Pvp.pvp_notice(players.get(1), 4);
+                                players.get(0).pvp_win++;
+                                if (players.get(0).daily_achievements[0] == 0) {
+                                    players.get(0).daily_achievements[0] = 1;
+                                    core.Service.send_box_ThongBao_OK(players.get(0),
+                                            "Hoàn thành Thành tích hằng ngày: PVP");
+                                }
+                                event.EventTrungThu.rewardPvpTruyNa(players.get(0));
+                                event.Event2011.rewardPvpArena(players.get(0));
+                                event.EventNoel.rewardPvpArena(players.get(0));
+                                players.get(1).pvp_lose++;
+                                int chenhLech = players.get(1).get_pvpPoint() - players.get(0).get_pvpPoint();
+                                if (chenhLech > 15) {
+                                    chenhLech = 15;
+                                } else if (chenhLech < -15) {
+                                    chenhLech = -15;
+                                }
+                                chenhLech += 30;
+                                int diemwin = chenhLech;
+                                players.get(0).update_pvpPoint(diemwin);
+                                players.get(1).update_pvpPoint(-chenhLech);
+                            } else {
+                                Pvp.pvp_notice(players.get(1), 3);
+                                Pvp.pvp_notice(players.get(0), 4);
+                                players.get(1).pvp_win++;
+                                if (players.get(1).daily_achievements[0] == 0) {
+                                    players.get(1).daily_achievements[0] = 1;
+                                    core.Service.send_box_ThongBao_OK(players.get(1),
+                                            "Hoàn thành Thành tích hằng ngày: PVP");
+                                }
+                                event.EventTrungThu.rewardPvpTruyNa(players.get(1));
+                                event.Event2011.rewardPvpArena(players.get(1));
+                                event.EventNoel.rewardPvpArena(players.get(1));
+                                players.get(0).pvp_lose++;
+                                int chenhLech = players.get(0).get_pvpPoint() - players.get(1).get_pvpPoint();
+                                if (chenhLech > 15) {
+                                    chenhLech = 15;
+                                } else if (chenhLech < -15) {
+                                    chenhLech = -15;
+                                }
+                                chenhLech += 30;
+                                int diemwin = chenhLech;
+                                players.get(1).update_pvpPoint(diemwin);
+                                players.get(0).update_pvpPoint(-chenhLech);
                             }
-                        } else {
-                            Pvp.pvp_notice(players.get(1), 3);
-                            Pvp.pvp_notice(players.get(0), 4);
-                            //
-                            long beri_win = (10_000L + (long) players.get(0).get_wanted_point()) / 100L;
-                            long beri_lose = (5_000L + (long) players.get(0).get_wanted_point()) / 100L;
-                            players.get(1).update_wanted_point((int) beri_win);
-                            players.get(0).update_wanted_point((int) -beri_lose);
-                            //
-                            Wanted_Chest.receiv_ruong(players.get(1));
-                            event.EventTrungThu.rewardPvpTruyNa(players.get(1));
-                            event.Event2011.rewardPvpArena(players.get(1));
-                            event.EventNoel.rewardPvpArena(players.get(1));
+                        } else if (this.map_pvp.type_map == 1 && players.size() >= 2) { // Giao huu
+                            Player winner = (this.map_pvp.num_win_p1 >= 3) ? players.get(0) : players.get(1);
+                            Player loser = (this.map_pvp.num_win_p1 >= 3) ? players.get(1) : players.get(0);
+                            Pvp.pvp_notice(winner, 3);
+                            Pvp.pvp_notice(loser, 4);
+                            Service.send_box_ThongBao_OK(winner,
+                                    "Trận đấu kết thúc! Bạn đã chiến thắng trận giao hữu.");
+                            Service.send_box_ThongBao_OK(loser,
+                                    "Trận đấu kết thúc! Bạn đã thất bại trong trận giao hữu.");
+                        } else if (this.map_pvp.type_map == 2 && players.size() >= 2) { // la map truy na
+                            if (this.map_pvp.num_win_p1 >= 3) {
+                                Pvp.pvp_notice(players.get(0), 3);
+                                Pvp.pvp_notice(players.get(1), 4);
+                                long beri_win = (10_000L + (long) players.get(1).get_wanted_point()) / 100L;
+                                long beri_lose = (5_000L + (long) players.get(1).get_wanted_point()) / 100L;
+                                players.get(0).update_wanted_point((int) beri_win);
+                                players.get(1).update_wanted_point((int) -beri_lose);
+                                Wanted_Chest.receiv_ruong(players.get(0));
+                                event.EventTrungThu.rewardPvpTruyNa(players.get(0));
+                                event.Event2011.rewardPvpArena(players.get(0));
+                                event.EventNoel.rewardPvpArena(players.get(0));
 
-                            Service.send_box_ThongBao_OK(players.get(0),
-                                    "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
-                                            + " điểm truy nã.");
-                            if (!players.get(1).isBot) {
-                                Service.send_box_ThongBao_OK(players.get(1),
+                                Service.send_box_ThongBao_OK(players.get(0),
                                         "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win
                                                 + " điểm truy nã cùng 1 Rương Truy nã.");
+                                if (!players.get(1).isBot) {
+                                    Service.send_box_ThongBao_OK(players.get(1),
+                                            "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
+                                                    + " điểm truy nã.");
+                                }
+                            } else {
+                                Pvp.pvp_notice(players.get(1), 3);
+                                Pvp.pvp_notice(players.get(0), 4);
+                                long beri_win = (10_000L + (long) players.get(0).get_wanted_point()) / 100L;
+                                long beri_lose = (5_000L + (long) players.get(0).get_wanted_point()) / 100L;
+                                players.get(1).update_wanted_point((int) beri_win);
+                                players.get(0).update_wanted_point((int) -beri_lose);
+                                Wanted_Chest.receiv_ruong(players.get(1));
+                                event.EventTrungThu.rewardPvpTruyNa(players.get(1));
+                                event.Event2011.rewardPvpArena(players.get(1));
+                                event.EventNoel.rewardPvpArena(players.get(1));
+
+                                Service.send_box_ThongBao_OK(players.get(0),
+                                        "Trận đấu kết thúc! Bạn đã thất bại trước đối thủ và bị trừ " + beri_lose
+                                                + " điểm truy nã.");
+                                if (!players.get(1).isBot) {
+                                    Service.send_box_ThongBao_OK(players.get(1),
+                                            "Trận đấu kết thúc! Bạn đã chiến thắng đối thủ và giành được " + beri_win
+                                                    + " điểm truy nã cùng 1 Rương Truy nã.");
+                                }
+                            }
+                        } else if (this.map_pvp.type_map == 3 && players.size() >= 2) { // thach dau sieu hang ca cuoc ruby
+                            int rubyBet = this.map_pvp.ruby_bet;
+                            int rubyWin = (int) (rubyBet * 2 * 0.9); // nguoi thang nhan 90% tong
+                            Player winner, loser;
+                            if (this.map_pvp.num_win_p1 >= 3) {
+                                winner = players.get(0);
+                                loser = players.get(1);
+                            } else {
+                                winner = players.get(1);
+                                loser = players.get(0);
+                            }
+                            Pvp.pvp_notice(winner, 3);
+                            Pvp.pvp_notice(loser, 4);
+                            winner.update_ngoc(rubyWin);
+                            winner.update_money();
+                            Service.send_box_ThongBao_OK(winner,
+                                    "Trận đấu kết thúc! Bạn chiến thắng và nhận được "
+                                            + rubyWin + " ruby (90% tổng cược)!");
+                            if (!loser.isBot) {
+                                Service.send_box_ThongBao_OK(loser,
+                                        "Trận đấu kết thúc! Bạn thua và mất " + rubyBet + " ruby.");
                             }
                         }
-                    } else if (this.map_pvp.type_map == 3) { // thách đấu siêu hạng cá cược ruby
-                        int rubyBet = this.map_pvp.ruby_bet;
-                        int rubyWin = (int) (rubyBet * 2 * 0.9); // người thắng nhận 90% tổng
-                        Player winner, loser;
-                        if (this.map_pvp.num_win_p1 == 3) {
-                            winner = players.get(0);
-                            loser = players.get(1);
-                        } else {
-                            winner = players.get(1);
-                            loser = players.get(0);
-                        }
-                        Pvp.pvp_notice(winner, 3);
-                        Pvp.pvp_notice(loser, 4);
-                        winner.update_ngoc(rubyWin);
-                        winner.update_money();
-                        Service.send_box_ThongBao_OK(winner,
-                                "Trận đấu kết thúc! Bạn chiến thắng và nhận được "
-                                        + rubyWin + " ruby (90% tổng cược)!");
-                        if (!loser.isBot) {
-                            Service.send_box_ThongBao_OK(loser,
-                                    "Trận đấu kết thúc! Bạn thua và mất " + rubyBet + " ruby.");
-                        }
-                    }
-                } catch (IndexOutOfBoundsException e) {
-                    this.map_pvp.status_pvp = 3;
-                }
-                for (int i = 0; i < players.size(); i++) {
-                    change_flag(players.get(i), -1);
-                }
-            }
-            if (this.map_pvp.status_pvp == 3 && players.size() < 2) {
-                this.map_pvp.status_pvp = 4;
-                this.map_pvp.time_pvp = 4;
-                for (int i = 0; i < players.size(); i++) {
-                    Pvp.pvp_notice(players.get(i), 3);
-                    //
-                    Pvp.show_info(players.get(i), 4, 3, 0, 3);
-                    change_flag(players.get(i), -1);
-                    //
-                    if (this.map_pvp.type_map == 0) { // la map pvp
-                        players.get(i).update_pvpPoint(20);
-                    }
-                }
-            } else if (this.map_pvp.status_pvp == 3 && this.map_pvp.time_pvp <= 0) {
-                //
-                try {
-                    if (this.map_pvp.type_map == 0) { // la map pvp
-                        Player p1 = players.get(0);
-                        Player p2 = players.get(1);
-                        if (p1 != null && p2 != null && !p1.equals(p2)) {
-                            if (this.map_pvp.num_win_p1 > this.map_pvp.num_win_p2) {
-                                p1.pvp_win++;
-                                if (p1.daily_achievements[0] == 0) {
-                                    p1.daily_achievements[0] = 1;
-                                    core.Service.send_box_ThongBao_OK(p1, "Hoàn thành Thành tích hằng ngày: PVP");
-                                }
-                                p1.update_pvpPoint(15);
-                                p2.pvp_lose++;
-                                p2.update_pvpPoint(-15);
-                            } else if (this.map_pvp.num_win_p1 < this.map_pvp.num_win_p2) {
-                                p1.pvp_lose++;
-                                p1.update_pvpPoint(-15);
-                                p2.pvp_win++;
-                                if (p2.daily_achievements[0] == 0) {
-                                    p2.daily_achievements[0] = 1;
-                                    core.Service.send_box_ThongBao_OK(p2, "Hoàn thành Thành tích hằng ngày: PVP");
-                                }
-                                p2.update_pvpPoint(15);
-                            }
-                        }
-                    } else if (this.map_pvp.type_map == 3 && this.map_pvp.ruby_bet > 0) {
-                        // Hết giờ (hòa) → hoàn ruby cho cả hai bên
-                        int rubyBet = this.map_pvp.ruby_bet;
-                        for (int i = 0; i < players.size(); i++) {
-                            players.get(i).update_ngoc(rubyBet);
-                            players.get(i).update_money();
-                        }
-                    }
-                } catch (Exception e) {
-                }
-                //
-                this.map_pvp.status_pvp = 4;
-                this.map_pvp.time_pvp = 4;
-                for (int i = 0; i < players.size(); i++) {
-                    if (this.map_pvp.type_map == 0) { // la map pvp
-                        Service.send_box_ThongBao_OK(players.get(i),
-                                "Hết thời gian, kết quả hòa, bạn sẽ được đưa về map chờ");
-                    } else if (this.map_pvp.type_map == 3) { // siêu hạng cá cược → hoàn ruby
-                        Service.send_box_ThongBao_OK(players.get(i),
-                                "Hết thời gian! Kết quả hòa, ruby cược đã được hoàn lại.");
-                    } else {
-                        Service.send_box_ThongBao_OK(players.get(i),
-                                "Đối thủ xứng tầm không thể phân biệt thắng thua");
-                    }
-                }
-            } else if (this.map_pvp.status_pvp == 4 && this.map_pvp.time_pvp <= 0) {
-                Vgo vgo = new Vgo();
-                if (this.map_pvp.type_map == 0) { // la map pvp (siêu hạng queue)
-                    vgo.map_go = Map.get_map_by_id(1000);
-                } else if (this.map_pvp.type_map == 2) { // la map truy na
-                    vgo.map_go = Map.get_map_by_id(119);
-                } else {
-                    // type_map==1 (giao hữu) và type_map==3 (siêu hạng cá cược) → về làng
-                    vgo.map_go = Map.get_map_by_id(1);
-                }
-                vgo.xnew = (short) (vgo.map_go[0].template.maxW / 2);
-                vgo.ynew = (short) (vgo.map_go[0].template.maxH / 2);
-                List<Player> playerList = new ArrayList<>();
-                for (int i = 0; i < players.size(); i++) {
-                    playerList.add(players.get(i));
-                }
-                playerList.forEach(l -> {
-                    if (l.isBot) {
-                        return;
-                    }
-                    try {
-                        l.targetFight = null;
-                        change_flag(l, -1);
-                        l.goto_map(vgo);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                });
-                this.map_pvp.status_pvp = 99;
-            } else if (this.map_pvp.status_pvp == 99) {
-                running = false;
-                this.map_pvp = null;
-                Map.remove_map_plus(this);
+                    for (int i = 0; i < players.size(); i++) {
+                        try {
+                            change_flag(players.get(i), -1);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+
+                // 5. Kiem tra het thoi gian tran dau (status_pvp == 3 && time_pvp <= 0)
+                if (this.map_pvp.status_pvp == 3 && this.map_pvp.time_pvp <= 0) {
+                    try {
+                        if (this.map_pvp.type_map == 0 && players.size() >= 2) {
+                            Player p1 = players.get(0);
+                            Player p2 = players.get(1);
+                            if (p1 != null && p2 != null && !p1.equals(p2)) {
+                                if (this.map_pvp.num_win_p1 > this.map_pvp.num_win_p2) {
+                                    p1.pvp_win++;
+                                    if (p1.daily_achievements[0] == 0) {
+                                        p1.daily_achievements[0] = 1;
+                                        core.Service.send_box_ThongBao_OK(p1, "Hoàn thành Thành tích hằng ngày: PVP");
+                                    }
+                                    p1.update_pvpPoint(15);
+                                    p2.pvp_lose++;
+                                    p2.update_pvpPoint(-15);
+                                } else if (this.map_pvp.num_win_p1 < this.map_pvp.num_win_p2) {
+                                    p1.pvp_lose++;
+                                    p1.update_pvpPoint(-15);
+                                    p2.pvp_win++;
+                                    if (p2.daily_achievements[0] == 0) {
+                                        p2.daily_achievements[0] = 1;
+                                        core.Service.send_box_ThongBao_OK(p2, "Hoàn thành Thành tích hằng ngày: PVP");
+                                    }
+                                    p2.update_pvpPoint(15);
+                                }
+                            }
+                        } else if (this.map_pvp.type_map == 3 && this.map_pvp.ruby_bet > 0) {
+                            int rubyBet = this.map_pvp.ruby_bet;
+                            for (int i = 0; i < players.size(); i++) {
+                                players.get(i).update_ngoc(rubyBet);
+                                players.get(i).update_money();
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    this.map_pvp.status_pvp = 4;
+                    this.map_pvp.time_pvp = 4;
+                    for (int i = 0; i < players.size(); i++) {
+                        try {
+                            if (this.map_pvp.type_map == 0) {
+                                Service.send_box_ThongBao_OK(players.get(i),
+                                        "Hết thời gian, kết quả hòa, bạn sẽ được đưa về map chờ");
+                            } else if (this.map_pvp.type_map == 3) {
+                                Service.send_box_ThongBao_OK(players.get(i),
+                                        "Hết thời gian! Kết quả hòa, ruby cược đã được hoàn lại.");
+                            } else {
+                                Service.send_box_ThongBao_OK(players.get(i),
+                                        "Đối thủ xứng tầm không thể phân biệt thắng thua");
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+
+                // 6. Giai doan dich chuyen ve lang (status_pvp == 4 && time_pvp <= 0)
+                if (this.map_pvp.status_pvp == 4 && this.map_pvp.time_pvp <= 0) {
+                    List<Player> playerList = new ArrayList<>();
+                    synchronized (this) {
+                        for (int i = 0; i < players.size(); i++) {
+                            playerList.add(players.get(i));
+                        }
+                    }
+                    for (Player l : playerList) {
+                        if (l == null || l.isBot) {
+                            continue;
+                        }
+                        try {
+                            // Hoi sinh va phuc hoi chi so truoc khi roi map
+                            l.isdie = false;
+                            if (l.hp <= 0) {
+                                l.hp = l.body.get_hp_max(true);
+                            }
+                            if (l.mp <= 0) {
+                                l.mp = l.body.get_mp_max(true);
+                            }
+                            Service.use_potion(l, 0, l.hp);
+                            Service.use_potion(l, 1, l.mp);
+                            l.targetFight = null;
+                            change_flag(l, -1);
+
+                            // Xac dinh Vgo tuong ung cho tung nguoi choi
+                            Vgo vgo = new Vgo();
+                            if (this.map_pvp.type_map == 0) { // Sieu hang queue -> ve map 1000
+                                vgo.map_go = Map.get_map_by_id(1000);
+                                if (vgo.map_go != null && vgo.map_go.length > 0) {
+                                    vgo.xnew = (short) (vgo.map_go[0].template.maxW / 2);
+                                    vgo.ynew = (short) (vgo.map_go[0].template.maxH / 2);
+                                }
+                            } else if (this.map_pvp.type_map == 2) { // Truy na -> ve phong cho 119
+                                vgo.map_go = Map.get_map_by_id(119);
+                                if (vgo.map_go != null && vgo.map_go.length > 0) {
+                                    vgo.xnew = (short) (vgo.map_go[0].template.maxW / 2);
+                                    vgo.ynew = (short) (vgo.map_go[0].template.maxH / 2);
+                                }
+                            } else {
+                                // Giao huu (type 1) & Thach dau (type 3) -> Ve lang da luu hoac Map 1
+                                int targetVillageId = (l.id_map_save > 0) ? l.id_map_save : 1;
+                                vgo.map_go = Map.get_map_by_id(targetVillageId);
+                                if (vgo.map_go == null || vgo.map_go.length == 0) {
+                                    vgo.map_go = Map.get_map_by_id(1);
+                                }
+                                if (vgo.map_go != null && vgo.map_go.length > 0) {
+                                    for (int i1 = 0; i1 < vgo.map_go[0].template.npcs.size(); i1++) {
+                                        Npc npc_temp = vgo.map_go[0].template.npcs.get(i1);
+                                        if (npc_temp != null && npc_temp.namegt != null && npc_temp.namegt.equals("Bản đồ")) {
+                                            vgo.xnew = npc_temp.x;
+                                            if (npc_temp.y < 250) {
+                                                vgo.ynew = (short) (npc_temp.y + 20);
+                                            } else {
+                                                vgo.ynew = (short) (npc_temp.y - 40);
+                                            }
+                                            break;
+                                        }
+                                    }
+                                    if (vgo.xnew <= 0 || vgo.ynew <= 0) {
+                                        if (vgo.map_go[0].template.id == 1) {
+                                            vgo.xnew = 611;
+                                            vgo.ynew = 250;
+                                        } else {
+                                            vgo.xnew = (short) (vgo.map_go[0].template.maxW / 2);
+                                            vgo.ynew = (short) (vgo.map_go[0].template.maxH / 2);
+                                        }
+                                    }
+                                }
+                            }
+                            if (vgo.map_go != null && vgo.map_go.length > 0) {
+                                l.goto_map(vgo);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            System.err.println("Err moving player " + l.name + " to village: " + ex.getMessage());
+                        }
+                    }
+                    this.map_pvp.status_pvp = 99;
+                    this.map_pvp.time_pvp = 3; // Doi 3 giay truoc khi kiem tra dong map
+                }
+
+                // 7. Giai doan huy map an toan (status_pvp == 99)
+                if (this.map_pvp.status_pvp == 99 && this.map_pvp.time_pvp <= 0) {
+                    boolean allLeft = true;
+                    synchronized (this) {
+                        if (!players.isEmpty()) {
+                            allLeft = false;
+                            for (int i = 0; i < players.size(); i++) {
+                                Player stuck = players.get(i);
+                                if (stuck != null && !stuck.isBot) {
+                                    try {
+                                        stuck.isdie = false;
+                                        stuck.hp = stuck.body.get_hp_max(true);
+                                        stuck.mp = stuck.body.get_mp_max(true);
+                                        stuck.targetFight = null;
+                                        change_flag(stuck, -1);
+                                        Vgo vgoRescue = new Vgo();
+                                        vgoRescue.map_go = Map.get_map_by_id(1);
+                                        vgoRescue.xnew = 611;
+                                        vgoRescue.ynew = 250;
+                                        stuck.goto_map(vgoRescue);
+                                    } catch (Exception exRescue) {
+                                        exRescue.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (allLeft || this.map_pvp.rescue_attempts++ >= 3) {
+                        running = false;
+                        this.map_pvp = null;
+                        Map.remove_map_plus(this);
+                    } else {
+                        this.map_pvp.time_pvp = 2; // Thu lai sau 2 giay
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("err update_map_pvp: " + e.getMessage());
             }
         }
     }
@@ -2443,8 +2563,9 @@ public class Map implements Runnable {
 
     public void leave_map(Player p, int type) {
         if (this.template.id == 2026 || this.template.id == 1001 || this.map_pvp_clan != null
-                || this.map_dao_hoa != null) {
-            p.type_pk = -1; // Tháo cờ khi rời Map Đấu Trường / Đảo Ruby / PVP Clan / Đảo Đào Hoa
+                || this.map_dao_hoa != null || this.map_pvp != null) {
+            p.type_pk = -1; // Tháo cờ khi rời Map Đấu Trường / Đảo Ruby / PVP Clan / Đảo Đào Hoa / PVP
+            p.targetFight = null;
             if (this.map_pvp_clan != null) {
                 activities.PvpClan.clear_pvp_clan_score(p);
             }
@@ -4807,7 +4928,7 @@ public class Map implements Runnable {
                         "Reset Tich Luy", "Reset Tich Tieu", "Reset Hang Dong" },
                         null);
                 Service.send_box_ThongBao_OK(p,
-                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu\nadmin resethangdong\nadmin boss");
+                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu\nadmin resethangdong\nadmin boss\nadmin settier <1-10>");
                 return;
             } else if (txt.startsWith("admin ")) {
                 String cmd = txt.substring(6);
@@ -4833,6 +4954,18 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 9);
                 else if (cmd.equals("resethangdong") || cmd.equals("reset_hangdong"))
                     MenuController.Menu_Admin(p, (byte) 10);
+                else if (cmd.startsWith("settier ") || cmd.startsWith("tier ")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        byte tier = Byte.parseByte(parts[1]);
+                        if (tier < 1) tier = 1;
+                        if (tier > VillageProgression.MAX_TIER) tier = (byte) VillageProgression.MAX_TIER;
+                        p.village_tier = tier;
+                        Service.send_box_ThongBao_OK(p, "Đã chỉnh cấp Mốc Làng (village_tier) của bạn thành: " + tier + " / " + VillageProgression.MAX_TIER);
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp không đúng! Ví dụ: admin settier 5");
+                    }
+                }
                 else if (cmd.equals("reloadpart") || cmd.equals("reload_part") || cmd.equals("updatepart")
                         || cmd.equals("update_part")) {
                     try {
