@@ -328,6 +328,10 @@ public class UseItem {
 
                 if (it_temp.name != null && (it_temp.name.toLowerCase().contains("pháo hoa")
                         || it_temp.name.toLowerCase().contains("phao hoa") || id == 359 || id == 361)) {
+                    if (p.conn.status != 1) {
+                        Service.send_box_ThongBao_OK(p, "Chức năng bắn pháo hoa chỉ dành cho tài khoản đã mở thành viên!");
+                        return false;
+                    }
                     Service.send_eff(p, 23, 0); // Hiệu ứng Pháo hoa rực rỡ
                     p.num_phao_hoa++;
 

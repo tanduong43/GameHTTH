@@ -2699,8 +2699,13 @@ public class MenuController {
       }
       case 5: {
         if (p.map.template.id == 9) { // Đăng truy nã
+          if (p.conn.status != 1) {
+            Service.send_box_ThongBao_OK(p, "Chức năng Đăng truy nã chỉ dành cho tài khoản đã mở thành viên!");
+            break;
+          }
           core.Service.input_text(p, -89, "Đăng truy nã", new String[] { "Tên nhân vật", "Số tiền (Beri)" });
         }
+        break;
       }
     }
   }

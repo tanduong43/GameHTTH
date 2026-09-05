@@ -697,6 +697,13 @@ public class Manager {
                     temp.beri = 10000;
                     temp.ruby = 0;
                 }
+                // Set giá pháo hoa = 150 ruby
+                if (temp.id == 359 || temp.id == 361
+                    || (temp.name != null && (temp.name.toLowerCase().contains("pháo hoa")
+                        || temp.name.toLowerCase().contains("phao hoa")))) {
+                    temp.ruby = 150;
+                    temp.beri = 0;
+                }
                 ItemTemplate4.ENTRYS.add(temp);
             }
             rs.close();

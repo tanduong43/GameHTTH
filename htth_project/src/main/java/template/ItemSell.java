@@ -21,7 +21,7 @@ public class ItemSell {
     static {
         for (int i = 0; i < ItemTemplate3.ENTRYS.size(); i++) {
             ItemTemplate3 it_temp = ItemTemplate3.ENTRYS.get(i);
-            if (it_temp.beri > 0 || it_temp.ruby > 0) {
+            if ((it_temp.beri > 0 || it_temp.ruby > 0) && it_temp.color != 8) {
                 byte typeMoney = (byte) (it_temp.ruby > 0 ? 1 : 0);
                 int price = (it_temp.ruby > 0) ? it_temp.ruby : it_temp.beri;
                 ItemSell temp = new ItemSell(it_temp.id, price, typeMoney);
