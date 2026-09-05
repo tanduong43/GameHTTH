@@ -174,6 +174,12 @@ public class Skill_info {
                     return 911;
                 case 912:
                     return 912;
+                case 914:
+                    return 914;
+                case 915:
+                    return 915;
+                case 916:
+                    return 916;
             }
         }
         return temp.getTypeEffSkill();

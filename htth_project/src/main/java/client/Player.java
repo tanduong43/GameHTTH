@@ -248,6 +248,7 @@ public class Player {
     public long time_bounty_posted = 0;
     public long last_bounty_announce_time = 0;
     public long time_check_expiry = 0;
+    public String name_nhuong_clan = "";
 
     public int diemdanh;
     public int diemdanhvip;
@@ -3167,6 +3168,18 @@ public class Player {
                 }
                 break;
             }
+            case 5016: {
+                int[] id_ = new int[] { 914, 915, 916, 917 };
+                for (int i = 0; i < id_.length; i++) {
+                    Skill_info sk_add = new Skill_info();
+                    sk_add.exp = 0;
+                    sk_add.temp = Skill_Template.get_temp(id_[i], sk_add.exp);
+                    if (sk_add.temp != null) {
+                        list_remove.add(sk_add);
+                    }
+                }
+                break;
+            }
         }
         this.skill_point.addAll(list_remove);
         list_remove.clear();
@@ -3558,7 +3571,7 @@ public class Player {
 
     public boolean check_already_have_devil_fruit() {
         short[] id_check = new short[] { 32, 33, 34, 86, 87, 88, 90, 91, 92, 93, 160, 161, 219, 220,
-                240, 316, 317, 318, 427, 1015 };
+                240, 316, 317, 318, 427, 1015, 1016 };
         for (int i = 0; i < id_check.length; i++) {
             if (item.total_item_bag_by_id(4, id_check[i]) > 0
                     || item.total_item_box_by_id(4, id_check[i]) > 0) {
@@ -3818,6 +3831,22 @@ public class Player {
                     if ((sk.temp.indexSkillInServer >= 910 && sk.temp.indexSkillInServer <= 913)
                             || (sk.temp.ID >= 910 && sk.temp.ID <= 913)
                             || (sk.temp.ID >= 1074 && sk.temp.ID <= 1077)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean has_devil_fruit_ope() {
+        if (this.skill_point != null) {
+            for (int i = 0; i < this.skill_point.size(); i++) {
+                Skill_info sk = this.skill_point.get(i);
+                if (sk != null && sk.temp != null) {
+                    if ((sk.temp.indexSkillInServer >= 914 && sk.temp.indexSkillInServer <= 917)
+                            || (sk.temp.ID >= 914 && sk.temp.ID <= 917)
+                            || (sk.temp.ID >= 1078 && sk.temp.ID <= 1081)) {
                         return true;
                     }
                 }

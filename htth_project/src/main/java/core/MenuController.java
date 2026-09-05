@@ -159,13 +159,13 @@ public class MenuController {
               if (p.clan.allowRequest == 1) {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
-                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Khóa xin vào băng", "Giải tán băng" },
-                    new short[] { 141, 171, 146, 143, 144, 118, 128 });
+                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Khóa xin vào băng", "Nhường clan", "Giải tán băng" },
+                    new short[] { 141, 171, 146, 143, 144, 118, 128, 128 });
               } else {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
-                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Mở xin vào băng", "Giải tán băng" },
-                    new short[] { 141, 171, 146, 143, 144, 118, 128 });
+                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Mở xin vào băng", "Nhường clan", "Giải tán băng" },
+                    new short[] { 141, 171, 146, 143, 144, 118, 128, 128 });
               }
             } else {
               send_dynamic_menu(p, type, "Băng hải tặc",
@@ -2474,7 +2474,31 @@ public class MenuController {
         }
         break;
       }
-      case 6: {
+      case 6: { // Nhường clan
+        List<Clan_member> listThuyenPho = new ArrayList<>();
+        for (int i = 0; i < p.clan.members.size(); i++) {
+          Clan_member mem = p.clan.members.get(i);
+          if (mem.levelInclan == 1) {
+            listThuyenPho.add(mem);
+          }
+        }
+        if (listThuyenPho.isEmpty()) {
+          Service.send_box_ThongBao_OK(p, "Băng hải tặc hiện không có Thuyền phó nào để nhường chức!");
+          return;
+        }
+        Clan_member targetVice = null;
+        if (listThuyenPho.size() == 1) {
+          targetVice = listThuyenPho.get(0);
+        } else {
+          targetVice = listThuyenPho.get(Util.random(0, listThuyenPho.size() - 1));
+        }
+        p.name_nhuong_clan = targetVice.name;
+        Service.send_box_yesno(p, 64, "Thông báo",
+            "Bạn có chắc chắn muốn nhường chức Thuyền trưởng cho thuyền phó " + targetVice.name + " không?",
+            new String[] { "Đồng ý", "Đóng" }, new byte[] { 2, 1 });
+        break;
+      }
+      case 7: { // Giải tán băng
         Service.send_box_yesno(p, 63, "Thông báo",
             "Bạn có chắc chắn muốn giải tán băng hải tặc không?",
             new String[] { "Đồng ý", "Hủy" }, new byte[] { -1, -1 });

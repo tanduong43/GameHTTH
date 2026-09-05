@@ -3074,7 +3074,7 @@ public class Map implements Runnable {
                             }
                         }
                     }
-                } else if (this.template.id == activities.PetTraining.MAP_TRAIN_PET_ID) {
+                } else if (this.template.id == activities.PetTraining.MAP_TRAIN_PET_ID || this.template.id == 2028) {
                     client.MyPet pet = p.get_pet();
                     if (pet != null && !pet.isMaxLevel() && p.type_pk == 3) {
                         int oldExp = pet.exp;
@@ -3087,12 +3087,7 @@ public class Map implements Runnable {
                             }
                         }
                     }
-                    if (exp_up[0] > 0) {
-                        p.update_exp(exp_up[0], true);
-                    }
-                    if (exp_up[1] > 0) {
-                        p.update_skill_exp(idSkill, exp_up[1]);
-                    }
+                    // Không cộng EXP Level nhân vật và EXP Skill thường tại Đảo Huấn Luyện Pet
                 } else {
                     if (exp_up[0] > 0) {
                         p.update_exp(exp_up[0], true);
@@ -4973,7 +4968,7 @@ public class Map implements Runnable {
         m.cleanup();
         if (typeEffSkill >= 900) {
             short targetEffId = p.index_map;
-            if (typeEffSkill != 912 && list != null && !list.isEmpty()) {
+            if (typeEffSkill != 912 && typeEffSkill != 916 && list != null && !list.isEmpty()) {
                 Dame_Msg firstTarget = list.get(0);
                 if (firstTarget.targetM != null) {
                     targetEffId = (short) firstTarget.targetM.index;
@@ -4981,7 +4976,7 @@ public class Map implements Runnable {
                     targetEffId = (short) firstTarget.targetP.index_map;
                 }
             }
-            int timeEff = (typeEffSkill == 912) ? 1500 : 0;
+            int timeEff = (typeEffSkill == 912 || typeEffSkill == 916) ? 1500 : 0;
             for (Player p0 : this.players) {
                 if (p0 != null && p0.conn != null) {
                     Service.send_effect_data(p0.conn, typeEffSkill);
@@ -5549,16 +5544,17 @@ public class Map implements Runnable {
                 if (parts.length == 1 || (parts.length >= 2 && (parts[1].equals("list") || parts[1].equals("help") || parts[1].equals("menu")))) {
                     Service.send_box_ThongBao_OK(p, "DANH SÁCH EFFECT MỚI (ĐỒNG BỘ ID):\n"
                             + "• Skill Kuma (ID 910-912 / Nikyu): 910(Áp Lực Pháo - Pad Ho), 911(Đại Hùng Chưởng - Ursus Shock), 912(Đệm Thịt Hộ Thể)\n"
+                            + "• Skill Law (ID 914-916 / Ope Ope): 914(Room Trảm Không Gian), 915(Dao Phóng Xạ Gamma), 916(Khiên Phẫu Thuật Curtain)\n"
                             + "• Skill 24 (ID 37-41 / 124-128): 37(Tụ lực), 38(Hào quang), 39(Tia đạn), 40(Trúng đích), 41(Nổ vỡ)\n"
                             + "• Skill 25 (ID 42-48 / 130-136): 42(Thế đánh), 43(Cầu năng lượng), 44(Bắn tia), 45(Chùm tia), 46(Va chạm), 47(Nổ to), 48(Chớp nổ)\n"
                             + "• Skill 26 (ID 49-54 / 140-145): 49(Xuất chiêu), 50(Tụ chưởng), 51(Chưởng lớn), 52(Cột năng lượng), 53(Nổ quét), 54(Xung kích)\n\n"
                             + "Cú pháp: /eff <id> [số_giây/loop/once]\n"
-                            + "Ví dụ: /eff 910 hoặc /eff 911 hoặc /eff 912\n"
+                            + "Ví dụ: /eff 914 hoặc /eff 915 hoặc /eff 916\n"
                             + "Tắt: /rmeff <id> hoặc /cleareff");
                     return;
                 }
                 if (parts.length >= 2 && (parts[1].equals("demo") || parts[1].equals("testall"))) {
-                    short[] demoIds = new short[] { 910, 911, 912, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54 };
+                    short[] demoIds = new short[] { 910, 911, 912, 914, 915, 916, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54 };
                     new Thread(() -> {
                         try {
                             for (short dId : demoIds) {

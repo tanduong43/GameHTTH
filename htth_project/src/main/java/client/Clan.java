@@ -681,6 +681,14 @@ public class Clan {
                 break;
             }
             case 15: {
+                if (p.conn.status != 1) {
+                    Service.send_box_ThongBao_OK(p, "Chức năng đóng góp ruby chỉ dành cho tài khoản đã mở thành viên!");
+                    break;
+                }
+                if (p.level < 40) {
+                    Service.send_box_ThongBao_OK(p, "Cần đạt cấp độ trên 40 mới có thể đóng góp ruby vào băng!");
+                    break;
+                }
                 Service.input_text(p, 11, "Đóng góp băng", new String[] { "Nhập số ruby muốn góp" });
                 break;
             }
@@ -1342,7 +1350,7 @@ public class Clan {
         }
     }
 
-    private void send_chat(Clan_chat chat, Player p) throws IOException {
+    public void send_chat(Clan_chat chat, Player p) throws IOException {
         for (int i = 0; i < this.members.size(); i++) {
             Player p0 = Map.get_player_by_name_allmap(this.members.get(i).name);
             if (p0 != null && (p == null || p0.equals(p))) {
@@ -1360,7 +1368,7 @@ public class Clan {
         }
     }
 
-    private synchronized void add_chat(Clan_chat chat) {
+    public synchronized void add_chat(Clan_chat chat) {
         int id_get = 0;
         for (int i = 0; i < this.chat.size(); i++) {
             id_get = Math.max(id_get, this.chat.get(i).idChat);

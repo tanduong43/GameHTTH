@@ -27,6 +27,7 @@ import map.Mob;
 import map.Npc;
 import map.Vgo;
 import map.VillageProgression;
+import template.Clan_chat;
 import template.Clan_member;
 import template.DataTemplate;
 import template.ItemBag47;
@@ -547,6 +548,81 @@ public class ClientYesNo {
         }
         if (value == 0) { // ok
             switch (id) {
+                case 64: { // Đồng ý nhường clan
+                    if (p.clan == null || p.clan.members.isEmpty() || !p.clan.members.get(0).name.equals(p.name)) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không phải Thuyền trưởng!");
+                        return;
+                    }
+                    if (p.name_nhuong_clan == null || p.name_nhuong_clan.isEmpty()) {
+                        Service.send_box_ThongBao_OK(p, "Không tìm thấy thông tin Thuyền phó được chọn!");
+                        return;
+                    }
+                    Clan_member targetVice = null;
+                    Clan_member oldLeader = p.clan.members.get(0);
+                    for (int i = 0; i < p.clan.members.size(); i++) {
+                        Clan_member mem = p.clan.members.get(i);
+                        if (mem.name.equals(p.name_nhuong_clan)) {
+                            targetVice = mem;
+                            break;
+                        }
+                    }
+                    if (targetVice == null || targetVice.levelInclan != 1) {
+                        Service.send_box_ThongBao_OK(p,
+                                "Thuyền phó được chọn không còn trong băng hoặc không còn là Thuyền phó!");
+                        p.name_nhuong_clan = "";
+                        return;
+                    }
+
+                    // Chuyển chức vụ: Thuyền phó thành Thuyền trưởng, Thuyền trưởng cũ thành Thuyền phó
+                    targetVice.levelInclan = 0;
+                    oldLeader.levelInclan = 1;
+
+                    // Đưa Thuyền trưởng mới lên index 0
+                    p.clan.members.remove(targetVice);
+                    p.clan.members.add(0, targetVice);
+
+                    String newLeaderName = targetVice.name;
+                    p.name_nhuong_clan = "";
+
+                    // Cập nhật hiển thị cho tất cả thành viên clan đang online
+                    for (int i = 0; i < p.clan.members.size(); i++) {
+                        Player pMem = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
+                        if (pMem != null) {
+                            Clan.set_data(pMem, false);
+                            Clan.update_list_member(pMem, false);
+                            Clan.send_info(pMem, false);
+                            for (int j = 0; j < pMem.map.players.size(); j++) {
+                                if (!pMem.map.players.get(j).equals(pMem)) {
+                                    Clan.send_me_to_other(pMem, pMem.map.players.get(j), false);
+                                }
+                            }
+                        }
+                    }
+
+                    // Thông báo tới người được nhường chức
+                    Player pNewLeader = Map.get_player_by_name_allmap(newLeaderName);
+                    if (pNewLeader != null) {
+                        Service.send_box_ThongBao_OK(pNewLeader,
+                                "Bạn đã được " + p.name + " nhường chức Thuyền trưởng Băng " + p.clan.name + "!");
+                    }
+
+                    // Thêm tin nhắn vào khung chat clan
+                    Clan_chat chat = new Clan_chat();
+                    chat.idMem = targetVice.id;
+                    chat.name = targetVice.name;
+                    chat.str = p.name + " đã nhường chức Thuyền trưởng cho " + newLeaderName;
+                    chat.time = System.currentTimeMillis();
+                    chat.typeChat = -3;
+                    p.clan.add_chat(chat);
+                    p.clan.send_chat(chat, null);
+
+                    // Lưu dữ liệu clan vào CSDL
+                    Clan.update();
+
+                    Service.send_box_ThongBao_OK(p,
+                            "Bạn đã nhường chức Thuyền trưởng cho " + newLeaderName + " thành công!");
+                    break;
+                }
                 case 63: {
                     if (p.clan == null) {
                         return;
@@ -3694,6 +3770,17 @@ public class ClientYesNo {
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 1015, 1);
+                        p.item.update_Inventory(-1, false);
+                    }
+                    break;
+                }
+                case 5016: { // trai ope ope (law)
+                    if (p.item.total_item_bag_by_id(4, 1016) > 0) {
+                        String[] name_ = new String[] { "Trảm Không Gian", "Dao Phóng Xạ Gamma", "Khiên Phẫu Thuật", "Bác Sĩ Tử Thần" };
+                        int[] icon_ = new int[] { 4421, 4422, 4423, 4424 };
+                        Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
+                        p.get_skill_taq_new(id - 4000);
+                        p.item.remove_item47(4, 1016, 1);
                         p.item.update_Inventory(-1, false);
                     }
                     break;

@@ -502,23 +502,63 @@ public class MessageHandler {
             case -89: { // Thợ săn hải tặc (Truy nã)
                 if (conn.p != null) {
                     byte type = m.reader().readByte();
-                    if (type == 4) { // Nhận thưởng / Báo thù
+                    if (type == 0) { // Refresh danh sách truy nã
                         try {
-                            String name = m.reader().readUTF();
-                            core.Service.send_box_ThongBao_OK(conn.p,
-                                    "Tính năng này không dùng trong Thợ săn hải tặc!");
+                            if (m.reader().available() > 0) {
+                                m.reader().readShort(); // id (-1)
+                            }
                         } catch (Exception e) {
                         }
-                    } else if (type == 5) { // Tìm kiếm
+                        core.BXH.send_wanted_list(conn.p, (byte) 0);
+                    } else if (type == 1) { // Xem thông tin tội phạm truy nã
                         try {
-                            String name = m.reader().readUTF();
-                            core.Service.send_box_ThongBao_OK(conn.p,
-                                    "Tính năng này không dùng trong Thợ săn hải tặc!");
+                            short targetId = m.reader().readShort();
+                            if (m.reader().available() > 0) {
+                                m.reader().readByte(); // action
+                            }
+                            core.BXH.send_wanted_player_info(conn.p, targetId);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else if (type == 2) { // Nhận lệnh truy nã (từ WantedPoster)
+                        try {
+                            short targetId = m.reader().readShort();
+                            core.BXH.send_wanted_player_info(conn.p, targetId);
                         } catch (Exception e) {
                         }
-                    } else if (type == 1) { // Load thêm trang (hoặc load lần đầu)
-                        byte page = m.reader().readByte();
-                        core.BXH.send_wanted_list(conn.p, page);
+                    } else if (type == 4) { // Nhận thưởng / Báo thù / Danh sách đã nhận
+                        try {
+                            if (m.reader().available() > 0) {
+                                m.reader().readShort();
+                            }
+                            if (m.reader().available() > 0) {
+                                m.reader().readByte();
+                            }
+                            core.Service.send_box_ThongBao_OK(conn.p,
+                                    "Tính năng này đang được cập nhật!");
+                        } catch (Exception e) {
+                        }
+                    } else if (type == 5) { // Tìm kiếm / Thông tin đã phát
+                        try {
+                            if (m.reader().available() > 0) {
+                                m.reader().readShort();
+                            }
+                            if (m.reader().available() > 0) {
+                                m.reader().readByte();
+                            }
+                            core.Service.send_box_ThongBao_OK(conn.p,
+                                    "Tính năng này đang được cập nhật!");
+                        } catch (Exception e) {
+                        }
+                    } else if (type == 3) { // Danh sách đã phát
+                        try {
+                            if (m.reader().available() > 0) {
+                                m.reader().readShort();
+                            }
+                            core.Service.send_box_ThongBao_OK(conn.p,
+                                    "Tính năng này đang được cập nhật!");
+                        } catch (Exception e) {
+                        }
                     }
                 }
                 break;

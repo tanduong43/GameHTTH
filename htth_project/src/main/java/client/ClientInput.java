@@ -230,6 +230,14 @@ public class ClientInput {
             }
             case 11: {
                 if (name.length == 1) {
+                    if (p.conn.status != 1) {
+                        Service.send_box_ThongBao_OK(p, "Chức năng đóng góp ruby chỉ dành cho tài khoản đã mở thành viên!");
+                        return;
+                    }
+                    if (p.level < 40) {
+                        Service.send_box_ThongBao_OK(p, "Cần đạt cấp độ trên 40 mới có thể đóng góp ruby vào băng!");
+                        return;
+                    }
                     if (!Util.isnumber(name[0])) {
                         Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
                         return;
@@ -253,8 +261,12 @@ public class ClientInput {
                         p.update_money();
                         p.clan.update_ruby((int) value);
                         for (int i = 0; i < p.clan.members.size(); i++) {
+                            if (p.clan.members.get(i).name.equals(p.name)) {
+                                p.clan.members.get(i).gopRuby += (short) Math.min(value, Short.MAX_VALUE - p.clan.members.get(i).gopRuby);
+                            }
                             Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
                             if (p0 != null) {
+                                Clan.update_list_member(p0, false);
                                 Clan.send_info(p0, false);
                             }
                         }

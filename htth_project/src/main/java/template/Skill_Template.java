@@ -224,7 +224,7 @@ public class Skill_Template {
         if (result == null && (
             (sk_info.temp.indexSkillInServer >= 661 && sk_info.temp.indexSkillInServer <= 665) ||
             (sk_info.temp.indexSkillInServer >= 900 && sk_info.temp.indexSkillInServer <= 902) ||
-            (sk_info.temp.indexSkillInServer >= 910 && sk_info.temp.indexSkillInServer <= 913)
+            (sk_info.temp.indexSkillInServer >= 910 && sk_info.temp.indexSkillInServer <= 917)
         )) {
             for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
                 Skill_Template temp_ss = Skill_Template.ENTRYS.get(i);

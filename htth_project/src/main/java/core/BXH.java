@@ -398,27 +398,11 @@ public class BXH {
 
     public static void send_wanted_list(Player p, byte page) throws IOException {
         Message msg = new Message(-89);
-        int bound1 = 0;
-        int bound2 = BXH.BOUNTY_HUNTERS.size() > 10 ? 10 : BXH.BOUNTY_HUNTERS.size();
-        if (BXH.BOUNTY_HUNTERS.size() > 10) {
-            if (((page + 1) * 10) > BXH.BOUNTY_HUNTERS.size()) {
-                bound1 = 10 * page;
-                bound2 = BXH.BOUNTY_HUNTERS.size();
-                while (bound1 >= bound2) {
-                    bound1 -= 10;
-                    page--;
-                }
-            } else {
-                bound1 = 10 * page;
-                bound2 = bound1 + 10;
-            }
-        } else {
-            page = 0;
-        }
+        int total = BXH.BOUNTY_HUNTERS.size();
         msg.writer().writeByte(0); // type 0 trong ListWantedServer
-        msg.writer().writeShort(bound2 - bound1);
+        msg.writer().writeShort((short) total);
 
-        for (int i = bound1; i < bound2; i++) {
+        for (int i = 0; i < total; i++) {
             InfoMemList temp = BXH.BOUNTY_HUNTERS.get(i);
             Player p0 = Map.get_player_by_name_allmap(temp.name);
             short[] part = new short[] { -1, -1, -1 };
@@ -436,11 +420,11 @@ public class BXH {
                     part[0] = p0.item.it_body[3].template.part;
                 }
             }
-            msg.writer().writeShort(1); // num in ReadInfoMemWantedWarrant (bỏ qua/không dùng nhiều ở client)
+            msg.writer().writeShort((short) temp.id);
             msg.writer().writeUTF(temp.name);
             msg.writer().writeInt((int) temp.thongthao); // wanted
             msg.writer().writeUTF(temp.name); // charShow.name
-            msg.writer().writeShort(1); // Lv (có thể lấy từ temp nếu có)
+            msg.writer().writeShort(p0 != null ? (short) p0.level : (short) 1); // Lv
 
             // updateCharFace
             msg.writer().writeShort(temp.head);
@@ -452,6 +436,60 @@ public class BXH {
         }
         p.conn.addmsg(msg);
         msg.cleanup();
+    }
+
+    public static void send_wanted_player_info(Player p, int targetId) throws IOException {
+        InfoMemList targetMem = null;
+        for (InfoMemList mem : BXH.BOUNTY_HUNTERS) {
+            if (mem.id == targetId || (short) mem.id == targetId) {
+                targetMem = mem;
+                break;
+            }
+        }
+        if (targetMem == null && targetId >= 0 && targetId < BXH.BOUNTY_HUNTERS.size()) {
+            targetMem = BXH.BOUNTY_HUNTERS.get(targetId);
+        }
+
+        if (targetMem == null) {
+            Service.send_box_ThongBao_OK(p, "Không tìm thấy thông tin của tội phạm này!");
+            return;
+        }
+
+        String name = targetMem.name;
+        long bounty = (long) targetMem.thongthao;
+        Player targetPlayer = Map.get_player_by_name_allmap(name);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("📜 THÔNG TIN TRUY NÃ 📜\n");
+        sb.append("• Tội phạm: ").append(name);
+        if (targetPlayer != null) {
+            sb.append(" (Cấp ").append(targetPlayer.level).append(")");
+        }
+        sb.append("\n• Tiền thưởng: ").append(Util.number_format(bounty)).append(" Beri\n");
+
+        if (targetPlayer != null && targetPlayer.map != null && targetPlayer.map.template != null) {
+            sb.append("• Trạng thái: Online 🟢\n");
+            sb.append("• Vị trí: ").append(targetPlayer.map.template.name);
+            sb.append(" (Khu ").append(targetPlayer.map.zone_id + 1).append(")\n");
+            sb.append("• Tọa độ: X: ").append(targetPlayer.x).append(" - Y: ").append(targetPlayer.y).append("\n");
+
+            long now = System.currentTimeMillis();
+            long elapsed = now - targetPlayer.time_bounty_posted;
+            if (elapsed < 600_000L) {
+                long minutesLeft = 10 - (elapsed / 60_000L);
+                if (minutesLeft <= 0) minutesLeft = 1;
+                sb.append("⏳ Tình trạng: Chưa có hiệu lực (còn ").append(minutesLeft).append(" phút nữa)");
+            } else {
+                long reward = (long) (targetPlayer.thosan_bounty * 0.8);
+                sb.append("⚔️ Tình trạng: ĐÃ CÓ HIỆU LỰC!\n");
+                sb.append("👉 Tiêu diệt để nhận ").append(Util.number_format(reward)).append(" Beri (80% thưởng)!");
+            }
+        } else {
+            sb.append("• Trạng thái: Offline 🔴\n");
+            sb.append("• Vị trí: Không xác định (Người chơi đang rời mạng)");
+        }
+
+        Service.send_box_ThongBao_OK(p, sb.toString());
     }
 
     public static void resetAllTopBoss() {
