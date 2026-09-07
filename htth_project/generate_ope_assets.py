@@ -80,8 +80,16 @@ def save_multizoom_effect(eff_id, img_x4, data_bytes, max_colors=128):
         c = max_colors
         if z in ['x3', 'x4'] and eff_id == 916:
             c = min(max_colors, 48)
+        import io
+        buf = io.BytesIO()
         im_q = im.quantize(colors=c, method=Image.Quantize.FASTOCTREE)
-        im_q.save(img_path, format='PNG', optimize=True)
+        try:
+            im_q.save(buf, format='PNG')
+            with open(img_path, 'wb') as f:
+                f.write(buf.getvalue())
+        except Exception as e:
+            print(f"Lỗi khi save {z}/{eff_id}: {e}")
+            im.save(img_path, format='PNG')
         
         data_path = os.path.normpath(os.path.join(dir_data, f'{eff_id}'))
         with open(data_path, 'wb') as f:
@@ -124,26 +132,30 @@ def draw_anime_hemisphere_room_dome(w=864, h=540):
         py = cy_base + int(math.sin(rad) * ry)
         pts.append((px, py))
 
-    # Lớp phủ màng không gian Room: Màu trắng pha xanh dương mờ ảo (White-Sky Blue)
-    d.polygon(pts, fill=(225, 245, 255, 60))
-
-    # Lớp phủ tỏa sáng trung tâm (trắng xanh dương chuyển sắc mềm mại)
-    for factor, alpha in [(0.86, 30), (0.70, 24), (0.50, 18)]:
-        pts_in = []
+    # Màng không gian Room: Vòng dầy màu đạm và nhạt dần khi vào tâm
+    for f in range(100, 0, -2):
+        factor = f / 100.0
         rx_i = int(rx * factor)
         hd_i = int(h_dome * factor)
         ry_i = int(ry * factor)
-        for deg in range(180, 361, 4):
-            rad = math.radians(deg)
-            px = cx + int(math.cos(rad) * rx_i)
-            py = cy_base + int(math.sin(rad) * hd_i)
-            pts_in.append((px, py))
-        for deg in range(0, 181, 6):
-            rad = math.radians(deg)
-            px = cx + int(math.cos(rad) * rx_i)
-            py = cy_base + int(math.sin(rad) * ry_i)
-            pts_in.append((px, py))
-        d.polygon(pts_in, fill=(245, 252, 255, alpha))
+        
+        alpha = int(120 * (factor ** 2.5)) # Nhạt dần về 0 ở tâm
+        if alpha > 0:
+            upper_arc = []
+            for deg in range(180, 361, 3):
+                rad = math.radians(deg)
+                px = cx + int(math.cos(rad) * rx_i)
+                py = cy_base + int(math.sin(rad) * hd_i)
+                upper_arc.append((px, py))
+            d.line(upper_arc, fill=(60, 160, 255, alpha), width=max(2, int(rx * 0.04)))
+            
+            lower_arc = []
+            for deg in range(0, 181, 4):
+                rad = math.radians(deg)
+                px = cx + int(math.cos(rad) * rx_i)
+                py = cy_base + int(math.sin(rad) * ry_i)
+                lower_arc.append((px, py))
+            d.line(lower_arc, fill=(60, 160, 255, int(alpha*0.6)), width=max(2, int(rx * 0.03)))
 
     # 2. Vệt ánh sáng bóng kính phản chiếu (Anime Sheen Reflection) trên bề mặt vòm
     sheen_pts = []
@@ -165,16 +177,17 @@ def draw_anime_hemisphere_room_dome(w=864, h=540):
             dome_halo.append((px, py))
         d.line(dome_halo, fill=(100, 200, 255, a), width=w_line)
 
-    # 4. Vành vòm cầu chính phát sáng rực rỡ (Lõi trắng tinh, viền xanh dương)
+    # 4. Vành vòm cầu chính dầy, màu đạm và phát sáng rực rỡ
     dome_main = []
     for deg in range(180, 361, 2):
         rad = math.radians(deg)
         px = cx + int(math.cos(rad) * rx)
         py = cy_base + int(math.sin(rad) * h_dome)
         dome_main.append((px, py))
-    d.line(dome_main, fill=(130, 215, 255, 240), width=7)
-    d.line(dome_main, fill=(210, 248, 255, 255), width=4)
-    d.line(dome_main, fill=(255, 255, 255, 255), width=2)
+    d.line(dome_main, fill=(30, 110, 255, 255), width=26)
+    d.line(dome_main, fill=(60, 160, 255, 255), width=18)
+    d.line(dome_main, fill=(130, 220, 255, 255), width=10)
+    d.line(dome_main, fill=(255, 255, 255, 255), width=4)
 
     # 5. Các đường kinh tuyến và vĩ tuyến 3D
     y_mid = cy_base - int(h_dome * 0.44)
@@ -234,7 +247,9 @@ def draw_circling_smoke_puff(w=96, h=56, variant=0):
         (10, -2, 14, (255, 255, 255, 205)),
     ]
     for px, py, r, col in puffs:
-        d.ellipse([cx + px - r, cy + py - r//2, cx + px + r, cy + py + r//2], fill=col)
+        # Thay vì ngang (width=2r, height=r), ta làm mây đứng lên (width=r*1.2, height=r*2)
+        rw = int(r * 0.6)
+        d.ellipse([cx + px - rw, cy + py - r, cx + px + rw, cy + py + r], fill=col)
         
     wind_y = cy + 4
     if variant == 0:
@@ -260,19 +275,19 @@ def draw_straight_kikoku_sword(w=64, h=176, is_trail=False, is_giant=False):
     cx = w // 2
 
     if is_trail:
-        trail_pts = [(cx - 10, 0), (cx + 10, 0), (cx + 4, 88), (cx - 4, 88)]
-        d.polygon(trail_pts, fill=(0, 229, 255, 80))
-        d.line([(cx, 0), (cx, 88)], fill=(255, 255, 255, 160), width=3)
-        d.line([(cx - 7, 10), (cx - 3, 75)], fill=(0, 240, 255, 120), width=2)
-        d.line([(cx + 7, 10), (cx + 3, 75)], fill=(0, 240, 255, 120), width=2)
+        trail_pts = [(cx - 18, -20), (cx + 18, -20), (cx + 8, 88), (cx - 8, 88)]
+        d.polygon(trail_pts, fill=(0, 200, 255, 120))
+        d.line([(cx, -20), (cx, 88)], fill=(255, 255, 255, 200), width=5)
+        d.line([(cx - 12, 10), (cx - 5, 75)], fill=(0, 240, 255, 160), width=3)
+        d.line([(cx + 12, 10), (cx + 5, 75)], fill=(0, 240, 255, 160), width=3)
 
     y_pommel = 16 if not is_giant else 8
     y_tsuba = 54 if not is_giant else 48
     y_tip = 168 if not is_giant else 232
 
-    blade_w = 6 if not is_giant else 10
-    d.line([(cx, y_tsuba), (cx, y_tip)], fill=(0, 229, 255, 150), width=blade_w + 8)
-    d.line([(cx, y_tsuba), (cx, y_tip)], fill=(0, 255, 240, 210), width=blade_w + 4)
+    blade_w = 8 if not is_giant else 14
+    d.line([(cx, y_tsuba), (cx, y_tip)], fill=(0, 180, 255, 180), width=blade_w + 12)
+    d.line([(cx, y_tsuba), (cx, y_tip)], fill=(0, 240, 255, 230), width=blade_w + 6)
     d.line([(cx, y_tsuba), (cx, y_tip - 6)], fill=(255, 255, 255, 255), width=blade_w)
     d.polygon([(cx - blade_w//2, y_tip - 6), (cx + blade_w//2, y_tip - 6), (cx, y_tip)], fill=(255, 255, 255, 255))
 
@@ -771,14 +786,19 @@ def draw_tact_gamma_sphere(w, h):
     cx, cy = w // 2, h // 2
     r = int(w * 0.46)  # ~176 tại 4x (~44 tại 1x)
 
-    # Nền màng năng lượng hình cầu trong suốt
-    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(190, 245, 255, 30))
+    # Nền màng năng lượng hình cầu - Nhạt dần vào tâm
+    for f in range(100, 0, -5):
+        factor = f / 100.0
+        r_i = int(r * factor)
+        alpha = int(70 * (factor ** 2))
+        if alpha > 0:
+            d.ellipse([cx - r_i, cy - r_i, cx + r_i, cy + r_i], outline=(80, 220, 255, alpha), width=max(2, int(r*0.05)))
 
-    # Viền phát quang đa tầng
-    d.ellipse([cx - r - 8, cy - r - 8, cx + r + 8, cy + r + 8], outline=(0, 200, 255, 45), width=7)
-    d.ellipse([cx - r - 4, cy - r - 4, cx + r + 4, cy + r + 4], outline=(0, 240, 255, 110), width=5)
-    d.ellipse([cx - r,     cy - r,     cx + r,     cy + r],     outline=(0, 255, 240, 230), width=4)
-    d.ellipse([cx - r + 1, cy - r + 1, cx + r - 1, cy + r - 1], outline=(235, 255, 255, 255), width=2)
+    # Viền phát quang đa tầng dầy và uy lực
+    d.ellipse([cx - r - 12, cy - r - 12, cx + r + 12, cy + r + 12], outline=(0, 160, 255, 60), width=10)
+    d.ellipse([cx - r - 6, cy - r - 6, cx + r + 6, cy + r + 6], outline=(0, 220, 255, 140), width=7)
+    d.ellipse([cx - r,     cy - r,     cx + r,     cy + r],     outline=(0, 255, 240, 255), width=5)
+    d.ellipse([cx - r + 2, cy - r + 2, cx + r - 2, cy + r - 2], outline=(255, 255, 255, 255), width=3)
 
     # Vĩ tuyến xích đạo 3D (Equator)
     rx = r - 4
@@ -1203,45 +1223,45 @@ def draw_curtain_light_grey_cyan_circle(phase=0, w_box=320, h_box=320):
     pulse = int(3 * math.sin(phase * math.pi / 4))
     r = r_base + pulse
 
-    # 1. Hào quang mờ viền ngoài (Silver-Cyan Soft Ambient Glow)
-    d.ellipse([cx - r - 10, cy - r - 10, cx + r + 10, cy + r + 10], fill=(160, 220, 245, 18))
-    d.ellipse([cx - r - 6,  cy - r - 6,  cx + r + 6,  cy + r + 6],  fill=(185, 235, 255, 35))
-    d.ellipse([cx - r - 3,  cy - r - 3,  cx + r + 3,  cy + r + 3],  fill=(210, 248, 255, 60))
+    # 1. Hào quang mờ viền ngoài (Silver-Cyan Soft Ambient Glow) - Tăng kích thước và độ sáng
+    d.ellipse([cx - r - 14, cy - r - 14, cx + r + 14, cy + r + 14], fill=(160, 220, 245, 25))
+    d.ellipse([cx - r - 8,  cy - r - 8,  cx + r + 8,  cy + r + 8],  fill=(185, 235, 255, 45))
+    d.ellipse([cx - r - 4,  cy - r - 4,  cx + r + 4,  cy + r + 4],  fill=(210, 248, 255, 80))
 
-    # 2. Vành tròn bảo hộ chính kép (Dual Neon Rings)
+    # 2. Vành tròn bảo hộ chính kép (Dual Neon Rings) - Dầy khung ra và sáng hơn
     # Vành chính ngoài
-    d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(170, 230, 252, 240), width=5)
-    d.ellipse([cx - r + 1, cy - r + 1, cx + r - 1, cy + r - 1], outline=(255, 255, 255, 255), width=2)
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(170, 230, 252, 255), width=10)
+    d.ellipse([cx - r + 2, cy - r + 2, cx + r - 2, cy + r - 2], outline=(255, 255, 255, 255), width=5)
     # Vành phụ trong
-    r_in = r - 8
-    d.ellipse([cx - r_in, cy - r_in, cx + r_in, cy + r_in], outline=(140, 210, 240, 160), width=2)
+    r_in = r - 12
+    d.ellipse([cx - r_in, cy - r_in, cx + r_in, cy + r_in], outline=(140, 210, 240, 200), width=5)
 
     # 3. Vạch chia tọa độ Room phẫu thuật (Surgical Precision Ticks)
     for deg in range(0, 360, 15):
         rad = math.radians(deg)
         x1 = cx + int(math.cos(rad) * r)
         y1 = cy + int(math.sin(rad) * r)
-        x2 = cx + int(math.cos(rad) * (r - 5))
-        y2 = cy + int(math.sin(rad) * (r - 5))
-        d.line([(x1, y1), (x2, y2)], fill=(200, 242, 255, 160), width=2)
+        x2 = cx + int(math.cos(rad) * (r - 8))
+        y2 = cy + int(math.sin(rad) * (r - 8))
+        d.line([(x1, y1), (x2, y2)], fill=(200, 242, 255, 200), width=3)
 
     # 4. 4 Chữ thập phẫu thuật phát sáng tại 4 hướng chính (0, 90, 180, 270 deg)
     for deg in [0, 90, 180, 270]:
         rad = math.radians(deg)
-        nx = cx + int(math.cos(rad) * (r - 4))
-        ny = cy + int(math.sin(rad) * (r - 4))
-        d.ellipse([nx - 3, ny - 3, nx + 3, ny + 3], fill=(0, 240, 255, 230))
-        draw_sparkle(d, nx, ny, r=8, color=(255, 255, 255, 255))
+        nx = cx + int(math.cos(rad) * (r - 6))
+        ny = cy + int(math.sin(rad) * (r - 6))
+        d.ellipse([nx - 4, ny - 4, nx + 4, ny + 4], fill=(0, 240, 255, 255))
+        draw_sparkle(d, nx, ny, r=10, color=(255, 255, 255, 255))
 
-    # 5. 8 Hạt photon kim cương xoay tròn quanh viền
+    # 5. 8 Hạt photon kim cương xoay tròn quanh viền - Hạt to hơn, uy lực hơn
     offset_ang = phase * 11.25
     for k in range(8):
         ang = k * 45 + offset_ang
         rad = math.radians(ang)
         px = cx + int(math.cos(rad) * (r - 4))
         py = cy + int(math.sin(rad) * (r - 4))
-        d.polygon([(px, py - 4), (px + 4, py), (px, py + 4), (px - 4, py)], fill=(255, 255, 255, 255))
-        draw_sparkle(d, px, py, r=5, color=(170, 235, 255, 220))
+        d.polygon([(px, py - 6), (px + 6, py), (px, py + 6), (px - 6, py)], fill=(255, 255, 255, 255))
+        draw_sparkle(d, px, py, r=8, color=(170, 235, 255, 240))
 
     # 6. DÒNG SÓNG NĂNG LƯỢNG QUÉT LÊN XUỐNG ĐIỀU HÒA SINE MỀM MẠI (Harmonic Curved Wave)
     y_ratio = 0.56 * math.sin(phase * 2 * math.pi / 8)
@@ -1249,9 +1269,9 @@ def draw_curtain_light_grey_cyan_circle(phase=0, w_box=320, h_box=320):
     v_dir = math.cos(phase * 2 * math.pi / 8) # Chiều quét (+: từ trên xuống dưới, -: từ dưới lên trên)
 
     dy = abs(y_stream - cy)
-    dx_max = int(math.sqrt(max(0, (r - 12)**2 - dy**2)))
+    dx_max = int(math.sqrt(max(0, (r - 14)**2 - dy**2)))
     if dx_max > 16:
-        arch_offset = int(-14 * v_dir) # Độ cong hình cánh cung theo hướng chuyển động
+        arch_offset = int(-16 * v_dir) # Độ cong hình cánh cung theo hướng chuyển động
         arc_pts = []
         steps = 20
         for s in range(steps + 1):
@@ -1263,31 +1283,31 @@ def draw_curtain_light_grey_cyan_circle(phase=0, w_box=320, h_box=320):
             arc_pts.append((xs, ys))
 
         # Dải lụa phát sáng mềm mại trailing phía sau vệt quét
-        tail_offset = int(-18 * v_dir)
+        tail_offset = int(-22 * v_dir)
         tail_pts = list(arc_pts)
         for xs, ys in reversed(arc_pts):
             tail_pts.append((xs, ys - tail_offset))
-        d.polygon(tail_pts, fill=(150, 220, 250, 40))
+        d.polygon(tail_pts, fill=(150, 220, 250, 60))
 
-        # Vệt sóng hào quang chính
-        d.line(arc_pts, fill=(130, 215, 245, 110), width=9)
-        d.line(arc_pts, fill=(195, 242, 255, 200), width=5)
-        d.line(arc_pts, fill=(255, 255, 255, 255), width=2)
+        # Vệt sóng hào quang chính - Tăng độ dày dải sóng
+        d.line(arc_pts, fill=(130, 215, 245, 140), width=12)
+        d.line(arc_pts, fill=(195, 242, 255, 220), width=7)
+        d.line(arc_pts, fill=(255, 255, 255, 255), width=3)
 
         # 5 Hạt photon lơ lửng chạy dọc theo vòm sóng
         for f in [-0.7, -0.35, 0.0, 0.35, 0.7]:
             mx = cx + int(dx_max * f)
             arch_m = math.sin(((f + 1.0) / 2.0) * math.pi) * arch_offset
             my = y_stream + int(arch_m)
-            draw_sparkle(d, mx, my, r=7, color=(255, 255, 255, 255))
-            d.ellipse([mx - 2, my - 2, mx + 2, my + 2], fill=(0, 240, 255, 240))
+            draw_sparkle(d, mx, my, r=9, color=(255, 255, 255, 255))
+            d.ellipse([mx - 3, my - 3, mx + 3, my + 3], fill=(0, 240, 255, 255))
 
         # Vệt sáng bay bổng (Streamer trails)
         for f in [-0.6, -0.2, 0.2, 0.6]:
             sx = cx + int(dx_max * f)
             arch_s = math.sin(((f + 1.0) / 2.0) * math.pi) * arch_offset
             sy = y_stream + int(arch_s)
-            d.line([(sx, sy), (sx, sy - int(15 * v_dir))], fill=(190, 240, 255, 140), width=2)
+            d.line([(sx, sy), (sx, sy - int(20 * v_dir))], fill=(190, 240, 255, 180), width=3)
 
     return im
 
