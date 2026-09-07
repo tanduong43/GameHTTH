@@ -1021,6 +1021,29 @@ public class ClientInput {
                 }
                 break;
             }
+            case 32009: {
+                if (p.conn != null && p.conn.user.equals("admin")) {
+                    if (name.length == 3) {
+                        if (!Util.isnumber(name[0]) || !Util.isnumber(name[1]) || !Util.isnumber(name[2])) {
+                            Service.send_box_ThongBao_OK(p, "3 xúc xắc phải là số từ 1 đến 6!");
+                            return;
+                        }
+                        byte d1 = Byte.parseByte(name[0]);
+                        byte d2 = Byte.parseByte(name[1]);
+                        byte d3 = Byte.parseByte(name[2]);
+                        if (d1 < 1 || d1 > 6 || d2 < 1 || d2 > 6 || d3 < 1 || d3 > 6) {
+                            Service.send_box_ThongBao_OK(p, "Mỗi viên xúc xắc phải có điểm từ 1 đến 6!");
+                            return;
+                        }
+                        int total = d1 + d2 + d3;
+                        String side = (total >= 11 && total <= 17) ? "TÀI" : "XỈU";
+                        core.Manager.gI().TaiXiu().setForceDice(d1, d2, d3);
+                        Service.send_box_ThongBao_OK(p, "Đã đặt kết quả 3 xúc xắc: [" + d1 + " - " + d2 + " - " + d3 + "] (Tổng: " + total + " điểm -> " + side + ") cho phiên hiện tại!");
+                        event.EventSpecial.show_table(p, 0);
+                    }
+                }
+                break;
+            }
         }
     }
 }

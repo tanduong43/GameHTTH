@@ -28,21 +28,22 @@ VALUES (1016, 'Khi ăn Trái Ác Quỷ Ope Ope (Phẫu Thuật), bạn sẽ th�
 -- 3.1. Skill 1: Room - Trảm Không Gian (Amputate / Shambles Slash)
 -- Nguyên tác: Cắt rời không gian bỏ qua giáp và phòng thủ trong Room, độ chính xác tuyệt đối
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1078, 914, 2064, 421, 1, 0, 'Trảm Không Gian', 914, 160, 4, 140, 75, 55, 18000, 1, 'Mở trường phẫu thuật Room, chém kiếm khí Kikoku phân tách không gian, gây 350% sát thương của chiêu Quả đấm tốc độ, xuyên 45% giáp và gây sát thương chuẩn lên 4 mục tiêu', 1, 1, '[[1, 420], [13, 450], [57, 200], [76, 250], [28, 4], [29, 300], [30, 20]]', '[4, 300, 20]');
+VALUES (1078, 914, 2064, 421, 1, 0, 'Trảm Không Gian', 914, 160, 4, 140, 75, 55, 18000, 1, 'Mở trường phẫu thuật Room, chém kiếm khí Kikoku phân tách không gian, gây 350% sát thương của chiêu Quả đấm tốc độ và xuyên 45% giáp lên 4 mục tiêu', 1, 1, '[[1, 420], [13, 450], [28, 4], [29, 300], [30, 20]]', '[4, 300, 20]');
 
 -- 3.2. Skill 2: Dao Phóng Xạ Gamma (Gamma Knife - Internal Organs Destruction)
--- Nguyên tác: Đâm dao điện Plasma Gamma xuyên thẳng nội tạng, bạo kích cực hạn và gây sát thương theo % máu
+-- Nguyên tác: Đâm dao điện Plasma Gamma xuyên thẳng nội tạng, bạo kích cực hạn và gây sát thương chí mạng
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1079, 915, 2065, 422, 1, 0, 'Dao Phóng Xạ Gamma', 915, 140, 1, 0, 75, 65, 20000, 1, 'Tạo dao năng lượng Plasma Gamma đâm xuyên nội tạng mục tiêu, gây 420% sát thương bạo kích của chiêu Quả đấm tốc độ, bỏ qua hoàn toàn giáp và gây thêm sát thương theo % máu đối thủ', 1, 1, '[[1, 480], [10, 400], [11, 250], [13, 500], [48, 150], [28, 9], [29, 500], [30, 20]]', '[9, 500, 20]');
+VALUES (1079, 915, 2065, 422, 1, 0, 'Dao Phóng Xạ Gamma', 915, 140, 1, 0, 75, 65, 20000, 1, 'Tạo quả cầu Room giam giữ mục tiêu và phóng dao plasma Gamma nghiền nát, tăng 40% tỉ lệ chí mạng và 25% sát thương chí mạng', 1, 1, '[[10, 400], [11, 250], [28, 9], [29, 500], [30, 20]]', '[9, 500, 20]');
 
--- 3.3. Skill 3: Curtain & Scan (Khiên Phẫu Thuật & Hoán Vị Shambles)
--- Nguyên tác: Màn chắn Curtain chặn đòn hủy diệt, hoán vị Shambles né đòn và hồi phục sinh mệnh y tế
+-- 3.3. Skill 3: Curtain & Scan (Khiên Phẫu Thuật Curtain)
+-- Nguyên tác: Màn chắn Curtain chặn đòn hủy diệt, tăng giáp phòng thủ và miễn thương
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1080, 916, 2066, 423, 2, 1, 'Khiên Phẫu Thuật', 916, 120, 1, 120, 0, 90, 38000, 0, 'Dựng màn chắn không gian Curtain và trận pháp Trái Tim Ope dưới chân: Hồi phục 30% HP, tăng mạnh né tránh (Shambles), tăng giáp, kháng hiệu ứng và miễn thương trong 25 giây', 1, 1, '[[4, 400], [12, 350], [53, 250], [71, 200], [31, 1], [32, 250]]', '[0, -1, -1]');
+VALUES (1080, 916, 2066, 423, 2, 1, 'Khiên Phẫu Thuật', 916, 120, 1, 120, 0, 90, 38000, 0, 'Dựng màn chắn không gian Curtain bảo hộ bản thân: Tăng 40% phòng thủ và 25% miễn thương trong 25 giây', 1, 1, '[[4, 400], [53, 250], [31, 1], [32, 250]]', '[0, -1, -1]');
 
 -- 3.4. Skill 4: Bác Sĩ Tử Thần (Surgeon of Death - Tri Thức Phẫu Thuật Gia)
--- Nguyên tác: Hiểu rõ mọi tử huyệt sinh học của đối phương, tăng vĩnh viễn tấn công, chí mạng, xuyên kháng
+-- Nguyên tác: Hiểu rõ mọi tử huyệt sinh học, tăng vĩnh viễn 30% Phản đòn, 30% Né tránh và 30% S.t chí mạng
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1081, 917, 2067, 424, 3, 0, 'Bác Sĩ Tử Thần', 0, 0, 0, 0, 0, 0, 0, 0, 'Nội tại Bác Sĩ Tử Thần: Tri thức y học tuyệt đỉnh giúp Law tìm ra mọi điểm yếu của kẻ địch, tăng vĩnh viễn tấn công, tỉ lệ và sát thương chí mạng, xuyên giáp và miễn thương', 1, 1, '[[1, 380], [2, 380], [10, 300], [11, 200], [13, 350], [53, 150]]', '[0, -1, -1]');
+VALUES (1081, 917, 2067, 424, 3, 0, 'Bác Sĩ Tử Thần', 0, 0, 0, 0, 0, 0, 0, 0, 'Nội tại Bác Sĩ Tử Thần: Tri thức y học tuyệt đỉnh giúp Law tìm ra mọi điểm yếu của kẻ địch, tăng vĩnh viễn 30% Phản đòn, 30% Né tránh và 30% Sát thương chí mạng', 1, 1, '[[14, 300], [12, 300], [11, 300]]', '[0, -1, -1]');
+
 
 SET SQL_SAFE_UPDATES = 1;

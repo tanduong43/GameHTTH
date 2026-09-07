@@ -4401,13 +4401,14 @@ public class Map implements Runnable {
                             VillageProgression.onBossKilled(p, mob_target, this);
                         }
 
+                        int currentLevelBoss = (boss != null) ? boss.levelBoss : 1;
                         String notice = "Tiêu diệt siêu trùm nhận: ";
                         List<GiftBox> list_gift = new ArrayList<>();
 
                         if (boss.thegioi == 1) {
                             Manager.gI().chatKTG(0,
                                     p.name + " đã tiêu diệt " + mob_target.mob_template.name + " bậc "
-                                            + boss.levelBoss,
+                                            + currentLevelBoss,
                                     5);
 
                             // 1. Rương cam cùng lv với boss
@@ -4496,6 +4497,54 @@ public class Map implements Runnable {
                             p.update_ngoc(1000);
                             p.update_money();
                             notice += "1000 ruby, ";
+
+                            // 4. Beri kết liễu Siêu trùm (tăng thêm 100.000 beri gốc và tính theo bậc hiện tại)
+                            int beri_receiv = 0;
+                            switch (mob_target.mob_template.mob_id) {
+                                case 135: {
+                                    beri_receiv = 130_000;
+                                    break;
+                                }
+                                case 136: {
+                                    beri_receiv = 150_000;
+                                    break;
+                                }
+                                case 137: {
+                                    beri_receiv = 170_000;
+                                    break;
+                                }
+                                case 138: {
+                                    beri_receiv = 200_000;
+                                    break;
+                                }
+                                case 139: {
+                                    beri_receiv = 250_000;
+                                    break;
+                                }
+                                case 140: {
+                                    beri_receiv = 300_000;
+                                    break;
+                                }
+                                default: {
+                                    beri_receiv = 100_000;
+                                    break;
+                                }
+                            }
+                            if (currentLevelBoss <= 10) {
+                                beri_receiv = (beri_receiv / 100) * (100 + currentLevelBoss * 20);
+                            }
+                            GiftBox gb_beri = new GiftBox();
+                            ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
+                            if (it_temp4 != null) {
+                                gb_beri.id = it_temp4.id;
+                                gb_beri.type = 4;
+                                gb_beri.name = it_temp4.name;
+                                gb_beri.icon = it_temp4.icon;
+                                gb_beri.num = beri_receiv;
+                                gb_beri.color = 0;
+                                list_gift.add(gb_beri);
+                            }
+                            notice += (beri_receiv + " beri, ");
 
                             // Tự động thăng Bậc Boss từ Bậc 1 đến Bậc 10 tại vị trí cũ
                             if (boss.levelBoss < 10) {
@@ -4760,34 +4809,38 @@ public class Map implements Runnable {
                             int beri_receiv = 0;
                             switch (mob_target.mob_template.mob_id) {
                                 case 135: {
-                                    beri_receiv = 30_000;
+                                    beri_receiv = 130_000;
                                     break;
                                 }
                                 case 136: {
-                                    beri_receiv = 50_000;
-                                    break;
-                                }
-                                case 137: {
-                                    beri_receiv = 70_000;
-                                    break;
-                                }
-                                case 138: {
-                                    beri_receiv = 100_000;
-                                    break;
-                                }
-                                case 139: {
                                     beri_receiv = 150_000;
                                     break;
                                 }
-                                case 140: {
+                                case 137: {
+                                    beri_receiv = 170_000;
+                                    break;
+                                }
+                                case 138: {
                                     beri_receiv = 200_000;
+                                    break;
+                                }
+                                case 139: {
+                                    beri_receiv = 250_000;
+                                    break;
+                                }
+                                case 140: {
+                                    beri_receiv = 300_000;
+                                    break;
+                                }
+                                default: {
+                                    beri_receiv = 100_000;
                                     break;
                                 }
                             }
                             //
-                            if (mob_target.boss_info.levelBoss < 10) {
+                            if (currentLevelBoss <= 10) {
                                 beri_receiv = (beri_receiv / 100)
-                                        * (100 + mob_target.boss_info.levelBoss * 20);
+                                        * (100 + currentLevelBoss * 20);
                             }
                             GiftBox gb_beri = new GiftBox();
                             ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
@@ -4810,7 +4863,7 @@ public class Map implements Runnable {
                                         list_gift, false);
                             } else {
                                 Service.send_gift(p, 1, "Hoạt động săn trùm",
-                                        "Tiêu diệt siêu trùm bậc " + mob_target.boss_info.levelBoss,
+                                        "Tiêu diệt siêu trùm bậc " + currentLevelBoss,
                                         list_gift, false);
                             }
                         }
@@ -5031,10 +5084,10 @@ public class Map implements Runnable {
             } else if (txt.equals("menu")) {
                 MenuController.send_dynamic_menu(p, 999, "Menu Admin", new String[] { "Bao tri",
                         "1t Beri + 1t Ruby", "Uplevel", "setXP", "get item", "save data", "updateTB", "Tao Giftcode",
-                        "Reset Tich Luy", "Reset Tich Tieu", "Reset Hang Dong" },
+                        "Reset Tich Luy", "Reset Tich Tieu", "Reset Hang Dong", "Chỉnh Tài Xỉu" },
                         null);
                 Service.send_box_ThongBao_OK(p,
-                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu\nadmin resethangdong\nadmin boss\nadmin settier <1-10>");
+                        "Neu menu khong hien, hay dung lenh chat:\nadmin baotri\nadmin tien\nadmin level\nadmin setxp\nadmin item\nadmin save\nadmin updatetb\nadmin taocode\nadmin resetnap\nadmin resettieu\nadmin resethangdong\nadmin tx\nadmin tx tai\nadmin tx xiu\nadmin tx huy\nadmin settier <1-10>");
                 return;
             } else if (txt.startsWith("admin ")) {
                 String cmd = txt.substring(6);
@@ -5060,6 +5113,49 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 9);
                 else if (cmd.equals("resethangdong") || cmd.equals("reset_hangdong"))
                     MenuController.Menu_Admin(p, (byte) 10);
+                else if (cmd.equals("tx") || cmd.equals("taixiu"))
+                    MenuController.Menu_Admin(p, (byte) 11);
+                else if (cmd.equals("tx tai") || cmd.equals("tx 1") || cmd.equals("taixiu tai")) {
+                    Manager.gI().TaiXiu().setForceResult(1, false);
+                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: Ván hiện tại sẽ ra TÀI (11-17 điểm)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                }
+                else if (cmd.equals("tx xiu") || cmd.equals("tx 0") || cmd.equals("taixiu xiu")) {
+                    Manager.gI().TaiXiu().setForceResult(0, false);
+                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: Ván hiện tại sẽ ra XỈU (4-10 điểm)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                }
+                else if (cmd.equals("tx codinhtai") || cmd.equals("tx locktai")) {
+                    Manager.gI().TaiXiu().setForceResult(1, true);
+                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: CỐ ĐỊNH TÀI cho mọi ván tới!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                }
+                else if (cmd.equals("tx codinhxiu") || cmd.equals("tx lockxiu")) {
+                    Manager.gI().TaiXiu().setForceResult(0, true);
+                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: CỐ ĐỊNH XỈU cho mọi ván tới!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                }
+                else if (cmd.equals("tx random") || cmd.equals("tx auto") || cmd.equals("tx huy") || cmd.equals("taixiu auto")) {
+                    Manager.gI().TaiXiu().clearForce();
+                    Service.send_box_ThongBao_OK(p, "Đã hủy can thiệp Tài Xỉu (quay ngẫu nhiên)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                }
+                else if (cmd.startsWith("tx set ") || cmd.startsWith("tx ")) {
+                    try {
+                        String sub = cmd.startsWith("tx set ") ? cmd.substring(7).trim() : cmd.substring(3).trim();
+                        String[] parts = sub.split("\\s+");
+                        if (parts.length == 3) {
+                            byte d1 = Byte.parseByte(parts[0]);
+                            byte d2 = Byte.parseByte(parts[1]);
+                            byte d3 = Byte.parseByte(parts[2]);
+                            if (d1 >= 1 && d1 <= 6 && d2 >= 1 && d2 <= 6 && d3 >= 1 && d3 <= 6) {
+                                int total = d1 + d2 + d3;
+                                String side = (total >= 11 && total <= 17) ? "TÀI" : "XỈU";
+                                Manager.gI().TaiXiu().setForceDice(d1, d2, d3);
+                                Service.send_box_ThongBao_OK(p, "Đã đặt 3 xúc xắc: [" + d1 + " - " + d2 + " - " + d3 + "] (Tổng: " + total + " -> " + side + ") cho phiên hiện tại!");
+                            } else {
+                                Service.send_box_ThongBao_OK(p, "Điểm xúc xắc phải từ 1 đến 6! Ví dụ: admin tx set 6 5 4");
+                            }
+                        }
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin tx set <x1> <x2> <x3>. Ví dụ: admin tx set 6 5 4");
+                    }
+                }
                 else if (cmd.startsWith("settier ") || cmd.startsWith("tier ")) {
                     try {
                         String[] parts = cmd.split(" ");

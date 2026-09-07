@@ -102,6 +102,7 @@ public class Player {
     public int id_menu_tichtieu;
     public activities.BossHunt bossHunt;
     public int tempMobIdBoss = -1;
+    public short tempIdNpc = -1;
     public int win_dungeon_1 = 0;
     public int num_phao_hoa = 0;
     public int originalMapId = -1;

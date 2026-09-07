@@ -452,6 +452,7 @@ router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
         const search = (req.query.search || '').trim();
         const status = req.query.status || 'all';
         const lock = req.query.lock || 'all';
+        const online = req.query.online || 'all';
 
         // Overall statistics
         const [[{ totalAccounts }]] = await db.execute('SELECT COUNT(*) as totalAccounts FROM accounts');
@@ -475,6 +476,11 @@ router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
             whereConditions.push('`lock` = 1');
         } else if (lock === 'normal') {
             whereConditions.push('`lock` != 1');
+        }
+        if (online === 'online' || online === '1') {
+            whereConditions.push('onl = 1');
+        } else if (online === 'offline' || online === '0') {
+            whereConditions.push('onl != 1');
         }
 
         const whereSql = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
@@ -590,9 +596,468 @@ router.post('/admin/update_user', jwtRequired, isAdmin, async (req, res) => {
             return res.json({ success: true, message: 'Đã đổi mật khẩu thành công!' });
         }
 
-        return res.json({ success: false, message: 'Hành động không hợp lệ' });
+        return res.json({ success: false, message: 'Hành động không hợp lệ!' });
     } catch (err) {
         console.error('Admin update user error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// GET /api/admin/account_detail
+router.get('/admin/account_detail', jwtRequired, isAdmin, async (req, res) => {
+    const { username, id } = req.query;
+
+    if (!username && !id) {
+        return res.json({ success: false, message: 'Thiếu tham số username hoặc id!' });
+    }
+
+    try {
+        let accountQuery = 'SELECT * FROM accounts WHERE user = ?';
+        let accountParam = [username];
+        if (id && !username) {
+            accountQuery = 'SELECT * FROM accounts WHERE id = ?';
+            accountParam = [id];
+        }
+
+        const [accRows] = await db.execute(accountQuery, accountParam);
+        if (accRows.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy tài khoản!' });
+        }
+
+        const acc = accRows[0];
+
+        // Parse character name
+        let charName = null;
+        try {
+            if (acc.char) {
+                const chars = typeof acc.char === 'string' ? JSON.parse(acc.char) : acc.char;
+                if (Array.isArray(chars) && chars.length > 0) {
+                    charName = chars[0];
+                }
+            }
+        } catch (e) {}
+
+        // Recharge Milestones list definition
+        const MILESTONES_CONFIG = [
+            { id: 0, num: 50000, label: '50.000đ (50k Extol)' },
+            { id: 1, num: 100000, label: '100.000đ (100k Extol)' },
+            { id: 2, num: 200000, label: '200.000đ (200k Extol)' },
+            { id: 3, num: 300000, label: '300.000đ (300k Extol)' },
+            { id: 4, num: 500000, label: '500.000đ (500k Extol)' },
+            { id: 5, num: 1000000, label: '1.000.000đ (1M Extol)' }
+        ];
+
+        const claimedStr = acc.claimed_milestones || '';
+        const claimedSet = new Set(
+            claimedStr.split(',').map(s => s.trim()).filter(Boolean).map(Number)
+        );
+
+        const milestones = MILESTONES_CONFIG.map((m, idx) => {
+            const isClaimed = claimedSet.has(idx) || claimedSet.has(m.id);
+            const isReached = (acc.tichnap || 0) >= m.num;
+            return {
+                ...m,
+                isClaimed,
+                isReached,
+                canClaim: isReached && !isClaimed
+            };
+        });
+
+        const accountData = {
+            id: acc.id,
+            user: acc.user,
+            coin: acc.coin || 0,
+            vip: acc.vip || 0,
+            status: acc.status || 0,
+            lock: acc.lock || 0,
+            onl: acc.onl || 0,
+            tichnap: acc.tichnap || 0,
+            tongnap: acc.tongnap || acc.sumamount || 0,
+            claimed_milestones: claimedStr,
+            milestones,
+            ip_address: acc.ip_address || 'Không rõ',
+            created_at: acc.created_at || null,
+            charName: charName
+        };
+
+        let playerData = null;
+
+        if (charName) {
+            const [playerRows] = await db.execute('SELECT * FROM players WHERE name = ? LIMIT 1', [charName]);
+            if (playerRows.length > 0) {
+                const pl = playerRows[0];
+
+                const safeJsonParse = (val, defaultVal = []) => {
+                    if (!val) return defaultVal;
+                    if (typeof val !== 'string') return val;
+                    try {
+                        return JSON.parse(val);
+                    } catch (e) {
+                        return defaultVal;
+                    }
+                };
+
+                const levelArr = safeJsonParse(pl.level, [1, 0, 0, 0]);
+                const pointInvenArr = safeJsonParse(pl.point_inven, [0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0]);
+                const siteArr = safeJsonParse(pl.site, [1, 0, 100, 100, 0, 0]);
+                const potentialArr = safeJsonParse(pl.potential, [5, 1, 1, 1, 1, 1, 0]);
+                const itBodyRaw = safeJsonParse(pl.it_body, []);
+                const bag3Raw = safeJsonParse(pl.bag3, []);
+                const bag47Raw = safeJsonParse(pl.bag47, []);
+                const box3Raw = safeJsonParse(pl.box3, []);
+                const box47Raw = safeJsonParse(pl.box47, []);
+
+                // Map name lookup
+                const mapId = parseInt(siteArr[0] ?? 1, 10);
+                let mapName = `Bản đồ ${mapId}`;
+                try {
+                    const [mapRows] = await db.execute('SELECT name FROM maps WHERE id = ? LIMIT 1', [mapId]);
+                    if (mapRows.length > 0 && mapRows[0].name) {
+                        mapName = mapRows[0].name;
+                    }
+                } catch (e) {}
+
+                // Collect item IDs for batch dictionary lookup
+                const item3Ids = new Set();
+                const item4Ids = new Set();
+                const item7Ids = new Set();
+
+                const collectItem3 = (arr) => {
+                    if (Array.isArray(arr)) {
+                        arr.forEach(item => {
+                            if (Array.isArray(item) && item.length > 0) {
+                                item3Ids.add(parseInt(item[0]));
+                            }
+                        });
+                    }
+                };
+
+                const collectItem47 = (arr) => {
+                    if (Array.isArray(arr)) {
+                        arr.forEach(item => {
+                            if (Array.isArray(item) && item.length >= 2) {
+                                const cat = parseInt(item[0]);
+                                const id = parseInt(item[1]);
+                                if (cat === 4) item4Ids.add(id);
+                                else if (cat === 7) item7Ids.add(id);
+                                else item4Ids.add(id);
+                            }
+                        });
+                    }
+                };
+
+                collectItem3(itBodyRaw);
+                collectItem3(bag3Raw);
+                collectItem3(box3Raw);
+                collectItem47(bag47Raw);
+                collectItem47(box47Raw);
+
+                // Batch query item3
+                const item3Dict = {};
+                if (item3Ids.size > 0) {
+                    try {
+                        const idsArray = Array.from(item3Ids);
+                        const placeholders = idsArray.map(() => '?').join(',');
+                        const [rows] = await db.execute(`SELECT * FROM item3 WHERE id IN (${placeholders})`, idsArray);
+                        rows.forEach(r => { item3Dict[r.id] = r; });
+                    } catch (e) {}
+                }
+
+                // Batch query item4
+                const item4Dict = {};
+                if (item4Ids.size > 0) {
+                    try {
+                        const idsArray = Array.from(item4Ids);
+                        const placeholders = idsArray.map(() => '?').join(',');
+                        const [rows] = await db.execute(`SELECT * FROM item4 WHERE id IN (${placeholders})`, idsArray);
+                        rows.forEach(r => { item4Dict[r.id] = r; });
+                    } catch (e) {}
+                }
+
+                // Batch query item7
+                const item7Dict = {};
+                if (item7Ids.size > 0) {
+                    try {
+                        const idsArray = Array.from(item7Ids);
+                        const placeholders = idsArray.map(() => '?').join(',');
+                        const [rows] = await db.execute(`SELECT * FROM item7 WHERE id IN (${placeholders})`, idsArray);
+                        rows.forEach(r => { item7Dict[r.id] = r; });
+                    } catch (e) {}
+                }
+
+                const CLAZZ_NAMES = { 1: 'Võ Sĩ', 2: 'Kiếm Khách', 3: 'Đầu Bếp', 4: 'Hoa Tiêu', 5: 'Xạ Thủ' };
+                const TYPE_EQUIP_NAMES = {
+                    0: 'Vũ khí', 1: 'Nón / Mũ', 2: 'Dây chuyền', 3: 'Áo', 4: 'Quần',
+                    5: 'Găng tay / Nhẫn', 6: 'Trái tim / Trái Ác Quỷ', 7: 'Ốc sên / Pet',
+                    8: 'Thắt lưng', 9: 'Giày', 10: 'Bảo vật'
+                };
+                const COLOR_NAMES = {
+                    0: { text: 'Trắng', color: '#ffffff' },
+                    1: { text: 'Xanh lá', color: '#2ecc71' },
+                    2: { text: 'Xanh lam', color: '#3498db' },
+                    3: { text: 'Tím', color: '#9b59b6' },
+                    4: { text: 'Cam', color: '#e67e22' },
+                    5: { text: 'Đỏ', color: '#e74c3c' },
+                    8: { text: 'Thần thoại', color: '#ff3366' }
+                };
+
+                const formatItem3 = (raw) => {
+                    if (!Array.isArray(raw) || raw.length === 0) return null;
+                    const templateId = parseInt(raw[0]);
+                    const levelup = parseInt(raw[1] || 0);
+                    const typelock = parseInt(raw[2] || 0);
+                    const isHoanMy = parseInt(raw[6] || 0);
+                    const index = raw[12] !== undefined ? parseInt(raw[12]) : null;
+
+                    const template = item3Dict[templateId] || null;
+                    const name = template ? template.name : `Trang bị #${templateId}`;
+                    const typeEquip = template ? template.typeequip : (index !== null ? index : 0);
+                    const typeEquipName = TYPE_EQUIP_NAMES[typeEquip] || `Loại ${typeEquip}`;
+                    const color = template ? template.color : 0;
+                    const colorMeta = COLOR_NAMES[color] || { text: 'Thường', color: '#ffffff' };
+
+                    // Parse options
+                    let options = [];
+                    try {
+                        const op1 = typeof raw[8] === 'string' ? JSON.parse(raw[8]) : raw[8];
+                        if (Array.isArray(op1)) {
+                            op1.forEach(op => {
+                                if (Array.isArray(op) && op.length >= 2) {
+                                    options.push({ id: op[0], param: op[1] });
+                                }
+                            });
+                        }
+                    } catch (e) {}
+
+                    return {
+                        templateId,
+                        name,
+                        levelup,
+                        typelock,
+                        isHoanMy,
+                        index,
+                        typeEquip,
+                        typeEquipName,
+                        color,
+                        colorMeta,
+                        options,
+                        icon: template ? template.icon : 0,
+                        levelReq: template ? template.level : 1,
+                        clazz: template ? template.clazz : 0
+                    };
+                };
+
+                const formatItem47 = (raw) => {
+                    if (!Array.isArray(raw) || raw.length < 3) return null;
+                    const category = parseInt(raw[0]);
+                    const id = parseInt(raw[1]);
+                    const quant = parseInt(raw[2]);
+
+                    let template = null;
+                    let catName = 'Vật phẩm';
+                    if (category === 4) {
+                        template = item4Dict[id];
+                        catName = 'Dược phẩm / Rương';
+                    } else if (category === 7) {
+                        template = item7Dict[id];
+                        catName = 'Nguyên liệu / Đá';
+                    } else {
+                        template = item4Dict[id] || item7Dict[id];
+                        catName = category === 5 ? 'Nhiệm vụ' : 'Khác';
+                    }
+
+                    const name = template ? template.name : `Vật phẩm #${id}`;
+                    const icon = template ? template.icon : 0;
+
+                    return {
+                        category,
+                        catName,
+                        id,
+                        name,
+                        quant,
+                        icon
+                    };
+                };
+
+                playerData = {
+                    id: pl.id,
+                    name: pl.name,
+                    clazz: pl.clazz,
+                    clazzName: CLAZZ_NAMES[pl.clazz] || `Phái ${pl.clazz}`,
+                    level: parseInt(levelArr[0] || 1),
+                    exp: parseInt(levelArr[1] || 0),
+                    thongthao: parseInt(levelArr[2] || 0),
+                    
+                    // Currency & Inven points
+                    vang: parseInt(pointInvenArr[0] || 0), // Beri
+                    ruby: parseInt(pointInvenArr[1] || 0), // Ruby / Kim cương
+                    vnd: parseInt(pointInvenArr[2] || 0),
+                    bua: parseInt(pointInvenArr[3] || 0),
+                    tichLuy: parseInt(pointInvenArr[4] || 0),
+                    pvpWin: parseInt(pointInvenArr[5] || 0),
+                    pvpLose: parseInt(pointInvenArr[6] || 0),
+                    wantedPrice: parseInt(pointInvenArr[11] || 0),
+                    
+                    // Stats
+                    pvppoint: pl.pvppoint || 0,
+                    wanted_point: pl.wanted_point || 0,
+                    hangdong_stage: pl.hangdong_stage || 0,
+                    lan_kills: pl.lan_kills || 0,
+                    num_phao_hoa: pl.num_phao_hoa || 0,
+
+                    // Location
+                    location: {
+                        mapId,
+                        mapName,
+                        zoneId: parseInt(siteArr[1] ?? 0),
+                        hp: parseInt(siteArr[2] ?? 0),
+                        mp: parseInt(siteArr[3] ?? 0),
+                        x: parseInt(siteArr[4] ?? 0),
+                        y: parseInt(siteArr[5] ?? 0)
+                    },
+
+                    // Potential stats
+                    potential: {
+                        pointsRemaining: parseInt(potentialArr[0] || 0),
+                        sucManh: parseInt(potentialArr[1] || 1),
+                        nhanhNhen: parseInt(potentialArr[2] || 1),
+                        theLuc: parseInt(potentialArr[3] || 1),
+                        tinhThan: parseInt(potentialArr[4] || 1),
+                        phongThu: parseInt(potentialArr[5] || 1),
+                        thongThaoPoints: parseInt(potentialArr[6] || 0)
+                    },
+
+                    // Equipments and inventory
+                    equippedItems: itBodyRaw.map(formatItem3).filter(Boolean),
+                    bagItems: bag3Raw.map(formatItem3).filter(Boolean),
+                    bagSupplies: bag47Raw.map(formatItem47).filter(Boolean),
+                    boxItems: box3Raw.map(formatItem3).filter(Boolean),
+                    boxSupplies: box47Raw.map(formatItem47).filter(Boolean)
+                };
+            }
+        }
+
+        return res.json({
+            success: true,
+            account: accountData,
+            player: playerData
+        });
+    } catch (err) {
+        console.error('Admin get account detail error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/admin/adjust_currency
+router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => {
+    const { username, ruby, vang, coin, tichnap, tongnap, vip } = req.body;
+
+    if (!username) {
+        return res.json({ success: false, message: 'Thiếu tên tài khoản (username)!' });
+    }
+
+    try {
+        const [accRows] = await db.execute('SELECT * FROM accounts WHERE user = ?', [username]);
+        if (accRows.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy tài khoản!' });
+        }
+
+        const acc = accRows[0];
+
+        // Update accounts table (coin, tichnap, tongnap, sumamount, vip)
+        const updateSets = [];
+        const updateParams = [];
+
+        let newCoin = coin !== undefined && coin !== null && coin !== '' ? parseInt(coin, 10) : null;
+        let newTichNap = tichnap !== undefined && tichnap !== null && tichnap !== '' ? parseInt(tichnap, 10) : null;
+        let newTongNap = tongnap !== undefined && tongnap !== null && tongnap !== '' ? parseInt(tongnap, 10) : null;
+        let newVip = vip !== undefined && vip !== null && vip !== '' ? parseInt(vip, 10) : null;
+
+        if (newCoin !== null && !isNaN(newCoin)) {
+            updateSets.push('`coin` = ?');
+            updateParams.push(Math.max(0, newCoin));
+        }
+
+        if (newTichNap !== null && !isNaN(newTichNap)) {
+            updateSets.push('`tichnap` = ?');
+            updateParams.push(Math.max(0, newTichNap));
+        }
+
+        if (newTongNap !== null && !isNaN(newTongNap)) {
+            updateSets.push('`tongnap` = ?');
+            updateParams.push(Math.max(0, newTongNap));
+            updateSets.push('`sumamount` = ?');
+            updateParams.push(Math.max(0, newTongNap));
+        }
+
+        if (newVip !== null && !isNaN(newVip)) {
+            updateSets.push('`vip` = ?');
+            updateParams.push(Math.max(0, Math.min(10, newVip)));
+        } else if (newTongNap !== null && !isNaN(newTongNap)) {
+            let autoVip = 0;
+            if (newTongNap >= 10000000) autoVip = 7;
+            else if (newTongNap >= 5000000) autoVip = 6;
+            else if (newTongNap >= 3000000) autoVip = 5;
+            else if (newTongNap >= 2000000) autoVip = 4;
+            else if (newTongNap >= 1000000) autoVip = 3;
+            else if (newTongNap >= 500000) autoVip = 2;
+            else if (newTongNap >= 200000) autoVip = 1;
+
+            updateSets.push('`vip` = ?');
+            updateParams.push(autoVip);
+        }
+
+        if (updateSets.length > 0) {
+            updateParams.push(username);
+            await db.execute(`UPDATE accounts SET ${updateSets.join(', ')} WHERE user = ?`, updateParams);
+        }
+
+        // Update players table (vang, ruby)
+        let newRuby = ruby !== undefined && ruby !== null && ruby !== '' ? parseInt(ruby, 10) : null;
+        let newVang = vang !== undefined && vang !== null && vang !== '' ? parseInt(vang, 10) : null;
+
+        if ((newRuby !== null && !isNaN(newRuby)) || (newVang !== null && !isNaN(newVang))) {
+            let charName = null;
+            if (acc.char) {
+                try {
+                    const chars = typeof acc.char === 'string' ? JSON.parse(acc.char) : acc.char;
+                    if (Array.isArray(chars) && chars.length > 0) charName = chars[0];
+                } catch (e) {}
+            }
+
+            if (charName) {
+                const [plRows] = await db.execute('SELECT id, point_inven FROM players WHERE name = ? LIMIT 1', [charName]);
+                if (plRows.length > 0) {
+                    const pl = plRows[0];
+                    let pointInvenArr = [];
+                    try {
+                        if (pl.point_inven) {
+                            pointInvenArr = typeof pl.point_inven === 'string' ? JSON.parse(pl.point_inven) : pl.point_inven;
+                        }
+                    } catch (e) {}
+
+                    if (!Array.isArray(pointInvenArr)) {
+                        pointInvenArr = [0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0];
+                    }
+                    while (pointInvenArr.length < 12) {
+                        pointInvenArr.push(0);
+                    }
+
+                    if (newVang !== null && !isNaN(newVang)) {
+                        pointInvenArr[0] = Math.max(0, newVang);
+                    }
+                    if (newRuby !== null && !isNaN(newRuby)) {
+                        pointInvenArr[1] = Math.max(0, newRuby);
+                    }
+
+                    await db.execute('UPDATE players SET point_inven = ? WHERE id = ?', [JSON.stringify(pointInvenArr), pl.id]);
+                }
+            }
+        }
+
+        return res.json({ success: true, message: 'Cập nhật tiền tệ và tài sản thành công!' });
+    } catch (err) {
+        console.error('Admin adjust currency error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
     }
 });

@@ -381,7 +381,7 @@ public class BXH {
                 } else {
                     page = 0;
                 }
-                m.writer().writeByte(4);
+                m.writer().writeByte(17);
                 m.writer().writeUTF("Top Nạp");
                 m.writer().writeByte(page);
                 m.writer().writeByte(bound2 - bound1);
@@ -759,6 +759,7 @@ public class BXH {
         updateTopDauTruong();
         updateTopSanBossLan();
         updateTopNauBanh();
+        updateTopNap();
     }
 
     private static void updateWanted() {
@@ -1870,10 +1871,19 @@ public class BXH {
         try {
             connection = SQL.gI().getCon();
             ps = connection.prepareStatement(
-                    "SELECT `id`, `user`, `char`, `sumamount`, `tichnap`, `tongnap`, `vip` "
+                    "SELECT `id`, `user`, `char`, `sumamount`, `tichnap`, `tongnap`, `vnd`, `vip`, "
+                            + "GREATEST("
+                            + "  COALESCE(`sumamount`, 0), "
+                            + "  COALESCE(`tichnap`, 0), "
+                            + "  CASE WHEN COALESCE(`tongnap`, 0) >= 2000000000 THEN `tongnap` - 2000000000 ELSE COALESCE(`tongnap`, 0) END, "
+                            + "  COALESCE(`vnd`, 0)"
+                            + ") AS real_amount "
                             + "FROM `accounts` "
-                            + "WHERE `sumamount` > 0 OR `tichnap` > 0 OR `tongnap` > 0 "
-                            + "ORDER BY GREATEST(COALESCE(`sumamount`, 0), COALESCE(`tichnap`, 0), COALESCE(`tongnap`, 0)) DESC "
+                            + "WHERE `sumamount` > 0 "
+                            + "   OR `tichnap` > 0 "
+                            + "   OR (`tongnap` > 0 AND `tongnap` != 2000000000) "
+                            + "   OR `vnd` > 0 "
+                            + "ORDER BY real_amount DESC "
                             + "LIMIT 50;");
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -1895,7 +1905,15 @@ public class BXH {
                 long sumamount = rs.getLong("sumamount");
                 long tichnap = rs.getLong("tichnap");
                 long tongnap = rs.getLong("tongnap");
-                long amount = Math.max(sumamount, Math.max(tichnap, tongnap));
+                long vnd = rs.getLong("vnd");
+                long realTongNap = (tongnap >= 2000000000L) ? (tongnap - 2000000000L) : tongnap;
+                long amount = rs.getLong("real_amount");
+                if (amount <= 0) {
+                    amount = Math.max(sumamount, Math.max(tichnap, Math.max(realTongNap, vnd)));
+                }
+                if (amount <= 0) {
+                    continue;
+                }
                 int vip = rs.getInt("vip");
 
                 InfoMemList temp = new InfoMemList();
@@ -2029,12 +2047,12 @@ public class BXH {
                 e.printStackTrace();
             }
         }
+        BXH.TOP_NAP.clear();
         if (list_add.size() > 0) {
             for (int i = 0; i < list_add.size(); i++) {
                 list_add.get(i).rank = (short) i;
                 list_add.get(i).id = i + 1;
             }
-            BXH.TOP_NAP.clear();
             BXH.TOP_NAP.addAll(list_add);
             list_add.clear();
         }

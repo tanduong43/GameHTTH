@@ -67,7 +67,7 @@ function AdminCoin() {
   const { showMessage } = useOutletContext();
   const [targetUser, setTargetUser] = useState('');
   const [amount, setAmount] = useState('');
-  const [isDeposit, setIsDeposit] = useState(true);
+  const [isDeposit, setIsDeposit] = useState(false);
   const [focusField, setFocusField] = useState('');
 
   const handleAddCoin = async (e) => {
@@ -85,6 +85,7 @@ function AdminCoin() {
       if (res.data.success) {
         setTargetUser('');
         setAmount('');
+        setIsDeposit(false);
       }
     } catch {
       showMessage('error', 'Lỗi kết nối máy chủ!');

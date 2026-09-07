@@ -14,14 +14,20 @@ import java.util.Map;
 public class TaiXiu implements Runnable {
     // xiu == 0, tai == 1
     public static final int TIME_ROUND = 180_999;
+    public static final long MAX_BET_PER_PLAYER = 1_000_000_000L; // Tối đa 1 tỷ mỗi người (win x2 = 2 tỷ)
+    public static final long MAX_TOTAL_BET = 2_000_000_000L; // Tối đa 2 tỷ mỗi cửa
     private boolean running;
     private Thread myth;
     private long time;
     private HashMap<String, TaiXiuInfo> list_player;
     private HashMap<String, TaiXiuInfo> list_result;
-    private int XiuTotal;
-    private int TaiTotal;
+    private long XiuTotal;
+    private long TaiTotal;
     private byte[] dice;
+    // Admin can thiệp kết quả: -1: Ngẫu nhiên, 1: Ép Tài, 0: Ép Xỉu
+    private int forceResult = -1;
+    private boolean keepForce = false;
+    private byte[] forceDice = null;
 
     public TaiXiu() {
         time = TIME_ROUND;
@@ -54,16 +60,42 @@ public class TaiXiu implements Runnable {
 
     private synchronized void update() {
         if (this.time < 0) {
-            for (int i = 0; i < 3; i++) {
-                dice[i] = (byte) Util.random(1, 7);
-            }
-            int xucxacResult = dice[0] + dice[1] + dice[2];
-            while (xucxacResult == 3 || xucxacResult == 18) {
+            if (this.forceDice != null) {
+                dice[0] = forceDice[0];
+                dice[1] = forceDice[1];
+                dice[2] = forceDice[2];
+                this.forceDice = null; // Áp dụng xong cho phiên hiện tại thì reset
+            } else if (this.forceResult == 1) { // Ép TÀI (11-17 điểm)
+                do {
+                    for (int i = 0; i < 3; i++) {
+                        dice[i] = (byte) Util.random(1, 7);
+                    }
+                } while ((dice[0] + dice[1] + dice[2]) < 11 || (dice[0] + dice[1] + dice[2]) > 17);
+                if (!this.keepForce) {
+                    this.forceResult = -1;
+                }
+            } else if (this.forceResult == 0) { // Ép XỈU (4-10 điểm)
+                do {
+                    for (int i = 0; i < 3; i++) {
+                        dice[i] = (byte) Util.random(1, 7);
+                    }
+                } while ((dice[0] + dice[1] + dice[2]) < 4 || (dice[0] + dice[1] + dice[2]) > 10);
+                if (!this.keepForce) {
+                    this.forceResult = -1;
+                }
+            } else {
                 for (int i = 0; i < 3; i++) {
                     dice[i] = (byte) Util.random(1, 7);
                 }
-                xucxacResult = dice[0] + dice[1] + dice[2];
+                int xucxacResult = dice[0] + dice[1] + dice[2];
+                while (xucxacResult == 3 || xucxacResult == 18) {
+                    for (int i = 0; i < 3; i++) {
+                        dice[i] = (byte) Util.random(1, 7);
+                    }
+                    xucxacResult = dice[0] + dice[1] + dice[2];
+                }
             }
+            int xucxacResult = dice[0] + dice[1] + dice[2];
             for (Map.Entry<String, TaiXiuInfo> en : this.list_player.entrySet()) {
                 TaiXiuInfo infoJoin = en.getValue();
                 if (xucxacResult >= 11 && xucxacResult <= 17) { // tai
@@ -106,7 +138,7 @@ public class TaiXiu implements Runnable {
         return this.time;
     }
 
-    public int MoneyTotal(int i) {
+    public long MoneyTotal(int i) {
         if (i == 0) {
             return this.XiuTotal;
         } else {
@@ -126,32 +158,133 @@ public class TaiXiu implements Runnable {
         return this.dice;
     }
 
+    public synchronized void setForceResult(int result, boolean keep) {
+        this.forceResult = result;
+        this.keepForce = keep;
+        this.forceDice = null;
+    }
+
+    public synchronized int getForceResult() {
+        return this.forceResult;
+    }
+
+    public synchronized boolean isKeepForce() {
+        return this.keepForce;
+    }
+
+    public synchronized void setForceDice(byte d1, byte d2, byte d3) {
+        this.forceDice = new byte[] { d1, d2, d3 };
+        this.forceResult = -1;
+        this.keepForce = false;
+    }
+
+    public synchronized void clearForce() {
+        this.forceResult = -1;
+        this.keepForce = false;
+        this.forceDice = null;
+    }
+
+    public synchronized byte[] getForceDice() {
+        return this.forceDice;
+    }
+
+    public synchronized String getShortStatus() {
+        if (this.forceDice != null) {
+            return "XX " + forceDice[0] + "-" + forceDice[1] + "-" + forceDice[2];
+        }
+        if (this.forceResult == 1) {
+            return this.keepForce ? "Cố định TÀI" : "Ép TÀI";
+        }
+        if (this.forceResult == 0) {
+            return this.keepForce ? "Cố định XỈU" : "Ép XỈU";
+        }
+        return "Ngẫu nhiên";
+    }
+
+    public synchronized String getTxDebugInfo() {
+        long sec = Math.max(0, this.time / 1000);
+        int countXiu = 0;
+        int countTai = 0;
+        for (TaiXiuInfo inf : this.list_player.values()) {
+            if (inf.TaiorXiu == 0) countXiu++;
+            else if (inf.TaiorXiu == 1) countTai++;
+        }
+        String mode;
+        if (this.forceDice != null) {
+            int tot = forceDice[0] + forceDice[1] + forceDice[2];
+            mode = "Cố định xúc xắc [" + forceDice[0] + "-" + forceDice[1] + "-" + forceDice[2] + "] (" + tot + " điểm -> " + ((tot >= 11 && tot <= 17) ? "TÀI" : "XỈU") + ")";
+        } else if (this.forceResult == 1) {
+            mode = "ÉP RA TÀI (" + (keepForce ? "Cố định mọi ván" : "Chỉ ván này") + ")";
+        } else if (this.forceResult == 0) {
+            mode = "ÉP RA XỈU (" + (keepForce ? "Cố định mọi ván" : "Chỉ ván này") + ")";
+        } else {
+            mode = "Ngẫu nhiên (Tự nhiên)";
+        }
+
+        return "🎲 THÔNG TIN TÀI XỈU 🎲\n"
+                + "⏱ Thời gian còn lại: " + sec + " giây\n"
+                + "🔵 Cửa XỈU: " + Util.number_format(this.XiuTotal) + " beri (" + countXiu + " người)\n"
+                + "🔴 Cửa TÀI: " + Util.number_format(this.TaiTotal) + " beri (" + countTai + " người)\n"
+                + "⚙️ Chế độ can thiệp: " + mode;
+    }
+
     public synchronized void register(Player p, int money, byte taiorXiu) throws IOException {
+        if (p.conn == null || p.conn.status != 1) {
+            Service.send_box_ThongBao_OK(p, "Chỉ thành viên đã kích hoạt (MTV) mới có thể đặt cược Tài Xỉu!");
+            return;
+        }
         if (this.time <= 0) {
             Service.send_box_ThongBao_OK(p, "Không trong thời gian đặt cược!");
             return;
         }
+        if (money <= 0) {
+            Service.send_box_ThongBao_OK(p, "Số tiền đặt cược không hợp lệ!");
+            return;
+        }
+        if (p.get_vang() < money) {
+            Service.send_box_ThongBao_OK(p, "Bạn không đủ " + Util.number_format(money) + " beri để đặt cược!");
+            return;
+        }
+        if (this.list_result.containsKey(p.name)) {
+            Service.send_box_ThongBao_OK(p, "Bạn có tiền thưởng chưa nhận, vui lòng nhận thưởng trước khi tiếp tục đặt cược!");
+            return;
+        }
+        TaiXiuInfo t = this.list_player.get(p.name);
+        if (t != null && t.TaiorXiu != taiorXiu) {
+            Service.send_box_ThongBao_OK(p, "Bạn đã cược cửa " + (t.TaiorXiu == 1 ? "Tài" : "Xỉu") + ", không thể cược cửa còn lại trong phiên này!");
+            return;
+        }
+        long myCurrentBet = (t != null) ? t.money : 0L;
+        if (myCurrentBet >= MAX_BET_PER_PLAYER) {
+            Service.send_box_ThongBao_OK(p, "Bạn đã cược tối đa " + Util.number_format(MAX_BET_PER_PLAYER) + " beri cho phiên này, không thể đặt cược nữa!");
+            return;
+        }
+        if (myCurrentBet + money > MAX_BET_PER_PLAYER) {
+            long canBet = MAX_BET_PER_PLAYER - myCurrentBet;
+            Service.send_box_ThongBao_OK(p, "Bạn chỉ có thể cược thêm tối đa " + Util.number_format(canBet) + " beri (tối đa " + Util.number_format(MAX_BET_PER_PLAYER) + " beri/phiên)!");
+            return;
+        }
+        long currentTotal = (taiorXiu == 0) ? XiuTotal : TaiTotal;
+        if (currentTotal >= MAX_TOTAL_BET) {
+            Service.send_box_ThongBao_OK(p, "Cửa " + (taiorXiu == 1 ? "Tài" : "Xỉu") + " đã đạt giới hạn cược tối đa (" + Util.number_format(MAX_TOTAL_BET) + " beri), không thể đặt cược nữa!");
+            return;
+        }
+        if (currentTotal + money > MAX_TOTAL_BET) {
+            long remainTotal = MAX_TOTAL_BET - currentTotal;
+            Service.send_box_ThongBao_OK(p, "Cửa " + (taiorXiu == 1 ? "Tài" : "Xỉu") + " chỉ còn có thể nhận thêm tối đa " + Util.number_format(remainTotal) + " beri!");
+            return;
+        }
+
         if (taiorXiu == 0) {
-            if (((long) XiuTotal + (long) money) > 2_000_000_000L) {
-                money = 2_000_000_000 - XiuTotal;
-                XiuTotal = 2_000_000_000;
-            }
             XiuTotal += money;
         } else {
-            if (((long) TaiTotal + (long) money) > 2_000_000_000L) {
-                money = 2_000_000_000 - TaiTotal;
-                TaiTotal = 2_000_000_000;
-            }
             TaiTotal += money;
         }
         p.update_vang(-money);
         p.update_money();
-        TaiXiuInfo t = this.list_player.get(p.name);
         if (t != null) {
-            if (t.TaiorXiu == taiorXiu) {
-                t.money += money;
-                EventSpecial.update_info_tx(p);
-            }
+            t.money += money;
+            EventSpecial.update_info_tx(p);
         } else {
             t = new TaiXiuInfo();
             t.money = money;

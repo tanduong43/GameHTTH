@@ -159,7 +159,8 @@ public class MenuController {
               if (p.clan.allowRequest == 1) {
                 send_dynamic_menu(p, type, "Băng hải tặc",
                     new String[] { "Nhiệm vụ băng", "Huy hiệu hành trình", "Phó bản băng",
-                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Khóa xin vào băng", "Nhường clan", "Giải tán băng" },
+                        "Cửa hàng biểu tượng", "Cửa hàng vật phẩm", "Khóa xin vào băng", "Nhường clan",
+                        "Giải tán băng" },
                     new short[] { 141, 171, 146, 143, 144, 118, 128, 128 });
               } else {
                 send_dynamic_menu(p, type, "Băng hải tặc",
@@ -466,7 +467,9 @@ public class MenuController {
         }
         case -201: {
           send_dynamic_menu(p, type, get_name_npc(type),
-              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn", "Hang động", "Đến đảo huấn luyện pet" }, null);
+              new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn", "Hang động",
+                  "Đến đảo huấn luyện pet" },
+              null);
           break;
         }
         case -999: {
@@ -830,7 +833,8 @@ public class MenuController {
           }
           switch (index) {
             case 0: {
-              // Toàn bộ hướng dẫn phân trang qua Help_From_Server (chia nhiều trang \b có nút Tiếp tục)
+              // Toàn bộ hướng dẫn phân trang qua Help_From_Server (chia nhiều trang \b có nút
+              // Tiếp tục)
               String fullGuide = "🎑 SỰ KIỆN TRUNG THU - ĐÊM RẰM HẢI TẶC 🎑\n\n"
                   + "Chào mừng bạn đến với Lễ Hội Trung Thu!\n"
                   + "Hãy thu thập nguyên liệu từ các hoạt động hằng ngày để làm Bánh Trung Thu, ghép Đèn Kéo Quân và săn Boss Lân Sư Tử nhận vô vàn phần quà giá trị!\b"
@@ -1407,6 +1411,10 @@ public class MenuController {
           break;
         }
         case 989: { // taixiu
+          if (p.conn == null || p.conn.status != 1) {
+            Service.send_box_ThongBao_OK(p, "Chỉ thành viên đã kích hoạt (MTV) mới có thể tham gia Tài Xỉu!");
+            return;
+          }
           if (index == 0) {
             EventSpecial.show_table(p, 0);
           } else if (index == 1) {
@@ -1416,7 +1424,7 @@ public class MenuController {
                 t.isReceive = 1;
                 p.update_vang(t.money);
                 p.update_money();
-                Service.send_box_ThongBao_OK(p, "Nhận " + t.money + " beri");
+                Service.send_box_ThongBao_OK(p, "Nhận " + Util.number_format(t.money) + " beri");
                 Manager.gI().TaiXiu().remove_result(p);
               } else {
                 Service.send_box_ThongBao_OK(p, "Đã nhận rồi!");
@@ -1428,6 +1436,52 @@ public class MenuController {
           break;
         }
         case 990: {
+          break;
+        }
+        case 9991: { // Admin can thiep Tai Xiu
+          if (p.conn == null || !p.conn.user.equals("admin")) {
+            return;
+          }
+          event.TaiXiu tx = Manager.gI().TaiXiu();
+          switch (index) {
+            case 0: { // Xem thong tin cuoc
+              Service.send_box_ThongBao_OK(p, tx.getTxDebugInfo());
+              break;
+            }
+            case 1: { // Ep TAI van nay
+              tx.setForceResult(1, false);
+              Service.send_box_ThongBao_OK(p,
+                  "Đã can thiệp: Ván hiện tại sẽ ra TÀI (11-17 điểm)!\n\n" + tx.getTxDebugInfo());
+              break;
+            }
+            case 2: { // Ep XIU van nay
+              tx.setForceResult(0, false);
+              Service.send_box_ThongBao_OK(p,
+                  "Đã can thiệp: Ván hiện tại sẽ ra XỈU (4-10 điểm)!\n\n" + tx.getTxDebugInfo());
+              break;
+            }
+            case 3: { // Co dinh TAI moi van
+              tx.setForceResult(1, true);
+              Service.send_box_ThongBao_OK(p, "Đã can thiệp: CỐ ĐỊNH TÀI cho mọi ván tới!\n\n" + tx.getTxDebugInfo());
+              break;
+            }
+            case 4: { // Co dinh XIU moi van
+              tx.setForceResult(0, true);
+              Service.send_box_ThongBao_OK(p, "Đã can thiệp: CỐ ĐỊNH XỈU cho mọi ván tới!\n\n" + tx.getTxDebugInfo());
+              break;
+            }
+            case 5: { // Dat 3 xuc xac cu the
+              Service.input_text(p, 32009, "Đặt 3 Xúc Xắc",
+                  new String[] { "Xúc xắc 1 (1-6)", "Xúc xắc 2 (1-6)", "Xúc xắc 3 (1-6)" });
+              break;
+            }
+            case 6: { // Huy can thiep
+              tx.clearForce();
+              Service.send_box_ThongBao_OK(p,
+                  "Đã hủy can thiệp! Tài Xỉu quay ngẫu nhiên bình thường.\n\n" + tx.getTxDebugInfo());
+              break;
+            }
+          }
           break;
         }
 
@@ -1510,37 +1564,37 @@ public class MenuController {
         }
         case 993: {
           switch (index) {
-            case 0: {
+            case 0: { // Đổi Ruby (Extol sang Ruby)
               Service.input_text(p, 4, "Đổi Extol Sang Ruby", new String[] { "Ruby muốn đổi" });
               break;
             }
-            case 1: {
-              Service.send_box_yesno(p, 10, "Thông báo",
-                  "Bạn muốn đổi 1000 ruby sang 750.000 extol?", new String[] { "Đồng ý", "Hủy" },
-                  new byte[] { 2, 1 });
-              break;
-            }
-            case 2: {
-              Service.send_box_ThongBao_OK(p, "Đang bảo trì, anh em lên web nạp nha");
-              break;
-            }
-            case 3: {
+            // case 1: { // Đổi extol
+            //   Service.send_box_yesno(p, 10, "Thông báo",
+            //       "Bạn muốn đổi 1000 ruby sang 750.000 extol?", new String[] { "Đồng ý", "Hủy" },
+            //       new byte[] { 2, 1 });
+            //   break;
+            // }
+            // case 2: { // Nạp tiền
+            //   Service.send_box_ThongBao_OK(p, "Đang bảo trì, anh em lên web nạp nha");
+            //   break;
+            // }
+            case 1: { // GiftCode (cũ: index 3)
               Service.input_text(p, 1, "Quà tặng máy chủ", new String[] { "Nhập giftcode" });
               break;
             }
-            case 4: {
-              Service.input_text(p, 8, "Đổi Coin Sang Ruby", new String[] { "10 coin = 2 ruby" });
-              break;
-            }
-            case 5: {
+            // case 4: { // Đổi Ruby (Coin sang Ruby)
+            //   Service.input_text(p, 8, "Đổi Coin Sang Ruby", new String[] { "10 coin = 2 ruby" });
+            //   break;
+            // }
+            case 2: { // Đổi Beri (cũ: index 5)
               Service.input_text(p, 9, "Đổi Coin Sang Beri", new String[] { "1 coin = 5000 beri" });
               break;
             }
-            case 6: {
+            case 3: { // Xem Coin (cũ: index 6)
               Service.send_box_ThongBao_OK(p, "Bạn đang sở hữu " + Util.number_format(p.conn.coin) + " Coin.");
               break;
             }
-            case 7: {
+            case 4: { // Đổi Coin (cũ: index 7)
               Service.input_text(p, 12, "Đổi Coin", new String[] { "Nhập số coin muốn đổi" });
               break;
             }
@@ -1967,6 +2021,15 @@ public class MenuController {
                 Service.send_box_ThongBao_OK(p, "Hành trang không đủ chỗ trống để nhận quà!");
               }
             }
+          }
+          break;
+        }
+        case 972: {
+          short npcId = (p.tempIdNpc != -1) ? p.tempIdNpc : -1;
+          if (index == 0) {
+            showBossList(p, npcId, false);
+          } else if (index == 1) {
+            showBossList(p, npcId, true);
           }
           break;
         }
@@ -2546,9 +2609,26 @@ public class MenuController {
       switch (index) {
         case 0: {
           send_dynamic_menu(p, 993, "Nami",
-              new String[] { "Đổi Ruby", "Đổi extol", "Nạp tiền", "GiftCode", "Đổi Ruby",
-                  "Đổi Beri", "Xem Coin", "Đổi Coin" },
-              new short[] { 128, 128, 132, 161, 127, 162, 140, 140 });
+              new String[] {
+                  "Đổi Ruby",
+                  // "Đổi extol",
+                  // "Nạp tiền",
+                  "GiftCode",
+                  // "Đổi Ruby",
+                  "Đổi Beri",
+                  "Xem Coin",
+                  "Đổi Coin"
+              },
+              new short[] {
+                  128,
+                  // 128,
+                  // 132,
+                  161,
+                  // 127,
+                  162,
+                  140,
+                  140
+              });
           break;
         }
         case 1: {
@@ -2859,8 +2939,8 @@ public class MenuController {
         break;
       }
       case 3: {
-        if (p.conn.status != 1) {
-          Service.send_box_ThongBao_OK(p, "Chua kich hoat khong the tham gia");
+        if (p.conn == null || p.conn.status != 1) {
+          Service.send_box_ThongBao_OK(p, "Chỉ thành viên đã kích hoạt (MTV) mới có thể tham gia Tài Xỉu!");
           return;
         }
         send_dynamic_menu(p, 989, "Tai xiu", new String[] { "Tham gia", "Nhan thuong" }, null);
@@ -2882,9 +2962,12 @@ public class MenuController {
       case 7:
       case 8: {
         List<String> activeEvents = new ArrayList<>();
-        if (event.EventTet.isEvent()) activeEvents.add("TET");
-        if (event.Event2011.isEvent()) activeEvents.add("2011");
-        if (event.EventNoel.isEvent()) activeEvents.add("NOEL");
+        if (event.EventTet.isEvent())
+          activeEvents.add("TET");
+        if (event.Event2011.isEvent())
+          activeEvents.add("2011");
+        if (event.EventNoel.isEvent())
+          activeEvents.add("NOEL");
 
         int eventIdx = index - 6;
         if (eventIdx >= 0 && eventIdx < activeEvents.size()) {
@@ -2894,7 +2977,9 @@ public class MenuController {
                 new String[] { "Làm Bánh", "Ghép Chữ Vàng", "BXH Sự Kiện Tết", "Hướng dẫn" }, null);
           } else if ("2011".equals(evt)) {
             send_dynamic_menu(p, -2011, "Sự Kiện 20/11",
-                new String[] { "Làm Điểm 10 & Thiệp", "Ghép Lẵng Hoa & Hộp Quà", "BXH Học Trò Xuất Sắc", "Nhận Thưởng Đua Top", "Hướng Dẫn" }, null);
+                new String[] { "Làm Điểm 10 & Thiệp", "Ghép Lẵng Hoa & Hộp Quà", "BXH Học Trò Xuất Sắc",
+                    "Nhận Thưởng Đua Top", "Hướng Dẫn" },
+                null);
           } else if ("NOEL".equals(evt)) {
             send_dynamic_menu(p, -2024, "Sự Kiện Noel",
                 new String[] { "Chế Tạo Quà Giáng Sinh", "BXH Vua Giáng Sinh", "Hướng Dẫn Sự Kiện" }, null);
@@ -2916,7 +3001,9 @@ public class MenuController {
       case 0: {
         // Chế Tạo Quà Giáng Sinh
         send_dynamic_menu(p, -2025, "Chế Tạo Quà Noel",
-            new String[] { "Đắp Người Tuyết", "Thiệp Giáng Sinh", "Hộp Quà Noel", "Hộp Quà VIP", "Rương Trang Phục", "Rương Pet Noel" }, null);
+            new String[] { "Đắp Người Tuyết", "Thiệp Giáng Sinh", "Hộp Quà Noel", "Hộp Quà VIP", "Rương Trang Phục",
+                "Rương Pet Noel" },
+            null);
         break;
       }
       case 1: {
@@ -3243,28 +3330,8 @@ public class MenuController {
         break;
       }
       case 7: { // Vị trí Boss
-        List<map.Boss> aliveBosses = new ArrayList<>();
-        if (map.Boss.ENTRYS != null) {
-          for (int i = 0; i < map.Boss.ENTRYS.size(); i++) {
-            map.Boss temp = map.Boss.ENTRYS.get(i);
-            if (temp != null && temp.mob != null && !temp.mob.isdie && temp.mob.map != null
-                && temp.mob.mob_template != null) {
-              aliveBosses.add(temp);
-            }
-          }
-        }
-        if (aliveBosses.isEmpty()) {
-          Service.send_box_ThongBao_OK(p, "Hiện tại không có Boss nào còn sống!");
-        } else {
-          StringBuilder sb = new StringBuilder("Danh sách Boss còn sống:\n");
-          for (int i = 0; i < aliveBosses.size(); i++) {
-            map.Boss b = aliveBosses.get(i);
-            sb.append("- ").append(b.mob.mob_template.name)
-                .append(": ").append(b.mob.map.template.name)
-                .append(" (Khu ").append(b.mob.map.zone_id + 1).append(")\n");
-          }
-          Service.Help_From_Server(p, idNPC, sb.toString());
-        }
+        p.tempIdNpc = idNPC;
+        send_dynamic_menu(p, 972, "Vị trí Boss", new String[] { "Xem Boss thường", "Xem Siêu trùm" }, null);
         break;
       }
       case 8: { // Top Siêu Trùm
@@ -3286,6 +3353,96 @@ public class MenuController {
         break;
       }
     }
+  }
+
+  public static void showBossList(Player p, short idNPC, boolean isSuperBoss) throws IOException {
+    if (map.Boss.ENTRYS == null || map.Boss.ENTRYS.isEmpty()) {
+      Service.send_box_ThongBao_OK(p, "Hiện tại không có dữ liệu Boss!");
+      return;
+    }
+
+    java.util.LinkedHashMap<Integer, map.Boss> bossMap = new java.util.LinkedHashMap<>();
+    for (int i = 0; i < map.Boss.ENTRYS.size(); i++) {
+      map.Boss temp = map.Boss.ENTRYS.get(i);
+      if (temp == null || temp.mob == null || temp.mob.mob_template == null) {
+        continue;
+      }
+      boolean isWorld = (temp.thegioi == 1 || map.Boss.isWorldBoss(temp.mob.mob_template.mob_id));
+      if (isSuperBoss != isWorld) {
+        continue;
+      }
+      int mobId = temp.mob.mob_template.mob_id;
+      if (!bossMap.containsKey(mobId)) {
+        bossMap.put(mobId, temp);
+      } else {
+        map.Boss existing = bossMap.get(mobId);
+        boolean existingAlive = (existing.mob != null && !existing.mob.isdie && existing.mob.hp > 0);
+        boolean tempAlive = (!temp.mob.isdie && temp.mob.hp > 0);
+        if (!existingAlive && tempAlive) {
+          bossMap.put(mobId, temp);
+        }
+      }
+    }
+
+    if (bossMap.isEmpty()) {
+      Service.send_box_ThongBao_OK(p, "Hiện tại không có Boss nào thuộc danh mục này!");
+      return;
+    }
+
+    List<map.Boss> bossList = new ArrayList<>(bossMap.values());
+    // Sắp xếp: Boss còn sống hiển thị lên đầu
+    bossList.sort((b1, b2) -> {
+      boolean a1 = (b1.mob != null && !b1.mob.isdie && b1.mob.hp > 0);
+      boolean a2 = (b2.mob != null && !b2.mob.isdie && b2.mob.hp > 0);
+      if (a1 != a2) {
+        return a1 ? -1 : 1;
+      }
+      return 0;
+    });
+
+    int pageSize = 7;
+    int totalPages = (bossList.size() + pageSize - 1) / pageSize;
+    StringBuilder sb = new StringBuilder();
+
+    String titlePrefix = isSuperBoss ? "Danh sách Siêu Trùm" : "Danh sách Boss thường";
+
+    for (int page = 0; page < totalPages; page++) {
+      if (page > 0) {
+        sb.append("\b");
+      }
+      if (totalPages > 1) {
+        sb.append(titlePrefix).append(" (").append(page + 1).append("/").append(totalPages).append("):\n");
+      } else {
+        sb.append(titlePrefix).append(":\n");
+      }
+
+      int start = page * pageSize;
+      int end = Math.min(start + pageSize, bossList.size());
+      for (int i = start; i < end; i++) {
+        map.Boss b = bossList.get(i);
+        boolean isAlive = (b.mob != null && !b.mob.isdie && b.mob.hp > 0);
+        String statusStr = isAlive ? "Còn sống" : "Đã chết";
+
+        map.Map m = (b.mob != null && b.mob.map != null) ? b.mob.map : b.mapOrigin;
+        String locationStr;
+        if (m != null && m.template != null) {
+          int zoneNum = (m.zone_id >= 0) ? (m.zone_id + 1) : 1;
+          locationStr = m.template.name + " (Khu " + zoneNum + ")";
+        } else {
+          locationStr = "Không xác định";
+        }
+
+        String bossName = (b.mob.mob_template.name != null && !b.mob.mob_template.name.isEmpty())
+            ? b.mob.mob_template.name
+            : ("Boss " + b.mob.mob_template.mob_id);
+
+        sb.append("- ").append(bossName)
+            .append(": [").append(statusStr).append("]")
+            .append(" - ").append(locationStr).append("\n");
+      }
+    }
+
+    Service.Help_From_Server(p, idNPC, sb.toString());
   }
 
   private static void showHakiMonsterProgress(Player p) throws IOException {
@@ -3444,7 +3601,8 @@ public class MenuController {
         }
         case 7: {
           Service.input_text(p, 32005, "Tạo Giftcode",
-              new String[] { "Tên mã", "Số Beri", "Số Ruby", "Giới hạn", "Loại Item (3: Đồ, 4: Rương/Thuốc, 7: NL, -1: Không)", "ID Item",
+              new String[] { "Tên mã", "Số Beri", "Số Ruby", "Giới hạn",
+                  "Loại Item (3: Đồ, 4: Rương/Thuốc, 7: NL, -1: Không)", "ID Item",
                   "Số lượng Item", "MTV (1: Có, 0: Không)" });
           break;
         }
@@ -3573,6 +3731,13 @@ public class MenuController {
           }
 
           Service.send_box_ThongBao_OK(p, "Da reset hang dong cua toan bo nhan vat thanh cong!");
+          break;
+        }
+        case 11: { // Chinh Tai Xiu
+          send_dynamic_menu(p, 9991, "Quản Lý Tài Xỉu",
+              new String[] { "Xem thông tin cược", "Ép TÀI (ván này)", "Ép XỈU (ván này)",
+                  "Cố định TÀI (mọi ván)", "Cố định XỈU (mọi ván)", "Đặt 3 xúc xắc cụ thể", "Hủy can thiệp (Random)" },
+              null);
           break;
         }
       }

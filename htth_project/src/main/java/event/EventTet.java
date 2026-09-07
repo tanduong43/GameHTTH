@@ -545,9 +545,7 @@ public class EventTet implements Runnable {
         if (bossAlive) return;
 
         List<Map> allowedMaps = new ArrayList<>();
-        int[] spawnMaps = { 3, 4, 7, 10, 11, 12, 13, 16, 18, 19, 20, 24, 26, 27, 28, 32, 34, 35, 36, 40, 42, 43, 44, 48, 50, 51, 52, 63, 65, 68, 70, 71, 72, 82, 84, 85, 86, 94, 95, 96, 97, 98, 99, 100, 101, 112, 115, 116, 117, 118, 124, 125, 126, 192, 193, 194, 195, 196, 197 };
-
-        for (int mapId : spawnMaps) {
+        for (int mapId : map.Boss.ALLOWED_MAP_IDS) {
             Map[] maps = Map.get_map_by_id(mapId);
             if (maps != null) {
                 for (Map m : maps) {

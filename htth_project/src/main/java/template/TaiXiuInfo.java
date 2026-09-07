@@ -4,7 +4,7 @@ package template;
  * @author Truongbk
  */
 public class TaiXiuInfo {
-    public int money;
+    public long money;
     public byte TaiorXiu;
     public byte isReceive;
 }

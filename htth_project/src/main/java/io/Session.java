@@ -688,7 +688,7 @@ public class Session implements Runnable {
                 rs.close();
                 ps.close();
                 ps = conn.prepareStatement("INSERT INTO `accounts` (`user`, `pass`, `lock`, `vip`, `coin`, `status`, `tichnap`, `sumamount`, `napthe`, `tongnap`, `claimed_milestones`, `char`) "
-                        + "VALUES (?, ?, 0, 0, 0, 0, 0, 0, 0, 2000000000, '', '[]')");
+                        + "VALUES (?, ?, 0, 0, 0, 0, 0, 0, 0, 0, '', '[]')");
                 ps.setString(1, user_);
                 ps.setString(2, pass_);
                 ps.execute();
