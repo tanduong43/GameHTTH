@@ -474,6 +474,15 @@ public class HangDong extends Dungeon {
                 int[] item = defaultPool[idx];
                 int amount = core.Util.random(amountMin, amountMax);
 
+                // Điều chỉnh lại số lượng dựa trên loại vật phẩm
+                if (item[0] == 0 && item[1] == 4) {
+                    // Beri: nhân lên 10.000 lần (ví dụ tầng thấp được 10k-100k, tầng cao 200k-500k)
+                    amount *= 10000; 
+                } else if (item[0] == 1 && item[1] == 4) {
+                    // Ruby: 1 đến 20
+                    amount = core.Util.random(1, 21);
+                }
+
                 GiftBox gb = new GiftBox();
                 gb.id = (short) item[0];
                 gb.type = (byte) item[1];

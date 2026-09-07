@@ -1,6 +1,5 @@
 package core;
 
-import database.SQL;
 import io.Session;
 import io.SessionManager;
 

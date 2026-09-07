@@ -5,7 +5,6 @@ import core.Service;
 import core.Util;
 import io.Message;
 import java.io.IOException;
-import template.ItemBag47;
 import template.ItemTemplate4;
 import template.ItemTemplate7;
 

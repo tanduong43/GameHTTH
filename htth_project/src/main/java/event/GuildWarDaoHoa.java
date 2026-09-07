@@ -1,8 +1,6 @@
 package event;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -12,7 +10,6 @@ import client.Clan;
 import client.Player;
 import core.Service;
 import database.SQL;
-import map.Map;
 import template.Item_wear;
 
 /**

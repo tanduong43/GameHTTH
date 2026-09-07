@@ -1,7 +1,6 @@
 package activities;
 
 import java.io.IOException;
-import java.util.List;
 
 import client.MyPet;
 import client.Pet;

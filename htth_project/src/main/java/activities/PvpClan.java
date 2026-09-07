@@ -5,8 +5,6 @@ import client.Player;
 import io.Message;
 import map.Map;
 import template.GiftBox;
-import template.ItemTemplate4;
-import template.ItemTemplate7;
 import java.util.ArrayList;
 import java.util.List;
 

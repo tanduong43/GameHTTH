@@ -1,15 +1,12 @@
 package event;
 
 import java.io.IOException;
-import java.util.List;
 
 import client.Player;
 import core.Service;
 import core.Util;
 import io.Message;
-import template.GiftBox;
 import template.ItemTemplate4;
-import template.ItemTemplate7;
 
 /**
  * Xử lý ghép đồ sự kiện Trung Thu

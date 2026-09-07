@@ -1,7 +1,5 @@
 package map;
 
-import java.io.IOException;
-import java.util.List;
 
 import client.Player;
 import core.Manager;

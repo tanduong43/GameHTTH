@@ -22,7 +22,6 @@ import core.Util;
 import database.SQL;
 import io.Message;
 import map.Map;
-import map.MapCanGoTo;
 import map.Mob;
 import map.Npc;
 import map.Vgo;
