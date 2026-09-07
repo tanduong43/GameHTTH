@@ -1340,31 +1340,140 @@ public class Manager {
     }
 
     public void chatKTG(int type, String text, int color) throws IOException {
+        chatKTG(type, text, color, (short) -1);
+    }
+
+    public void chatKTG(int type, String text, int color, short iconClan) throws IOException {
         Message m = new Message(-31);
         m.writer().writeByte(type);
         m.writer().writeUTF(text);
         m.writer().writeByte(color);
-        m.writer().writeShort(-1);
+        m.writer().writeShort(iconClan);
         for (Map[] mapall : Map.ENTRYS) {
             for (Map map : mapall) {
-                for (int i = 0; i < map.players.size(); i++) {
-                    Player p0 = map.players.get(i);
-                    if (p0.conn != null) {
-                        p0.conn.addmsg(m);
+                if (map != null && map.players != null) {
+                    for (int i = 0; i < map.players.size(); i++) {
+                        try {
+                            if (i < map.players.size()) {
+                                Player p0 = map.players.get(i);
+                                if (p0 != null && p0.conn != null) {
+                                    p0.conn.addmsg(m);
+                                }
+                            }
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
             }
         }
         List<Map> mapplus = Map.get_map_plus();
-        for (int i = 0; i < mapplus.size(); i++) {
-            for (int i12 = 0; i12 < mapplus.get(i).players.size(); i12++) {
-                Player p0 = mapplus.get(i).players.get(i12);
-                if (p0.conn != null) {
-                    p0.conn.addmsg(m);
+        if (mapplus != null) {
+            for (int i = 0; i < mapplus.size(); i++) {
+                Map map = mapplus.get(i);
+                if (map != null && map.players != null) {
+                    for (int i12 = 0; i12 < map.players.size(); i12++) {
+                        try {
+                            if (i12 < map.players.size()) {
+                                Player p0 = map.players.get(i12);
+                                if (p0 != null && p0.conn != null) {
+                                    p0.conn.addmsg(m);
+                                }
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
                 }
             }
         }
         m.cleanup();
+    }
+
+    public void chatKTGClan(Player p, String text) throws IOException {
+        if (p == null) {
+            return;
+        }
+        if (p.clan == null) {
+            Service.send_box_ThongBao_OK(p, "Bạn chưa gia nhập băng hải tặc!");
+            return;
+        }
+        boolean isLeaderOrVice = false;
+        if (p.clan.members != null && !p.clan.members.isEmpty()) {
+            if (p.clan.members.get(0).name.equals(p.name)) {
+                isLeaderOrVice = true;
+            } else {
+                for (int i = 0; i < p.clan.members.size(); i++) {
+                    Clan_member mem = p.clan.members.get(i);
+                    if (mem != null && mem.name.equals(p.name)
+                            && (mem.levelInclan == 0 || mem.levelInclan == 1)) {
+                        isLeaderOrVice = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!isLeaderOrVice && (p.conn == null || !p.conn.user.equals("admin"))) {
+            Service.send_box_ThongBao_OK(p, "Chỉ Thuyền trưởng hoặc Thuyền phó mới có thể chat KTG băng!");
+            return;
+        }
+        if (p.conn != null && !p.conn.user.equals("admin") && p.time_chat_ktg > System.currentTimeMillis()) {
+            Service.send_box_ThongBao_OK(p,
+                    "Chờ " + ((p.time_chat_ktg - System.currentTimeMillis()) / 1000L) + "s để tiếp tục chat KTG");
+            return;
+        }
+
+        // Ưu tiên trừ 15 ruby băng, nếu không đủ thì cho phép trừ 15 ruby cá nhân (admin miễn phí)
+        boolean paid = false;
+        if (p.conn != null && p.conn.user.equals("admin")) {
+            paid = true;
+        } else if (p.clan.get_ngoc() >= 15) {
+            p.clan.update_ruby(-15);
+            Clan.update();
+            for (int i = 0; i < p.clan.members.size(); i++) {
+                Player p0 = Map.get_player_by_name_allmap(p.clan.members.get(i).name);
+                if (p0 != null) {
+                    Clan.send_money(p0, false);
+                }
+            }
+            paid = true;
+        } else if (p.get_ngoc() >= 15) {
+            p.update_ngoc(-15);
+            p.update_money();
+            paid = true;
+        }
+
+        if (!paid) {
+            Service.send_box_ThongBao_OK(p, "Cần 15 ruby băng (hoặc 15 ruby cá nhân) để chat KTG băng!");
+            return;
+        }
+
+        p.time_chat_ktg = System.currentTimeMillis() + 10_000L;
+        short iconClan = (p.clan.icon >= 0) ? p.clan.icon : (short) -1;
+        String content = p.clan.name + ": " + text;
+        chatKTG(1, content, 0, iconClan);
+
+        // Ghi lại tin nhắn vào bảng chat clan
+        try {
+            short idMem = 0;
+            if (p.clan.members != null) {
+                for (Clan_member mem : p.clan.members) {
+                    if (mem != null && mem.name.equals(p.name)) {
+                        idMem = mem.id;
+                        break;
+                    }
+                }
+            }
+            Clan_chat cChat = new Clan_chat();
+            cChat.idMem = idMem;
+            cChat.name = p.name;
+            cChat.str = "[KTG] " + text;
+            cChat.time = System.currentTimeMillis();
+            cChat.typeChat = -3;
+            p.clan.add_chat(cChat);
+            p.clan.send_chat(cChat, null);
+        } catch (Exception ignored) {
+        }
+
+        Service.send_box_ThongBao_OK(p, "Chat KTG băng thành công với nội dung: " + text);
     }
 
     public TaiXiu TaiXiu() {

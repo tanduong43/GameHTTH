@@ -590,62 +590,33 @@ public class MessageHandler {
                 break;
             }
             case -46: {
-                if (conn.status != 1) {
-                    Service.send_box_ThongBao_OK(conn.p,
-                            "Chưa Kích hoạt không thể chat KTG");
-                    return;
-                }
                 if (conn.p != null) {
                     byte type = m.reader().readByte();
                     String text = m.reader().readUTF();
+                    if (text == null || text.trim().isEmpty()) {
+                        return;
+                    }
+                    text = text.trim();
+                    if (text.length() > 100) {
+                        text = text.substring(0, 100);
+                    }
                     if (type == 0) {
-
-                        if (conn.p.get_ngoc() < 5) {
+                        if (conn.status != 1 && (conn.user == null || !conn.user.equals("admin"))) {
+                            Service.send_box_ThongBao_OK(conn.p,
+                                    "Chưa Kích hoạt không thể chat KTG");
+                            return;
+                        }
+                        if (conn.p.get_ngoc() < 5 && (conn.user == null || !conn.user.equals("admin"))) {
                             Service.send_box_ThongBao_OK(conn.p, "Không đủ 5 ruby để chat KTG");
                             return;
                         }
-                        conn.p.update_ngoc(-5);
-                        conn.p.update_money();
+                        if (conn.user == null || !conn.user.equals("admin")) {
+                            conn.p.update_ngoc(-5);
+                            conn.p.update_money();
+                        }
                         Manager.gI().chatKTG(conn.p, conn.p.name + ": " + text);
-                    } else if (type == 1 && conn.p.clan != null) {
-                        boolean check = false;
-                        for (int i = 0; i < conn.p.clan.members.size(); i++) {
-                            if (conn.p.clan.members.get(i).name.equals(conn.p.name)
-                                    && (conn.p.clan.members.get(i).levelInclan == 1
-                                            || conn.p.clan.members.get(i).levelInclan == 0)) {
-                                check = true;
-                                break;
-                            }
-                        }
-                        if (check) {
-                            if (conn.p.clan.get_ngoc() < 15) {
-                                Service.send_box_ThongBao_OK(conn.p,
-                                        "Không đủ 15 ruby băng để chat KTG");
-                                return;
-                            }
-                            conn.p.clan.update_ruby(-15);
-                            for (int i = 0; i < conn.p.clan.members.size(); i++) {
-                                Player p0 = Map
-                                        .get_player_by_name_allmap(conn.p.clan.members.get(i).name);
-                                if (p0 != null) {
-                                    Clan.send_money(p0, false);
-                                }
-                            }
-                            Message m23 = new Message(-31);
-                            m23.writer().writeByte(type);
-                            m23.writer().writeUTF(conn.p.clan.name + ": " + text);
-                            m23.writer().writeByte(0);
-                            m23.writer().writeShort(conn.p.clan.icon);
-                            for (Map[] mapall : Map.ENTRYS) {
-                                for (Map map : mapall) {
-                                    for (int i = 0; i < map.players.size(); i++) {
-                                        Player p0 = map.players.get(i);
-                                        p0.conn.addmsg(m23);
-                                    }
-                                }
-                            }
-                            m23.cleanup();
-                        }
+                    } else if (type == 1) {
+                        Manager.gI().chatKTGClan(conn.p, text);
                     }
                 }
                 break;
