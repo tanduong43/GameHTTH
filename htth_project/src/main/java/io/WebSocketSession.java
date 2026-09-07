@@ -20,17 +20,47 @@ public class WebSocketSession extends Session {
     private final String remoteAddress;
 
     public WebSocketSession(WebSocket webSocket) {
+        this(webSocket, null);
+    }
+
+    public WebSocketSession(WebSocket webSocket, org.java_websocket.handshake.ClientHandshake handshake) {
         super(); // Use protected constructor (no TCP socket)
         this.webSocket = webSocket;
         this.incomingQueue = new LinkedBlockingQueue<>();
 
-        // Extract remote IP address
-        InetSocketAddress remote = webSocket.getRemoteSocketAddress();
-        this.remoteAddress = (remote != null) ? remote.getAddress().getHostAddress() : "unknown";
+        String ip = null;
+        if (handshake != null) {
+            String xForwardedFor = handshake.getFieldValue("X-Forwarded-For");
+            if (xForwardedFor != null && !xForwardedFor.trim().isEmpty()) {
+                ip = xForwardedFor.split(",")[0].trim();
+            }
+            if (ip == null || ip.trim().isEmpty()) {
+                String xRealIp = handshake.getFieldValue("X-Real-IP");
+                if (xRealIp != null && !xRealIp.trim().isEmpty()) {
+                    ip = xRealIp.trim();
+                }
+            }
+            if (ip == null || ip.trim().isEmpty()) {
+                String cfIp = handshake.getFieldValue("CF-Connecting-IP");
+                if (cfIp != null && !cfIp.trim().isEmpty()) {
+                    ip = cfIp.trim();
+                }
+            }
+        }
+        if (ip == null || ip.trim().isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            InetSocketAddress remote = webSocket.getRemoteSocketAddress();
+            ip = (remote != null && remote.getAddress() != null) ? remote.getAddress().getHostAddress() : "unknown";
+        }
+        this.remoteAddress = ip;
     }
 
     public String getRemoteAddress() {
         return remoteAddress;
+    }
+
+    @Override
+    public String getIP() {
+        return (remoteAddress != null && !remoteAddress.isEmpty()) ? remoteAddress : "127.0.0.1";
     }
 
     /**

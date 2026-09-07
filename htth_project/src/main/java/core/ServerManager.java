@@ -35,6 +35,7 @@ public class ServerManager implements Runnable {
 
     public void init() {
         Manager.gI().init();
+        io.AccountRegisterManager.init();
         this.running = true;
         this.mythread.start();
         SaveData.process();

@@ -46,6 +46,8 @@ public class ServerEventManager {
                     min = now.getMinuteOfHour();
                     sec = now.getSecondOfMinute();
                     millis = now.getMillisOfSecond();
+                    // Tự động kiểm tra bảo trì định kỳ
+                    MaintenanceManager.checkAutoMaintenance(hour, min, sec);
                     //
                     if (hour == 0 && min == 0 && sec == 0) {
                         for (Map[] map_all : Map.ENTRYS) {

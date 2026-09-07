@@ -130,6 +130,17 @@ public class Session implements Runnable {
         SessionManager.client_disconnect(this);
     }
 
+    public String getIP() {
+        try {
+            if (this.socket != null && this.socket.getRemoteSocketAddress() != null) {
+                if (this.socket.getInetAddress() != null) {
+                    return this.socket.getInetAddress().getHostAddress();
+                }
+            }
+        } catch (Exception e) {}
+        return "127.0.0.1";
+    }
+
     /**
      * Protected method for subclasses to process messages through the controller.
      * Needed because the controller field is private.
@@ -684,7 +695,14 @@ public class Session implements Runnable {
                     }
                 }
             } else {
-                // Tài khoản CHƯA TỒN TẠI -> Tự động đăng ký tạo mới và vào thẳng game
+                // Tài khoản CHƯA TỒN TẠI -> Kiểm tra giới hạn tạo tài khoản theo IP
+                String clientIp = this.getIP();
+                if (!AccountRegisterManager.canRegister(clientIp)) {
+                    login_notice("IP của bạn đã đạt giới hạn tạo tài khoản hôm nay (tối đa "
+                            + Manager.gI().max_register_ip_day + " tài khoản/ngày)!");
+                    return;
+                }
+
                 rs.close();
                 ps.close();
                 ps = conn.prepareStatement("INSERT INTO `accounts` (`user`, `pass`, `lock`, `vip`, `coin`, `status`, `tichnap`, `sumamount`, `napthe`, `tongnap`, `claimed_milestones`, `char`) "
@@ -693,6 +711,9 @@ public class Session implements Runnable {
                 ps.setString(2, pass_);
                 ps.execute();
                 ps.close();
+
+                // Ghi nhận IP đã tạo tài khoản này
+                AccountRegisterManager.recordRegister(clientIp, user_);
 
                 // Query lại account vừa tạo để khởi tạo session
                 ps = conn.prepareStatement("SELECT * FROM `accounts` WHERE BINARY `user` = ? LIMIT 1;");

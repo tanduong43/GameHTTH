@@ -44,6 +44,7 @@ public class Manager {
     public static int RATE_EXP_SKILL = 1;
     public boolean server_admin;
     public int max_ip_connection;
+    public int max_register_ip_day;
     public int max_ccu;
     private int index_mob;
 
@@ -1272,6 +1273,11 @@ public class Manager {
         } else {
             this.max_ip_connection = 10;
         }
+        if (configMap.containsKey("max-register-ip-day")) {
+            this.max_register_ip_day = Integer.parseInt(configMap.get("max-register-ip-day"));
+        } else {
+            this.max_register_ip_day = 5;
+        }
         if (configMap.containsKey("max-ccu")) {
             this.max_ccu = Integer.parseInt(configMap.get("max-ccu"));
         } else {
@@ -1297,6 +1303,22 @@ public class Manager {
         // Event Noel config
         if (configMap.containsKey("event-noel")) {
             event.EventNoel.setEvent(Boolean.parseBoolean(configMap.get("event-noel")));
+        }
+        // Auto Maintenance config
+        if (configMap.containsKey("auto-maintenance")) {
+            MaintenanceManager.autoMaintenance = Boolean.parseBoolean(configMap.get("auto-maintenance"));
+        } else {
+            MaintenanceManager.autoMaintenance = true;
+        }
+        if (configMap.containsKey("auto-maintenance-hour")) {
+            MaintenanceManager.maintenanceHour = Integer.parseInt(configMap.get("auto-maintenance-hour"));
+        } else {
+            MaintenanceManager.maintenanceHour = 2;
+        }
+        if (configMap.containsKey("auto-maintenance-minute")) {
+            MaintenanceManager.maintenanceMinute = Integer.parseInt(configMap.get("auto-maintenance-minute"));
+        } else {
+            MaintenanceManager.maintenanceMinute = 0;
         }
         // Server Event Rate Config (x2 EXP, x2 EXP Skill)
         if (configMap.containsKey("rate-exp")) {

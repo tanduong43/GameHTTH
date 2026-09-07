@@ -28,7 +28,7 @@ public class GameWebSocketServer extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         try {
-            WebSocketSession session = new WebSocketSession(conn);
+            WebSocketSession session = new WebSocketSession(conn, handshake);
             sessions.put(conn, session);
             SessionManager.client_connect(session);
             System.out.println("[WS] Client connected: " + session.getRemoteAddress()
