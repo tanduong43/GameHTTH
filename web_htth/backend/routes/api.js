@@ -1813,6 +1813,54 @@ router.post('/admin/items/delete', jwtRequired, isAdmin, async (req, res) => {
         return res.json({ success: false, message: `Lỗi xóa vật phẩm: ${err.message}` });
     }
 });
+// GET /api/admin/player-logs
+router.get('/admin/player-logs', isAdmin, async (req, res) => {
+    try {
+        const { startDate, endDate, playerName, type, page = 1, limit = 50 } = req.query;
+        let query = 'SELECT * FROM player_logs WHERE 1=1';
+        let countQuery = 'SELECT COUNT(*) as total FROM player_logs WHERE 1=1';
+        let params = [];
+
+        if (startDate) {
+            query += ' AND created_at >= ?';
+            countQuery += ' AND created_at >= ?';
+            params.push(`${startDate} 00:00:00`);
+        }
+        if (endDate) {
+            query += ' AND created_at <= ?';
+            countQuery += ' AND created_at <= ?';
+            params.push(`${endDate} 23:59:59`);
+        }
+        if (playerName) {
+            query += ' AND player_name LIKE ?';
+            countQuery += ' AND player_name LIKE ?';
+            params.push(`%${playerName}%`);
+        }
+        if (type) {
+            query += ' AND type = ?';
+            countQuery += ' AND type = ?';
+            params.push(type);
+        }
+
+        query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+        
+        const offset = (Number(page) - 1) * Number(limit);
+        const queryParams = [...params, Number(limit), offset];
+
+        const [rows] = await db.execute(query, queryParams);
+        const [countRows] = await db.execute(countQuery, params);
+        
+        return res.json({
+            success: true,
+            data: rows,
+            total: countRows[0].total,
+            page: Number(page),
+            totalPages: Math.ceil(countRows[0].total / Number(limit))
+        });
+    } catch (err) {
+        console.error('Admin get player logs error:', err);
+        return res.json({ success: false, message: `Lỗi lấy lịch sử: ${err.message}` });
+    }
+});
 
 module.exports = router;
-
