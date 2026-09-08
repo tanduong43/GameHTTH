@@ -63,7 +63,15 @@ public class ListTichNap {
         t.quant = new short[]{1, 1, 1, 100, 100, 100, 10, 10, 10, 5, 5, 5, 50, 1, 5};
         ENTRY.add(t);
 
-        // MỐC 6: 1M Extol
+        // MỐC 6: 600k Extol
+        t = new ListTichNap();
+        t.num = 600_000;
+        t.cat = new byte[]{105, 4, 4, 4, 4, 4, 4, 4, 7, 4, 4, 4};
+        t.id = new short[]{234, 1002, 226, 159, 349, 325, 1004, 413, 10, 457, 323, 455};
+        t.quant = new short[]{1, 1, 150, 200, 200, 5, 10, 20, 100, 20, 6, 50};
+        ENTRY.add(t);
+
+        // MỐC 7: 1M Extol
         t = new ListTichNap();
         t.num = 1_000_000;
         t.cat = new byte[]{105, 105, 4, 4, 4, 4, 4, 4, 7, 4, 4, 4};
@@ -153,22 +161,18 @@ public class ListTichNap {
             m.writer().writeByte(i); // Index mốc
             m.writer().writeInt(t.num); // Mức tích nạp yêu cầu
             m.writer().writeByte(status); // Trạng thái
-            m.writer().writeShort(t.cat.length + 1); // Số lượng quà + 1 danh hiệu
+            // Add danh hiệu fake item nếu có
+            String dhName = getDanhHieuByNum(t.num);
+            boolean hasDh = !dhName.isEmpty();
+            m.writer().writeShort(t.cat.length + (hasDh ? 1 : 0)); // Số lượng quà
 
-            // Add danh hiệu fake item
-            String dhName = "";
-            if (i == 0) dhName = "Fan Cứng";
-            else if (i == 1) dhName = "Tuổi Thơ";
-            else if (i == 2) dhName = "Top 4 Nạp";
-            else if (i == 3) dhName = "Top 3 Nạp";
-            else if (i == 4) dhName = "Top 2 Nạp";
-            else if (i == 5) dhName = "Top 1 Nạp";
-
-            m.writer().writeUTF("Danh hiệu " + dhName);
-            m.writer().writeByte(4); // cat 4
-            m.writer().writeShort(147); // icon vé
-            m.writer().writeShort(1); // số lượng
-            m.writer().writeByte(0); // option
+            if (hasDh) {
+                m.writer().writeUTF("Danh hiệu " + dhName);
+                m.writer().writeByte(4); // cat 4
+                m.writer().writeShort(147); // icon vé
+                m.writer().writeShort(1); // số lượng
+                m.writer().writeByte(0); // option
+            }
 
             for (int j = 0; j < t.cat.length; j++) {
                 if (t.cat[j] == 4) {
@@ -381,12 +385,10 @@ public class ListTichNap {
         }
 
         // Add danh hiệu
-        if (id == 0) addDanhHieuByName(p, "Fan Cứng");
-        else if (id == 1) addDanhHieuByName(p, "Tuổi Thơ");
-        else if (id == 2) addDanhHieuByName(p, "Top 4 Nạp");
-        else if (id == 3) addDanhHieuByName(p, "Top 3 Nạp");
-        else if (id == 4) addDanhHieuByName(p, "Top 2 Nạp");
-        else if (id == 5) addDanhHieuByName(p, "Top 1 Nạp");
+        String dhName = getDanhHieuByNum(t.num);
+        if (!dhName.isEmpty()) {
+            addDanhHieuByName(p, dhName);
+        }
 
         p.update_money();
         p.item.update_Inventory(-1, false);
@@ -397,6 +399,16 @@ public class ListTichNap {
         m.writer().writeByte(id);
         p.conn.addmsg(m);
         m.cleanup();
+    }
+
+    public static String getDanhHieuByNum(int num) {
+        if (num == 50_000) return "Fan Cứng";
+        if (num == 100_000) return "Tuổi Thơ";
+        if (num == 200_000) return "Top 4 Nạp";
+        if (num == 300_000) return "Top 3 Nạp";
+        if (num == 500_000) return "Top 2 Nạp";
+        if (num == 1_000_000) return "Top 1 Nạp";
+        return "";
     }
 
     private static void addDanhHieuByName(Player p, String name) throws IOException {
@@ -426,12 +438,10 @@ public class ListTichNap {
         List<String> menuItems = new ArrayList<>();
         
         // Add danh hiệu text vào menu xem trước
-        if (index == 0) menuItems.add("Danh hiệu: Fan Cứng");
-        else if (index == 1) menuItems.add("Danh hiệu: Tuổi Thơ");
-        else if (index == 2) menuItems.add("Danh hiệu: Top 4 Nạp");
-        else if (index == 3) menuItems.add("Danh hiệu: Top 3 Nạp");
-        else if (index == 4) menuItems.add("Danh hiệu: Top 2 Nạp");
-        else if (index == 5) menuItems.add("Danh hiệu: Top 1 Nạp");
+        String dhName = getDanhHieuByNum(t.num);
+        if (!dhName.isEmpty()) {
+            menuItems.add("Danh hiệu: " + dhName);
+        }
 
         for (int j = 0; j < t.cat.length; j++) {
             if (t.cat[j] == 4) {

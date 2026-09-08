@@ -861,7 +861,7 @@ public class MenuController {
                   + "📍 5. PHẦN THƯỞNG ĐẶC BIỆT:\n\n"
                   + "• Mở Bánh & Hộp: Nhận Đá Khảm Cấp 1-6, Ruby, Beri, Tinh Thể Ác Quỷ, Bột Vàng, Mai Rùa, Rương Đại Ác Quỷ...\n"
                   + "• Hộp Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu & Pet Thỏ (1 ngày / 7 ngày / Vĩnh Viễn)!\n"
-                  + "• Thẻ TT Trung Thu: Mở nhận Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+130% né tránh, +80% HP, +100% Miễn thương)!";
+                  + "• Thẻ TT Trung Thu: Mở nhận Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+13% né tránh, +8% HP, +10% Miễn thương)!";
               Service.Help_From_Server(p, -154, fullGuide);
               break;
             }
@@ -916,7 +916,7 @@ public class MenuController {
                   "🎁 PHẦN THƯỞNG SỰ KIỆN TRUNG THU:\n\n"
                       + "• Mở Bánh & Hộp: Nhận Đá Khảm Cấp 1-6, Ruby, Beri, Tinh Thể Ác Quỷ, Bột Vàng, Mai Rùa, Rương Đại Ác Quỷ...\n"
                       + "• Hộp Bánh Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu & Pet Thỏ (1 ngày / 7 ngày / Vĩnh Viễn)!\n"
-                      + "• 👑 Thẻ TT Trung Thu: Mở nhận trực tiếp Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+130% né tránh, +80% HP, +100% Miễn thương)!");
+                      + "• 👑 Thẻ TT Trung Thu: Mở nhận trực tiếp Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+13% né tránh, +8% HP, +10% Miễn thương)!");
               break;
             }
           }

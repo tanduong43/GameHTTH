@@ -31,10 +31,21 @@ public class Mob {
 	public long max_dame_per_hit = 0;// Giới hạn sát thương tối đa trên mỗi hit (chống oneshot boss)
 	public int ne_don = 0;           // % Tỷ lệ né đòn (0 - 100%)
 	public int phan_dame = 0;        // % Phản sát thương lại cho người chơi đánh
+	public int giam_mien_thuong = 0; // Điểm giảm miễn thương của mục tiêu khi tấn công (thang 1000, vd 400 = giảm 40%)
 
 	public long calculate_damage_taken(long raw_dame) {
 		if (raw_dame <= 0) {
 			return 0;
+		}
+		// Tự động nạp chỉ số cho Boss Đảo Ruby nếu chưa có
+		if (this.map != null && this.map.template != null && this.map.template.id == 1001) {
+			if (this.mien_thuong <= 0) {
+				this.mien_thuong = 80;
+				this.ne_don = 25;
+				this.phan_dame = 20;
+				this.giam_mien_thuong = 400;
+				this.final_dame = 400000;
+			}
 		}
 		// 1. Kiểm tra né đòn
 		if (this.ne_don > 0 && core.Util.random(100) < this.ne_don) {

@@ -142,10 +142,10 @@ VALUES (
     <hr/>
 
     <h4>👘 5. THỜI TRANG ĐỘC QUYỀN TRUNG THU (VĨNH VIỄN)</h4>
-    <p>Sử dụng <strong>Thẻ Thời Trang Trung Thu</strong> tại NPC Chị Hằng để đổi lấy trang phục độc quyền:</p>
+    <p>Sử dụng <strong>Thẻ Thời Trang Trung Thu</strong> để nhận trực tiếp Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn:</p>
     <ul>
-        <li>🥋 <strong>Trang Phục Chú Cuội:</strong> Gia tăng Né tránh, Máu (HP), Xuyên giáp và Miễn thương.</li>
-        <li>💃 <strong>Trang Phục Chị Hằng:</strong> Gia tăng Chí mạng, Sát thương, Máu (HP) và Xuyên giáp.</li>
+        <li>🥋 <strong>Trang Phục Chú Cuội:</strong> +13% Né tránh, +8% HP, +10% Miễn thương.</li>
+        <li>💃 <strong>Trang Phục Chị Hằng:</strong> +13% Né tránh, +8% HP, +10% Miễn thương.</li>
     </ul>
 
     <div style="background-color:#fef9e7; border-left:4px solid #F39C12; padding:12px; margin:15px 0;">

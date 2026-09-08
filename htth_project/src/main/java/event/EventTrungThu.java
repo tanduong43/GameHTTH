@@ -1142,7 +1142,7 @@ public class EventTrungThu implements Runnable {
 
         Service.send_box_ThongBao_OK(p,
                 "Bạn đã nhận được Thời trang " + fashionName
-                        + " vĩnh viễn! (+130% né tránh, +80% HP, +100% Miễn thương)");
+                        + " vĩnh viễn! (+13% né tránh, +8% HP, +10% Miễn thương)");
     }
 
     // ================== CRAFITING RECIPES ==================

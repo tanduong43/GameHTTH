@@ -2030,6 +2030,11 @@ public class Map implements Runnable {
                 Mob mob = Mob.ENTRYS.get(Integer.valueOf(list_mob[i]));
                 if (mob != null) {
                     if (!mob.isdie) {
+                        if (mob.mob_template != null && mob.mob_template.mob_id == 174 && Util.random(100) < 3) {
+                            try {
+                                send_chat_popup(1, mob.index, "KKK các hải tặc tép riu như các ngươi mà đòi ăn Saturn ta à.", false);
+                            } catch (Exception e) {}
+                        }
                         if (mob.id_target != -1) {
                             try {
                                 mob_fire(mob, mob.id_target);
@@ -2078,6 +2083,11 @@ public class Map implements Runnable {
                 for (int i = 0; i < get_list_Mob.size(); i++) {
                     Mob mob = get_list_Mob.get(i);
                     if (!mob.isdie) {
+                        if (mob.mob_template != null && mob.mob_template.mob_id == 174 && Util.random(100) < 3) {
+                            try {
+                                send_chat_popup(1, mob.index, "KKK các hải tặc tép riu như các ngươi mà đòi ăn Saturn ta à.", false);
+                            } catch (Exception e) {}
+                        }
                         if (mob.id_target != -1) {
                             try {
                                 mob_fire(mob, mob.id_target);
@@ -2161,8 +2171,13 @@ public class Map implements Runnable {
                                     && mob.boss_info.mob.mob_template != null
                                     && (mob.boss_info.mob.mob_template.mob_id == 174 || (mob.boss_info.mob.mob_template.name != null && mob.boss_info.mob.mob_template.name.toLowerCase().contains("saturn"))))));
 
+                    boolean isBossDaoRuby = (mob.map != null && mob.map.template != null && mob.map.template.id == 1001)
+                            || (mob.mob_template != null && mob.mob_template.mob_id == 99 && this.template.id == 1001);
+
                     if (isSaturn) {
                         dame = (mob.final_dame > 0 ? mob.final_dame : 180000) + Util.random(20000);
+                    } else if (isBossDaoRuby) {
+                        dame = (mob.final_dame > 0 ? mob.final_dame : 400000) + Util.random(50000);
                     } else if (((mob.map.map_bossHunt != null)
                             || (mob.map.map_dungeon != null && mob.map.map_dungeon instanceof activities.HangDong)
                             || mob.boss_info != null)
@@ -2209,6 +2224,10 @@ public class Map implements Runnable {
                             // Saturn có khả năng xuyên một phần giáp và gây sát thương tối thiểu lớn
                             long effectiveDef = Math.min(def, (long) (dame * 0.7));
                             dame = Math.max(25000, (int) (dame - effectiveDef));
+                        } else if (isBossDaoRuby) {
+                            // Boss Đảo Ruby xuyên 50% giáp người chơi và gây sát thương tối thiểu 35,000
+                            long effectiveDef = Math.min(def, (long) (dame * 0.5));
+                            dame = Math.max(35000, (int) (dame - effectiveDef));
                         } else if (mob.boss_info != null) {
                             dame = Math.max(100, (int) (dame - def));
                         } else {
@@ -2218,6 +2237,11 @@ public class Map implements Runnable {
                         // 3. Trừ % Miễn thương
                         int mienThuong = p0.body.get_dame_skip(true);
                         if (mienThuong > 0) {
+                            // Áp dụng giảm miễn thương của Boss Đảo Ruby / Mob
+                            int reduceMT = mob.giam_mien_thuong > 0 ? mob.giam_mien_thuong : (isBossDaoRuby ? 400 : 0);
+                            if (reduceMT > 0) {
+                                mienThuong = Math.max(0, mienThuong - reduceMT);
+                            }
                             int mt = Math.min(isSaturn ? 600 : 800, mienThuong);
                             dame = (int) ((dame * (1000L - mt)) / 1000L);
                         }
@@ -3865,8 +3889,12 @@ public class Map implements Runnable {
                     }
                 }
                 boolean miss = (5 + mob_target.level / 10) > Util.random(1000);
+                if (!miss && mob_target.ne_don > 0 && Util.random(100) < mob_target.ne_don) {
+                    miss = true;
+                }
                 if (miss) { // miss
                     dame2 = 0;
+                    dame_inf.dameM = 0;
                 }
                 if (dame2 > 0) {
                     dame2 -= (dame2 * Util.random(10)) / 100;
@@ -4291,7 +4319,28 @@ public class Map implements Runnable {
                 if (mob_target.hp <= 0 && !mob_target.isdie) {
                     mob_target.hp = 0;
                     mob_target.isdie = true;
-                    mob_target.time_refresh = System.currentTimeMillis() + Mob.TIME_RESPAWN * 500;
+                    if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174 && mob_target.boss_info == null) {
+                        mob_target.time_refresh = Long.MAX_VALUE; // Khu hiện tại không tự hồi sinh nữa
+                        // Chọn ngẫu nhiên 1 khu khác (hoặc chính nó) để hồi sinh sau 30 phút
+                        Map[] all_zones = Map.get_map_by_id(this.template.id);
+                        if (all_zones != null) {
+                            int randomZone = Util.random(all_zones.length);
+                            Map chosenZone = all_zones[randomZone];
+                            if (chosenZone != null && chosenZone.list_mob != null) {
+                                for (int mId : chosenZone.list_mob) {
+                                    Mob m = Mob.ENTRYS.get(mId);
+                                    if (m != null && m.mob_template != null && m.mob_template.mob_id == 174) {
+                                        m.hp = 0;
+                                        m.isdie = true;
+                                        m.time_refresh = System.currentTimeMillis() + 1800000; // 30 phút
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        mob_target.time_refresh = System.currentTimeMillis() + Mob.TIME_RESPAWN * 500;
+                    }
                     exp_up[1] += mob_target.level * 10;
                     // dungeon
                     if ((Map.is_map_dungeon(this.template.id) || this.template.id == 999) && p.dungeon != null) {
@@ -4353,11 +4402,55 @@ public class Map implements Runnable {
                             && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET) {
                         event.EventNoel.getInstance().onBossKilled(p);
                     }
-                    // Tiêu diệt quái/Boss ID 174 (Saturn) nhận Trứng Pet
+                    // Tiêu diệt quái/Boss ID 174 (Saturn) nhận ngẫu nhiên quà
                     if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174 && mob_target.boss_info == null) {
-                        p.item.add_item_bag47(4, 1014, 1);
-                        p.item.update_Inventory(-1, false);
-                        Service.send_box_ThongBao_OK(p, "Tiêu diệt Boss thành công!\nBạn nhận được: 1x Trứng Pet");
+                        List<GiftBox> list_gift = new ArrayList<>();
+                        
+                        // 1. Random 50% Trứng Pet hoặc Beri
+                        if (Util.random(100) < 50) {
+                            ItemTemplate4 it_egg = ItemTemplate4.get_it_by_id(1014);
+                            if (it_egg != null) {
+                                GiftBox giftEgg = new GiftBox();
+                                giftEgg.id = 1014;
+                                giftEgg.type = 4;
+                                giftEgg.name = it_egg.name;
+                                giftEgg.icon = it_egg.icon;
+                                giftEgg.num = 1;
+                                giftEgg.color = 0;
+                                list_gift.add(giftEgg);
+                            }
+                        } else {
+                            int randomBeri = Util.random(1000000, 2000000);
+                            ItemTemplate4 it_temp4 = ItemTemplate4.get_it_by_id(0);
+                            if (it_temp4 != null) {
+                                GiftBox gb_beri = new GiftBox();
+                                gb_beri.id = it_temp4.id;
+                                gb_beri.type = 4;
+                                gb_beri.name = it_temp4.name;
+                                gb_beri.icon = it_temp4.icon;
+                                gb_beri.num = randomBeri;
+                                gb_beri.color = 0;
+                                list_gift.add(gb_beri);
+                            }
+                        }
+
+                        // 2. Thêm Búa Sơ Cấp ngẫu nhiên 1 - 5 cái (Item ID 339)
+                        int randomBua = Util.random(1, 6);
+                        ItemTemplate4 it_bua = ItemTemplate4.get_it_by_id(339);
+                        if (it_bua != null) {
+                            GiftBox gb_bua = new GiftBox();
+                            gb_bua.id = 339;
+                            gb_bua.type = 4;
+                            gb_bua.name = it_bua.name;
+                            gb_bua.icon = it_bua.icon;
+                            gb_bua.num = randomBua;
+                            gb_bua.color = 0;
+                            list_gift.add(gb_bua);
+                        }
+
+                        if (list_gift.size() > 0) {
+                            Service.send_gift(p, 1, "Phần Thưởng", "Bạn nhận được phần thưởng khi tiêu diệt Ngũ Lão Tinh Saturn!", list_gift, false);
+                        }
                     }
                     // update quest relative to
                     if (!id_mob_die.containsKey((int) mob_target.mob_template.mob_id)) {
@@ -5022,30 +5115,24 @@ public class Map implements Runnable {
         send_msg_all_p(m, p, true);
         m.cleanup();
         if (typeEffSkill >= 900) {
-            short targetEffId = p.index_map;
-            if (typeEffSkill != 912 && typeEffSkill != 916 && list != null && !list.isEmpty()) {
-                Dame_Msg firstTarget = list.get(0);
-                if (firstTarget.targetM != null) {
-                    targetEffId = (short) firstTarget.targetM.index;
-                } else if (firstTarget.targetP != null) {
-                    targetEffId = (short) firstTarget.targetP.index_map;
-                }
-            }
             int timeEff = (typeEffSkill == 912 || typeEffSkill == 916) ? 1500 : 0;
-            for (Player p0 : this.players) {
-                if (p0 != null && p0.conn != null) {
-                    Service.send_effect_data(p0.conn, typeEffSkill);
-                    try {
-                        Message mEff = new Message(74);
-                        mEff.writer().writeByte(1);
-                        mEff.writer().writeShort(targetEffId);
-                        mEff.writer().writeShort(typeEffSkill);
-                        mEff.writer().writeInt(timeEff);
-                        mEff.writer().writeByte(0);
-                        mEff.writer().writeByte(0);
-                        p0.conn.addmsg(mEff);
-                        mEff.cleanup();
-                    } catch (Exception ignored) {
+            if (timeEff > 0) {
+                short targetEffId = p.index_map;
+                for (Player p0 : this.players) {
+                    if (p0 != null && p0.conn != null) {
+                        Service.send_effect_data(p0.conn, typeEffSkill);
+                        try {
+                            Message mEff = new Message(74);
+                            mEff.writer().writeByte(1);
+                            mEff.writer().writeShort(targetEffId);
+                            mEff.writer().writeShort(typeEffSkill);
+                            mEff.writer().writeInt(timeEff);
+                            mEff.writer().writeByte(0);
+                            mEff.writer().writeByte(0);
+                            p0.conn.addmsg(mEff);
+                            mEff.cleanup();
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
             }
@@ -5772,6 +5859,13 @@ public class Map implements Runnable {
                 m.writer().writeUTF(s);
                 Player p0 = this.get_player_by_id_inmap(id_p);
                 this.send_msg_all_p(m, p0, all);
+                break;
+            }
+            case 1: { // Mob chat
+                m.writer().writeShort(id_p);
+                m.writer().writeByte(1);
+                m.writer().writeUTF(s);
+                this.send_msg_all_p(m, null, all);
                 break;
             }
         }

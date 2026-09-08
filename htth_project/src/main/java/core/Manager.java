@@ -454,6 +454,7 @@ public class Manager {
                     JSONArray js = (mob_json != null && !mob_json.trim().isEmpty() && !mob_json.equals("null"))
                             ? (JSONArray) JSONValue.parse(mob_json)
                             : new JSONArray();
+                    // Loại bỏ lọc khu 0 để chuẩn bị chọn khu ngẫu nhiên
                     m_temp[i2].list_mob = new int[js.size()];
                     for (int i = 0; i < js.size(); i++) {
                         JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
@@ -474,12 +475,36 @@ public class Manager {
                         temp.index = this.index_mob;
                         temp.map = m_temp[i2];
                         temp.boss_info = null;
+                        // Thiết lập chỉ số chiến đấu đặc biệt cho Boss Đảo Ruby (Map 1001, Quái vật tuyết)
+                        if (map_temp.id == 1001) {
+                            temp.base_dame = 350000;
+                            temp.final_dame = 400000;
+                            temp.mien_thuong = 80;       // 80% miễn thương (tương đương 10 tỷ máu hiệu dụng)
+                            temp.giam_mien_thuong = 400; // Giảm 40% miễn thương của đối thủ khi boss đánh
+                            temp.ne_don = 25;            // 25% né tránh đòn đánh
+                            temp.phan_dame = 20;         // 20% phản sát thương lại người chơi
+                        }
                         Mob.ENTRYS.put(this.index_mob, temp);
                         m_temp[i2].list_mob[i] = this.index_mob;
                         this.index_mob++;
                     }
                 }
                 Map.ENTRYS.add(m_temp);
+                if (map_temp.id == 6) {
+                    int activeZone = Util.random(m_temp.length);
+                    for (int z = 0; z < m_temp.length; z++) {
+                        if (z != activeZone) {
+                            for (int mId : m_temp[z].list_mob) {
+                                map.Mob m = map.Mob.ENTRYS.get(mId);
+                                if (m != null && m.mob_template != null && m.mob_template.mob_id == 174) {
+                                    m.hp = 0;
+                                    m.isdie = true;
+                                    m.time_refresh = Long.MAX_VALUE; // Hide it until its turn
+                                }
+                            }
+                        }
+                    }
+                }
             }
             rs.close();
             // Đảm bảo Map 2028 (Đảo Huấn Luyện Pet) luôn được nạp từ data Map 2 (1-1 Rừng Làng)
