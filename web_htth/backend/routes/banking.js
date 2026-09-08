@@ -46,6 +46,83 @@ async function getDepositMultiplier(connection = null) {
 }
 
 /**
+ * Handle incoming webhook payment notifications.
+ * - If actualAmount === deposit.amount: auto process and credit immediately.
+ * - If actualAmount !== deposit.amount: do NOT credit automatically; update real_amount and hold in status = 0 (Pending) for manual admin review.
+ */
+async function handleIncomingPayment(lookupVal, actualAmount, reference, gatewayType, io, isRequestId = false) {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        let sql = 'SELECT * FROM recharge_history WHERE code = ? AND status = 0 LIMIT 1 FOR UPDATE';
+        if (isRequestId) {
+            sql = 'SELECT * FROM recharge_history WHERE request_id = ? AND status = 0 LIMIT 1 FOR UPDATE';
+        }
+
+        const [rows] = await connection.execute(sql, [lookupVal]);
+        if (rows.length === 0) {
+            console.log(`[Banking Webhook] Transaction not found or already processed: lookupVal=${lookupVal}`);
+            await connection.rollback();
+            connection.release();
+            return false;
+        }
+
+        const deposit = rows[0];
+        const username = deposit.username;
+
+        // Correct amount -> commit lock and proceed with full payment completion
+        if (actualAmount === deposit.amount) {
+            await connection.commit();
+            connection.release();
+            return await processCompletedPayment(lookupVal, actualAmount, reference, gatewayType, io, isRequestId);
+        } else {
+            // WRONG AMOUNT: Hold for Admin manual review!
+            const pendingDesc = `Chuyển sai số tiền: Đơn yêu cầu ${deposit.amount.toLocaleString()}đ, thực nhận ${actualAmount.toLocaleString()}đ (Chờ Admin duyệt)`;
+            
+            await connection.execute(
+                'UPDATE recharge_history SET real_amount = ?, serial = ?, description = ? WHERE id = ?',
+                [actualAmount, reference, pendingDesc, deposit.id]
+            );
+
+            await connection.commit();
+            connection.release();
+
+            console.log(`[Banking Webhook] Wrong amount for ${username}: Expected ${deposit.amount}đ, Received ${actualAmount}đ. Held in pending (status=0) for admin review.`);
+
+            // Notify user via Socket.IO
+            if (io) {
+                io.to(`user_${username}`).emit('deposit_wrong_amount', {
+                    username: username,
+                    code: deposit.code,
+                    amount: deposit.amount,
+                    real_amount: actualAmount,
+                    status: 0,
+                    message: `⚠️ Hệ thống nhận được ${actualAmount.toLocaleString()}đ (khác số tiền yêu cầu ${deposit.amount.toLocaleString()}đ). Đơn nạp đang chờ Admin duyệt tay.`
+                });
+
+                // Broadcast admin alert
+                io.emit('admin_new_deposit', {
+                    id: deposit.id,
+                    username: username,
+                    code: deposit.code,
+                    amount: deposit.amount,
+                    real_amount: actualAmount,
+                    message: `⚠️ Có đơn nạp [${username}] chuyển sai số tiền: Yêu cầu ${deposit.amount.toLocaleString()}đ, thực nhận ${actualAmount.toLocaleString()}đ cần duyệt.`
+                });
+            }
+
+            return { success: true, pendingReview: true, actualAmount, expectedAmount: deposit.amount };
+        }
+    } catch (err) {
+        console.error(`[Banking Webhook] Error in handleIncomingPayment:`, err.message);
+        await connection.rollback();
+        connection.release();
+        return false;
+    }
+}
+
+/**
  * Shared function to handle atomic credit, transaction log, and realtime socket notify.
  * Safe against Race Conditions using SELECT ... FOR UPDATE inside a transaction.
  */
@@ -61,7 +138,7 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
         
         const [rows] = await connection.execute(sql, [lookupVal]);
         if (rows.length === 0) {
-            console.log(`[Banking Webhook] Transaction not found or already processed: lookupVal=${lookupVal}`);
+            console.log(`[Banking Payment] Transaction not found or already processed: lookupVal=${lookupVal}`);
             await connection.rollback();
             connection.release();
             return false;
@@ -70,15 +147,23 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
         const deposit = rows[0];
         const username = deposit.username;
         
-        // Determine status: 1 if amount matches, 2 if wrong amount
+        // Determine status: 1 if amount matches, 2 if wrong amount approved by Admin
         const status = (actualAmount === deposit.amount) ? 1 : 2;
         const depositMultiplier = await getDepositMultiplier(connection);
         const baseCoin = Math.floor(actualAmount / 1000); // Tỷ lệ gốc: 1,000đ = 1 Coin
         const coinAmount = baseCoin * depositMultiplier;
         const multiplierTag = depositMultiplier > 1 ? ` [🔥 x${depositMultiplier}]` : '';
-        const statusDesc = (status === 1) 
-            ? `Nạp tiền tự động qua ${gatewayType} thành công (${actualAmount.toLocaleString()}đ → ${coinAmount} Coin${multiplierTag})` 
-            : `Nạp thành công sai mệnh giá (Yêu cầu ${deposit.amount}đ, thực nhận ${actualAmount}đ → ${coinAmount} Coin${multiplierTag})`;
+        
+        let statusDesc = '';
+        if (gatewayType === 'admin_approve') {
+            statusDesc = (status === 1)
+                ? `Admin đã duyệt đơn nạp (${actualAmount.toLocaleString()}đ → ${coinAmount} Coin${multiplierTag})`
+                : `Admin đã duyệt đơn nạp sai mệnh giá (Yêu cầu ${deposit.amount.toLocaleString()}đ, thực nhận ${actualAmount.toLocaleString()}đ → ${coinAmount} Coin${multiplierTag})`;
+        } else {
+            statusDesc = (status === 1)
+                ? `Nạp tiền tự động qua ${gatewayType} thành công (${actualAmount.toLocaleString()}đ → ${coinAmount} Coin${multiplierTag})`
+                : `Nạp thành công sai mệnh giá (Yêu cầu ${deposit.amount.toLocaleString()}đ, thực nhận ${actualAmount.toLocaleString()}đ → ${coinAmount} Coin${multiplierTag})`;
+        }
         
         // 1. Get current balance, sumamount, vip, and tichnap with lock
         const [userRows] = await connection.execute('SELECT coin, sumamount, vip, tichnap FROM accounts WHERE user = ? FOR UPDATE', [username]);
@@ -115,8 +200,8 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
 
         const newVip = Math.max(currentVip, calculatedVip);
         
-        // 2. Update user's coin balance, sumamount, vip, and tichnap
-        await connection.execute('UPDATE accounts SET coin = ?, sumamount = ?, vip = ?, tichnap = ? WHERE user = ?', [newBalance, newSumAmount, newVip, newTichNap, username]);
+        // 2. Update user's coin balance, sumamount, tongnap, vip, and tichnap
+        await connection.execute('UPDATE accounts SET coin = ?, sumamount = ?, tongnap = ?, vip = ?, tichnap = ? WHERE user = ?', [newBalance, newSumAmount, newSumAmount, newVip, newTichNap, username]);
         
         // 2b. Add Item 360 (Vé tặng 10 ruby, category 4) to player's inventory in `players` table (1k VND = 1 ticket)
         const ticketQuantity = Math.floor(actualAmount / 1000);
@@ -522,8 +607,8 @@ router.post('/webhook/payos', async (req, res) => {
             
             console.log(`[PayOS Webhook] Signature verified. Order: ${orderCode}, Amount: ${amount}`);
             
-            // Process the transaction using orderCode (request_id)
-            const processed = await processCompletedPayment(orderCode, amount, reference, 'payos', req.app.get('io'), true);
+            // Process incoming payment (auto credit if exact, hold in pending if wrong amount)
+            const processed = await handleIncomingPayment(orderCode, amount, reference, 'payos', req.app.get('io'), true);
             
             if (processed) {
                 return res.json({ error: 0, message: 'Ok', data: {} });
@@ -567,7 +652,8 @@ router.post('/webhook/sepay-casso', async (req, res) => {
                 
                 console.log(`[Casso/SePay Webhook] Found matching memo: Code=${code}, Amount=${amount}, Ref=${reference}`);
                 
-                const processed = await processCompletedPayment(code, amount, reference, 'bank_transfer', req.app.get('io'), false);
+                // Process incoming payment (auto credit if exact, hold in pending if wrong amount)
+                const processed = await handleIncomingPayment(code, amount, reference, 'bank_transfer', req.app.get('io'), false);
                 if (processed) {
                     transactionsProcessed++;
                 }
@@ -607,7 +693,7 @@ router.get('/admin/banking/orders', jwtRequired, isAdmin, async (req, res) => {
                 name: charName,
                 charName: charName,
                 amount: order.amount,
-                real_amount: order.real_amount,
+                real_amount: order.real_amount || 0,
                 code: order.code,
                 request_id: order.request_id,
                 status: order.status,
@@ -626,7 +712,7 @@ router.get('/admin/banking/orders', jwtRequired, isAdmin, async (req, res) => {
 router.get('/admin/banking/pending', jwtRequired, isAdmin, async (req, res) => {
     try {
         const [rows] = await db.execute(
-            'SELECT r.id, r.username, r.amount, r.code, r.request_id, r.description, r.created_at, a.char FROM recharge_history r LEFT JOIN accounts a ON r.username = a.user WHERE r.type = "bank" AND r.status = 0 ORDER BY r.id DESC'
+            'SELECT r.id, r.username, r.amount, r.real_amount, r.code, r.request_id, r.description, r.created_at, a.char FROM recharge_history r LEFT JOIN accounts a ON r.username = a.user WHERE r.type = "bank" AND r.status = 0 ORDER BY r.id DESC'
         );
         const pending = rows.map(order => {
             let charName = "Chưa tạo";
@@ -644,6 +730,7 @@ router.get('/admin/banking/pending', jwtRequired, isAdmin, async (req, res) => {
                 name: charName,
                 charName: charName,
                 amount: order.amount,
+                real_amount: order.real_amount || 0,
                 code: order.code,
                 request_id: order.request_id,
                 description: order.description,

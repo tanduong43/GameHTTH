@@ -49,7 +49,8 @@ export default function AdminLayout() {
   }
 
   // Đã đăng nhập nhưng không phải admin
-  if (user.username !== 'admin') {
+  const isUserAdmin = user.username === 'admin' || user.admin === 1 || user.admin === '1';
+  if (!isUserAdmin) {
     return (
       <div style={{ minHeight: '100vh', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="glass-panel" style={{ textAlign: 'center', padding: '50px', color: '#ff4d79', maxWidth: '400px' }}>

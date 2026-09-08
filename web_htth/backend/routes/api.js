@@ -64,7 +64,7 @@ router.post('/register', async (req, res) => {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 username, password, '[]', 0, 0, 0, 0, 0,
-                0, 0, '', 0, 2000000000,
+                0, 0, '', 0, 0,
                 0, 0, 0, 0, 0, clientIp || '', 0,
                 0, 0, 0
             ]
@@ -141,7 +141,8 @@ router.get('/me', jwtRequired, async (req, res) => {
                 server: 'Làng Cối Xay Gió (S1)',
                 coin: account.coin,
                 status: account.status,
-                lock: account.lock
+                lock: account.lock,
+                admin: (account.user === 'admin' || account.admin === 1 || account.admin === '1') ? 1 : 0
             }
         });
     } catch (err) {
@@ -299,8 +300,8 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
             const newVip = Math.max(currentVip, calculatedVip);
 
             await db.execute(
-                'UPDATE accounts SET coin = ?, sumamount = ?, vip = ?, tichnap = ? WHERE user = ?',
-                [newBalance, newSumAmount, newVip, newTichNap, username]
+                'UPDATE accounts SET coin = ?, sumamount = ?, tongnap = ?, vip = ?, tichnap = ? WHERE user = ?',
+                [newBalance, newSumAmount, newSumAmount, newVip, newTichNap, username]
             );
 
             // Add Item 360 (Vé tặng 10 ruby, category 4) to player's inventory in `players` table (1k VND = 1 ticket)
@@ -1814,7 +1815,7 @@ router.post('/admin/items/delete', jwtRequired, isAdmin, async (req, res) => {
     }
 });
 // GET /api/admin/player-logs
-router.get('/admin/player-logs', isAdmin, async (req, res) => {
+router.get('/admin/player-logs', jwtRequired, isAdmin, async (req, res) => {
     try {
         const { startDate, endDate, playerName, type, page = 1, limit = 50 } = req.query;
         let query = 'SELECT * FROM player_logs WHERE 1=1';
@@ -1842,20 +1843,23 @@ router.get('/admin/player-logs', isAdmin, async (req, res) => {
             params.push(type);
         }
 
-        query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-        
-        const offset = (Number(page) - 1) * Number(limit);
-        const queryParams = [...params, Number(limit), offset];
+        const safeLimit = Math.max(1, Math.min(200, parseInt(limit, 10) || 50));
+        const safePage = Math.max(1, parseInt(page, 10) || 1);
+        const offset = (safePage - 1) * safeLimit;
 
-        const [rows] = await db.execute(query, queryParams);
-        const [countRows] = await db.execute(countQuery, params);
+        query += ` ORDER BY created_at DESC LIMIT ${safeLimit} OFFSET ${offset}`;
+
+        const [rows] = await db.query(query, params);
+        const [countRows] = await db.query(countQuery, params);
         
+        const total = countRows && countRows[0] ? countRows[0].total : 0;
+
         return res.json({
             success: true,
             data: rows,
-            total: countRows[0].total,
-            page: Number(page),
-            totalPages: Math.ceil(countRows[0].total / Number(limit))
+            total: total,
+            page: safePage,
+            totalPages: Math.ceil(total / safeLimit)
         });
     } catch (err) {
         console.error('Admin get player logs error:', err);

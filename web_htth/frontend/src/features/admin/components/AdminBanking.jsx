@@ -5,8 +5,9 @@ import api from '../../../api/api';
 const STATUS_MAP = {
   0: { text: 'Chờ duyệt', color: '#faad14', bg: 'rgba(250,173,20,0.15)', border: 'rgba(250,173,20,0.3)' },
   1: { text: 'Thành công', color: '#52c41a', bg: 'rgba(82,196,26,0.15)', border: 'rgba(82,196,26,0.3)' },
-  2: { text: 'Sai mệnh giá', color: '#1890ff', bg: 'rgba(24,144,255,0.15)', border: 'rgba(24,144,255,0.3)' },
+  2: { text: 'Đã duyệt (Sai m.giá)', color: '#1890ff', bg: 'rgba(24,144,255,0.15)', border: 'rgba(24,144,255,0.3)' },
   3: { text: 'Thất bại / Từ chối', color: '#f5222d', bg: 'rgba(245,34,45,0.15)', border: 'rgba(245,34,45,0.3)' },
+  4: { text: 'Đã hủy', color: '#8c8c8c', bg: 'rgba(140,140,140,0.15)', border: 'rgba(140,140,140,0.3)' },
 };
 
 export default function AdminBanking() {
@@ -77,7 +78,14 @@ export default function AdminBanking() {
   };
 
   const handleApprove = async (order) => {
-    if (!window.confirm(`Xác nhận DUYỆT đơn nạp ${Number(order.amount).toLocaleString()}đ cho tài khoản "${order.username}"?`)) {
+    const isWrongAmount = order.real_amount > 0 && order.real_amount !== order.amount;
+    const approveAmount = isWrongAmount ? order.real_amount : order.amount;
+
+    const confirmMsg = isWrongAmount
+      ? `⚠️ Đơn này chuyển SAI SỐ TIỀN:\n- Yêu cầu: ${Number(order.amount).toLocaleString()}đ\n- Thực nhận: ${Number(order.real_amount).toLocaleString()}đ\n\nXác nhận DUYỆT nạp đúng số tiền THỰC NHẬN là ${Number(approveAmount).toLocaleString()}đ cho tài khoản "${order.username}"?`
+      : `Xác nhận DUYỆT đơn nạp ${Number(approveAmount).toLocaleString()}đ cho tài khoản "${order.username}"?`;
+
+    if (!window.confirm(confirmMsg)) {
       return;
     }
 
@@ -85,7 +93,7 @@ export default function AdminBanking() {
       setProcessingId(order.id);
       const res = await api.post('admin/banking/approve', {
         code: order.code,
-        amount: order.amount
+        amount: approveAmount
       });
 
       if (res.data && res.data.success) {
@@ -281,8 +289,11 @@ export default function AdminBanking() {
               </thead>
               <tbody>
                 {filteredOrders.map((order) => {
-                  const statusInfo = STATUS_MAP[order.status] || STATUS_MAP[0];
                   const isPending = order.status === 0;
+                  const isWrongAmount = isPending && order.real_amount > 0 && order.real_amount !== order.amount;
+                  const statusInfo = isWrongAmount
+                    ? { text: '⚠️ Chờ duyệt (Sai tiền)', color: '#fa8c16', bg: 'rgba(250,140,22,0.15)', border: 'rgba(250,140,22,0.3)' }
+                    : (STATUS_MAP[order.status] || STATUS_MAP[0]);
                   const isProcessing = processingId === order.id;
 
                   return (
@@ -306,8 +317,11 @@ export default function AdminBanking() {
                       <td style={{ padding: '12px 8px', fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
                         {Number(order.amount).toLocaleString()}đ
                       </td>
-                      <td style={{ padding: '12px 8px', fontWeight: 'bold', textAlign: 'center', color: '#52c41a' }}>
+                      <td style={{ padding: '12px 8px', fontWeight: 'bold', textAlign: 'center', color: isWrongAmount ? '#fa8c16' : '#52c41a' }}>
                         {Number(order.real_amount || 0).toLocaleString()}đ
+                        {isWrongAmount && (
+                          <div style={{ fontSize: '10px', color: '#fa8c16', fontWeight: 'normal' }}>(Khác số tiền yêu cầu)</div>
+                        )}
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'center' }}>
                         <span style={{
@@ -321,6 +335,11 @@ export default function AdminBanking() {
                         }}>
                           {statusInfo.text}
                         </span>
+                        {order.description && (
+                          <div style={{ fontSize: '10px', color: '#888', marginTop: '3px', maxWidth: '180px', margin: '3px auto 0' }} title={order.description}>
+                            {order.description.length > 40 ? `${order.description.slice(0, 40)}...` : order.description}
+                          </div>
+                        )}
                       </td>
                       <td style={{ padding: '12px 8px', fontSize: '12px', color: '#888', textAlign: 'center' }}>
                         {new Date(order.created_at).toLocaleString('vi-VN', {
@@ -333,24 +352,28 @@ export default function AdminBanking() {
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'center' }}>
                         {isPending ? (
-                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
                             <button
                               onClick={() => handleApprove(order)}
                               disabled={isProcessing}
                               style={{
-                                background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
+                                background: isWrongAmount
+                                  ? 'linear-gradient(135deg, #fa8c16 0%, #d46b08 100%)'
+                                  : 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
                                 border: 'none',
                                 color: '#fff',
-                                padding: '6px 14px',
+                                padding: '6px 12px',
                                 fontSize: '12px',
                                 fontWeight: 'bold',
                                 borderRadius: '4px',
                                 cursor: isProcessing ? 'not-allowed' : 'pointer',
                                 opacity: isProcessing ? 0.6 : 1,
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                whiteSpace: 'nowrap'
                               }}
+                              title={isWrongAmount ? `Duyệt số tiền thực nhận: ${Number(order.real_amount).toLocaleString()}đ` : `Duyệt số tiền: ${Number(order.amount).toLocaleString()}đ`}
                             >
-                              {isProcessing ? '...' : '✅ Duyệt'}
+                              {isProcessing ? '...' : (isWrongAmount ? `✅ Duyệt (${Number(order.real_amount).toLocaleString()}đ)` : '✅ Duyệt')}
                             </button>
                             <button
                               onClick={() => handleReject(order)}
@@ -359,7 +382,7 @@ export default function AdminBanking() {
                                 background: 'transparent',
                                 border: '1px solid rgba(245,34,45,0.4)',
                                 color: '#f5222d',
-                                padding: '6px 14px',
+                                padding: '6px 12px',
                                 fontSize: '12px',
                                 fontWeight: 'bold',
                                 borderRadius: '4px',

@@ -26,26 +26,43 @@ const jwtRequired = (req, res, next) => {
 };
 
 const isAdmin = async (req, res, next) => {
-    const userId = req.jwt_user_id;
+    let userId = req.jwt_user_id;
     if (!userId) {
-        return res.json({ success: false, message: 'Không có quyền' });
+        // Fallback: extract token if jwtRequired was not placed before isAdmin in route
+        const authHeader = req.headers['authorization'];
+        if (authHeader) {
+            const parts = authHeader.split(' ');
+            if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+                try {
+                    const decoded = jwt.verify(parts[1], JWT_SECRET);
+                    userId = decoded.user_id;
+                    req.jwt_user_id = userId;
+                } catch (e) {}
+            }
+        }
+    }
+
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'Không có quyền truy cập (Thiếu xác thực)' });
     }
 
     try {
         const [rows] = await db.execute('SELECT * FROM accounts WHERE id = ?', [userId]);
         if (rows.length === 0) {
-            return res.json({ success: false, message: 'Không có quyền' });
+            return res.status(403).json({ success: false, message: 'Không có quyền truy cập (Tài khoản không tồn tại)' });
         }
 
         const user = rows[0];
-        if (user.user !== 'admin') {
-            return res.json({ success: false, message: 'Không có quyền' });
+        const isAuthorized = user.user === 'admin' || user.admin === 1 || user.admin === '1';
+        if (!isAuthorized) {
+            return res.status(403).json({ success: false, message: 'Không có quyền truy cập quản trị' });
         }
 
         req.adminUser = user;
         next();
     } catch (err) {
-        return res.json({ success: false, message: 'Không có quyền' });
+        console.error('isAdmin middleware error:', err);
+        return res.status(500).json({ success: false, message: 'Không có quyền truy cập (Lỗi hệ thống)' });
     }
 };
 

@@ -29,12 +29,16 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, txn = null) => {
+    if (status === 0 && txn && txn.real_amount > 0 && txn.real_amount !== txn.amount) {
+      return { text: '⚠️ Chờ duyệt (Sai tiền)', color: '#fa8c16', bg: 'rgba(250,140,22,0.1)' };
+    }
     switch (status) {
       case 0: return { text: 'Chờ duyệt', color: '#faad14', bg: 'rgba(250,173,20,0.1)' };
       case 1: return { text: 'Thành công', color: '#52c41a', bg: 'rgba(82,196,26,0.1)' };
-      case 2: return { text: 'Sai m.giá', color: '#1890ff', bg: 'rgba(24,144,255,0.1)' };
+      case 2: return { text: 'Đã duyệt (Sai m.giá)', color: '#1890ff', bg: 'rgba(24,144,255,0.1)' };
       case 3: return { text: 'Thất bại', color: '#f5222d', bg: 'rgba(245,34,45,0.1)' };
+      case 4: return { text: 'Đã hủy', color: '#8c8c8c', bg: 'rgba(140,140,140,0.1)' };
       default: return { text: 'Không rõ', color: '#888', bg: 'rgba(255,255,255,0.05)' };
     }
   };
@@ -156,7 +160,7 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {stats.recentTxns.map((txn, index) => {
-                    const statusObj = getStatusText(txn.status);
+                    const statusObj = getStatusText(txn.status, txn);
                     return (
                       <tr key={txn.id || index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#ccc' }}>
                         <td style={{ padding: '10px 5px', color: '#ffac30', fontWeight: 'bold' }}>{txn.username}</td>
@@ -208,8 +212,11 @@ export default function AdminDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
           <DashboardCard title="Tài Khoản" desc="Quản lý thành viên, khóa nick" icon="👤" link="/admin/accounts" />
           <DashboardCard title="Nạp Tiền" desc="Cộng trừ coin thủ công" icon="💰" link="/admin/coins" />
+          <DashboardCard title="Banking" desc="Duyệt đơn nạp thẻ & banking" icon="🏦" link="/admin/banking" />
+          <DashboardCard title="Vật Phẩm" desc="Quản lý cấu hình item, shop" icon="💎" link="/admin/items" />
           <DashboardCard title="Giftcode" desc="Quản lý & tạo mã quà tặng" icon="🎁" link="/admin/giftcodes" />
           <DashboardCard title="Tin Tức" desc="Quản lý bài viết, thông báo" icon="📰" link="/admin/news" />
+          <DashboardCard title="Lịch Sử Người Chơi" desc="Xem tiêu ruby, item, buff" icon="📜" link="/admin/logs" />
         </div>
       </div>
     </div>

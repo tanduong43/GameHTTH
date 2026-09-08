@@ -192,14 +192,31 @@ function TopupPage() {
       }
     };
 
+    const handleDepositWrongAmount = (data) => {
+      console.log('TopupPage received local deposit_wrong_amount:', data);
+      showMessage('info', data.message || `⚠️ Hệ thống nhận được ${Number(data.real_amount).toLocaleString()}đ (khác số tiền yêu cầu). Đơn nạp đang chờ Admin duyệt.`);
+      api.get('banking/active').then((res) => {
+        if (res.data && res.data.success) {
+          setActiveDeposit(res.data.activeDeposit);
+        }
+      });
+      api.get('banking/history').then((res) => {
+        if (res.data && res.data.success) {
+          setHistory(res.data.history);
+        }
+      });
+    };
+
     socket.on('deposit_success', handleDepositSuccess);
     socket.on('deposit_rejected', handleDepositRejected);
     socket.on('deposit_multiplier_changed', handleMultiplierChange);
+    socket.on('deposit_wrong_amount', handleDepositWrongAmount);
 
     return () => {
       socket.off('deposit_success', handleDepositSuccess);
       socket.off('deposit_rejected', handleDepositRejected);
       socket.off('deposit_multiplier_changed', handleMultiplierChange);
+      socket.off('deposit_wrong_amount', handleDepositWrongAmount);
     };
   }, [socket, fetchUser]);
 
@@ -381,7 +398,7 @@ function TopupPage() {
     switch (status) {
       case 0: return <span className="badge badge-pending">Chờ thanh toán</span>;
       case 1: return <span className="badge badge-success">Thành công</span>;
-      case 2: return <span className="badge badge-warning">Sai số tiền</span>;
+      case 2: return <span className="badge badge-warning">Đã duyệt (Sai tiền)</span>;
       case 3: return <span className="badge badge-failed">Thất bại</span>;
       case 4: return <span className="badge badge-cancelled">Đã hủy</span>;
       default: return <span className="badge badge-unknown">Không rõ</span>;
