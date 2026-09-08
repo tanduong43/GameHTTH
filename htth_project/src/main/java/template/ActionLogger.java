@@ -21,7 +21,28 @@ public class ActionLogger {
         insertLogDatabase(playerName, "buff", detail);
     }
 
-    private static void insertLogDatabase(String playerName, String type, String actionDetail) {
+    public static void logMarket(String playerName, String actionDetail) {
+        insertLogDatabase(playerName, "market", actionDetail);
+    }
+
+    public static void logTrade(String playerName, String actionDetail) {
+        insertLogDatabase(playerName, "trade", actionDetail);
+    }
+
+    public static void logItemDropPick(String playerName, String actionDetail) {
+        insertLogDatabase(playerName, "drop_pick", actionDetail);
+    }
+
+    public static void logShop(String playerName, String actionDetail) {
+        insertLogDatabase(playerName, "shop", actionDetail);
+    }
+
+    public static void logCoin(String playerName, String action, int amount, int currentCoin) {
+        String detail = String.format("%s | Lượng: %d | Coin còn lại: %d", action, amount, currentCoin);
+        insertLogDatabase(playerName, "coin", detail);
+    }
+
+    public static void insertLogDatabase(String playerName, String type, String actionDetail) {
         new Thread(() -> {
             Connection conn = null;
             PreparedStatement ps = null;

@@ -1,5 +1,7 @@
 package map;
 
+import template.ActionLogger;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6209,6 +6211,7 @@ public class Map implements Runnable {
                                         return;
                                     }
                                     p.item.update_Inventory(-1, false);
+                                    ActionLogger.logItemDropPick(p.name, "Nhặt trang bị: " + temp3.name);
                                 }
                             }
                             list_it_map[i] = null;
@@ -6235,6 +6238,7 @@ public class Map implements Runnable {
                                 }
                                 p.item.update_Inventory(-1, false);
                                 p.update_num_item_quest(2, list_it_map[i].id, list_it_map[i].quant);
+                                ActionLogger.logItemDropPick(p.name, "Nhặt vật phẩm nhiệm vụ ID: " + list_it_map[i].id + " SL: " + list_it_map[i].quant);
                                 list_it_map[i] = null;
                                 code_response = 0;
                             } else {
@@ -6334,6 +6338,7 @@ public class Map implements Runnable {
                                             }
                                             p.update_vang(list_it_map[i].quant);
                                             p.update_money();
+                                            ActionLogger.logItemDropPick(p.name, "Nhặt " + list_it_map[i].quant + " beri");
                                         } else if (list_it_map[i].id == 1) { // ruby
                                             if (p.rms.length > 2 && p.rms[2].length > 3
                                                     && p.rms[2][3] == 1) {
@@ -6341,6 +6346,7 @@ public class Map implements Runnable {
                                             }
                                             // p.update_ngoc(list_it_map[i].quant);
                                             // p.update_money();
+                                            ActionLogger.logItemDropPick(p.name, "Nhặt " + list_it_map[i].quant + " ruby");
                                         } else {
                                             if (p.rms.length > 2 && p.rms[2].length > 3) {
                                                 ItemTemplate4 itemTemplate4 = ItemTemplate4
@@ -6361,6 +6367,7 @@ public class Map implements Runnable {
                                                 return;
                                             }
                                             p.item.update_Inventory(-1, false);
+                                            ActionLogger.logItemDropPick(p.name, "Nhặt " + list_it_map[i].quant + " " + ItemTemplate4.get_item_name(list_it_map[i].id));
                                         }
                                         list_it_map[i] = null;
                                         code_response = 0;
@@ -6388,6 +6395,7 @@ public class Map implements Runnable {
                                 return;
                             }
                             p.item.update_Inventory(-1, false);
+                            ActionLogger.logItemDropPick(p.name, "Nhặt " + list_it_map[i].quant + " " + ItemTemplate7.get_item_name(list_it_map[i].id));
                             list_it_map[i] = null;
                             code_response = 0;
                         } else {

@@ -1,5 +1,7 @@
 package activities;
 
+import template.ActionLogger;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import client.Item;
@@ -522,6 +524,10 @@ public class Trade {
                         //
                         p.item.update_Inventory(-1, false);
                         p.trade_target.item.update_Inventory(-1, false);
+                        String logP = "Giao dịch thành công với " + p.trade_target.name + " | Đưa: " + core.Util.number_format(p.money_trade) + " beri, " + p.list_item_trade3.size() + " trang bị, " + p.list_item_trade47.size() + " VP | Nhận: " + core.Util.number_format(p.trade_target.money_trade) + " beri, " + p.trade_target.list_item_trade3.size() + " trang bị, " + p.trade_target.list_item_trade47.size() + " VP";
+                        String logTarget = "Giao dịch thành công với " + p.name + " | Đưa: " + core.Util.number_format(p.trade_target.money_trade) + " beri, " + p.trade_target.list_item_trade3.size() + " trang bị, " + p.trade_target.list_item_trade47.size() + " VP | Nhận: " + core.Util.number_format(p.money_trade) + " beri, " + p.list_item_trade3.size() + " trang bị, " + p.list_item_trade47.size() + " VP";
+                        ActionLogger.logTrade(p.name, logP);
+                        ActionLogger.logTrade(p.trade_target.name, logTarget);
                         end_trade_by_disconnect(p.trade_target, p, 1, "");
                         end_trade_by_disconnect(p, p.trade_target, 1, "");
                     } else {

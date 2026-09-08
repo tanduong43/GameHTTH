@@ -34,6 +34,7 @@ import map.MapCanGoTo;
 import map.Npc;
 import map.Vgo;
 import map.VillageProgression;
+import template.ActionLogger;
 import template.DataTemplate;
 import template.EffTemplate;
 import template.FriendTemp;
@@ -2207,6 +2208,9 @@ public class Player {
             if (par < 0) {
                 this.tichtieu_ruby += (int) (-par);
                 this.tieu_ruby += (int) (-par);
+                ActionLogger.logRuby(this.name, "Tiêu Ruby", (int) (-par), (int) this.kimcuong);
+            } else if (par > 0) {
+                ActionLogger.logRuby(this.name, "Nhận Ruby", (int) par, (int) this.kimcuong);
             }
         }
     }
@@ -2237,8 +2241,11 @@ public class Player {
 
             if (coin_exchange < 0) {
                 this.update_tichluy(-coin_exchange);
+                ActionLogger.logCoin(this.name, "Tiêu Coin", (-coin_exchange), conn.coin);
                 System.out.println("[COIN EXCHANGE] Người chơi " + this.name + " đã tiêu " + (-coin_exchange)
                         + " Coin. Tích luỹ: " + this.tichLuy);
+            } else if (coin_exchange > 0) {
+                ActionLogger.logCoin(this.name, "Nhận Coin", coin_exchange, conn.coin);
             }
         } catch (SQLException e) {
             Service.send_box_ThongBao_OK(this, "Đã xảy ra lỗi");

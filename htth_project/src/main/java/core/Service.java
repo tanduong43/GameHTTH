@@ -1,5 +1,7 @@
 package core;
 
+import template.ActionLogger;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -884,6 +886,7 @@ public class Service {
             if (check) {
                 Service.send_box_ThongBao_OK(p,
                         "Mua thành công " + ItemTemplate3.get_it_by_id(id).name);
+                ActionLogger.logShop(p.name, "Mua thành công trang bị " + ItemTemplate3.get_it_by_id(id).name);
             } else {
                 Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
@@ -931,6 +934,7 @@ public class Service {
                         m22.writer().writeUTF("Mua " + value);
                         p.conn.addmsg(m22);
                         m22.cleanup();
+                        ActionLogger.logShop(p.name, "Mua " + value + " " + ItemTemplate4.get_item_name(id));
                         //
                         p.item.update_Inventory(-1, false);
                     }
@@ -973,6 +977,7 @@ public class Service {
                     m22.writer().writeUTF("Mua " + value);
                     p.conn.addmsg(m22);
                     m22.cleanup();
+                    ActionLogger.logShop(p.name, "Mua " + value + " " + ItemTemplate7.get_item_name(id));
                     //
                     p.item.update_Inventory(-1, false);
                 } else {
@@ -1004,6 +1009,7 @@ public class Service {
                 }
                 ItemFashionP.show_table(p, 103);
                 Service.send_box_ThongBao_OK(p, "Mua thành công " + ith.name);
+                ActionLogger.logShop(p.name, "Mua thành công " + ith.name);
             } else {
                 Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
@@ -1032,6 +1038,7 @@ public class Service {
                 }
                 ItemFashionP.show_table(p, 108);
                 Service.send_box_ThongBao_OK(p, "Mua thành công " + ith.name);
+                ActionLogger.logShop(p.name, "Mua thành công " + ith.name);
             } else {
                 Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
@@ -1086,6 +1093,7 @@ public class Service {
                 Service.UpdateInfoMaincharInfo(p);
                 ItemFashionP.show_table(p, 105);
                 Service.send_box_ThongBao_OK(p, "Mua thành công " + itf.name);
+                ActionLogger.logShop(p.name, "Mua thành công " + itf.name);
             } else {
                 Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
@@ -1206,6 +1214,7 @@ public class Service {
                             m22.writer().writeUTF("Mua " + value);
                             p.conn.addmsg(m22);
                             m22.cleanup();
+                            ActionLogger.logShop(p.name, "Mua SL: " + value + " vật phẩm tái tạo ID: " + id);
                         } else {
                             Service.send_box_ThongBao_OK(p, "Không thể mua với số lượng này");
                             p.update_ngoc(vang_req);
@@ -1239,6 +1248,7 @@ public class Service {
                 ItemBoat.update_part_boat_when_shopping(p);
                 ItemFashionP.show_table(p, 102);
                 Service.send_box_ThongBao_OK(p, "Mua thành công " + itb.name);
+                ActionLogger.logShop(p.name, "Mua thành công " + itb.name);
             } else {
                 Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
@@ -1443,6 +1453,7 @@ public class Service {
                     p.item.update_Inventory(-1, false);
                     p.update_money();
                     Service.send_box_ThongBao_OK(p, "Đổi thành công");
+                    ActionLogger.logShop(p.name, "Đổi điểm tích lũy thành công ID: " + id);
                     //
                     if (!temp_shop.limit_data.containsKey(p.name)) {
                         temp_shop.limit_data.put(p.name, 1);
@@ -1469,6 +1480,7 @@ public class Service {
                         Service.Send_UI_Shop(p, 119);
                         Service.send_box_ThongBao_OK(p,
                                 "Lấy " + it_select.template.name + " về thành công, phí 5 ruby");
+                        ActionLogger.logShop(p.name, "Lấy " + it_select.template.name + " về, phí 5 ruby");
                     } else {
                         p.item.remove_item_wear(it_select);
                     }

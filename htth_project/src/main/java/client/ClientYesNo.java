@@ -1,5 +1,7 @@
 package client;
 
+import template.ActionLogger;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -2443,6 +2445,7 @@ public class ClientYesNo {
                                                         + Util.number_format(
                                                                 it_receive.price_market)
                                                         + " extol");
+                                        ActionLogger.logMarket(p.name, "Mua thành công " + it_receive.quant + " triệu beri | Giá: " + Util.number_format(it_receive.price_market) + " Extol");
                                     } else {
                                         p.item.add_item_bag47(it_receive.category, it_receive.id,
                                                 it_receive.quant);
@@ -2453,6 +2456,7 @@ public class ClientYesNo {
                                                         + Util.number_format(
                                                                 it_receive.price_market)
                                                         + " extol");
+                                        ActionLogger.logMarket(p.name, "Mua thành công " + it_receive.quant + " " + ItemTemplate4.get_item_name(it_receive.id) + " | Giá: " + Util.number_format(it_receive.price_market) + " Extol");
                                     }
                                 } else {
                                     p.item.add_item_bag47(it_receive.category, it_receive.id,
@@ -2463,6 +2467,7 @@ public class ClientYesNo {
                                                     + " với giá "
                                                     + Util.number_format(it_receive.price_market)
                                                     + " extol");
+                                    ActionLogger.logMarket(p.name, "Mua thành công " + it_receive.quant + " " + ItemTemplate7.get_item_name(it_receive.id) + " | Giá: " + Util.number_format(it_receive.price_market) + " Extol");
                                 }
                                 p.item.update_Inventory(-1, false);
                                 Market.update_at_market_index(p, market.type);
@@ -2513,6 +2518,7 @@ public class ClientYesNo {
                                         "Mua thành công " + it_receive.template.name + " với giá "
                                                 + Util.number_format(it_receive.price_market)
                                                 + " extol");
+                                ActionLogger.logMarket(p.name, "Mua thành công trang bị " + it_receive.template.name + " | Giá: " + Util.number_format(it_receive.price_market) + " Extol");
                                 Market.update_at_market_index(p, market.type);
                                 Market.update_at_market_index(p, 3);
                             } else {
@@ -2544,17 +2550,20 @@ public class ClientYesNo {
                                 if (it_receive.id == 0) {
                                     Service.send_box_ThongBao_OK(p, "Hủy bán " + it_receive.quant
                                             + " triệu beri thành công");
+                                    ActionLogger.logMarket(p.name, "Hủy bán " + it_receive.quant + " triệu beri");
                                 } else {
                                     Service.send_box_ThongBao_OK(p,
                                             "Hủy bán " + it_receive.quant + " "
                                                     + ItemTemplate4.get_item_name(it_receive.id)
                                                     + " thành công");
+                                    ActionLogger.logMarket(p.name, "Hủy bán " + it_receive.quant + " " + ItemTemplate4.get_item_name(it_receive.id));
                                 }
                             } else {
                                 Service.send_box_ThongBao_OK(p,
                                         "Hủy bán " + it_receive.quant + " "
                                                 + ItemTemplate7.get_item_name(it_receive.id)
                                                 + " thành công");
+                                ActionLogger.logMarket(p.name, "Hủy bán " + it_receive.quant + " " + ItemTemplate7.get_item_name(it_receive.id));
                             }
                         }
                     }
@@ -2587,6 +2596,7 @@ public class ClientYesNo {
                             it_receive.type_market = 1;
                             Service.send_box_ThongBao_OK(p, "Gia hạn thêm 24h cho "
                                     + it_receive.template.name + " thành công");
+                            ActionLogger.logMarket(p.name, "Gia hạn bán " + it_receive.template.name);
                             Market.update_at_market_index(p, market.type);
                             Market.update_at_market_index(p, 3);
                         }
@@ -2667,6 +2677,7 @@ public class ClientYesNo {
                                                     + " đã được đăng bán với giá "
                                                     + Util.number_format(p.data_yesno[3])
                                                     + " thành công lên chợ");
+                                    ActionLogger.logMarket(p.name, "Đăng bán " + p.data_yesno[2] + " " + ItemTemplate4.get_item_name(p.data_yesno[1]) + " | Giá: " + Util.number_format(p.data_yesno[3]) + " Extol");
                                 } else if (p.data_yesno[0] == 7) {
                                     Service.send_box_ThongBao_OK(p,
                                             p.data_yesno[2] + " "
@@ -2674,6 +2685,7 @@ public class ClientYesNo {
                                                     + " đã được đăng bán với giá "
                                                     + Util.number_format(p.data_yesno[3])
                                                     + " thành công lên chợ");
+                                    ActionLogger.logMarket(p.name, "Đăng bán " + p.data_yesno[2] + " " + ItemTemplate7.get_item_name(p.data_yesno[1]) + " | Giá: " + Util.number_format(p.data_yesno[3]) + " Extol");
                                 }
                             } else {
                                 Service.send_box_ThongBao_OK(p,
@@ -2708,11 +2720,13 @@ public class ClientYesNo {
                                             "Nhận " + price_receive + " extol (phí 10%) tiền bán "
                                                     + it_receive.quant + " "
                                                     + ItemTemplate4.get_item_name(it_receive.id));
+                                    ActionLogger.logMarket(p.name, "Nhận " + price_receive + " extol tiền bán " + it_receive.quant + " " + ItemTemplate4.get_item_name(it_receive.id));
                                 } else if (it_receive.category == 7) {
                                     Service.send_box_ThongBao_OK(p,
                                             "Nhận " + price_receive + " extol (phí 10%) tiền bán "
                                                     + it_receive.quant + " "
                                                     + ItemTemplate7.get_item_name(it_receive.id));
+                                    ActionLogger.logMarket(p.name, "Nhận " + price_receive + " extol tiền bán " + it_receive.quant + " " + ItemTemplate7.get_item_name(it_receive.id));
                                 }
                                 market.item47.remove(it_receive);
                             } else {
@@ -2723,6 +2737,7 @@ public class ClientYesNo {
                                         p.update_money();
                                         Service.send_box_ThongBao_OK(p, "Nhận " + it_receive.quant
                                                 + " " + " triệu beri về hành trang");
+                                        ActionLogger.logMarket(p.name, "Nhận lại " + it_receive.quant + " triệu beri");
                                     } else {
                                         if (p.item.add_item_bag47(4, it_receive.id,
                                                 it_receive.quant)) {
@@ -2732,6 +2747,7 @@ public class ClientYesNo {
                                                             + ItemTemplate4
                                                                     .get_item_name(it_receive.id)
                                                             + " về hành trang");
+                                            ActionLogger.logMarket(p.name, "Nhận lại " + it_receive.quant + " " + ItemTemplate4.get_item_name(it_receive.id));
                                         } else {
                                             Service.send_box_ThongBao_OK(p,
                                                     "Hành trang không đủ chỗ trống");
@@ -2747,6 +2763,7 @@ public class ClientYesNo {
                                                 "Nhận " + it_receive.quant + " "
                                                         + ItemTemplate7.get_item_name(it_receive.id)
                                                         + " về hành trang");
+                                        ActionLogger.logMarket(p.name, "Nhận lại " + it_receive.quant + " " + ItemTemplate7.get_item_name(it_receive.id));
                                     } else {
                                         Service.send_box_ThongBao_OK(p,
                                                 "Hành trang không đủ chỗ trống");
@@ -2783,6 +2800,7 @@ public class ClientYesNo {
                             Market.update_at_market_index(p, 3);
                             Service.send_box_ThongBao_OK(p,
                                     "Hủy bán " + it_receive.template.name + " thành công");
+                            ActionLogger.logMarket(p.name, "Hủy bán " + it_receive.template.name);
                         }
                     }
                     break;
@@ -2808,6 +2826,7 @@ public class ClientYesNo {
                                 p.update_money();
                                 Service.send_box_ThongBao_OK(p, "Nhận " + price_receive
                                         + " extol (phí 10%) tiền bán " + it_receive.template.name);
+                                ActionLogger.logMarket(p.name, "Nhận " + price_receive + " extol tiền bán " + it_receive.template.name);
                             } else {
                                 Item_wear it_add = new Item_wear();
                                 it_add.clone_obj(it_receive);
@@ -2817,6 +2836,7 @@ public class ClientYesNo {
                                 }
                                 Service.send_box_ThongBao_OK(p,
                                         "Nhận " + it_receive.template.name + " về hành trang");
+                                ActionLogger.logMarket(p.name, "Nhận lại " + it_receive.template.name);
                             }
                             Market.update_at_market_index(p, 3);
                         }
@@ -2869,6 +2889,7 @@ public class ClientYesNo {
                                         p.data_yesno[0] + " triệu beri đã được đăng bán với giá "
                                                 + Util.number_format(p.data_yesno[1])
                                                 + " thành công lên chợ");
+                                ActionLogger.logMarket(p.name, "Đăng bán " + p.data_yesno[0] + " triệu beri | Giá: " + Util.number_format(p.data_yesno[1]) + " Extol");
                             } else {
                                 Service.send_box_ThongBao_OK(p,
                                         "Chợ mua bán có quá nhiều vật phẩm, không thể đăng thêm");
@@ -2918,6 +2939,7 @@ public class ClientYesNo {
                                             it_select.template.name + " đã được đăng bán với giá "
                                                     + Util.number_format(p.data_yesno[1])
                                                     + " thành công lên chợ");
+                                    ActionLogger.logMarket(p.name, "Đăng bán " + it_select.template.name + " | Giá: " + Util.number_format(p.data_yesno[1]) + " Extol");
                                 } else {
                                     Service.send_box_ThongBao_OK(p,
                                             "Chợ mua bán có quá nhiều vật phẩm, không thể đăng thêm");
