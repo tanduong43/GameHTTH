@@ -5488,8 +5488,10 @@ public class Map implements Runnable {
                 } else if (cmd.equals("boss") || cmd.equals("bosstg") || cmd.equals("boss_thegioi")) {
                     int n = map.Boss.force_spawn_all_thegioi1();
                     Service.send_box_ThongBao_OK(p, "Đã gọi " + n + " boss thế giới (thegioi=1) xuất hiện!");
+                } else if (cmd.equals("goilan here") || cmd.equals("goi lan here") || cmd.equals("call lan here") || cmd.equals("goilanhere")) {
+                    event.EventTrungThu.getInstance().forceSpawnBossLan(p, true);
                 } else if (cmd.equals("goilan") || cmd.equals("goi lan") || cmd.equals("call lan")) {
-                    event.EventTrungThu.getInstance().forceSpawnBossLan(p);
+                    event.EventTrungThu.getInstance().forceSpawnBossLan(p, false);
                 } else if (cmd.equals("event tt on") || cmd.equals("event tt 1") || cmd.equals("event tt true")) {
                     event.EventTrungThu.setEvent(true);
                     Service.send_box_ThongBao_OK(p, "Đã bật sự kiện Trung Thu!");

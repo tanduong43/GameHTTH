@@ -818,7 +818,8 @@ public class Boss {
             List<Boss> worldBosses = new ArrayList<>();
             for (int i = 0; i < Boss.ENTRYS.size(); i++) {
                 Boss b = Boss.ENTRYS.get(i);
-                if (b != null && b.thegioi == 1 && b.mob != null && b.mob.isdie) {
+                if (b != null && b.thegioi == 1 && b.mob != null && b.mob.isdie 
+                        && b.mob.mob_template != null && isWorldBoss(b.mob.mob_template.mob_id)) {
                     worldBosses.add(b);
                 }
             }

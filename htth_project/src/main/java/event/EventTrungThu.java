@@ -60,10 +60,10 @@ public class EventTrungThu implements Runnable {
     // Boss ID
     public static final int MOB_BOSS_LAN = 153;
 
-    // Thời gian spawn boss (giờ trong ngày)
-    private static final int[] BOSS_SPAWN_HOURS = { 12, 18, 20, 22 };
-    private static final long BOSS_LIFETIME_MS = 30 * 60 * 1000L; // 30 phút
-    private static final long BOSS_ANNOUNCE_BEFORE_MS = 5 * 60 * 1000L; // 5 phút trước
+    // Thời gian sống của Boss (30 phút nếu không ai đánh chết thì tự bỏ đi)
+    private static final long BOSS_LIFETIME_MS = 30 * 60 * 1000L;
+    // Thời gian chờ hồi sinh sau khi Boss chết hoặc biến mất (15 phút)
+    public static final long BOSS_RESPAWN_DELAY_MS = 15 * 60 * 1000L;
 
     // ================== TRẠNG THÁI RUNTIME ==================
     private static EventTrungThu instance;
@@ -113,6 +113,9 @@ public class EventTrungThu implements Runnable {
             getInstance().scheduleNextBossSpawn();
             broadcastMessage("Sự kiện Trung Thu: Đêm Rằm Hải Tặc đã được kích hoạt!");
         } else {
+            if (getInstance().bossAlive) {
+                getInstance().despawnBoss("Sự kiện Trung Thu đã kết thúc, Boss Lân Sư Tử đã bỏ đi!");
+            }
             broadcastMessage("Sự kiện Trung Thu đã kết thúc!");
         }
     }
@@ -141,131 +144,179 @@ public class EventTrungThu implements Runnable {
         }
     }
 
-    private boolean isWithinBossActiveTime(long now) {
+    /**
+     * Kiểm tra thời điểm có nằm trong khung giờ xuất hiện Boss Lân hay không:
+     * - Sáng: 07:00 đến 11:00 (7h00 - 10h59)
+     * - Tối: 17:00 đến 22:00 (17h00 - 21h59)
+     */
+    public static boolean isWithinEventWindow(long timeMs) {
         java.util.Calendar cal = java.util.Calendar.getInstance();
-        cal.setTimeInMillis(now);
+        cal.setTimeInMillis(timeMs);
         int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
-        if (hour >= 11 && hour < 13)
+        if (hour >= 7 && hour < 11) {
             return true;
-        if (hour >= 20 && hour < 21)
+        }
+        if (hour >= 17 && hour < 22) {
             return true;
+        }
         return false;
     }
 
-    private void scheduleNextBossSpawn() {
+    /**
+     * Tính thời điểm bắt đầu khung giờ tiếp theo nếu thời điểm hiện tại nằm ngoài khung giờ.
+     */
+    public static long getNextWindowStartTime(long fromTimeMs) {
         java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTimeInMillis(fromTimeMs);
         int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
-        int minute = cal.get(java.util.Calendar.MINUTE);
 
-        // Tìm giờ spawn tiếp theo
-        int nextHour = -1;
-        for (int spawnHour : BOSS_SPAWN_HOURS) {
-            if (hour < spawnHour || (hour == spawnHour && minute < 30)) {
-                nextHour = spawnHour;
-                break;
-            }
-        }
-
-        if (nextHour == -1) {
-            // Ngày mai
+        if (hour < 7) {
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 7);
+            cal.set(java.util.Calendar.MINUTE, 0);
+            cal.set(java.util.Calendar.SECOND, 0);
+            cal.set(java.util.Calendar.MILLISECOND, 0);
+            return cal.getTimeInMillis();
+        } else if (hour >= 11 && hour < 17) {
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 17);
+            cal.set(java.util.Calendar.MINUTE, 0);
+            cal.set(java.util.Calendar.SECOND, 0);
+            cal.set(java.util.Calendar.MILLISECOND, 0);
+            return cal.getTimeInMillis();
+        } else if (hour >= 22) {
             cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
-            cal.set(java.util.Calendar.HOUR_OF_DAY, BOSS_SPAWN_HOURS[0]);
-            cal.set(java.util.Calendar.MINUTE, 30);
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 7);
+            cal.set(java.util.Calendar.MINUTE, 0);
             cal.set(java.util.Calendar.SECOND, 0);
-        } else {
-            // Hôm nay
-            cal.set(java.util.Calendar.HOUR_OF_DAY, nextHour);
-            cal.set(java.util.Calendar.MINUTE, 30);
-            cal.set(java.util.Calendar.SECOND, 0);
+            cal.set(java.util.Calendar.MILLISECOND, 0);
+            return cal.getTimeInMillis();
         }
+        return fromTimeMs;
+    }
 
-        nextBossSpawnTime = cal.getTimeInMillis();
+    public void scheduleNextBossSpawn() {
+        long now = System.currentTimeMillis();
+        if (isWithinEventWindow(now)) {
+            nextBossSpawnTime = now;
+        } else {
+            nextBossSpawnTime = getNextWindowStartTime(now);
+        }
+        long diffMinutes = Math.max(0, (nextBossSpawnTime - now) / (60 * 1000));
+        System.out.println("[EventTrungThu] Lên lịch Boss Lân tiếp theo: "
+                + new java.util.Date(nextBossSpawnTime) + " (sau " + diffMinutes + " phút)");
     }
 
     private synchronized void update() {
         long now = System.currentTimeMillis();
-        boolean inWindow = isWithinBossActiveTime(now);
 
-        if (inWindow) {
-            if (!bossAlive && now >= nextBossSpawnTime) {
-                // Tạm thời comment gọi boss tự động để test lệnh gọi Lân
-                // spawnBossLan();
+        if (isWithinEventWindow(now)) {
+            // Trong khung giờ hoạt động: nếu boss chưa sống và đã đến giờ thì xuất hiện
+            if (!bossAlive && (nextBossSpawnTime <= 0 || now >= nextBossSpawnTime)) {
+                spawnBossLan(null);
+            }
+        } else {
+            // Ngoài khung giờ: nếu boss vẫn còn thì despawn
+            if (bossAlive && activeBossLan != null) {
+                despawnBoss("⏰ Hết khung giờ hoạt động, Boss Lân Sư Tử đã bỏ đi!");
             }
         }
 
+        // Tự động despawn sau 30 phút tồn tại
         if (bossAlive && activeBossLan != null && now >= bossSpawnTime + BOSS_LIFETIME_MS) {
-            despawnBoss("Boss Lân Sư Tử đã bỏ đi!");
+            despawnBoss("⏰ Hết 30 phút khiêu chiến, Boss Lân Sư Tử đã bỏ đi!");
         }
     }
 
-    private static Boss persistentBossLan = null;
-
-    private void spawnBossLan() {
-        if (bossAlive)
+    public synchronized void spawnBossLan(Player summoner) {
+        if (bossAlive && activeBossLan != null) {
             return;
+        }
 
-        List<Map> allowedMaps = new ArrayList<>();
-        for (int mapId : Boss.ALLOWED_MAP_IDS) {
-            Map[] maps = Map.get_map_by_id(mapId);
-            if (maps != null) {
-                for (Map m : maps) {
-                    if (m != null) {
-                        allowedMaps.add(m);
+        Map targetMap = null;
+        short spawnX = 0;
+        short spawnY = 200;
+
+        if (summoner != null && summoner.map != null) {
+            targetMap = summoner.map;
+            spawnX = (short) (summoner.x + 30);
+            spawnY = summoner.y;
+        } else {
+            List<Map> allowedMaps = new ArrayList<>();
+            for (int mapId : Boss.ALLOWED_MAP_IDS) {
+                Map[] maps = Map.get_map_by_id(mapId);
+                if (maps != null) {
+                    for (Map m : maps) {
+                        if (m != null) {
+                            allowedMaps.add(m);
+                        }
                     }
                 }
             }
+
+            if (allowedMaps.isEmpty()) {
+                nextBossSpawnTime = System.currentTimeMillis() + 60_000L;
+                return;
+            }
+
+            targetMap = allowedMaps.get(Util.random(allowedMaps.size()));
+            spawnX = (short) (targetMap.template.maxW / 2);
+            spawnY = 200;
         }
 
-        if (allowedMaps.isEmpty()) {
+        template.MobTemplate mobTemplate = null;
+        if (template.MobTemplate.ENTRYS != null) {
+            for (template.MobTemplate mt : template.MobTemplate.ENTRYS) {
+                if (mt != null && mt.mob_id == MOB_BOSS_LAN) {
+                    mobTemplate = mt;
+                    break;
+                }
+            }
+        }
+        if (mobTemplate == null && template.MobTemplate.ENTRYS != null && MOB_BOSS_LAN < template.MobTemplate.ENTRYS.size()) {
+            mobTemplate = template.MobTemplate.ENTRYS.get(MOB_BOSS_LAN);
+        }
+
+        if (mobTemplate == null) {
+            System.out.println("Lỗi: Không tìm thấy MobTemplate 153 cho Boss Lân");
             nextBossSpawnTime = System.currentTimeMillis() + 60_000L;
             return;
         }
 
-        Map targetMap = allowedMaps.get(Util.random(allowedMaps.size()));
+        Boss boss = new Boss();
+        boss.id = 9999;
+        boss.thegioi = 1;
+        boss.mob = new Mob();
+        boss.mob.mob_template = mobTemplate;
+        boss.mob.hp_max = mobTemplate.hp_max;
+        boss.hp_max_origin = mobTemplate.hp_max;
+        boss.mob.boss_info = boss;
+        boss.TopDame = new ArrayList<>();
+        boss.skill = new short[] { 1 };
+        boss.buff = new ArrayList<>();
+        boss.time_atk = new long[] { 0, 0, 0, 0, 0 };
+        boss.levelBoss = 1;
+        boss.updateHpForLevel();
 
-        if (persistentBossLan == null) {
-            persistentBossLan = new Boss();
-            persistentBossLan.id = 9999;
-            persistentBossLan.thegioi = 1;
-            persistentBossLan.mob = new Mob();
-            persistentBossLan.mob.mob_template = template.MobTemplate.ENTRYS.get(MOB_BOSS_LAN);
-            if (persistentBossLan.mob.mob_template == null) {
-                System.out.println("Lỗi: Không tìm thấy MobTemplate 153 cho Boss Lân");
-                nextBossSpawnTime = System.currentTimeMillis() + 60_000L;
-                return;
-            }
-            persistentBossLan.mob.hp_max = persistentBossLan.mob.mob_template.hp_max;
-            persistentBossLan.hp_max_origin = persistentBossLan.mob.mob_template.hp_max;
-            persistentBossLan.mob.boss_info = persistentBossLan;
-            persistentBossLan.TopDame = new ArrayList<>();
-            persistentBossLan.skill = new short[] { 1 };
-            persistentBossLan.buff = new ArrayList<>();
-            persistentBossLan.time_atk = new long[] { 0, 0, 0, 0, 0 };
-            int currentIndex = core.Manager.gI().getIndexMob();
-            persistentBossLan.mob.index = currentIndex;
-            persistentBossLan.index_mob_save = currentIndex;
-            core.Manager.gI().setIndexMob(currentIndex + 10);
-            for (int j = 0; j < 10; j++) {
-                Mob.ENTRYS.put((persistentBossLan.mob.index + j), persistentBossLan.mob);
-            }
-            // Thêm vào Boss.ENTRYS để người chơi có thể thấy boss khi vào map
-            if (Boss.ENTRYS != null && !Boss.ENTRYS.contains(persistentBossLan)) {
-                Boss.ENTRYS.add(persistentBossLan);
-            }
+        int currentIndex = core.Manager.gI().getIndexMob();
+        boss.mob.index = currentIndex;
+        boss.index_mob_save = currentIndex;
+        core.Manager.gI().setIndexMob(currentIndex + 10);
+        for (int j = 0; j < 10; j++) {
+            Mob.ENTRYS.put((boss.mob.index + j), boss.mob);
         }
 
-        persistentBossLan.mob.map = targetMap;
-        persistentBossLan.mapOrigin = targetMap;
-        persistentBossLan.mob.x = (short) (targetMap.template.maxW / 2);
-        persistentBossLan.mob.y = 200;
-        persistentBossLan.mob.isdie = false;
-        persistentBossLan.mob.hp = persistentBossLan.mob.hp_max;
-        persistentBossLan.mob.id_target = -1;
-        persistentBossLan.levelBoss = 1;
-        persistentBossLan.updateHpForLevel();
-        persistentBossLan.TopDame.clear();
+        boss.mob.map = targetMap;
+        boss.mapOrigin = targetMap;
+        boss.mob.x = spawnX;
+        boss.mob.y = spawnY;
+        boss.mob.isdie = false;
+        boss.mob.hp = boss.mob.hp_max;
+        boss.mob.id_target = -1;
 
-        activeBossLan = persistentBossLan;
+        if (Boss.ENTRYS != null && !Boss.ENTRYS.contains(boss)) {
+            Boss.ENTRYS.add(boss);
+        }
+
+        activeBossLan = boss;
         bossAlive = true;
         bossSpawnTime = System.currentTimeMillis();
         lastHitPlayer = null;
@@ -275,14 +326,14 @@ public class EventTrungThu implements Runnable {
         try {
             Manager.gI().chatKTG(0,
                     "🦁 Boss Lân Sư Tử đã xuất hiện tại " + targetMap.template.name + " khu "
-                            + (targetMap.zone_id + 1) + "! Hãy nhanh tay săn lượng!",
+                            + (targetMap.zone_id + 1) + "! Hãy nhanh tay săn thưởng!",
                     5);
 
             Message m_local = new Message(1);
             m_local.writer().writeByte(1);
-            m_local.writer().writeShort(persistentBossLan.mob.index);
-            m_local.writer().writeShort(persistentBossLan.mob.x);
-            m_local.writer().writeShort(persistentBossLan.mob.y);
+            m_local.writer().writeShort(boss.mob.index);
+            m_local.writer().writeShort(boss.mob.x);
+            m_local.writer().writeShort(boss.mob.y);
             for (int j = 0; j < targetMap.players.size(); j++) {
                 Player p0 = targetMap.players.get(j);
                 if (p0 != null && p0.conn != null) {
@@ -295,17 +346,29 @@ public class EventTrungThu implements Runnable {
         }
     }
 
-    public void forceSpawnBossLan(Player p) {
+    public void forceSpawnBossLan(Player p, boolean atPlayer) {
         if (bossAlive) {
             despawnBoss("Boss Lân cũ đã bị giải tán để gọi Boss mới!");
         }
-        spawnBossLan();
+        spawnBossLan(atPlayer ? p : null);
         if (p != null) {
             try {
-                core.Service.send_box_ThongBao_OK(p, "Đã gọi Lân thành công!");
+                if (atPlayer) {
+                    core.Service.send_box_ThongBao_OK(p, "Đã triệu hồi Boss Lân Sư Tử ngay tại vị trí của bạn!");
+                } else if (activeBossLan != null && activeBossLan.mob != null && activeBossLan.mob.map != null) {
+                    core.Service.send_box_ThongBao_OK(p, "Đã gọi Boss Lân Sư Tử xuất hiện tại "
+                            + activeBossLan.mob.map.template.name + " khu "
+                            + (activeBossLan.mob.map.zone_id + 1) + "!");
+                } else {
+                    core.Service.send_box_ThongBao_OK(p, "Đã gọi Lân thành công!");
+                }
             } catch (Exception e) {
             }
         }
+    }
+
+    public void forceSpawnBossLan(Player p) {
+        forceSpawnBossLan(p, false);
     }
 
     private boolean isVillageMap(int mapId) {
@@ -361,14 +424,8 @@ public class EventTrungThu implements Runnable {
             System.out.println("Error announcing boss kill: " + e.getMessage());
         }
 
-        // Phần thưởng Last Hit
+        // Phần thưởng Last Hit (Gửi thẳng vào túi người kết liễu, không rơi sàn map)
         giveLastHitReward(killer);
-
-        // Phần thưởng tham gia (Đã bỏ theo yêu cầu)
-        // giveParticipationRewards();
-
-        // Rơi item nhặt lộc (Đã bỏ theo yêu cầu)
-        // spawnLuckyDrops();
 
         // Reset
         despawnBoss(null);
@@ -418,97 +475,10 @@ public class EventTrungThu implements Runnable {
         }
     }
 
-    private void giveParticipationRewards() {
-        List<GiftBox> baseRewards = new ArrayList<>();
-        baseRewards.add(createGiftBox(0, 100000)); // Beri
-        baseRewards.add(createGiftBox(ITEM_BOT_MI, 5));
-        baseRewards.add(createGiftBox(ITEM_DUONG, 5));
-        baseRewards.add(createGiftBox(ITEM_TRUNG_MUOI, 2));
-        baseRewards.add(createGiftBox(ITEM_GIAY_GOI_QUA, 1));
 
-        for (Player p : participatedPlayers) {
-            try {
-                Service.send_gift(p, 0, "Phần thưởng tham gia Boss Lân!", "", baseRewards, true);
-            } catch (IOException e) {
-                System.out.println("Error giving participation reward: " + e.getMessage());
-            }
-        }
-    }
 
-    private void spawnLuckyDrops() {
-        if (activeBossLan == null || activeBossLan.mob == null)
-            return;
 
-        Map map = activeBossLan.mob.map;
-        if (map == null)
-            return;
-
-        int dropCount = Util.random(30, 50);
-        ItemTemplate4[] possibleItems = new ItemTemplate4[] {
-                ItemTemplate4.get_it_by_id(0), // Beri
-                ItemTemplate4.get_it_by_id(ITEM_BANH_TRUNG_THU),
-                ItemTemplate4.get_it_by_id(ITEM_BOT_MI),
-                ItemTemplate4.get_it_by_id(ITEM_DUONG),
-                ItemTemplate4.get_it_by_id(ITEM_BANH_DAU_XANH)
-        };
-
-        for (int i = 0; i < dropCount; i++) {
-            try {
-                ItemMap item = new ItemMap();
-                int randType = Util.random(5);
-
-                if (randType == 0) {
-                    item.id = 0;
-                    item.quant = Util.random(50000, 100000);
-                    item.name = item.quant + " beri";
-                } else {
-                    ItemTemplate4 template = possibleItems[randType];
-                    if (template != null) {
-                        item.id = template.id;
-                        item.quant = 1;
-                        item.name = template.name;
-                        item.icon = template.icon;
-                    } else {
-                        continue;
-                    }
-                }
-
-                item.category = 4;
-                item.color = 0;
-                item.id_master = -1;
-                item.time_exist = System.currentTimeMillis() + 120_000L;
-                item.index = (short) map.get_index_item_map();
-
-                if (item.index > -1) {
-                    map.list_it_map[item.index] = item;
-
-                    List<ItemMap> listShow = new ArrayList<>();
-                    listShow.add(item);
-                    map.send_msg_all_p(createDropMessage(listShow, activeBossLan.mob), null, true);
-                }
-            } catch (Exception e) {
-                // Bỏ qua lỗi drop
-            }
-        }
-    }
-
-    private Message createDropMessage(List<ItemMap> items, Mob mob) throws IOException {
-        Message m = new Message(11);
-        m.writer().writeByte(items.size());
-        for (ItemMap itm : items) {
-            m.writer().writeShort(itm.index);
-            m.writer().writeByte(itm.category);
-            m.writer().writeShort(itm.icon);
-            m.writer().writeByte(itm.color);
-            m.writer().writeUTF(itm.name);
-            m.writer().writeShort(mob != null ? mob.index : -1);
-            m.writer().writeByte(1);
-            m.writer().writeShort(-1);
-        }
-        return m;
-    }
-
-    private void despawnBoss(String message) {
+    private synchronized void despawnBoss(String message) {
         if (activeBossLan != null && activeBossLan.mob != null) {
             try {
                 activeBossLan.mob.isdie = true;
@@ -519,12 +489,29 @@ public class EventTrungThu implements Runnable {
             } catch (IOException e) {
                 System.out.println("Error despawning boss: " + e.getMessage());
             }
+
+            // Gỡ khỏi Boss.ENTRYS để tách biệt hoàn toàn, tránh bị World Boss chiếm quyền
+            if (Boss.ENTRYS != null) {
+                Boss.ENTRYS.remove(activeBossLan);
+            }
         }
 
         bossAlive = false;
         activeBossLan = null;
-        // 10 phút sau hồi sinh
-        nextBossSpawnTime = System.currentTimeMillis() + 10 * 60 * 1000L;
+        bossDamageList.clear();
+        participatedPlayers.clear();
+
+        // Tính thời gian hồi sinh: 15 phút sau
+        long candidate = System.currentTimeMillis() + BOSS_RESPAWN_DELAY_MS;
+        if (isWithinEventWindow(candidate)) {
+            nextBossSpawnTime = candidate;
+        } else {
+            nextBossSpawnTime = getNextWindowStartTime(candidate);
+        }
+
+        long diffMinutes = Math.max(0, (nextBossSpawnTime - System.currentTimeMillis()) / (60 * 1000));
+        System.out.println("[EventTrungThu] Boss Lân kết thúc. Xuất hiện lại vào: "
+                + new java.util.Date(nextBossSpawnTime) + " (sau " + diffMinutes + " phút)");
 
         if (message != null) {
             try {
@@ -1063,7 +1050,7 @@ public class EventTrungThu implements Runnable {
                 break;
             }
             case 3: {
-                // Rương Đại Ác Quỷ + Pet Thỏ
+                // Rương Đại Ác Quỷ
                 ItemTemplate4 ruongTemplate = ItemTemplate4.get_it_by_id(87);
                 GiftBox ruong = new GiftBox();
                 ruong.type = 4;
@@ -1075,28 +1062,6 @@ public class EventTrungThu implements Runnable {
                     ruong.icon = ruongTemplate.icon;
                 }
                 rewards.add(ruong);
-
-                // Pet Thỏ
-                int petRand = Util.random(100);
-                ItemTemplate4 petTemplate = ItemTemplate4.get_it_by_id(34);
-                GiftBox pet = new GiftBox();
-                pet.type = 4;
-                pet.id = 34;
-                if (petTemplate != null) {
-                    pet.name = petTemplate.name;
-                    pet.icon = petTemplate.icon;
-                }
-                if (petRand < 70) {
-                    pet.num = 1; // 1 ngày
-                    pet.color = 0;
-                } else if (petRand < 95) {
-                    pet.num = 7; // 7 ngày
-                    pet.color = 1;
-                } else {
-                    pet.num = -1; // Vĩnh viễn
-                    pet.color = 5;
-                }
-                rewards.add(pet);
                 break;
             }
         }

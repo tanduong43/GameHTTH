@@ -855,13 +855,13 @@ public class MenuController {
                   + "• Hộp Bánh: 1 Bánh TT + 1 Đậu Xanh + 1 Trứng Muối + 1 Hạt Sen + 2.000.000 Beri + 50 Ruby\n"
                   + "• Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2.000.000 Beri + 100 Ruby\b"
                   + "📍 4. SĂN BOSS LÂN SƯ TỬ:\n\n"
-                  + "• Khung giờ xuất hiện: 11:00 - 13:00 và 20:00 - 21:00 hằng ngày\n"
+                  + "• Khung giờ xuất hiện: 07:00 - 11:00 và 17:00 - 22:00 hằng ngày\n"
                   + "• Vị trí: Xuất hiện ngẫu nhiên tại các map (ngoại trừ Làng)\n"
-                  + "• Hồi sinh: Tự động hồi sinh sau 10 phút khi bị hạ gục\n"
+                  + "• Hồi sinh: Tự động hồi sinh sau 15 phút khi bị hạ gục\n"
                   + "• Đòn kết liễu: 30% nhận Hộp Thượng Hạng, 50 Ruby, 2 Giấy Gói Quà, Bột Mì, Đường, Trứng Muối + Điểm BXH Giết Lân\b"
                   + "📍 5. PHẦN THƯỞNG ĐẶC BIỆT:\n\n"
                   + "• Mở Bánh & Hộp: Nhận Đá Khảm Cấp 1-6, Ruby, Beri, Tinh Thể Ác Quỷ, Bột Vàng, Mai Rùa, Rương Đại Ác Quỷ...\n"
-                  + "• Hộp Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu & Pet Thỏ (1 ngày / 7 ngày / Vĩnh Viễn)!\n"
+                  + "• Hộp Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu!\n"
                   + "• Thẻ TT Trung Thu: Mở nhận Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+13% né tránh, +8% HP, +10% Miễn thương)!";
               Service.Help_From_Server(p, -154, fullGuide);
               break;
@@ -902,9 +902,9 @@ public class MenuController {
               // Boss Lân Sư Tử
               Service.send_box_ThongBao_OK(p,
                   "🦁 BOSS LÂN SƯ TỬ (ĐÊM RẰM HẢI TẶC):\n\n"
-                      + "⏰ Khung giờ xuất hiện: 11:00 - 13:00 và 20:00 - 21:00 hằng ngày\n"
+                      + "⏰ Khung giờ xuất hiện: 07:00 - 11:00 và 17:00 - 22:00 hằng ngày\n"
                       + "🗺️ Vị trí: Ngẫu nhiên tại các bản đồ (trừ map Làng)\n"
-                      + "⏱️ Hồi sinh: Sau 10 phút kể từ khi Boss bị hạ gục\n\n"
+                      + "⏱️ Hồi sinh: Sau 15 phút kể từ khi Boss bị hạ gục\n\n"
                       + "👑 Phần thưởng Kết Liễu (Last Hit):\n"
                       + "• 30% nhận 1 Hộp Bánh Thượng Hạng\n"
                       + "• 50 Ruby + 2 Giấy Gói Quà + Bột Mì + Đường + Trứng Muối\n"
@@ -916,7 +916,7 @@ public class MenuController {
               Service.send_box_ThongBao_OK(p,
                   "🎁 PHẦN THƯỞNG SỰ KIỆN TRUNG THU:\n\n"
                       + "• Mở Bánh & Hộp: Nhận Đá Khảm Cấp 1-6, Ruby, Beri, Tinh Thể Ác Quỷ, Bột Vàng, Mai Rùa, Rương Đại Ác Quỷ...\n"
-                      + "• Hộp Bánh Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu & Pet Thỏ (1 ngày / 7 ngày / Vĩnh Viễn)!\n"
+                      + "• Hộp Bánh Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu!\n"
                       + "• 👑 Thẻ TT Trung Thu: Mở nhận trực tiếp Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+13% né tránh, +8% HP, +10% Miễn thương)!");
               break;
             }
