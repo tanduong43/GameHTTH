@@ -364,6 +364,18 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
                 console.error('Transaction log error (non-fatal):', tErr.message);
             }
 
+            // Record into recharge_history so it has a timestamp for ranking tie-breaker and admin stats
+            try {
+                const buffRequestId = `ADMIN_BUFF_${Date.now()}`;
+                const buffCode = Math.floor(100000 + Math.random() * 900000).toString();
+                await db.execute(
+                    'INSERT INTO recharge_history (username, amount, real_amount, type, status, request_id, code, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    [username, actualAmount, actualAmount, 'admin_buff', 1, buffRequestId, buffCode, `Admin Buff Nạp (+${coinAmount.toLocaleString()} Coin)`]
+                );
+            } catch (rhErr) {
+                console.error('Recharge history log error (non-fatal):', rhErr.message);
+            }
+
             // Emit Socket notification
             const reqIo = req.app.get('io');
             if (reqIo) {
@@ -679,7 +691,9 @@ router.get('/admin/account_detail', jwtRequired, isAdmin, async (req, res) => {
             milestones,
             ip_address: acc.ip_address || 'Không rõ',
             created_at: acc.created_at || null,
-            charName: charName
+            charName: charName,
+            extol: acc.vnd || 0,
+            vnd: acc.vnd || 0
         };
 
         let playerData = null;
@@ -881,6 +895,37 @@ router.get('/admin/account_detail', jwtRequired, isAdmin, async (req, res) => {
                     };
                 };
 
+                // Spending Milestones (Tích tiêu Ruby) definition
+                const SPENDING_MILESTONES_CONFIG = [
+                    { id: 0, num: 500, label: '500 Ruby' },
+                    { id: 1, num: 1000, label: '1.000 Ruby' },
+                    { id: 2, num: 3000, label: '3.000 Ruby' },
+                    { id: 3, num: 5000, label: '5.000 Ruby' },
+                    { id: 4, num: 10000, label: '10.000 Ruby' },
+                    { id: 5, num: 30000, label: '30.000 Ruby' },
+                    { id: 6, num: 50000, label: '50.000 Ruby' },
+                    { id: 7, num: 100000, label: '100.000 Ruby (Trùm Ve Chai)' }
+                ];
+
+                const claimedTieuStr = pl.claimed_tichtieu_ruby || '';
+                const claimedTieuParts = claimedTieuStr.split(',').map(s => s.trim()).filter(Boolean);
+                const claimedTieuSet = new Set(
+                    claimedTieuParts.map(s => isNaN(s) ? s : Number(s))
+                );
+                const tichTieuCheckArr = safeJsonParse(pl.tich_tieu_check, []);
+                const totalTieu = Math.max(parseInt(pl.tichtieu_ruby || 0), parseInt(pl.tieu_ruby || 0));
+
+                const spendingMilestones = SPENDING_MILESTONES_CONFIG.map((m, idx) => {
+                    const isClaimed = claimedTieuSet.has(idx) || claimedTieuSet.has(m.num) || (Array.isArray(tichTieuCheckArr) && tichTieuCheckArr[idx] === 1);
+                    const isReached = totalTieu >= m.num;
+                    return {
+                        ...m,
+                        isClaimed,
+                        isReached,
+                        canClaim: isReached && !isClaimed
+                    };
+                });
+
                 playerData = {
                     id: pl.id,
                     name: pl.name,
@@ -893,12 +938,19 @@ router.get('/admin/account_detail', jwtRequired, isAdmin, async (req, res) => {
                     // Currency & Inven points
                     vang: parseInt(pointInvenArr[0] || 0), // Beri
                     ruby: parseInt(pointInvenArr[1] || 0), // Ruby / Kim cương
-                    vnd: parseInt(pointInvenArr[2] || 0),
+                    extol: parseInt(pointInvenArr[2] || 0), // Extol
+                    vnd: parseInt(pointInvenArr[2] || 0), // Extol alias
                     bua: parseInt(pointInvenArr[3] || 0),
                     tichLuy: parseInt(pointInvenArr[4] || 0),
                     pvpWin: parseInt(pointInvenArr[5] || 0),
                     pvpLose: parseInt(pointInvenArr[6] || 0),
                     wantedPrice: parseInt(pointInvenArr[11] || 0),
+                    
+                    // Spending stats (Tích tiêu Ruby)
+                    tichtieu_ruby: totalTieu,
+                    tieu_ruby: parseInt(pl.tieu_ruby || 0),
+                    claimed_tichtieu_ruby: claimedTieuStr,
+                    spendingMilestones,
                     
                     // Stats
                     pvppoint: pl.pvppoint || 0,
@@ -952,7 +1004,7 @@ router.get('/admin/account_detail', jwtRequired, isAdmin, async (req, res) => {
 
 // POST /api/admin/adjust_currency
 router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => {
-    const { username, ruby, vang, coin, tichnap, tongnap, vip } = req.body;
+    const { username, ruby, vang, coin, tichnap, tongnap, vip, extol, vnd, tichtieu_ruby } = req.body;
 
     if (!username) {
         return res.json({ success: false, message: 'Thiếu tên tài khoản (username)!' });
@@ -1014,11 +1066,14 @@ router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => 
             await db.execute(`UPDATE accounts SET ${updateSets.join(', ')} WHERE user = ?`, updateParams);
         }
 
-        // Update players table (vang, ruby)
+        // Update players table (vang, ruby, extol, tichtieu_ruby)
         let newRuby = ruby !== undefined && ruby !== null && ruby !== '' ? parseInt(ruby, 10) : null;
         let newVang = vang !== undefined && vang !== null && vang !== '' ? parseInt(vang, 10) : null;
+        const rawExtol = extol !== undefined && extol !== null && extol !== '' ? extol : (vnd !== undefined && vnd !== null && vnd !== '' ? vnd : null);
+        let newExtol = rawExtol !== null ? parseInt(rawExtol, 10) : null;
+        let newTichTieu = tichtieu_ruby !== undefined && tichtieu_ruby !== null && tichtieu_ruby !== '' ? parseInt(tichtieu_ruby, 10) : null;
 
-        if ((newRuby !== null && !isNaN(newRuby)) || (newVang !== null && !isNaN(newVang))) {
+        if ((newRuby !== null && !isNaN(newRuby)) || (newVang !== null && !isNaN(newVang)) || (newExtol !== null && !isNaN(newExtol)) || (newTichTieu !== null && !isNaN(newTichTieu))) {
             let charName = null;
             if (acc.char) {
                 try {
@@ -1028,7 +1083,7 @@ router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => 
             }
 
             if (charName) {
-                const [plRows] = await db.execute('SELECT id, point_inven FROM players WHERE name = ? LIMIT 1', [charName]);
+                const [plRows] = await db.execute('SELECT id, point_inven, tichtieu_ruby, tieu_ruby FROM players WHERE name = ? LIMIT 1', [charName]);
                 if (plRows.length > 0) {
                     const pl = plRows[0];
                     let pointInvenArr = [];
@@ -1051,8 +1106,20 @@ router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => 
                     if (newRuby !== null && !isNaN(newRuby)) {
                         pointInvenArr[1] = Math.max(0, newRuby);
                     }
+                    if (newExtol !== null && !isNaN(newExtol)) {
+                        pointInvenArr[2] = Math.max(0, newExtol);
+                    }
 
-                    await db.execute('UPDATE players SET point_inven = ? WHERE id = ?', [JSON.stringify(pointInvenArr), pl.id]);
+                    const playerUpdates = ['`point_inven` = ?'];
+                    const playerParams = [JSON.stringify(pointInvenArr)];
+
+                    if (newTichTieu !== null && !isNaN(newTichTieu)) {
+                        playerUpdates.push('`tichtieu_ruby` = ?', '`tieu_ruby` = ?');
+                        playerParams.push(Math.max(0, newTichTieu), Math.max(0, newTichTieu));
+                    }
+
+                    playerParams.push(pl.id);
+                    await db.execute(`UPDATE players SET ${playerUpdates.join(', ')} WHERE id = ?`, playerParams);
                 }
             }
         }
@@ -1208,7 +1275,7 @@ router.delete('/admin/giftcode/:id', jwtRequired, isAdmin, async (req, res) => {
 // GET /api/ranking
 router.get('/ranking', async (req, res) => {
     try {
-        // 1. Fetch top 10 characters by level
+        // 1. Fetch top 10 characters by level / exp (Tie-breaker: exp DESC, id ASC)
         const levelSql = `
             SELECT 
                 name, 
@@ -1217,9 +1284,10 @@ router.get('/ranking', async (req, res) => {
                     WHEN level LIKE '[%]' THEN CAST(JSON_UNQUOTE(JSON_EXTRACT(level, '$[0]')) AS UNSIGNED)
                     WHEN level REGEXP '^[0-9]+$' THEN CAST(level AS UNSIGNED)
                     ELSE 1
-                END as level
+                END as level,
+                exp
             FROM players
-            ORDER BY level DESC
+            ORDER BY exp DESC, id ASC
             LIMIT 10
         `;
         const [levelRows] = await db.execute(levelSql);
@@ -1229,11 +1297,12 @@ router.get('/ranking', async (req, res) => {
             clazz: row.clazz !== null ? parseInt(row.clazz, 10) : 0
         }));
 
-        // 2. Fetch top 10 characters by PvP point
+        // 2. Fetch top 10 characters by PvP point (Tie-breaker: pvppoint DESC, exp DESC, id ASC)
         const pvpSql = `
             SELECT name, pvppoint, clazz 
             FROM players 
-            ORDER BY pvppoint DESC 
+            WHERE pvppoint > 0
+            ORDER BY pvppoint DESC, exp DESC, id ASC 
             LIMIT 10
         `;
         const [pvpRows] = await db.execute(pvpSql);
@@ -1244,17 +1313,36 @@ router.get('/ranking', async (req, res) => {
         }));
 
         // 3. Fetch top 10 donators (Top Nạp)
+        // Đồng bộ công thức real_amount với Game Server, tiêu chí bằng tiền thì ai nạp trước được xếp lên đầu
         const napSql = `
-            SELECT user, \`char\`, sumamount 
-            FROM accounts 
-            ORDER BY sumamount DESC 
+            SELECT 
+                a.id,
+                a.user, 
+                a.\`char\`, 
+                GREATEST(
+                    COALESCE(a.sumamount, 0),
+                    COALESCE(a.tichnap, 0),
+                    CASE WHEN COALESCE(a.tongnap, 0) >= 2000000000 THEN a.tongnap - 2000000000 ELSE COALESCE(a.tongnap, 0) END,
+                    COALESCE(a.vnd, 0)
+                ) AS real_amount,
+                COALESCE(
+                    (SELECT MAX(rh.created_at) FROM recharge_history rh WHERE rh.username = a.user AND rh.status IN (1, 2)),
+                    a.created_at,
+                    '2099-12-31 23:59:59'
+                ) AS last_recharge_time
+            FROM accounts a
+            WHERE a.sumamount > 0 
+               OR a.tichnap > 0 
+               OR (a.tongnap > 0 AND a.tongnap != 2000000000) 
+               OR a.vnd > 0
+            ORDER BY real_amount DESC, last_recharge_time ASC, a.id ASC
             LIMIT 10
         `;
         const [napRows] = await db.execute(napSql);
         const topNap = napRows.map(row => {
             let charName = null;
             try {
-                const charArr = JSON.parse(row.char);
+                const charArr = typeof row.char === 'string' ? JSON.parse(row.char) : row.char;
                 if (Array.isArray(charArr) && charArr.length > 0) {
                     charName = charArr[0];
                 }
@@ -1262,23 +1350,19 @@ router.get('/ranking', async (req, res) => {
                 // Ignore
             }
             
-            let displayName = charName;
-            if (!displayName) {
-                const userStr = row.user || 'Unknown';
-                displayName = userStr.length > 3 ? userStr.substring(0, 3) + '***' : userStr + '***';
-            }
+            const displayName = charName || row.user || 'Unknown';
 
             return {
                 name: displayName,
-                sumamount: parseInt(row.sumamount || 0, 10)
+                sumamount: parseInt(row.real_amount || 0, 10)
             };
         });
 
-        // 4. Fetch top 10 clans (Top Clan)
+        // 4. Fetch top 10 clans (Top Clan - Tie-breaker: xp DESC, id ASC)
         const clanSql = `
             SELECT name, member, xp 
             FROM clan 
-            ORDER BY xp DESC 
+            ORDER BY xp DESC, id ASC 
             LIMIT 10
         `;
         const [clanRows] = await db.execute(clanSql);

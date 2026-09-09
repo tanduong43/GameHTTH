@@ -29,6 +29,7 @@ import core.Util;
 import database.SQL;
 import io.Message;
 import io.Session;
+import map.Boss;
 import map.Map;
 import map.MapCanGoTo;
 import map.Npc;
@@ -1944,9 +1945,18 @@ public class Player {
             }
             this.map.leave_map(this, leaveType);
             int zone_into = 0;
-            while (zone_into < (map_go.length - 1)
-                    && map_go[zone_into].players.size() >= map_go[zone_into].template.max_player) {
-                zone_into++;
+            while (zone_into < (map_go.length - 1)) {
+                if (map_go[zone_into].players.size() >= map_go[zone_into].template.max_player) {
+                    zone_into++;
+                    continue;
+                }
+                Boss worldBoss = Boss.getActiveWorldBossInMapAndZone(map_go[0].template.id, zone_into);
+                if (worldBoss != null && worldBoss.mob != null
+                        && !Boss.checkLevelJoinBossTheGioi(this.level, worldBoss.mob.level)) {
+                    zone_into++;
+                    continue;
+                }
+                break;
             }
             ///
             boolean send_boat = false;
@@ -2019,9 +2029,18 @@ public class Player {
         System.out.println("send msg 30");
         this.map.leave_map(this, 2);
         int zone_into = 0;
-        while (zone_into < (map_go[zone_into].template.max_zone - 1)
-                && map_go[zone_into].players.size() >= map_go[zone_into].template.max_player) {
-            zone_into++;
+        while (zone_into < (map_go[zone_into].template.max_zone - 1)) {
+            if (map_go[zone_into].players.size() >= map_go[zone_into].template.max_player) {
+                zone_into++;
+                continue;
+            }
+            Boss worldBoss = Boss.getActiveWorldBossInMapAndZone(map_go[0].template.id, zone_into);
+            if (worldBoss != null && worldBoss.mob != null
+                    && !Boss.checkLevelJoinBossTheGioi(this.level, worldBoss.mob.level)) {
+                zone_into++;
+                continue;
+            }
+            break;
         }
         this.map = map_go[zone_into];
         this.x = (short) vgo.xnew;
@@ -2446,7 +2465,9 @@ public class Player {
                     }
                 }
             } else if (list_temp.get(i).id == 20 && this.map.map_ThuThachVeThan != null) {
-                this.map.map_ThuThachVeThan.isFinish = true;
+                if (!this.map.map_ThuThachVeThan.isFinish) {
+                    activities.Red_Line.end_TTVT(this, 4);
+                }
             } else if (list_temp.get(i).id == 21) {
                 this.update_info_to_all();
                 //

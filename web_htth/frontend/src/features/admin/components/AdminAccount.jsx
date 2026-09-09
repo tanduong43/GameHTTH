@@ -82,7 +82,9 @@ function AdminAccount() {
     tichnap: 0,
     tongnap: 0,
     vip: 0,
-    autoVip: true
+    autoVip: true,
+    extol: 0,
+    tichtieu_ruby: 0
   });
   const [submittingCurrency, setSubmittingCurrency] = useState(false);
 
@@ -117,7 +119,9 @@ function AdminAccount() {
       tichnap: detailData.account.tichnap || 0,
       tongnap: detailData.account.tongnap || 0,
       vip: detailData.account.vip || 0,
-      autoVip: true
+      autoVip: true,
+      extol: detailData.player ? (detailData.player.extol ?? detailData.player.vnd ?? 0) : (detailData.account.extol ?? detailData.account.vnd ?? 0),
+      tichtieu_ruby: detailData.player ? (detailData.player.tichtieu_ruby ?? 0) : 0
     });
     setCurrencyModalOpen(true);
   };
@@ -139,6 +143,8 @@ function AdminAccount() {
       if (currencyData.hasPlayer) {
         payload.ruby = Number(currencyData.ruby) || 0;
         payload.vang = Number(currencyData.vang) || 0;
+        payload.extol = Number(currencyData.extol) || 0;
+        payload.tichtieu_ruby = Number(currencyData.tichtieu_ruby) || 0;
       }
 
       const res = await api.post('admin/adjust_currency', payload);
@@ -1290,6 +1296,31 @@ function AdminAccount() {
               </button>
 
               <button
+                onClick={() => setDetailTab('spending')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: detailTab === 'spending' ? '1px solid #ff4d4f' : '1px solid rgba(255,255,255,0.08)',
+                  background: detailTab === 'spending' ? 'rgba(255, 77, 79, 0.25)' : 'transparent',
+                  color: detailTab === 'spending' ? '#ff7875' : '#aaa',
+                  cursor: 'pointer',
+                  fontWeight: detailTab === 'spending' ? '700' : '500',
+                  fontSize: '13.5px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <span>🎯 Mốc Tích Tiêu</span>
+                {detailData?.player?.spendingMilestones && (
+                  <span style={{ fontSize: '11px', padding: '1px 6px', borderRadius: '10px', background: 'rgba(255, 77, 79, 0.2)', border: '1px solid rgba(255, 77, 79, 0.4)', color: '#ff7875' }}>
+                    {detailData.player.spendingMilestones.filter(m => m.isClaimed).length}/{detailData.player.spendingMilestones.length}
+                  </span>
+                )}
+              </button>
+
+              <button
                 onClick={() => setDetailTab('equipment')}
                 style={{
                   padding: '8px 16px',
@@ -1367,7 +1398,7 @@ function AdminAccount() {
                             <span>💰 QUẢN LÝ TIỀN TỆ & TÀI SẢN</span>
                           </div>
                           <div style={{ fontSize: '12px', color: '#aaa', marginTop: '2px' }}>
-                            Điều chỉnh Số Ruby, Số Beri, Web Coin, Tích Nạp & Tổng Nạp
+                            Điều chỉnh Số Ruby, Số Beri, Extol, Tích Tiêu, Web Coin, Tích Nạp & Tổng Nạp
                           </div>
                         </div>
                         <button
@@ -1470,6 +1501,86 @@ function AdminAccount() {
                               border: '1px solid rgba(250, 173, 20, 0.4)',
                               borderRadius: '6px',
                               color: '#ffd666',
+                              cursor: 'pointer',
+                              fontSize: '11.5px',
+                              fontWeight: 'bold',
+                              flexShrink: 0
+                            }}
+                          >
+                            ✏️ Sửa
+                          </button>
+                        </div>
+
+                        {/* Extol Card */}
+                        <div style={{
+                          background: 'linear-gradient(135deg, rgba(19, 194, 194, 0.15) 0%, rgba(20,20,20,0.6) 100%)',
+                          border: '1px solid rgba(19, 194, 194, 0.3)',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '12px'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                            <div style={{ fontSize: '30px', flexShrink: 0 }}>💵</div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', fontWeight: 'bold' }}>Số Extol</div>
+                              <div style={{ fontSize: '20px', fontWeight: '800', color: '#36cfc9', wordBreak: 'break-all' }}>
+                                {(detailData.player ? (detailData.player.extol ?? detailData.player.vnd ?? 0) : (detailData.account.extol ?? detailData.account.vnd ?? 0)).toLocaleString()} Extol
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleOpenCurrencyModal}
+                            title="Điều chỉnh Extol"
+                            style={{
+                              padding: '5px 9px',
+                              background: 'rgba(19, 194, 194, 0.2)',
+                              border: '1px solid rgba(19, 194, 194, 0.4)',
+                              borderRadius: '6px',
+                              color: '#36cfc9',
+                              cursor: 'pointer',
+                              fontSize: '11.5px',
+                              fontWeight: 'bold',
+                              flexShrink: 0
+                            }}
+                          >
+                            ✏️ Sửa
+                          </button>
+                        </div>
+
+                        {/* Tích Tiêu Ruby Card */}
+                        <div style={{
+                          background: 'linear-gradient(135deg, rgba(255, 77, 79, 0.15) 0%, rgba(20,20,20,0.6) 100%)',
+                          border: '1px solid rgba(255, 77, 79, 0.3)',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '12px'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                            <div style={{ fontSize: '30px', flexShrink: 0 }}>🎯</div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: '12px', color: '#aaa', textTransform: 'uppercase', fontWeight: 'bold' }}>Tích Tiêu Ruby</div>
+                              <div style={{ fontSize: '20px', fontWeight: '800', color: '#ff7875', wordBreak: 'break-all' }}>
+                                {(detailData.player ? (detailData.player.tichtieu_ruby ?? 0) : 0).toLocaleString()} Ruby
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleOpenCurrencyModal}
+                            title="Điều chỉnh Tích Tiêu Ruby"
+                            style={{
+                              padding: '5px 9px',
+                              background: 'rgba(255, 77, 79, 0.2)',
+                              border: '1px solid rgba(255, 77, 79, 0.4)',
+                              borderRadius: '6px',
+                              color: '#ff7875',
                               cursor: 'pointer',
                               fontSize: '11.5px',
                               fontWeight: 'bold',
@@ -1849,6 +1960,114 @@ function AdminAccount() {
                           );
                         })}
                       </div>
+                    </div>
+                  )}
+
+                  {/* TAB: MỐC TÍCH TIÊU */}
+                  {detailTab === 'spending' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      <div style={{
+                        background: 'rgba(0,0,0,0.3)',
+                        border: '1px solid rgba(255, 77, 79, 0.3)',
+                        borderRadius: '14px',
+                        padding: '20px',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '16px'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '13px', color: '#aaa', textTransform: 'uppercase', fontWeight: 'bold' }}>Tiến Trình Tích Lũy Tiêu Ruby</div>
+                          <div style={{ fontSize: '24px', fontWeight: '800', color: '#ff7875' }}>
+                            {(detailData.player?.tichtieu_ruby || 0).toLocaleString()} <span style={{ fontSize: '15px', color: '#ff85c0' }}>Ruby</span>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '13.5px', color: '#aaa', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span>Mốc đã nhận:</span>
+                          <span style={{ 
+                            fontSize: '13px', 
+                            padding: '3px 10px', 
+                            borderRadius: '10px', 
+                            background: 'rgba(82, 196, 26, 0.2)', 
+                            border: '1px solid rgba(82, 196, 26, 0.4)', 
+                            color: '#52c41a', 
+                            fontWeight: 'bold' 
+                          }}>
+                            {detailData.player?.spendingMilestones?.filter(m => m.isClaimed).length || 0} / {detailData.player?.spendingMilestones?.length || 8} mốc
+                          </span>
+                        </div>
+                      </div>
+
+                      {!detailData.player ? (
+                        <div style={{ textAlign: 'center', padding: '40px 0', color: '#aaa' }}>
+                          ⚠️ Tài khoản này chưa tạo nhân vật nên chưa có dữ liệu tích tiêu.
+                        </div>
+                      ) : (
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                          gap: '16px'
+                        }}>
+                          {(detailData.player.spendingMilestones || []).map((m, idx) => {
+                            const currentTieu = detailData.player.tichtieu_ruby || 0;
+                            const percent = Math.min(100, Math.round((currentTieu / m.num) * 100));
+                            return (
+                              <div key={idx} style={{
+                                background: m.isClaimed 
+                                  ? 'linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(20,20,20,0.6) 100%)' 
+                                  : m.canClaim 
+                                    ? 'linear-gradient(135deg, rgba(255, 77, 79, 0.15) 0%, rgba(20,20,20,0.6) 100%)'
+                                    : 'rgba(255,255,255,0.02)',
+                                border: m.isClaimed 
+                                  ? '1px solid rgba(82, 196, 26, 0.35)' 
+                                  : m.canClaim 
+                                    ? '1px solid rgba(255, 77, 79, 0.45)'
+                                    : '1px solid rgba(255,255,255,0.06)',
+                                borderRadius: '12px',
+                                padding: '18px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '10px'
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ fontWeight: 'bold', fontSize: '15px', color: m.isClaimed ? '#52c41a' : m.canClaim ? '#ff7875' : '#eee' }}>
+                                    Mốc {idx + 1}: {m.label}
+                                  </span>
+                                  {m.isClaimed ? (
+                                    <span style={{ fontSize: '11.5px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(82,196,26,0.2)', color: '#52c41a', border: '1px solid rgba(82,196,26,0.3)', fontWeight: 'bold' }}>
+                                      ✓ ĐÃ NHẬN
+                                    </span>
+                                  ) : m.canClaim ? (
+                                    <span style={{ fontSize: '11.5px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(255,77,79,0.2)', color: '#ff7875', border: '1px solid rgba(255,77,79,0.3)', fontWeight: 'bold' }}>
+                                      ⚡ CÓ THỂ NHẬN
+                                    </span>
+                                  ) : (
+                                    <span style={{ fontSize: '11.5px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: '#777', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                      🔒 CHƯA ĐẠT
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Progress bar */}
+                                <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '6px', height: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                  <div style={{
+                                    width: `${percent}%`,
+                                    height: '100%',
+                                    background: m.isClaimed ? '#52c41a' : m.canClaim ? '#ff4d4f' : '#fa8c16',
+                                    transition: 'width 0.3s ease'
+                                  }} />
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#888' }}>
+                                  <span>Tiến độ: {percent}%</span>
+                                  <span>{m.isReached ? 'Đã đạt mốc' : `Còn thiếu ${(m.num - currentTieu).toLocaleString()} Ruby`}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -2260,6 +2479,90 @@ function AdminAccount() {
                 {!currencyData.hasPlayer && (
                   <div style={{ fontSize: '11.5px', color: '#ff7875', marginTop: '4px' }}>
                     ⚠️ Tài khoản chưa vào game tạo nhân vật nên không thể chỉnh Beri
+                  </div>
+                )}
+              </div>
+
+              {/* Extol */}
+              <div style={{
+                background: 'rgba(19, 194, 194, 0.06)',
+                padding: '14px',
+                borderRadius: '10px',
+                border: '1px solid rgba(19, 194, 194, 0.25)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '13.5px', fontWeight: 'bold', color: '#36cfc9' }}>
+                    💵 Số Extol:
+                  </label>
+                  <span style={{ fontSize: '12.5px', color: '#36cfc9', fontWeight: 'bold' }}>
+                    {Number(currencyData.extol || 0).toLocaleString()} Extol
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  disabled={!currencyData.hasPlayer}
+                  placeholder="Nhập số Extol..."
+                  value={currencyData.extol}
+                  onChange={(e) => setCurrencyData({ ...currencyData, extol: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(19, 194, 194, 0.4)',
+                    background: 'rgba(0,0,0,0.5)',
+                    color: '#fff',
+                    fontSize: '15px',
+                    fontWeight: 'bold',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                {!currencyData.hasPlayer && (
+                  <div style={{ fontSize: '11.5px', color: '#ff7875', marginTop: '4px' }}>
+                    ⚠️ Tài khoản chưa vào game tạo nhân vật nên không thể chỉnh Extol
+                  </div>
+                )}
+              </div>
+
+              {/* Tích Tiêu Ruby */}
+              <div style={{
+                background: 'rgba(255, 77, 79, 0.06)',
+                padding: '14px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 77, 79, 0.25)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '13.5px', fontWeight: 'bold', color: '#ff7875' }}>
+                    🎯 Tích Tiêu Ruby:
+                  </label>
+                  <span style={{ fontSize: '12.5px', color: '#ff7875', fontWeight: 'bold' }}>
+                    {Number(currencyData.tichtieu_ruby || 0).toLocaleString()} Ruby
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  disabled={!currencyData.hasPlayer}
+                  placeholder="Nhập số Ruby đã tiêu..."
+                  value={currencyData.tichtieu_ruby}
+                  onChange={(e) => setCurrencyData({ ...currencyData, tichtieu_ruby: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 77, 79, 0.4)',
+                    background: 'rgba(0,0,0,0.5)',
+                    color: '#fff',
+                    fontSize: '15px',
+                    fontWeight: 'bold',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                {!currencyData.hasPlayer && (
+                  <div style={{ fontSize: '11.5px', color: '#ff7875', marginTop: '4px' }}>
+                    ⚠️ Tài khoản chưa vào game tạo nhân vật nên không thể chỉnh Tích Tiêu
                   </div>
                 )}
               </div>

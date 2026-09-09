@@ -440,24 +440,8 @@ public class Map implements Runnable {
                         l.key_red_line.clear();
                         if (this.map_ThuThachVeThan.isReceiv) {
                             l.update_skill_exp(5000, 250);
-                            boolean receiv_material = true;
                             if (l.time_ttvt < 50) {
                                 l.time_ttvt++;
-                                Skill_info sk_select = null;
-                                for (int i = 0; i < l.skill_point.size(); i++) {
-                                    if (l.skill_point.get(i).temp.indexSkillInServer >= 661
-                                            && l.skill_point
-                                                    .get(i).temp.indexSkillInServer <= 666) {
-                                        sk_select = l.skill_point.get(i);
-                                        break;
-                                    }
-                                }
-                                if (sk_select == null) {
-                                    l.update_key_boss(1);
-                                    l.update_money();
-                                    Service.CountDown_Ticket(l);
-                                    receiv_material = false;
-                                }
                             }
                             int num1 = Util.random(20, 50);
                             int num2 = Util.random(20, 50);
@@ -473,16 +457,26 @@ public class Map implements Runnable {
                                     break;
                                 }
                             }
-                            if (receiv_material) {
-                                num1 *= 2;
-                                num2 *= 2;
-                                num3 *= 2;
-                                //
-                                l.item.add_item_bag47(4, 451, num1);
-                                l.item.add_item_bag47(4, 454, num2);
-                                l.item.add_item_bag47(7, 13, num3);
-                                l.item.update_Inventory(-1, false);
-                            }
+                            num1 *= 2;
+                            num2 *= 2;
+                            num3 *= 2;
+                            //
+                            l.item.add_item_bag47(4, 451, num1);
+                            l.item.add_item_bag47(4, 454, num2);
+                            l.item.add_item_bag47(7, 13, num3);
+                            l.item.update_Inventory(-1, false);
+
+                            // Trao quà sự kiện nếu đang mở
+                            event.EventNoel.rewardDungeon(l);
+                            event.Event2011.rewardTower(l);
+
+                            String msgReward = "Vượt Thử Thách Vệ Thần thành công!\nBạn nhận được:\n"
+                                    + "- " + num1 + " Trang giấy\n"
+                                    + "- " + num2 + " Mảnh vỏ ốc\n"
+                                    + "- " + num3 + " Lông vũ\n"
+                                    + "(Tiến trình: " + l.time_ttvt + "/50 lần"
+                                    + (l.time_ttvt >= 50 ? " - Đủ điều kiện học MIỄN PHÍ kỹ năng Chế tạo DIAL tại Wipper!)" : ")");
+                            Service.send_box_ThongBao_OK(l, msgReward);
                         }
                         l.goto_map(vgo);
                     } catch (IOException e) {
@@ -2171,13 +2165,26 @@ public class Map implements Runnable {
                                     && mob.boss_info.mob.mob_template != null
                                     && (mob.boss_info.mob.mob_template.mob_id == 174 || (mob.boss_info.mob.mob_template.name != null && mob.boss_info.mob.mob_template.name.toLowerCase().contains("saturn"))))));
 
+                    boolean isRauTrang = mob.isRauTrang();
+
                     boolean isBossDaoRuby = (mob.map != null && mob.map.template != null && mob.map.template.id == 1001)
                             || (mob.mob_template != null && mob.mob_template.mob_id == 99 && this.template.id == 1001);
 
+                    boolean isBossTheGioi1 = mob.isBossTheGioi1();
+
+                    if (isBossTheGioi1 && mob.final_dame <= 0) {
+                        mob.setupTheGioi1Stats();
+                    }
+
                     if (isSaturn) {
                         dame = (mob.final_dame > 0 ? mob.final_dame : 180000) + Util.random(20000);
+                    } else if (isRauTrang) {
+                        dame = (mob.final_dame > 0 ? mob.final_dame : 250000) + Util.random(30000);
                     } else if (isBossDaoRuby) {
-                        dame = (mob.final_dame > 0 ? mob.final_dame : 400000) + Util.random(50000);
+                        dame = (mob.final_dame > 0 ? mob.final_dame : 200000) + Util.random(200001);
+                    } else if (isBossTheGioi1) {
+                        int baseDame = mob.final_dame > 0 ? mob.final_dame : (mob.level * 1800);
+                        dame = baseDame + Util.random(10000, 25000);
                     } else if (((mob.map.map_bossHunt != null)
                             || (mob.map.map_dungeon != null && mob.map.map_dungeon instanceof activities.HangDong)
                             || mob.boss_info != null)
@@ -2224,10 +2231,19 @@ public class Map implements Runnable {
                             // Saturn có khả năng xuyên một phần giáp và gây sát thương tối thiểu lớn
                             long effectiveDef = Math.min(def, (long) (dame * 0.7));
                             dame = Math.max(25000, (int) (dame - effectiveDef));
+                        } else if (isRauTrang) {
+                            // Râu Trắng có khả năng chấn động xuyên 40% giáp và gây sát thương tối thiểu 30,000
+                            long effectiveDef = Math.min(def, (long) (dame * 0.6));
+                            dame = Math.max(30000, (int) (dame - effectiveDef));
                         } else if (isBossDaoRuby) {
                             // Boss Đảo Ruby xuyên 50% giáp người chơi và gây sát thương tối thiểu 35,000
                             long effectiveDef = Math.min(def, (long) (dame * 0.5));
                             dame = Math.max(35000, (int) (dame - effectiveDef));
+                        } else if (isBossTheGioi1) {
+                            // Boss Thế Giới xuyên 40% giáp và gây sát thương tối thiểu theo cấp độ
+                            long effectiveDef = Math.min(def, (long) (dame * 0.6));
+                            int minDame = Math.max(5000, mob.level * 250);
+                            dame = Math.max(minDame, (int) (dame - effectiveDef));
                         } else if (mob.boss_info != null) {
                             dame = Math.max(100, (int) (dame - def));
                         } else {
@@ -2237,12 +2253,12 @@ public class Map implements Runnable {
                         // 3. Trừ % Miễn thương
                         int mienThuong = p0.body.get_dame_skip(true);
                         if (mienThuong > 0) {
-                            // Áp dụng giảm miễn thương của Boss Đảo Ruby / Mob
-                            int reduceMT = mob.giam_mien_thuong > 0 ? mob.giam_mien_thuong : (isBossDaoRuby ? 400 : 0);
+                            // Áp dụng giảm miễn thương của Boss Đảo Ruby / Mob / Râu Trắng / Boss Thế Giới
+                            int reduceMT = mob.giam_mien_thuong > 0 ? mob.giam_mien_thuong : (isBossDaoRuby ? 400 : (isRauTrang ? 400 : (isBossTheGioi1 ? 300 : 0)));
                             if (reduceMT > 0) {
                                 mienThuong = Math.max(0, mienThuong - reduceMT);
                             }
-                            int mt = Math.min(isSaturn ? 600 : 800, mienThuong);
+                            int mt = Math.min((isSaturn || isRauTrang || isBossTheGioi1) ? 600 : 800, mienThuong);
                             dame = (int) ((dame * (1000L - mt)) / 1000L);
                         }
 
@@ -2281,6 +2297,9 @@ public class Map implements Runnable {
                     if (isSaturn) {
                         short[] saturnSkills = new short[] { 195, 196, 197 };
                         skillId = saturnSkills[Util.random(saturnSkills.length)];
+                    } else if (isRauTrang) {
+                        short[] rauTrangSkills = new short[] { 210, 211, 243, 244 };
+                        skillId = rauTrangSkills[Util.random(rauTrangSkills.length)];
                     } else if (mob.boss_info != null && mob.boss_info.skill != null && mob.boss_info.skill.length > 0) {
                         skillId = mob.boss_info.skill[Util.random(mob.boss_info.skill.length)];
                     } else if (mob.mob_template != null && mob.mob_template.skill != null && mob.mob_template.skill.length > 0) {
@@ -2293,7 +2312,7 @@ public class Map implements Runnable {
                     m.writer().writeShort(mob.index);
                     m.writer().writeByte(1);
                     m.writer().writeInt(mob.hp); // hp
-                    m.writer().writeInt(mob.hp); // mp
+                    m.writer().writeInt(mob.mp > 0 ? mob.mp : mob.hp); // mp
                     m.writer().writeShort(skillId);
                     m.writer().writeByte(1); // size target
                     m.writer().writeShort(id_target);
@@ -2308,8 +2327,9 @@ public class Map implements Runnable {
                     if (p0.hp <= 0) {
                         die_player(p0, p0);
                     }
+                    int maxDistance = (isRauTrang || isSaturn) ? 350 : 200;
                     if (mob.id_target != -1
-                            && !(Math.abs(mob.x - p0.x) < 200 && Math.abs(mob.y - p0.y) < 200)) {
+                            && !(Math.abs(mob.x - p0.x) < maxDistance && Math.abs(mob.y - p0.y) < maxDistance)) {
                         mob.id_target = -1;
                         mob_non_focus(mob);
                     }
@@ -2815,9 +2835,12 @@ public class Map implements Runnable {
             // boss
             for (int i = 0; i < Boss.ENTRYS.size(); i++) {
                 Boss temp = Boss.ENTRYS.get(i);
-                if (!temp.mob.isdie && Math.abs(temp.mob.x - p.x) < 70
-                        && Math.abs(temp.mob.y - p.y) < 70 && temp.mob.id_target == -1) {
-                    temp.mob.id_target = p.index_map;
+                if (temp != null && temp.mob != null && !temp.mob.isdie && temp.mob.map != null && temp.mob.map.equals(this)) {
+                    int aggroDist = (temp.mob.isRauTrang() || temp.id == 28 || (temp.mob.mob_template != null && temp.mob.mob_template.mob_id == 174)) ? 250 : 70;
+                    if (Math.abs(temp.mob.x - p.x) < aggroDist
+                            && Math.abs(temp.mob.y - p.y) < aggroDist && temp.mob.id_target == -1) {
+                        temp.mob.id_target = p.index_map;
+                    }
                 }
             }
             if (p.ischangemap) {
@@ -3856,6 +3879,17 @@ public class Map implements Runnable {
         for (int i = 0; i < list_target.length; i++) {
             Mob mob_target = list_target[i];
             if (mob_target != null && !mob_target.isdie && !p.isdie) {
+                if (mob_target.boss_info != null && mob_target.boss_info.thegioi == 1) {
+                    if (!Boss.checkLevelJoinBossTheGioi(p.level, mob_target.level)) {
+                        String bName = (mob_target.mob_template != null) ? mob_target.mob_template.name : "Siêu trùm";
+                        Service.send_box_ThongBao_OK(p, "Cấp độ của bạn không phù hợp để tấn công Siêu trùm " + bName
+                                + " (" + Boss.getAllowedLevelRangeText(mob_target.level) + ")!");
+                        continue;
+                    }
+                }
+                if (mob_target.isBossTheGioi1() && mob_target.mien_thuong <= 0) {
+                    mob_target.setupTheGioi1Stats();
+                }
                 dame2 = damebefore;
                 dame2 = (dame2 * (1000L + dame_plus_percent)) / 1000L;
                 crit = crit_skill > Util.random(1000);
@@ -3970,13 +4004,15 @@ public class Map implements Runnable {
                     boolean isQuaiMap1001 = mob_target.boss_info == null && this.template.id == 1001;
 
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
+                            && mob_target.boss_info.thegioi == 1
+                            && mob_target.mob_template.mob_id != 172
+                            && !mob_target.isRauTrang()
                             && mob_target.mob_template.mob_id != 121
-                            && mob_target.boss_info.thegioi != 2
                             && mob_target.mob_template.mob_id != EventTrungThu.MOB_BOSS_LAN
                             && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU
                             && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU
                             && mob_target.mob_template.mob_id != event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET) {
-                        // Quà theo máu chỉ áp dụng boss thế giới; boss làng (thegioi=2) và Boss Lân chỉ
+                        // Quà theo máu chỉ áp dụng boss thế giới (thegioi=1); boss làng (thegioi=2), boss 24/7 Râu Trắng (thegioi=3) chỉ
                         // nhận quà khi giết
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
@@ -4013,7 +4049,7 @@ public class Map implements Runnable {
                     }
                     boolean ch = false;
                     List<GiftBox> list_gift = new ArrayList<>();
-                    if (!isQuaiMap1001 && mob_target.boss_info != null) {
+                    if (!isQuaiMap1001 && mob_target.boss_info != null && percent > 0) {
                         for (int j = value1 - 1; j >= value2; j--) { // 10%
                             //
                             int beri_receiv = (mob_target.mob_template.mob_id - 130) * 1000;
@@ -4031,6 +4067,7 @@ public class Map implements Runnable {
                             }
                             //
                             if (15 > Util.random(120)) {
+                                int rcamNum = Util.random(1, 3);
                                 GiftBox gb_rcam = new GiftBox();
                                 ItemTemplate4 it_temp4_in = ItemTemplate4
                                         .get_it_by_id((((p.level < 11 ? 11 : p.level) / 10) + 111));
@@ -4039,7 +4076,7 @@ public class Map implements Runnable {
                                     gb_rcam.type = 4;
                                     gb_rcam.name = it_temp4_in.name;
                                     gb_rcam.icon = it_temp4_in.icon;
-                                    gb_rcam.num = 1;
+                                    gb_rcam.num = rcamNum;
                                     gb_rcam.color = 0;
                                     list_gift.add(gb_rcam);
                                 }
@@ -4181,7 +4218,7 @@ public class Map implements Runnable {
                             }
                         }
                     }
-                    if (!isQuaiMap1001 && mob_target.boss_info != null && value1 > 4 && value2 <= 4) { // 50%
+                    if (!isQuaiMap1001 && mob_target.boss_info != null && percent > 0 && value1 > 4 && value2 <= 4) { // 50%
                         //
                         list_gift.clear();
                         //
@@ -4515,30 +4552,32 @@ public class Map implements Runnable {
                             int chestIdNormal = 111 + level / 10;
                             ItemTemplate4 it_rcam = ItemTemplate4.get_it_by_id(chestIdNormal);
                             if (it_rcam != null) {
+                                int rcamNum = Util.random(1, 3);
                                 GiftBox giftChest = new GiftBox();
                                 giftChest.id = (short) chestIdNormal;
                                 giftChest.type = 4;
                                 giftChest.name = it_rcam.name;
                                 giftChest.icon = it_rcam.icon;
-                                giftChest.num = 1;
+                                giftChest.num = rcamNum;
                                 giftChest.color = 0;
                                 list_gift.add(giftChest);
-                                notice += "x1 " + it_rcam.name + ", ";
+                                notice += "x" + rcamNum + " " + it_rcam.name + ", ";
                             }
 
                             // 2. Rương cam cùng hệ cùng lv với boss
                             int chestIdCungHe = 121 + level / 10;
                             ItemTemplate4 it_cunghe = ItemTemplate4.get_it_by_id(chestIdCungHe);
                             if (it_cunghe != null) {
+                                int cungHeNum = Util.random(1, 3);
                                 GiftBox giftCungHe = new GiftBox();
                                 giftCungHe.id = (short) chestIdCungHe;
                                 giftCungHe.type = 4;
                                 giftCungHe.name = it_cunghe.name;
                                 giftCungHe.icon = it_cunghe.icon;
-                                giftCungHe.num = 1;
+                                giftCungHe.num = cungHeNum;
                                 giftCungHe.color = 0;
                                 list_gift.add(giftCungHe);
-                                notice += "x1 " + it_cunghe.name + ", ";
+                                notice += "x" + cungHeNum + " " + it_cunghe.name + ", ";
                             }
 
                             // Riêng Boss ID 140 (Siêu Thần Enel) rơi THÊM:
@@ -4547,29 +4586,31 @@ public class Map implements Runnable {
                                 // 1. Rương Đồ Cam Lv100 (Item ID 121)
                                 ItemTemplate4 it_rcam100 = ItemTemplate4.get_it_by_id(121);
                                 if (it_rcam100 != null) {
+                                    int rcam100Num = Util.random(1, 3);
                                     GiftBox giftChest100 = new GiftBox();
                                     giftChest100.id = 121;
                                     giftChest100.type = 4;
                                     giftChest100.name = it_rcam100.name;
                                     giftChest100.icon = it_rcam100.icon;
-                                    giftChest100.num = 1;
+                                    giftChest100.num = rcam100Num;
                                     giftChest100.color = 0;
                                     list_gift.add(giftChest100);
-                                    notice += "x1 " + it_rcam100.name + ", ";
+                                    notice += "x" + rcam100Num + " " + it_rcam100.name + ", ";
                                 }
 
                                 // 2. Rương Cam Cùng Hệ Lv100 (Item ID 131)
                                 ItemTemplate4 it_cunghe100 = ItemTemplate4.get_it_by_id(131);
                                 if (it_cunghe100 != null) {
+                                    int cungHe100Num = Util.random(1, 3);
                                     GiftBox giftCungHe100 = new GiftBox();
                                     giftCungHe100.id = 131;
                                     giftCungHe100.type = 4;
                                     giftCungHe100.name = it_cunghe100.name;
                                     giftCungHe100.icon = it_cunghe100.icon;
-                                    giftCungHe100.num = 1;
+                                    giftCungHe100.num = cungHe100Num;
                                     giftCungHe100.color = 0;
                                     list_gift.add(giftCungHe100);
-                                    notice += "x1 " + it_cunghe100.name + ", ";
+                                    notice += "x" + cungHe100Num + " " + it_cunghe100.name + ", ";
                                 }
 
                                 // 3. Mảnh ghép trang bị 10x cam (545: trang phục, 546: trang sức, 547: vũ khí)
@@ -4593,7 +4634,23 @@ public class Map implements Runnable {
                             p.update_money();
                             notice += "1000 ruby, ";
 
-                            // 4. Beri kết liễu Siêu trùm (tăng thêm 100.000 beri gốc và tính theo bậc hiện tại)
+                            // 4. Thưởng x1 Khiên (chỉ rơi ngẫu nhiên 5 lần trong 10 bậc của Siêu Trùm)
+                            if (boss != null && boss.shouldDropKhien(currentLevelBoss)) {
+                                ItemTemplate7 it_khien = ItemTemplate7.get_it_by_id(10);
+                                if (it_khien != null) {
+                                    GiftBox giftKhien = new GiftBox();
+                                    giftKhien.id = 10;
+                                    giftKhien.type = 7;
+                                    giftKhien.name = it_khien.name;
+                                    giftKhien.icon = it_khien.icon;
+                                    giftKhien.num = 1;
+                                    giftKhien.color = 0;
+                                    list_gift.add(giftKhien);
+                                    notice += "x1 " + it_khien.name + ", ";
+                                }
+                            }
+
+                            // 5. Beri kết liễu Siêu trùm (tăng thêm 100.000 beri gốc và tính theo bậc hiện tại)
                             int beri_receiv = 0;
                             switch (mob_target.mob_template.mob_id) {
                                 case 135: {
@@ -4673,6 +4730,8 @@ public class Map implements Runnable {
                                 int currentMobId = mob_target.mob_template.mob_id;
                                 if (currentMobId >= 135 && currentMobId <= 140) {
                                     Boss.BOSS_LIVE[currentMobId - 135] = 0;
+                                    Boss.BOSS_AREA[currentMobId - 135] = -1;
+                                    boss.initKhienDropLevels();
                                 }
                                 try {
                                     Manager.gI().chatKTG(0,
@@ -4789,6 +4848,13 @@ public class Map implements Runnable {
                             boss.status = Boss.STATUS_DEAD;
                             boss.mob.isdie = true;
                             this.remove_obj(mob_target.index, 1);
+
+                            if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 172) {
+                                try {
+                                    Manager.gI().chatKTG(0, p.name + " đã tiêu diệt thành công " + mob_target.mob_template.name + "!", 5);
+                                } catch (Exception e) {
+                                }
+                            }
 
                             // Thưởng Trứng Pet khi tiêu diệt Boss ID 174 (Saturn)
                             if (mob_target.mob_template.mob_id == 174

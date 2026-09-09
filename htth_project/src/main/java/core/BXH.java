@@ -895,7 +895,7 @@ public class BXH {
         try {
             connection = SQL.gI().getCon();
             ps = connection.prepareStatement(
-                    "SELECT `id`, `name`, `clazz`, `pvppoint`, `body`, `it_body`, `fashion`, `site` FROM `players` WHERE `pvppoint` > 0 ORDER BY `pvppoint` DESC LIMIT 50;");
+                    "SELECT `id`, `name`, `clazz`, `pvppoint`, `body`, `it_body`, `fashion`, `site` FROM `players` WHERE `pvppoint` > 0 ORDER BY `pvppoint` DESC, `exp` DESC, `id` ASC LIMIT 50;");
             rs = ps.executeQuery();
             while (rs.next()) {
                 InfoMemList temp = new InfoMemList();
@@ -1327,7 +1327,7 @@ public class BXH {
         try {
             connection = SQL.gI().getCon();
             ps = connection.prepareStatement(
-                    "SELECT `id`, `name`, `clazz`, `level`, `body`, `it_body`, `fashion`, `site` FROM `players` ORDER BY `exp` DESC LIMIT 50;");
+                    "SELECT `id`, `name`, `clazz`, `level`, `body`, `it_body`, `fashion`, `site` FROM `players` ORDER BY `exp` DESC, `id` ASC LIMIT 50;");
             rs = ps.executeQuery();
             while (rs.next()) {
                 InfoMemList temp = new InfoMemList();
@@ -1871,19 +1871,24 @@ public class BXH {
         try {
             connection = SQL.gI().getCon();
             ps = connection.prepareStatement(
-                    "SELECT `id`, `user`, `char`, `sumamount`, `tichnap`, `tongnap`, `vnd`, `vip`, "
+                    "SELECT a.`id`, a.`user`, a.`char`, a.`sumamount`, a.`tichnap`, a.`tongnap`, a.`vnd`, a.`vip`, "
                             + "GREATEST("
-                            + "  COALESCE(`sumamount`, 0), "
-                            + "  COALESCE(`tichnap`, 0), "
-                            + "  CASE WHEN COALESCE(`tongnap`, 0) >= 2000000000 THEN `tongnap` - 2000000000 ELSE COALESCE(`tongnap`, 0) END, "
-                            + "  COALESCE(`vnd`, 0)"
-                            + ") AS real_amount "
-                            + "FROM `accounts` "
-                            + "WHERE `sumamount` > 0 "
-                            + "   OR `tichnap` > 0 "
-                            + "   OR (`tongnap` > 0 AND `tongnap` != 2000000000) "
-                            + "   OR `vnd` > 0 "
-                            + "ORDER BY real_amount DESC "
+                            + "  COALESCE(a.`sumamount`, 0), "
+                            + "  COALESCE(a.`tichnap`, 0), "
+                            + "  CASE WHEN COALESCE(a.`tongnap`, 0) >= 2000000000 THEN a.`tongnap` - 2000000000 ELSE COALESCE(a.`tongnap`, 0) END, "
+                            + "  COALESCE(a.`vnd`, 0)"
+                            + ") AS real_amount, "
+                            + "COALESCE("
+                            + "  (SELECT MAX(rh.created_at) FROM `recharge_history` rh WHERE rh.username = a.user AND rh.status IN (1, 2)), "
+                            + "  a.created_at, "
+                            + "  '2099-12-31 23:59:59'"
+                            + ") AS last_recharge_time "
+                            + "FROM `accounts` a "
+                            + "WHERE a.`sumamount` > 0 "
+                            + "   OR a.`tichnap` > 0 "
+                            + "   OR (a.`tongnap` > 0 AND a.`tongnap` != 2000000000) "
+                            + "   OR a.`vnd` > 0 "
+                            + "ORDER BY real_amount DESC, last_recharge_time ASC, a.`id` ASC "
                             + "LIMIT 50;");
             rs = ps.executeQuery();
             while (rs.next()) {

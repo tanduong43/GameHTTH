@@ -729,41 +729,16 @@ public class Service {
                 if (map_enter[select].players.size() >= map_enter[select].template.max_player) {
                     Service.send_box_ThongBao_OK(p, "Hiện tại khu vực đã đầy, hãy thử lại sau!");
                 } else {
-                    if (p.map.template.id == 42 && Boss.BOSS_AREA[0] != -1) {
-                        if (Boss.BOSS_AREA[0] == select) {
-                            if (!(p.level >= 40 && p.level <= 49)) {
-                                select = 0;
-                            }
-                        }
-                    } else if (p.map.template.id == 50 && Boss.BOSS_AREA[1] != -1) {
-                        if (Boss.BOSS_AREA[1] == select) {
-                            if (!(p.level >= 50 && p.level <= 59)) {
-                                select = 0;
-                            }
-                        }
-                    } else if (p.map.template.id == 72 && Boss.BOSS_AREA[2] != -1) {
-                        if (Boss.BOSS_AREA[2] == select) {
-                            if (!(p.level >= 60 && p.level <= 69)) {
-                                select = 0;
-                            }
-                        }
-                    } else if (p.map.template.id == 84 && Boss.BOSS_AREA[3] != -1) {
-                        if (Boss.BOSS_AREA[3] == select) {
-                            if (!(p.level >= 70 && p.level <= 79)) {
-                                select = 0;
-                            }
-                        }
-                    } else if (p.map.template.id == 96 && Boss.BOSS_AREA[4] != -1) {
-                        if (Boss.BOSS_AREA[4] == select) {
-                            if (!(p.level >= 80 && p.level <= 89)) {
-                                select = 0;
-                            }
-                        }
-                    } else if (p.map.template.id == 118 && Boss.BOSS_AREA[5] != -1) {
-                        if (Boss.BOSS_AREA[5] == select) {
-                            if (p.level < 90) {
-                                select = 0;
-                            }
+                    Boss worldBoss = Boss.getActiveWorldBossInMapAndZone(p.map.template.id, select);
+                    if (worldBoss != null && worldBoss.mob != null) {
+                        if (!Boss.checkLevelJoinBossTheGioi(p.level, worldBoss.mob.level)) {
+                            String bossName = (worldBoss.mob.mob_template != null)
+                                    ? worldBoss.mob.mob_template.name
+                                    : "Siêu trùm";
+                            Service.send_box_ThongBao_OK(p, "Siêu trùm " + bossName + " (cấp " + worldBoss.mob.level
+                                    + ") chỉ cho phép người chơi " + Boss.getAllowedLevelRangeText(worldBoss.mob.level)
+                                    + " tham gia!");
+                            return;
                         }
                     }
                     p.map.leave_map(p, 1);

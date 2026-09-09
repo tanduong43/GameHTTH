@@ -316,8 +316,11 @@ public class Red_Line {
         }
     }
 
-    private static void end_TTVT(Player p, int status) throws IOException {
+    public static void end_TTVT(Player p, int status) throws IOException {
         // finish 5: fail 4
+        if (p == null || p.map == null || p.map.map_ThuThachVeThan == null) {
+            return;
+        }
         Message m = new Message(-72);
         m.writer().writeByte(status);
         for (int i = 0; i < p.map.players.size(); i++) {

@@ -46,6 +46,7 @@ public class Manager {
     public int max_ip_connection;
     public int max_register_ip_day;
     public int max_ccu;
+    public String notice_giftcode = "Giftcode:\n* mothanhvien\n* open\n* loantin\n* thanhvienmoi\n* tanthuhaitac,denbu,baotri";
     private int index_mob;
 
     public int getIndexMob() {
@@ -184,6 +185,13 @@ public class Manager {
         try {
             conn = SQL.gI().getCon();
             ps = conn.createStatement();
+            // Tự động đồng bộ Râu Trắng vào Database khi khởi động (không cần chạy lệnh SQL thủ công trên VPS)
+            try {
+                ps.executeUpdate("UPDATE `mobs` SET `hOne` = 120, `hp` = 2000000000, `skill` = '[210,211,243,244]' WHERE `id` = 172;");
+                ps.executeUpdate("UPDATE `boss` SET `hp` = 2000000000, `skill` = '[210,211,243,244]' WHERE `id` = 11 OR `mob_id` = 172;");
+                ps.executeUpdate("UPDATE `parts` SET `data` = '[[8328,-2,-5],[8329,-2,-5],[8330,-2,-5],[8331,-2,-5],[8332,-1,-5]]' WHERE `id` = 729;");
+            } catch (Exception ignored) {
+            }
             // load mobs
             String query = "SELECT * FROM `mobs`;";
             rs = ps.executeQuery(query);
@@ -218,6 +226,10 @@ public class Manager {
                 js.clear();
                 if (temp.mob_id == 174 || (temp.name != null && temp.name.toLowerCase().contains("saturn"))) {
                     temp.skill = new short[] { 195, 196, 197 };
+                }
+                if (temp.mob_id == 172 || (temp.name != null && (temp.name.toLowerCase().contains("râu trắng") || temp.name.toLowerCase().contains("rau trang")))) {
+                    temp.hOne = 120;
+                    temp.skill = new short[] { 210, 211, 243, 244 };
                 }
                 MobTemplate.ENTRYS.add(temp);
             }
@@ -477,8 +489,8 @@ public class Manager {
                         temp.boss_info = null;
                         // Thiết lập chỉ số chiến đấu đặc biệt cho Boss Đảo Ruby (Map 1001, Quái vật tuyết)
                         if (map_temp.id == 1001) {
-                            temp.base_dame = 350000;
-                            temp.final_dame = 400000;
+                            temp.base_dame = 200000;
+                            temp.final_dame = 200000;
                             temp.mien_thuong = 80;       // 80% miễn thương (tương đương 10 tỷ máu hiệu dụng)
                             temp.giam_mien_thuong = 400; // Giảm 40% miễn thương của đối thủ khi boss đánh
                             temp.ne_don = 25;            // 25% né tránh đòn đánh
@@ -636,6 +648,11 @@ public class Manager {
                     part.pi[i].id = Short.parseShort(js_in.get(0).toString());
                     part.pi[i].dx = Byte.parseByte(js_in.get(1).toString());
                     part.pi[i].dy = Byte.parseByte(js_in.get(2).toString());
+                }
+                if (part.id == 729) {
+                    for (int i = 0; i < part.pi.length; i++) {
+                        part.pi[i].dy = -5;
+                    }
                 }
                 Part.ENTRY.add(part);
             }
@@ -902,6 +919,28 @@ public class Manager {
                         boss_temp.mob.max_dame_per_hit = 2000000;
                         boss_temp.mob.ne_don = 10;
                         boss_temp.mob.phan_dame = 5;
+                    }
+                    if (mob_id == 172 || id == 11 || (boss_temp.mob.mob_template != null && (boss_temp.mob.mob_template.mob_id == 172 || (boss_temp.mob.mob_template.name != null && (boss_temp.mob.mob_template.name.toLowerCase().contains("râu trắng") || boss_temp.mob.mob_template.name.toLowerCase().contains("rau trang")))))) {
+                        boss_temp.skill = new short[] { 210, 211, 243, 244 };
+                        if (boss_temp.mob.mob_template != null) {
+                            boss_temp.mob.mob_template.skill = new short[] { 210, 211, 243, 244 };
+                            boss_temp.mob.mob_template.hOne = 120;
+                            boss_temp.mob.mob_template.hp_max = 2000000000;
+                        }
+                        boss_temp.mob.hp_max = 2000000000;
+                        boss_temp.hp_max_origin = 2000000000;
+                        boss_temp.mob.mp = 1000000000;
+                        boss_temp.mob.mp_max = 1000000000;
+                        boss_temp.mob.final_dame = 250000;
+                        boss_temp.mob.phong_thu = 60000;
+                        boss_temp.mob.mien_thuong = 70;
+                        boss_temp.mob.giam_mien_thuong = 400;
+                        boss_temp.mob.max_dame_per_hit = 5000000;
+                        boss_temp.mob.ne_don = 15;
+                        boss_temp.mob.phan_dame = 10;
+                    }
+                    if (boss_temp.thegioi == 1 || (boss_temp.mob.mob_template != null && Boss.isWorldBoss(boss_temp.mob.mob_template.mob_id))) {
+                        boss_temp.mob.setupTheGioi1Stats();
                     }
                     boss_temp.time_atk = new long[boss_temp.skill.length];
                     boss_temp.TopDame = new ArrayList<>();
@@ -1369,6 +1408,10 @@ public class Manager {
         } else {
             activities.Bank.loadDepositMultiplierFromDb();
         }
+        // Notice Giftcode Login Config
+        if (configMap.containsKey("notice-giftcode")) {
+            this.notice_giftcode = configMap.get("notice-giftcode").replace("\\n", "\n");
+        }
     }
 
     public void close() {
@@ -1548,6 +1591,11 @@ public class Manager {
                 part.pi[i].dx = Byte.parseByte(js_in.get(1).toString());
                 part.pi[i].dy = Byte.parseByte(js_in.get(2).toString());
             }
+            if (part.id == 729) {
+                for (int i = 0; i < part.pi.length; i++) {
+                    part.pi[i].dy = -5;
+                }
+            }
             list.add(part);
         }
         rs.close();
@@ -1663,6 +1711,11 @@ public class Manager {
             js.clear();
             if (temp.mob_id == 174 || (temp.name != null && temp.name.toLowerCase().contains("saturn"))) {
                 temp.skill = new short[] { 195, 196, 197 };
+            }
+            if (temp.mob_id == 172 || (temp.name != null && (temp.name.toLowerCase().contains("râu trắng") || temp.name.toLowerCase().contains("rau trang")))) {
+                temp.hOne = 120;
+                temp.hp_max = 2000000000;
+                temp.skill = new short[] { 210, 211, 243, 244 };
             }
             list.add(temp);
         }

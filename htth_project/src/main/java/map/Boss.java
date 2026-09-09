@@ -2,6 +2,7 @@ package map;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -51,11 +52,42 @@ public class Boss {
     public List<Top_Dame> TopDame;
     public int index_mob_save;
     public int hp_max_origin;
+    public List<Integer> khienDropLevels = new ArrayList<>();
+
+    public void initKhienDropLevels() {
+        if (this.khienDropLevels == null) {
+            this.khienDropLevels = new ArrayList<>();
+        }
+        this.khienDropLevels.clear();
+        List<Integer> allLevels = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            allLevels.add(i);
+        }
+        Collections.shuffle(allLevels);
+        for (int i = 0; i < 5; i++) {
+            this.khienDropLevels.add(allLevels.get(i));
+        }
+    }
+
+    public boolean shouldDropKhien(int currentLevel) {
+        if (this.khienDropLevels == null || this.khienDropLevels.isEmpty()) {
+            initKhienDropLevels();
+        }
+        return this.khienDropLevels.contains(currentLevel);
+    }
 
     public Boss() {
     }
 
     public void updateHpForLevel() {
+        if (this.mob != null && this.mob.isRauTrang()) {
+            this.mob.setupRauTrangStats();
+            this.skill = new short[] { 210, 211, 243, 244 };
+            this.hp_max_origin = 2000000000;
+        }
+        if (this.mob != null && this.mob.isBossTheGioi1()) {
+            this.mob.setupTheGioi1Stats();
+        }
         if (this.hp_max_origin <= 0 && this.mob != null) {
             this.hp_max_origin = this.mob.hp_max;
         }
@@ -150,6 +182,7 @@ public class Boss {
                 temp.mob.id_target = -1;
                 temp.levelBoss = 1;
                 temp.updateHpForLevel();
+                temp.initKhienDropLevels();
                 temp.mob.index = temp.index_mob_save;
                 try {
                     BOSS_AREA[mobId - 135] = temp.mob.map.zone_id;
@@ -167,7 +200,7 @@ public class Boss {
                     List<Player> list_p = new ArrayList<>();
                     for (int j = 0; j < temp.mob.map.players.size(); j++) {
                         Player p0 = temp.mob.map.players.get(j);
-                        if (p0.level / 10 != temp.mob.level / 10) {
+                        if (!checkLevelJoinBossTheGioi(p0.level, temp.mob.level)) {
                             list_p.add(p0);
                         }
                     }
@@ -178,6 +211,8 @@ public class Boss {
                             vgo.xnew = l.x;
                             vgo.ynew = l.y;
                             l.goto_map(vgo);
+                            Service.send_box_ThongBao_OK(l, "Siêu trùm " + temp.mob.mob_template.name
+                                    + " đã xuất hiện! Cấp độ của bạn không phù hợp nên đã được chuyển về Khu 1.");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -311,6 +346,77 @@ public class Boss {
      */
     public static boolean isWorldBoss(int mobId) {
         return mobId >= 135 && mobId <= 140;
+    }
+
+    /**
+     * Kiểm tra xem người chơi có đủ điều kiện cấp độ để vào/chiến đấu với Siêu Trùm (thegioi = 1) hay không.
+     * Quy tắc:
+     * - Boss lv 4x (40-49): người chơi cấp 3x và 4x (level 30 - 49) được vào.
+     * - Boss lv 9x (90-99): người chơi cấp 9x và 10x (level >= 90) được vào.
+     * - Các boss khác (như lv 5x, 6x, 7x, 8x): chỉ người chơi cùng mốc lv boss (level / 10 == bossLevel / 10) được vào.
+     */
+    public static boolean checkLevelJoinBossTheGioi(int playerLevel, int bossLevel) {
+        int bossTier = bossLevel / 10;
+        int playerTier = playerLevel / 10;
+
+        if (bossTier == 4) {
+            // Boss lv 4x: player 3x và 4x vào được
+            return playerTier == 3 || playerTier == 4;
+        } else if (bossTier == 9) {
+            // Boss lv 9x: player 9x và 10x vào được (cấp 90 trở lên)
+            return playerTier == 9 || playerTier >= 10;
+        } else {
+            // Các boss khác (lv 5x, 6x, 7x, 8x...): chỉ player cùng cấp với boss vào được
+            return playerTier == bossTier;
+        }
+    }
+
+    /**
+     * Lấy chuỗi mô tả khoảng cấp độ được phép vào Siêu Trùm.
+     */
+    public static String getAllowedLevelRangeText(int bossLevel) {
+        int bossTier = bossLevel / 10;
+        if (bossTier == 4) {
+            return "cấp 30 - 49 (3x, 4x)";
+        } else if (bossTier == 9) {
+            return "cấp 90 trở lên (9x, 10x)";
+        } else {
+            int minLv = bossTier * 10;
+            int maxLv = minLv + 9;
+            return "cấp " + minLv + " - " + maxLv + " (" + bossTier + "x)";
+        }
+    }
+
+    /**
+     * Tìm Siêu Trùm (thegioi = 1) đang sống tại mapId và zoneId cụ thể.
+     */
+    public static Boss getActiveWorldBossInMapAndZone(int mapId, int zoneId) {
+        if (ENTRYS == null) {
+            return null;
+        }
+        for (int i = 0; i < ENTRYS.size(); i++) {
+            Boss b = ENTRYS.get(i);
+            if (b != null && b.thegioi == 1 && b.mob != null && !b.mob.isdie && b.mob.map != null) {
+                if (b.mob.map.template.id == mapId && b.mob.map.zone_id == zoneId) {
+                    return b;
+                }
+            }
+        }
+        // Kiểm tra bổ sung theo BOSS_AREA và BOSS_LIVE đối với 6 boss thế giới (135 - 140)
+        for (int i = 0; i < BOSS_LIVE.length; i++) {
+            if (BOSS_LIVE[i] == 1 && BOSS_AREA[i] != -1 && BOSS_AREA[i] == zoneId) {
+                int mobId = 135 + i;
+                for (int j = 0; j < ENTRYS.size(); j++) {
+                    Boss b = ENTRYS.get(j);
+                    if (b != null && b.mob != null && b.mob.mob_template != null
+                            && b.mob.mob_template.mob_id == mobId
+                            && b.mob.map != null && b.mob.map.template.id == mapId) {
+                        return b;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public static Boss spawn_saturn(Player p, boolean atPlayer) {
@@ -493,6 +599,25 @@ public class Boss {
             }
         }
         if (targetBoss != null) {
+            if (targetBoss.mob != null && targetBoss.mob.mob_template != null && targetBoss.mob.mob_template.mob_id == 172) {
+                targetBoss.skill = new short[] { 210, 211, 243, 244 };
+                targetBoss.mob.mob_template.skill = new short[] { 210, 211, 243, 244 };
+                targetBoss.mob.mob_template.hOne = 120;
+                targetBoss.mob.hp_max = 2000000000;
+                targetBoss.hp_max_origin = 2000000000;
+                targetBoss.mob.mp = 1000000000;
+                targetBoss.mob.mp_max = 1000000000;
+                targetBoss.mob.final_dame = 250000;
+                targetBoss.mob.phong_thu = 60000;
+                targetBoss.mob.mien_thuong = 70;
+                targetBoss.mob.giam_mien_thuong = 400;
+                targetBoss.mob.max_dame_per_hit = 5000000;
+                targetBoss.mob.ne_don = 15;
+                targetBoss.mob.phan_dame = 10;
+                if (targetBoss.mob.mob_template != null) {
+                    targetBoss.mob.mob_template.hp_max = 2000000000;
+                }
+            }
             if (atPlayer && p != null && p.map != null) {
                 targetBoss.mob.map = p.map;
                 targetBoss.mob.x = (short) (p.x + 40);
@@ -591,6 +716,14 @@ public class Boss {
     public static void spawn_world_boss(Boss boss) {
         long now = System.currentTimeMillis();
         boss.mob.isdie = false;
+        if (boss.mob != null && boss.mob.isRauTrang()) {
+            boss.mob.setupRauTrangStats();
+            boss.skill = new short[] { 210, 211, 243, 244 };
+            boss.hp_max_origin = 2000000000;
+        }
+        if (boss.mob != null && boss.mob.isBossTheGioi1()) {
+            boss.mob.setupTheGioi1Stats();
+        }
         boss.mob.hp = boss.mob.hp_max;
         boss.mob.id_target = -1;
         boss.levelBoss = 1;
@@ -635,6 +768,27 @@ public class Boss {
                 m_local.writer().writeShort(boss.mob.y);
                 boss.mob.map.send_msg_all_p(m_local, null, true);
                 m_local.cleanup();
+
+                List<Player> list_p = new ArrayList<>();
+                for (int j = 0; j < randomMap.players.size(); j++) {
+                    Player p0 = randomMap.players.get(j);
+                    if (!checkLevelJoinBossTheGioi(p0.level, boss.mob.level)) {
+                        list_p.add(p0);
+                    }
+                }
+                Vgo vgo = new Vgo();
+                vgo.map_go = Map.get_map_by_id(randomMap.template.id);
+                list_p.forEach(l -> {
+                    try {
+                        vgo.xnew = l.x;
+                        vgo.ynew = l.y;
+                        l.goto_map(vgo);
+                        Service.send_box_ThongBao_OK(l, "Siêu trùm " + boss.mob.mob_template.name
+                                + " đã xuất hiện! Cấp độ của bạn không phù hợp nên đã được chuyển về Khu 1.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             } catch (IOException e) {
                 e.printStackTrace();
             }

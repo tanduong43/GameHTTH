@@ -46,9 +46,9 @@ public class Qua_tu_hop {
                 Service.send_gift(p, 1, ItemTemplate4.get_item_name(690), "Phần thưởng", listGift, true);
             }
         }
-        if (idItem == 1003 && cat == 4 && (select == 0 || select == 1 || select == 2)) { // rương đại ác quỷ cao cấp tự chọn
+        if (idItem == 1003 && cat == 4 && (select >= 0 && select <= 3)) { // rương đại ác quỷ cao cấp tự chọn
             if (p.item.total_item_bag_by_id(4, 1003) > 0) {
-                short[] listId = new short[]{160, 161, 240};
+                short[] listId = new short[]{160, 161, 240, 1015};
                 ItemTemplate4 itemTemplate4 = ItemTemplate4.get_it_by_id(listId[select]);
                 p.item.remove_item47(4, 1003, 1);
                 Service.UpdateInfoMaincharInfo(p);

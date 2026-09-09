@@ -1177,6 +1177,15 @@ public class MessageHandler {
                     "Chào mừng bạn đến với Thế Giới Hải Tặc - 3D, một thế giới game săn boss đầy kịch tính và phần thưởng hấp dẫn! Hãy nhanh chóng tham gia để trải nghiệm những giây phút phiêu lưu đỉnh cao và chinh phục những thử thách khó khăn nhất.");
             conn.p.list_msg_cache.add(m2);
 
+            // Giftcode Login Announcement (hiển thị giống Thông báo cũ qua Message 18 - Tab "Tin đến")
+            String giftcodeNotice = Manager.gI().notice_giftcode != null && !Manager.gI().notice_giftcode.isEmpty()
+                    ? Manager.gI().notice_giftcode
+                    : "Giftcode:\n* mothanhvien\n* open\n* loantin\n* thanhvienmoi\n* tanthuhaitac,denbu,baotri";
+            Message mGift = new Message(18);
+            mGift.writer().writeUTF("Tin đến");
+            mGift.writer().writeUTF(giftcodeNotice);
+            conn.p.list_msg_cache.add(mGift);
+
             // === Rejoin dialog for HangDong, TowerChallenge, NamieTreasureDefense,
             // BossHunt ===
             if (activeHangDong != null || activeChallenge != null || activeDefense != null

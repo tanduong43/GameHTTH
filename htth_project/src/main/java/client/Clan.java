@@ -1698,7 +1698,7 @@ public class Clan {
         ResultSet rs = null;
         try {
             connection = SQL.gI().getCon();
-            ps = connection.prepareStatement("SELECT `name` FROM `clan` ORDER BY `xp` DESC");
+            ps = connection.prepareStatement("SELECT `name` FROM `clan` ORDER BY `xp` DESC, `id` ASC");
             rs = ps.executeQuery();
             while (rs.next()) {
                 Clan.BXH.add(rs.getString("name"));

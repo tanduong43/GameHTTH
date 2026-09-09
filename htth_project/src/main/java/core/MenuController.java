@@ -135,7 +135,8 @@ public class MenuController {
           break;
         }
         case -140: {
-          send_dynamic_menu(p, type, "WIPPER", new String[] { "Chế tạo DIAL", "Thử thách vệ thần" },
+          send_dynamic_menu(p, type, "WIPPER",
+              new String[] { "Chế tạo DIAL", "Học kỹ năng Chế tạo DIAL", "Thử thách vệ thần" },
               null);
           break;
         }
@@ -1042,7 +1043,7 @@ public class MenuController {
             case 0:
             case 1:
             case 2: {
-              UpgradeDevil.show_table(p, index + 2);
+              UpgradeDevil.show_table(p, index + 3);
               break;
             }
             case 3: {
@@ -1490,6 +1491,8 @@ public class MenuController {
             send_dynamic_menu(p, 980, "WIPPER", new String[] { "Ghép sách công thức", "Ghép vỏ ốc",
                 "Chế tạo dial", "Cường hóa dial", "Đục lỗ dial" }, null);
           } else if (index == 1) {
+            handleLearnDialSkill(p);
+          } else if (index == 2) {
             if (p.party == null || p.party.list.size() != 2
                 || !p.party.list.get(0).name.equals(p.name)) {
               Service.send_box_ThongBao_OK(p, "Hãy tạo nhóm 2 người để vào phó bản");
@@ -4112,6 +4115,28 @@ public class MenuController {
       send_dynamic_menu(p, 9090, "Danh Hiệu", list.toArray(new String[0]), null);
     } else {
       activities.DanhHieu.show(p);
+    }
+  }
+
+  public static void handleLearnDialSkill(Player p) throws IOException {
+    Skill_info sk_select = null;
+    for (int i = 0; i < p.skill_point.size(); i++) {
+      if (p.skill_point.get(i).temp.indexSkillInServer >= 661
+          && p.skill_point.get(i).temp.indexSkillInServer <= 666) {
+        sk_select = p.skill_point.get(i);
+        break;
+      }
+    }
+    if (sk_select != null) {
+      Service.send_box_ThongBao_OK(p, "Bạn đã học kỹ năng Chế tạo DIAL rồi!");
+    } else if (p.time_ttvt >= 50) {
+      Service.send_box_yesno(p, 55, "Thông báo",
+          "Bạn đã hoàn thành " + p.time_ttvt + "/50 lần Thử Thách Vệ Thần!\nBạn có muốn học kỹ năng Chế tạo DIAL MIỄN PHÍ không?",
+          new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+    } else {
+      Service.send_box_yesno(p, 55, "Thông báo",
+          "Bạn đã hoàn thành Thử Thách Vệ Thần (" + p.time_ttvt + "/50) lần.\nBạn có muốn tốn 500 Ruby để học kỹ năng Chế tạo DIAL ngay không?\n(Nếu hoàn thành đủ 50 lần sẽ được học Miễn phí)",
+          new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
     }
   }
 
