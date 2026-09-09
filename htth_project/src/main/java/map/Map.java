@@ -282,6 +282,12 @@ public class Map implements Runnable {
         if (this.template.id == 119) {
             Player[] p0 = Wanted.get_p_random_waiting();
             if (p0 != null && p0[0] != null && p0[1] != null) {
+                p0[0].originalMapId = 119;
+                p0[0].originalX = p0[0].x;
+                p0[0].originalY = p0[0].y;
+                p0[1].originalMapId = 119;
+                p0[1].originalX = p0[1].x;
+                p0[1].originalY = p0[1].y;
                 p0[0].map.leave_map(p0[0], 2);
                 p0[1].map.leave_map(p0[1], 2);
                 p0[0].type_pk = -1;
@@ -338,6 +344,9 @@ public class Map implements Runnable {
                     map_create.list_mob = new int[0];
 
                     // set up human
+                    p_waiting.originalMapId = 119;
+                    p_waiting.originalX = p_waiting.x;
+                    p_waiting.originalY = p_waiting.y;
                     p_waiting.map.leave_map(p_waiting, 2);
                     p_waiting.type_pk = -1;
                     p_waiting.map = map_create;
@@ -989,33 +998,64 @@ public class Map implements Runnable {
                     return;
                 }
 
-                // Neu chi con 1 nguoi choi va tran dau chua ket thuc (status_pvp < 4), xu thang ngay cho nguoi con lai
-                if (players.size() < 2 && this.map_pvp.status_pvp < 4) {
-                    this.map_pvp.status_pvp = 4;
-                    this.map_pvp.time_pvp = 3;
-                    Player remainingPlayer = players.get(0);
-                    if (remainingPlayer != null) {
-                        try {
-                            Pvp.pvp_notice(remainingPlayer, 3);
-                            Pvp.show_info(remainingPlayer, 3, 3, 0, 3);
-                            change_flag(remainingPlayer, -1);
-                            remainingPlayer.targetFight = null;
-                            if (this.map_pvp.type_map == 0) {
-                                remainingPlayer.update_pvpPoint(20);
-                            } else if (this.map_pvp.type_map == 3 && this.map_pvp.ruby_bet > 0) {
-                                int rubyBet = this.map_pvp.ruby_bet;
-                                int rubyWin = (int) (rubyBet * 2 * 0.9);
-                                remainingPlayer.update_ngoc(rubyWin);
-                                remainingPlayer.update_money();
-                                Service.send_box_ThongBao_OK(remainingPlayer,
-                                        "Đối thủ đã rời trận! Bạn chiến thắng và nhận được " + rubyWin + " ruby!");
-                            } else {
-                                Service.send_box_ThongBao_OK(remainingPlayer,
-                                        "Đối thủ đã rời trận! Bạn là người chiến thắng.");
-                            }
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
+                // Neu chi con < 2 nguoi choi va tran dau chua ket thuc (status_pvp != 4 && status_pvp != 99), xu thang ngay cho nguoi con lai
+                if (players.size() < 2 && this.map_pvp.status_pvp != 4 && this.map_pvp.status_pvp != 99) {
+                    Player remainingPlayer = null;
+                    for (Player pl : players) {
+                        if (pl != null && !pl.isBot) {
+                            remainingPlayer = pl;
+                            break;
                         }
+                    }
+                    if (remainingPlayer == null) {
+                        running = false;
+                        this.map_pvp = null;
+                        Map.remove_map_plus(this);
+                        return;
+                    }
+                    this.map_pvp.status_pvp = 4;
+                    this.map_pvp.time_pvp = 2;
+                    try {
+                        Pvp.pvp_notice(remainingPlayer, 3);
+                        Pvp.show_info(remainingPlayer, 3, 3, 0, 3);
+                        change_flag(remainingPlayer, -1);
+                        remainingPlayer.targetFight = null;
+                        if (this.map_pvp.type_map == 0) {
+                            remainingPlayer.pvp_win++;
+                            if (remainingPlayer.daily_achievements[0] == 0) {
+                                remainingPlayer.daily_achievements[0] = 1;
+                                core.Service.send_box_ThongBao_OK(remainingPlayer,
+                                        "Hoàn thành Thành tích hằng ngày: PVP");
+                            }
+                            event.EventTrungThu.rewardPvpTruyNa(remainingPlayer);
+                            event.Event2011.rewardPvpArena(remainingPlayer);
+                            event.EventNoel.rewardPvpArena(remainingPlayer);
+                            remainingPlayer.update_pvpPoint(20);
+                            Service.send_box_ThongBao_OK(remainingPlayer,
+                                    "Đối thủ đã rời trận! Bạn là người chiến thắng và nhận được 20 điểm PvP.");
+                        } else if (this.map_pvp.type_map == 2) { // Wanted PvP
+                            long beri_win = (10_000L + (long) remainingPlayer.get_wanted_point()) / 100L;
+                            remainingPlayer.update_wanted_point((int) beri_win);
+                            Wanted_Chest.receiv_ruong(remainingPlayer);
+                            event.EventTrungThu.rewardPvpTruyNa(remainingPlayer);
+                            event.Event2011.rewardPvpArena(remainingPlayer);
+                            event.EventNoel.rewardPvpArena(remainingPlayer);
+                            Service.send_box_ThongBao_OK(remainingPlayer,
+                                    "Đối thủ đã rời trận! Bạn là người chiến thắng và giành được " + beri_win
+                                            + " điểm truy nã cùng 1 Rương Truy nã.");
+                        } else if (this.map_pvp.type_map == 3 && this.map_pvp.ruby_bet > 0) {
+                            int rubyBet = this.map_pvp.ruby_bet;
+                            int rubyWin = (int) (rubyBet * 2 * 0.9);
+                            remainingPlayer.update_ngoc(rubyWin);
+                            remainingPlayer.update_money();
+                            Service.send_box_ThongBao_OK(remainingPlayer,
+                                    "Đối thủ đã rời trận! Bạn chiến thắng và nhận được " + rubyWin + " ruby!");
+                        } else {
+                            Service.send_box_ThongBao_OK(remainingPlayer,
+                                    "Đối thủ đã rời trận! Bạn là người chiến thắng.");
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }
                 }
 
@@ -1330,14 +1370,25 @@ public class Map implements Runnable {
 
                             // Xac dinh Vgo tuong ung cho tung nguoi choi
                             Vgo vgo = new Vgo();
-                            if (this.map_pvp.type_map == 0) { // Sieu hang queue -> ve map 1000
-                                vgo.map_go = Map.get_map_by_id(1000);
-                                if (vgo.map_go != null && vgo.map_go.length > 0) {
-                                    vgo.xnew = (short) (vgo.map_go[0].template.maxW / 2);
-                                    vgo.ynew = (short) (vgo.map_go[0].template.maxH / 2);
-                                }
-                            } else if (this.map_pvp.type_map == 2) { // Truy na -> ve phong cho 119
+                            if (this.map_pvp.type_map == 2) { // Truy na -> ve phong cho 119
                                 vgo.map_go = Map.get_map_by_id(119);
+                                if (vgo.map_go != null && vgo.map_go.length > 0) {
+                                    short maxW = vgo.map_go[0].template.maxW;
+                                    short maxH = vgo.map_go[0].template.maxH;
+                                    vgo.xnew = (short) (maxW > 0 ? maxW / 2 : 300);
+                                    vgo.ynew = (short) (maxH > 0 ? maxH / 2 : 250);
+                                }
+                            } else if (l.originalMapId > 0 && Map.get_map_by_id(l.originalMapId) != null) {
+                                // Tro ve map dung truoc khi vao tran
+                                vgo.map_go = Map.get_map_by_id(l.originalMapId);
+                                if (vgo.map_go != null && vgo.map_go.length > 0) {
+                                    short maxW = vgo.map_go[0].template.maxW;
+                                    short maxH = vgo.map_go[0].template.maxH;
+                                    vgo.xnew = (l.originalX > 0) ? l.originalX : (short) (maxW > 0 ? maxW / 2 : 300);
+                                    vgo.ynew = (l.originalY > 0) ? l.originalY : (short) (maxH > 0 ? maxH / 2 : 250);
+                                }
+                            } else if (this.map_pvp.type_map == 0) { // Sieu hang queue fallback -> ve map 1000
+                                vgo.map_go = Map.get_map_by_id(1000);
                                 if (vgo.map_go != null && vgo.map_go.length > 0) {
                                     vgo.xnew = (short) (vgo.map_go[0].template.maxW / 2);
                                     vgo.ynew = (short) (vgo.map_go[0].template.maxH / 2);
@@ -1373,6 +1424,9 @@ public class Map implements Runnable {
                                     }
                                 }
                             }
+                            l.originalMapId = -1;
+                            l.originalX = -1;
+                            l.originalY = -1;
                             if (vgo.map_go != null && vgo.map_go.length > 0) {
                                 l.goto_map(vgo);
                             }
@@ -1401,9 +1455,17 @@ public class Map implements Runnable {
                                         stuck.targetFight = null;
                                         change_flag(stuck, -1);
                                         Vgo vgoRescue = new Vgo();
-                                        vgoRescue.map_go = Map.get_map_by_id(1);
-                                        vgoRescue.xnew = 611;
-                                        vgoRescue.ynew = 250;
+                                        int rescueMapId = (this.map_pvp != null && this.map_pvp.type_map == 2) ? 119
+                                                : (stuck.originalMapId > 0 ? stuck.originalMapId : (stuck.id_map_save > 0 ? stuck.id_map_save : 1));
+                                        vgoRescue.map_go = Map.get_map_by_id(rescueMapId);
+                                        if (vgoRescue.map_go == null || vgoRescue.map_go.length == 0) {
+                                            vgoRescue.map_go = Map.get_map_by_id(1);
+                                        }
+                                        vgoRescue.xnew = (stuck.originalX > 0) ? stuck.originalX : 611;
+                                        vgoRescue.ynew = (stuck.originalY > 0) ? stuck.originalY : 250;
+                                        stuck.originalMapId = -1;
+                                        stuck.originalX = -1;
+                                        stuck.originalY = -1;
                                         stuck.goto_map(vgoRescue);
                                     } catch (Exception exRescue) {
                                         exRescue.printStackTrace();

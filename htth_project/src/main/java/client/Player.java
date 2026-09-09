@@ -1225,11 +1225,22 @@ public class Player {
             this.originalX = session.originalX;
             this.originalY = session.originalY;
             if (session.oldMap != null) {
-                // Đang không ở trong hang động, cho player về lại map cũ (bỏ qua check
-                // isMapLang vì ta đang reconnect)
-                // Tuy nhiên `setup` mặc định đẩy về village nếu ko có tọa độ save,
-                // ta sẽ đặt lại tọa độ map cũ ở đây.
-                this.map = session.oldMap;
+                if (session.oldMap.map_pvp != null) {
+                    // Out game khi dang pvp, dua ve originalMapId hoac phong cho 119
+                    int targetMap = (session.oldMap.map_pvp.type_map == 2) ? 119
+                            : (this.originalMapId > 0 ? this.originalMapId : (this.id_map_save > 0 ? this.id_map_save : 1));
+                    Map[] targetMaps = Map.get_map_by_id(targetMap);
+                    if (targetMaps != null && targetMaps.length > 0) {
+                        this.map = targetMaps[0];
+                        this.x = (this.originalX > 0) ? this.originalX : 300;
+                        this.y = (this.originalY > 0) ? this.originalY : 250;
+                    }
+                    this.originalMapId = -1;
+                    this.originalX = -1;
+                    this.originalY = -1;
+                } else {
+                    this.map = session.oldMap;
+                }
             }
         }
         return true;
@@ -2159,6 +2170,11 @@ public class Player {
                             || (this.map.map_dao_hoa != null && !this.map.map_dao_hoa.is_finish))) {
                         // Trong PVP Băng / Đảo Đào Hoa: tự hồi sinh tại căn cứ sau 5 giây (không cho về làng thủ công)
                         Service.send_box_ThongBao_OK(this, "Đang hồi sinh! Vui lòng chờ đếm ngược hồi sinh tự động.");
+                        return;
+                    }
+                    if (this.map != null && this.map.map_pvp != null) {
+                        // Trong PVP: tự động hồi sinh hiệp mới sau vài giây (không cho về làng thủ công)
+                        Service.send_box_ThongBao_OK(this, "Đang trong trận đấu PVP, tự động hồi sinh hiệp mới!");
                         return;
                     }
                     this.isdie = false;

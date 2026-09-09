@@ -1100,20 +1100,28 @@ public class MessageHandler {
                 conn.p.mp = conn.p.body.get_mp_max(true);
             }
 
-            // Safety check: nếu out game khi đang trong Map Lôi Đài PK (120, 122, 123) hoặc map_pvp != null
-            if (conn.p.map != null && (conn.p.map.template.id == 120 || conn.p.map.template.id == 122
-                    || conn.p.map.template.id == 123 || conn.p.map.map_pvp != null)) {
-                int targetMapId = conn.p.id_map_save > 0 ? conn.p.id_map_save : 1;
+            // Safety check: nếu out game khi đang trong Map Lôi Đài PK (58, 120, 122, 123) hoặc map_pvp != null
+            if (conn.p.map != null && (conn.p.map.template.id == 58 || conn.p.map.template.id == 120
+                    || conn.p.map.template.id == 122 || conn.p.map.template.id == 123
+                    || conn.p.map.map_pvp != null)) {
+                int targetMapId = 1;
+                if (conn.p.map.map_pvp != null && conn.p.map.map_pvp.type_map == 2) {
+                    targetMapId = 119;
+                } else if (conn.p.originalMapId > 0) {
+                    targetMapId = conn.p.originalMapId;
+                } else if (conn.p.id_map_save > 0) {
+                    targetMapId = conn.p.id_map_save;
+                }
                 System.out.println("[PVP Login safety]: player " + conn.p.name
-                        + " logged in while in PVP arena map (" + conn.p.map.template.id + "), redirecting to village " + targetMapId);
+                        + " logged in while in PVP map (" + conn.p.map.template.id + "), redirecting to map " + targetMapId);
                 map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap == null || villageMap.length == 0) {
                     villageMap = map.Map.get_map_by_id(1);
                 }
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
-                    conn.p.x = 611;
-                    conn.p.y = 250;
+                    conn.p.x = (conn.p.originalX > 0) ? conn.p.originalX : (short) (villageMap[0].template.maxW > 0 ? villageMap[0].template.maxW / 2 : 300);
+                    conn.p.y = (conn.p.originalY > 0) ? conn.p.originalY : (short) (villageMap[0].template.maxH > 0 ? villageMap[0].template.maxH / 2 : 250);
                 }
                 conn.p.type_pk = -1;
                 conn.p.targetFight = null;
@@ -1122,6 +1130,9 @@ public class MessageHandler {
                     conn.p.hp = conn.p.body.get_hp_max(true);
                     conn.p.mp = conn.p.body.get_mp_max(true);
                 }
+                conn.p.originalMapId = -1;
+                conn.p.originalX = -1;
+                conn.p.originalY = -1;
             }
             // === hết khối check ===
 

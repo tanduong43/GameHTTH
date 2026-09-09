@@ -156,9 +156,15 @@ public class Fight {
             challenger.targetFight = acceptor;
             //
             if (acceptor.map != null) {
+                acceptor.originalMapId = acceptor.map.template.id;
+                acceptor.originalX = acceptor.x;
+                acceptor.originalY = acceptor.y;
                 acceptor.map.leave_map(acceptor, 2);
             }
             if (challenger.map != null) {
+                challenger.originalMapId = challenger.map.template.id;
+                challenger.originalX = challenger.x;
+                challenger.originalY = challenger.y;
                 challenger.map.leave_map(challenger, 2);
             }
             acceptor.type_pk = -1;

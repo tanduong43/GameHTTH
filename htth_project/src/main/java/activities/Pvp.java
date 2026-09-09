@@ -124,9 +124,18 @@ public class Pvp {
                             p.update_pvp_ticket(-1);
                             p.pvp_target.update_pvp_ticket(-1);
                         }
-                        //
-                        p.map.leave_map(p, 2);
-                        p.pvp_target.map.leave_map(p.pvp_target, 2);
+                        if (p.map != null) {
+                            p.originalMapId = p.map.template.id;
+                            p.originalX = p.x;
+                            p.originalY = p.y;
+                            p.map.leave_map(p, 2);
+                        }
+                        if (p.pvp_target.map != null) {
+                            p.pvp_target.originalMapId = p.pvp_target.map.template.id;
+                            p.pvp_target.originalX = p.pvp_target.x;
+                            p.pvp_target.originalY = p.pvp_target.y;
+                            p.pvp_target.map.leave_map(p.pvp_target, 2);
+                        }
                         p.type_pk = -1;
                         p.pvp_target.type_pk = -1;
                         //
