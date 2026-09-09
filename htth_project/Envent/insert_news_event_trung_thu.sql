@@ -129,12 +129,14 @@ VALUES (
     <h4>🦁 4. HOẠT ĐỘNG 3: SĂN BOSS GIỜ VÀNG "LÂN SƯ TỬ"</h4>
     <p>Thử thách đánh Boss toàn server:</p>
     <ul>
-        <li><strong>Thời gian xuất hiện:</strong> Vào các khung giờ <strong>12:00, 18:00, 20:00, 22:00</strong> hằng ngày tại bản đồ dã ngoại ngẫu nhiên.</li>
-        <li><strong>Phần thưởng kết liễu (Last Hit):</strong> Thuyền trưởng tung đòn đánh kết liễu Boss Lân Sư Tử sẽ nhận ngay:
+        <li><strong>Thời gian xuất hiện:</strong> Trong 2 khung giờ <strong>07:00 – 11:00</strong> và <strong>17:00 – 22:00</strong> hằng ngày tại bản đồ dã ngoại ngẫu nhiên (tự động hồi sinh sau 15 phút kể từ khi bị hạ gục).</li>
+        <li><strong>Phần thưởng kết liễu (Last Hit):</strong> Thuyền trưởng tung đòn đánh kết liễu Boss Lân Sư Tử sẽ nhận ngay (gửi thẳng vào túi đồ):
             <ul>
-                <li>📜 <strong>Giấy Gói Quà</strong></li>
-                <li>🎁 <strong>Hộp Bánh Thượng Hạng</strong></li>
-                <li>👘 <strong>Thẻ Thời Trang Trung Thu</strong> (Đổi Trang phục Chú Cuội / Chị Hằng Vĩnh Viễn)</li>
+                <li>🎁 <strong>30% cơ hội nhận 1 Hộp Bánh Thượng Hạng</strong></li>
+                <li>💎 <strong>50 Ruby</strong></li>
+                <li>📜 <strong>2 Giấy Gói Quà</strong></li>
+                <li>🌾 <strong>1 Bột Mì + 1 Đường + 1 Trứng Muối</strong></li>
+                <li>🏆 <strong>+1 Điểm Bảng Xếp Hạng Giết Lân</strong></li>
             </ul>
         </li>
     </ul>

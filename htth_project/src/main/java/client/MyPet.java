@@ -22,13 +22,13 @@ public class MyPet {
     public static int getMaxExp(int lv) {
         switch (lv) {
             case 0:
-                return 1000000; // Cần 1.000.000 EXP (1.000.000 quái) để lên Lv 1
+                return 1000; // Cần 1.000 EXP (1.000 quái) để lên Lv 1
             case 1:
-                return 5000000; // Cần 5.000.000 EXP (5.000.000 quái) để lên Lv 2
+                return 5000; // Cần 5.000 EXP (5.000 quái) để lên Lv 2
             case 2:
-                return 10000000; // Cần 10.000.000 EXP (10.000.000 quái) để lên Lv 3
+                return 10000; // Cần 10.000 EXP (10.000 quái) để lên Lv 3
             default:
-                return 10000000;
+                return 10000;
         }
     }
 
