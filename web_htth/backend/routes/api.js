@@ -357,7 +357,7 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
     const countAsDeposit = isDeposit !== false;
 
     try {
-        const [rows] = await db.execute('SELECT coin, sumamount, vip, tichnap FROM accounts WHERE user = ?', [username]);
+        const [rows] = await db.execute('SELECT coin, sumamount, vip, tichnap, onl FROM accounts WHERE user = ?', [username]);
         if (rows.length === 0) {
             return res.json({ success: false, message: 'Không tìm thấy tài khoản!' });
         }
@@ -365,6 +365,7 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
         const acc = rows[0];
         const currentBalance = parseInt(acc.coin || 0, 10);
         const newBalance = currentBalance + coinAmount;
+        const isUserOnline = parseInt(acc.onl || 0, 10) === 1;
 
         if (countAsDeposit && coinAmount > 0) {
             const actualAmount = coinAmount * 1000;
@@ -387,58 +388,69 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
 
             const newVip = Math.max(currentVip, calculatedVip);
 
+            // Cập nhật nguyên tử (Atomic update) để tránh Race Condition với Game Server
             await db.execute(
-                'UPDATE accounts SET coin = ?, sumamount = ?, tongnap = ?, vip = ?, tichnap = ? WHERE user = ?',
-                [newBalance, newSumAmount, newSumAmount, newVip, newTichNap, username]
+                'UPDATE accounts SET coin = coin + ?, sumamount = sumamount + ?, tongnap = tongnap + ?, vip = GREATEST(vip, ?), tichnap = tichnap + ? WHERE user = ?',
+                [coinAmount, actualAmount, actualAmount, newVip, actualAmount, username]
             );
 
             // Add Item 360 (Vé tặng 10 ruby, category 4) to player's inventory in `players` table (1k VND = 1 ticket)
             const ticketQuantity = Math.floor(actualAmount / 1000);
-            if (ticketQuantity > 0) {
-                try {
-                    const [accRows] = await db.execute('SELECT `char` FROM accounts WHERE user = ? LIMIT 1', [username]);
-                    let charName = null;
-                    if (accRows.length > 0 && accRows[0].char) {
-                        const parsedChar = typeof accRows[0].char === 'string' ? JSON.parse(accRows[0].char) : accRows[0].char;
-                        if (Array.isArray(parsedChar) && parsedChar.length > 0) {
-                            charName = parsedChar[0];
-                        }
-                    }
-                    if (charName) {
-                        const [pRows] = await db.execute('SELECT `bag47` FROM players WHERE name = ? LIMIT 1', [charName]);
-                        if (pRows.length > 0) {
-                            let bag47 = [];
-                            try {
-                                bag47 = typeof pRows[0].bag47 === 'string' ? JSON.parse(pRows[0].bag47) : pRows[0].bag47;
-                            } catch (e) {}
-                            if (!Array.isArray(bag47)) {
-                                bag47 = [];
-                            }
+            let ticketNote = '';
 
-                            let found = false;
-                            for (let i = 0; i < bag47.length; i++) {
-                                const entry = typeof bag47[i] === 'string' ? JSON.parse(bag47[i]) : bag47[i];
-                                if (Array.isArray(entry) && entry.length >= 3) {
-                                    const cat = parseInt(entry[0], 10);
-                                    const itemId = parseInt(entry[1], 10);
-                                    if (cat === 4 && itemId === 360) {
-                                        entry[2] = parseInt(entry[2], 10) + ticketQuantity;
-                                        bag47[i] = entry;
-                                        found = true;
-                                        break;
+            if (ticketQuantity > 0) {
+                if (isUserOnline) {
+                    // Người chơi đang online trong Game Server: RAM của Server Java giữ bag47.
+                    // Nếu sửa trực tiếp DB lúc này, khi người chơi logout/chuyển map Server Java sẽ ghi đè RAM xuống DB làm mất đồ.
+                    ticketNote = ` (⚠️ Lưu ý: Tài khoản đang ONLINE, không thể thêm trực tiếp ${ticketQuantity} Vé Nạp vào túi để tránh bị Game Server ghi đè mất đồ. Hãy yêu cầu người chơi thoát game để buff đồ!)`;
+                    console.warn(`[Admin Buff] Account ${username} is currently ONLINE. Skipped direct bag47 DB write to avoid RAM overwrite loss.`);
+                } else {
+                    try {
+                        const [accRows] = await db.execute('SELECT `char` FROM accounts WHERE user = ? LIMIT 1', [username]);
+                        let charName = null;
+                        if (accRows.length > 0 && accRows[0].char) {
+                            const parsedChar = typeof accRows[0].char === 'string' ? JSON.parse(accRows[0].char) : accRows[0].char;
+                            if (Array.isArray(parsedChar) && parsedChar.length > 0) {
+                                charName = parsedChar[0];
+                            }
+                        }
+                        if (charName) {
+                            const [pRows] = await db.execute('SELECT `bag47` FROM players WHERE name = ? LIMIT 1', [charName]);
+                            if (pRows.length > 0) {
+                                let bag47 = [];
+                                try {
+                                    bag47 = typeof pRows[0].bag47 === 'string' ? JSON.parse(pRows[0].bag47) : pRows[0].bag47;
+                                } catch (e) {}
+                                if (!Array.isArray(bag47)) {
+                                    bag47 = [];
+                                }
+
+                                let found = false;
+                                for (let i = 0; i < bag47.length; i++) {
+                                    const entry = typeof bag47[i] === 'string' ? JSON.parse(bag47[i]) : bag47[i];
+                                    if (Array.isArray(entry) && entry.length >= 3) {
+                                        const cat = parseInt(entry[0], 10);
+                                        const itemId = parseInt(entry[1], 10);
+                                        if (cat === 4 && itemId === 360) {
+                                            entry[2] = parseInt(entry[2], 10) + ticketQuantity;
+                                            bag47[i] = entry;
+                                            found = true;
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                            if (!found) {
-                                bag47.push([4, 360, ticketQuantity]);
-                            }
+                                if (!found) {
+                                    bag47.push([4, 360, ticketQuantity]);
+                                }
 
-                            await db.execute('UPDATE players SET bag47 = ? WHERE name = ?', [JSON.stringify(bag47), charName]);
-                            console.log(`[Admin Buff] Added ${ticketQuantity} tickets (Item 360) to player ${charName} (account: ${username})`);
+                                await db.execute('UPDATE players SET bag47 = ? WHERE name = ?', [JSON.stringify(bag47), charName]);
+                                console.log(`[Admin Buff] Added ${ticketQuantity} tickets (Item 360) to player ${charName} (account: ${username})`);
+                                ticketNote = ` + ${ticketQuantity} Vé Nạp`;
+                            }
                         }
+                    } catch (itemErr) {
+                        console.error('[Admin Buff] Error adding ticket 360 to player:', itemErr.message);
                     }
-                } catch (itemErr) {
-                    console.error('[Admin Buff] Error adding ticket 360 to player:', itemErr.message);
                 }
             }
 
@@ -478,10 +490,10 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
 
             return res.json({ 
                 success: true, 
-                message: `Đã Buff Nạp ${coinAmount.toLocaleString()} Coin (Tương đương ${actualAmount.toLocaleString()}đ nạp & VIP ${newVip}) cho ${username}!` 
+                message: `Đã Buff Nạp ${coinAmount.toLocaleString()} Coin (Tương đương ${actualAmount.toLocaleString()}đ nạp & VIP ${newVip}) cho ${username}!${ticketNote}` 
             });
         } else {
-            await db.execute('UPDATE accounts SET coin = ? WHERE user = ?', [newBalance, username]);
+            await db.execute('UPDATE accounts SET coin = coin + ? WHERE user = ?', [coinAmount, username]);
             return res.json({ success: true, message: `Đã cộng ${coinAmount.toLocaleString()} Coin cho ${username}!` });
         }
     } catch (err) {
@@ -1400,7 +1412,8 @@ router.get('/ranking', async (req, res) => {
             clazz: row.clazz !== null ? parseInt(row.clazz, 10) : 0
         }));
 
-        // 3. Fetch top 10 donators (Top Nạp)
+        // 3. Fetch top 10 donators (Top Nạp) - Tạm thời đóng
+        /*
         // Đồng bộ công thức real_amount với Game Server, tiêu chí bằng tiền thì ai nạp trước được xếp lên đầu
         const napSql = `
             SELECT 
@@ -1445,6 +1458,8 @@ router.get('/ranking', async (req, res) => {
                 sumamount: parseInt(row.real_amount || 0, 10)
             };
         });
+        */
+        const topNap = [];
 
         // 4. Fetch top 10 clans (Top Clan - Tie-breaker: xp DESC, id ASC)
         const clanSql = `

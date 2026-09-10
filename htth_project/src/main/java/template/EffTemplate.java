@@ -47,6 +47,6 @@ public class EffTemplate {
     }
 
     public static boolean check_eff_remove_when_die(int id) {
-        return id == 0 || id == 1 || (id >= 201 && id <= 216);
+        return id == 0 || id == 1 || (id >= 100 && id <= 127) || id == 6 || (id >= 11 && id <= 14) || id == 18 || (id >= 201 && id <= 216);
     }
 }

@@ -54,9 +54,12 @@ public class Buff {
                 break;
             }
         }
+        if (sk_info == null) {
+            return;
+        }
         // Override thời gian và cooldown cho Haki Quan Sát, Haki Vũ Trang và Haki Bá
         // Vương
-        if (sk_info != null && (sk_info.temp.indexSkillInServer >= 900 && sk_info.temp.indexSkillInServer <= 902)) {
+        if (sk_info.temp.indexSkillInServer >= 900 && sk_info.temp.indexSkillInServer <= 902) {
             if (time_buff <= 0) {
                 time_buff = 20000; // 20 giây
             }
@@ -66,10 +69,14 @@ public class Buff {
                 sk_info.temp.timeDelay = 60000; // 60 giây cooldown
             }
         }
-        if (sk_info == null) {
-            return;
+        if (time_buff <= 0 && (sk_info.temp.indexSkillInServer == 912 || sk_info.temp.indexSkillInServer == 916)) {
+            time_buff = 20000;
         }
         if (p.time_sk[sk_info.temp.ID] > System.currentTimeMillis()) {
+            return;
+        }
+        if (p.mp < sk_info.temp.manaLost) {
+            Service.send_box_ThongBao_OK(p, "MP không đủ!");
             return;
         }
         if (time_buff > 0 && cat == 0 && size == 1) {
@@ -77,8 +84,15 @@ public class Buff {
                     || (sk_info.temp.ID >= 1010 && sk_info.temp.ID <= 1014)) {
                 p.time_sk[sk_info.temp.ID] = System.currentTimeMillis() + sk_info.temp.timeDelay;
             } else {
-                p.time_sk[sk_info.temp.ID] = System.currentTimeMillis() + sk_info.temp.timeDelay
-                        - ((sk_info.temp.timeDelay * p.body.get_agility(true)) / 1_000);
+                int agi = p.body.get_agility(true);
+                if (agi > 800) {
+                    agi = 800; // Giảm tối đa 80% thời gian hồi chiêu
+                }
+                long cd = sk_info.temp.timeDelay - ((sk_info.temp.timeDelay * (long) agi) / 1_000);
+                if (cd < 1000) {
+                    cd = 1000; // Cooldown tối thiểu 1 giây
+                }
+                p.time_sk[sk_info.temp.ID] = System.currentTimeMillis() + cd;
             }
             Service.use_potion(p, 1, -sk_info.temp.manaLost);
             Service.pet(p, p, false);
@@ -135,11 +149,13 @@ public class Buff {
             for (int i = 0; i < list_id.size(); i++) {
                 m.writer().writeByte(list_id.get(i));
                 m.writer().writeShort(list_par.get(i));
-                EffTemplate eff = p.get_eff(list_id.get(i));
+                int effId = list_id.get(i) + 100;
+                EffTemplate eff = p.get_eff(effId);
                 if (eff == null) {
-                    p.add_new_eff((list_id.get(i) + 100), list_par.get(i), time_buff);
+                    p.add_new_eff(effId, list_par.get(i), time_buff);
                 } else {
-                    eff.time += time_buff;
+                    eff.time = Math.max(eff.time + time_buff, System.currentTimeMillis() + time_buff);
+                    eff.param = list_par.get(i);
                 }
             }
             switch (id) {
@@ -206,7 +222,12 @@ public class Buff {
                     m.writer().writeShort(490);
                     m.writer().writeShort(491);
                     m.writer().writeShort(492);
-                    p.add_new_eff(6, 1, time_buff);
+                    EffTemplate eff6_1 = p.get_eff(6);
+                    if (eff6_1 == null) {
+                        p.add_new_eff(6, 1, time_buff);
+                    } else {
+                        eff6_1.time = Math.max(eff6_1.time + time_buff, System.currentTimeMillis() + time_buff);
+                    }
                     //
                     Message m12 = new Message(20);
                     m12.writer().writeByte(1);
@@ -236,7 +257,12 @@ public class Buff {
                     m.writer().writeShort(659);
                     m.writer().writeShort(660);
                     m.writer().writeShort(661);
-                    p.add_new_eff(6, 1, time_buff);
+                    EffTemplate eff6_2 = p.get_eff(6);
+                    if (eff6_2 == null) {
+                        p.add_new_eff(6, 1, time_buff);
+                    } else {
+                        eff6_2.time = Math.max(eff6_2.time + time_buff, System.currentTimeMillis() + time_buff);
+                    }
                     //
                     Message m12 = new Message(20);
                     m12.writer().writeByte(1);
@@ -292,9 +318,13 @@ public class Buff {
                         for (int i = 0; i < list_id.size(); i++) {
                             m.writer().writeByte(list_id.get(i));
                             m.writer().writeShort(list_par.get(i));
-                            EffTemplate eff = p0.get_eff(list_id.get(i));
+                            int effId = list_id.get(i) + 100;
+                            EffTemplate eff = p0.get_eff(effId);
                             if (eff == null) {
-                                p0.add_new_eff((list_id.get(i) + 100), list_par.get(i), time_buff);
+                                p0.add_new_eff(effId, list_par.get(i), time_buff);
+                            } else {
+                                eff.time = Math.max(eff.time + time_buff, System.currentTimeMillis() + time_buff);
+                                eff.param = list_par.get(i);
                             }
                         }
                         m.writer().writeByte(0);
@@ -311,20 +341,40 @@ public class Buff {
             //
             switch (id) {
                 case 1010: { // luffy
-                    p.add_new_eff(11, 1, time_buff);
+                    EffTemplate eff11 = p.get_eff(11);
+                    if (eff11 == null) {
+                        p.add_new_eff(11, 1, time_buff);
+                    } else {
+                        eff11.time = Math.max(eff11.time + time_buff, System.currentTimeMillis() + time_buff);
+                    }
                     break;
                 }
                 case 1011: { // zoro
-                    p.add_new_eff(12, 1, time_buff);
+                    EffTemplate eff12 = p.get_eff(12);
+                    if (eff12 == null) {
+                        p.add_new_eff(12, 1, time_buff);
+                    } else {
+                        eff12.time = Math.max(eff12.time + time_buff, System.currentTimeMillis() + time_buff);
+                    }
                     break;
                 }
                 case 1012: { // sanji
-                    p.add_new_eff(13, 1, time_buff);
+                    EffTemplate eff13 = p.get_eff(13);
+                    if (eff13 == null) {
+                        p.add_new_eff(13, 1, time_buff);
+                    } else {
+                        eff13.time = Math.max(eff13.time + time_buff, System.currentTimeMillis() + time_buff);
+                    }
                     Service.Main_char_Info(p);
                     break;
                 }
                 case 1013: { // nami
-                    p.add_new_eff(14, 1, time_buff);
+                    EffTemplate eff14 = p.get_eff(14);
+                    if (eff14 == null) {
+                        p.add_new_eff(14, 1, time_buff);
+                    } else {
+                        eff14.time = Math.max(eff14.time + time_buff, System.currentTimeMillis() + time_buff);
+                    }
                     break;
                 }
                 case 1014: { // usop

@@ -178,7 +178,7 @@ public class Party {
     public synchronized void temp_remove(Player p) {
         if (list.remove(p)) {
             try {
-                // Notificaions without actually disbanding or notifying dungeons
+                // Notifications without actually disbanding or notifying dungeons
                 Message m = new Message(-25);
                 m.writer().writeByte(3); // Type 3 is usually delete/remove
                 for (Player mem : list) {
@@ -189,10 +189,7 @@ public class Party {
                 }
                 m.cleanup();
                 
-                if (list.size() < 1) {
-                    // Party becomes empty -> disband
-                    this.delete();
-                } else {
+                if (list.size() >= 1) {
                     this.send_info();
                 }
             } catch (Exception e) {

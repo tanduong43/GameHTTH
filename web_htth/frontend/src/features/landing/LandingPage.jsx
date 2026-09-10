@@ -561,7 +561,8 @@ function LandingPage() {
         </div>
 
         <div className="leaderboards-grid" style={{ marginTop: '2rem' }}>
-          {/* Column 3: Top Nạp */}
+          {/* Column 3: Top Nạp (Tạm thời đóng) */}
+          {/*
           <div className="leaderboard-card card-panel">
             <div className="board-header pvp-arena-board">
               <span className="board-icon">💎</span>
@@ -612,9 +613,10 @@ function LandingPage() {
               </div>
             )}
           </div>
+          */}
 
           {/* Column 4: Top Clan */}
-          <div className="leaderboard-card card-panel">
+          <div className="leaderboard-card card-panel" style={{ gridColumn: '1 / -1' }}>
             <div className="board-header level-board">
               <span className="board-icon">🛡️</span>
               <div>

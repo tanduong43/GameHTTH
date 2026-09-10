@@ -137,8 +137,10 @@ public class GiftRuby {
         }
 
         // Thực hiện trừ vé và Ruby của người gửi, cộng Ruby cho người nhận
-        synchronized (p) {
-            synchronized (target) {
+        Player first = p.id < target.id ? p : target;
+        Player second = p.id < target.id ? target : p;
+        synchronized (first) {
+            synchronized (second) {
                 // Kiểm tra lại trong khối đồng bộ
                 if (p.item.total_item_bag_by_id(4, ITEM_TICKET_ID) < tickets || p.get_ngoc() < rubyRequired) {
                     Service.send_box_ThongBao_OK(p, "Số lượng vé hoặc Ruby không đủ để thực hiện giao dịch!");

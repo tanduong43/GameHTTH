@@ -784,8 +784,8 @@ public class Bank {
     public static void showInfoMenu(Player p, int npcId) throws IOException {
         if (p == null || p.isdie) return;
         MenuController.send_dynamic_menu(p, MENU_ID_BANK_INFO, "Thông Tin Ngân Hàng",
-                new String[] { "Tỷ lệ quy đổi", "Mốc cấp VIP", "Hướng dẫn nạp", "Top Nạp Tiền", "Lướt xem tất cả", "Quay lại" },
-                new short[] { 140, 148, 132, 161, 140, 161 });
+                new String[] { "Tỷ lệ quy đổi", "Mốc cấp VIP", "Hướng dẫn nạp", /* "Top Nạp Tiền", */ "Lướt xem tất cả", "Quay lại" },
+                new short[] { 140, 148, 132, /* 161, */ 140, 161 });
     }
 
     /**
@@ -816,10 +816,12 @@ public class Bank {
                         + "• Bước 2: Chuyển khoản đúng thông tin và mã GD.\n"
                         + "• Bước 3: Admin sẽ duyệt đơn nạp trong giây lát!");
                 break;
-            case 3: // Top Nạp Tiền
+            /*
+            case 3: // Top Nạp Tiền (Tạm thời đóng)
                 core.BXH.send(p, 17, 0);
                 break;
-            case 4: // Lướt xem tất cả dạng hội thoại NPC phân trang (Bấm Tiếp tục để lướt)
+            */
+            case 3: // Lướt xem tất cả dạng hội thoại NPC phân trang (Bấm Tiếp tục để lướt)
                 String helpText = "Tỷ lệ nạp & quy đổi\r\n"
                         + "• 1.000 VNĐ = 1 Coin = 1.000 Điểm tích nạp.\b"
                         + "Quy đổi Coin sang Ruby & Extol\r\n"
@@ -835,7 +837,8 @@ public class Bank {
                         + "• Bước 3: Admin sẽ duyệt đơn nạp trong giây lát!";
                 Service.Help_From_Server(p, -205, helpText);
                 break;
-            case 5: // Quay lại
+            case 4: // Quay lại
+            case 5: // Quay lại (phòng hờ packet client cũ)
                 sendMainMenu(p, -205);
                 break;
         }

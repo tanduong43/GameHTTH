@@ -22,7 +22,8 @@ public class HangDong extends Dungeon {
     public static final List<HangDong> ACTIVE_HANG_DONG = new CopyOnWriteArrayList<>();
     private static final ScheduledExecutorService TRANSITION_SCHEDULER = Executors.newScheduledThreadPool(2);
 
-    public List<Player> partyMembers = new ArrayList<>();
+    public List<Player> partyMembers = new CopyOnWriteArrayList<>();
+    public List<String> offlineMembers = new CopyOnWriteArrayList<>();
     public Player leader;
     public int currentStageIndex = 0; // 0 to 99
     public long stageEndTime;
@@ -36,6 +37,8 @@ public class HangDong extends Dungeon {
     public boolean isFailing = false;
     public long failTime = 0;
     public long stageStartTime;
+    public boolean stageInitialized = false;
+    public long allOfflineSince = 0;
 
     public java.util.Map<String, Integer> playerLastRewardedStage = new java.util.HashMap<>();
 
@@ -48,17 +51,20 @@ public class HangDong extends Dungeon {
             }
         }
         ACTIVE_HANG_DONG.add(this);
-        this.maps = new ArrayList<>();
-        this.mobs = new ArrayList<>();
+        this.maps = new CopyOnWriteArrayList<>();
+        this.mobs = new CopyOnWriteArrayList<>();
     }
 
     public static HangDong findActive(String name) {
         for (HangDong hd : ACTIVE_HANG_DONG) {
             if (hd.active && !hd.finished) {
                 for (Player p : hd.partyMembers) {
-                    if (p.name.equals(name)) {
+                    if (p != null && p.name.equals(name)) {
                         return hd;
                     }
+                }
+                if (hd.offlineMembers.contains(name)) {
+                    return hd;
                 }
             }
         }
@@ -72,8 +78,59 @@ public class HangDong extends Dungeon {
                 break;
             }
         }
-        if (leader.name.equals(name)) {
+        if (leader != null && leader.name.equals(name)) {
             leader = newRef;
+        }
+    }
+
+    public synchronized void markOffline(String playerName) {
+        this.partyMembers.removeIf(m -> m != null && m.name.equals(playerName));
+        if (!this.offlineMembers.contains(playerName)) {
+            this.offlineMembers.add(playerName);
+            System.out.println("[HangDong] Player " + playerName + " marked offline (pending rejoin).");
+        }
+    }
+
+    public synchronized void reconnectPlayer(Player p) {
+        if (this.finished || !this.active) {
+            try {
+                Service.send_box_ThongBao_OK(p, "Phụ bản đã kết thúc!");
+            } catch (Exception ignored) {
+            }
+            return;
+        }
+
+        this.offlineMembers.remove(p.name);
+        this.partyMembers.removeIf(m -> m != null && m.name.equals(p.name));
+        this.partyMembers.add(p);
+        this.allOfflineSince = 0;
+
+        if (this.leader == null || this.leader.name.equals(p.name)) {
+            this.leader = p;
+        }
+
+        p.dungeon = this;
+        p.isdie = false;
+        p.hp = p.body.get_hp_max(true);
+        p.mp = p.body.get_mp_max(true);
+        p.time_can_mob_atk = System.currentTimeMillis() + 2000L;
+
+        if (this.currentMap != null) {
+            Vgo vgo = new Vgo();
+            vgo.map_go = new Map[] { this.currentMap };
+            vgo.xnew = 150;
+            vgo.ynew = 250;
+            try {
+                p.goto_map(vgo);
+                Service.send_box_ThongBao_OK(p, "Bạn đã vào lại Hang Động tầng " + (this.currentStageIndex + 1));
+                if (this.isTransitioning) {
+                    Service.send_time_cool_down(p, this.transitionTime, "Chuyển tầng", 2);
+                } else {
+                    Service.send_time_cool_down(p, this.stageEndTime, "Tầng " + (this.currentStageIndex + 1), 2);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -82,6 +139,8 @@ public class HangDong extends Dungeon {
             completeDungeon();
             return;
         }
+
+        this.stageInitialized = false;
 
         if (this.currentTransitionFuture != null && !this.currentTransitionFuture.isDone()) {
             this.currentTransitionFuture.cancel(true);
@@ -115,9 +174,9 @@ public class HangDong extends Dungeon {
         map_dungeon.template = mapTemplate.template;
         map_dungeon.zone_id = (byte) (stageIndex % 100);
         map_dungeon.list_mob = new int[0];
-        this.mobs = new ArrayList<>();
+        this.mobs = new CopyOnWriteArrayList<>();
         if (this.maps == null) {
-            this.maps = new ArrayList<>();
+            this.maps = new CopyOnWriteArrayList<>();
         } else {
             this.maps.clear();
         }
@@ -207,6 +266,7 @@ public class HangDong extends Dungeon {
         Map.add_map_plus(map_dungeon);
         this.currentMap = map_dungeon;
         this.active = true;
+        this.stageInitialized = true;
 
         Vgo vgo = new Vgo();
         vgo.map_go = new Map[] { this.currentMap };
@@ -251,18 +311,14 @@ public class HangDong extends Dungeon {
     }
 
     public synchronized void checkTransition() {
-        if (!active || finished)
+        if (!this.stageInitialized || !this.active || this.finished || this.isTransitioning)
             return;
 
-        if (isTransitioning) {
-            return;
-        }
-
-        boolean allDead = (this.mobs != null && !this.mobs.isEmpty());
-        if (allDead) {
+        boolean allDead = true;
+        if (this.mobs != null && !this.mobs.isEmpty()) {
             for (int i = 0; i < this.mobs.size(); i++) {
                 Mob mob = this.mobs.get(i);
-                if (mob != null && !mob.isdie) {
+                if (mob != null && !mob.isdie && mob.hp > 0) {
                     allDead = false;
                     break;
                 }
@@ -270,8 +326,9 @@ public class HangDong extends Dungeon {
         }
 
         if (allDead) {
-            isTransitioning = true;
-            transitionTime = System.currentTimeMillis() + 5000L;
+            this.stageInitialized = false;
+            this.isTransitioning = true;
+            this.transitionTime = System.currentTimeMillis() + 5000L;
             if (currentStageIndex >= 49) {
                 try {
                     String names = leader.name;
@@ -531,6 +588,9 @@ public class HangDong extends Dungeon {
         this.isTransitioning = false;
         this.finished = true;
         this.active = false;
+        this.stageInitialized = false;
+        this.allOfflineSince = 0;
+        this.offlineMembers.clear();
         ACTIVE_HANG_DONG.remove(this);
 
         // Clean up maps and mobs to avoid memory leaks
@@ -638,19 +698,33 @@ public class HangDong extends Dungeon {
             return;
         }
 
-        // 2. Active Players Check (fail if all offline/left map after 10 seconds grace period)
-        if (System.currentTimeMillis() - this.stageStartTime > 10000L) {
-            boolean anyOnline = false;
-            for (Player member : this.partyMembers) {
-                Player pOnline = Map.get_player_by_name_allmap(member.name);
-                if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
-                        && pOnline.dungeon == this && pOnline.map != null && pOnline.map.equals(this.currentMap)) {
-                    anyOnline = true;
-                    break;
-                }
+        // 2. Active Players Check (fail if all offline/left map after 90 seconds grace period)
+        boolean anyOnlineInMap = false;
+        for (Player member : this.partyMembers) {
+            Player pOnline = Map.get_player_by_name_allmap(member.name);
+            if (pOnline != null && pOnline.conn != null && pOnline.conn.connected
+                    && pOnline.dungeon == this && pOnline.map != null && pOnline.map.equals(this.currentMap)) {
+                anyOnlineInMap = true;
+                break;
+            }
+        }
+
+        if (anyOnlineInMap) {
+            this.allOfflineSince = 0;
+        } else {
+            // Không có ai online trong map hiện tại
+            if (this.partyMembers.isEmpty() && this.offlineMembers.isEmpty()) {
+                System.out.println("[HangDong] No members left in party or offline list. Closing dungeon.");
+                completeDungeon();
+                return;
             }
 
-            if (!anyOnline) {
+            long now = System.currentTimeMillis();
+            if (this.allOfflineSince == 0) {
+                this.allOfflineSince = now;
+                System.out.println("[HangDong] All players offline or left map. Starting 90s grace period for reconnect.");
+            } else if (now - this.allOfflineSince > 90_000L) { // 90 giây
+                System.out.println("[HangDong] Reconnect grace period expired (90s). Ending dungeon.");
                 completeDungeon();
                 return;
             }
@@ -692,7 +766,8 @@ public class HangDong extends Dungeon {
     }
 
     public synchronized void handlePlayerLeftParty(Player p) {
-        this.partyMembers.removeIf(m -> m.name.equals(p.name));
+        this.partyMembers.removeIf(m -> m != null && m.name.equals(p.name));
+        this.offlineMembers.remove(p.name);
         p.dungeon = null;
 
         // Teleport the player back to map 1
@@ -709,18 +784,19 @@ public class HangDong extends Dungeon {
             e.printStackTrace();
         }
 
-        if (partyMembers.isEmpty()) {
+        if (partyMembers.isEmpty() && offlineMembers.isEmpty()) {
             completeDungeon();
-        } else if (p.name.equals(this.leader.name)) {
+        } else if (this.leader != null && p.name.equals(this.leader.name)) {
             // If the leader leaves, assign new leader
-            this.leader = partyMembers.get(0);
+            if (!partyMembers.isEmpty()) {
+                this.leader = partyMembers.get(0);
+            }
         }
     }
 
     public void playerDisconnected(Player p) {
-        partyMembers.remove(p);
-        if (partyMembers.isEmpty()) {
-            completeDungeon();
+        if (p != null) {
+            markOffline(p.name);
         }
     }
 }

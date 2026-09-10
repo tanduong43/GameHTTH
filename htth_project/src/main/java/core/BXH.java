@@ -364,6 +364,8 @@ public class BXH {
                 break;
             }
             case 17: {
+                // Tạm thời đóng BXH Top Nạp
+                /*
                 updateTopNap();
                 int bound1 = 0;
                 int bound2 = BXH.TOP_NAP.size();
@@ -390,6 +392,11 @@ public class BXH {
                     InfoMemList temp = BXH.TOP_NAP.get(i);
                     InfoMemList.WriteInfoMemList(m.writer(), temp);
                 }
+                */
+                m.writer().writeByte(17);
+                m.writer().writeUTF("Top Nạp");
+                m.writer().writeByte(0);
+                m.writer().writeByte(0);
                 break;
             }
             case 18: {

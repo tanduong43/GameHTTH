@@ -2722,6 +2722,13 @@ public class Map implements Runnable {
                     + " Moving to offlineMembers.");
             this.map_bossHunt.markOffline(p.name);
         }
+        // HangDong: khi player ngắt kết nối, tạm chuyển vào offlineMembers.
+        // Phó bản có 90s ân hạn để người chơi kết nối lại.
+        if (this.map_dungeon != null && this.map_dungeon instanceof activities.HangDong) {
+            System.out.println("[HangDong] Player " + p.name
+                    + " left HangDong map. Moving to offlineMembers.");
+            ((activities.HangDong) this.map_dungeon).markOffline(p.name);
+        }
         // Reset mob target if mob was targeting the player who left/disconnected
         if (this.map_bossHunt != null && this.map_bossHunt.mobs != null) {
             for (Mob mob : this.map_bossHunt.mobs) {
@@ -5927,6 +5934,10 @@ public class Map implements Runnable {
         // Lệnh test hiệu ứng Skill / Effect mới (Hỗ trợ /eff, eff, /teff, teff)
         if (txt.startsWith("eff ") || txt.startsWith("/eff ") || txt.startsWith("teff ") || txt.startsWith("/teff ")
                 || txt.startsWith("testeff ") || txt.startsWith("/testeff ") || txt.equals("eff") || txt.equals("/eff")) {
+            if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
+                return;
+            }
             try {
                 String clean = txt.startsWith("/") ? txt.substring(1) : txt;
                 String[] parts = clean.split("\\s+");
@@ -6019,6 +6030,10 @@ public class Map implements Runnable {
             }
             return;
         } else if (txt.startsWith("rmeff ") || txt.startsWith("/rmeff ")) {
+            if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
+                return;
+            }
             try {
                 String clean = txt.startsWith("/") ? txt.substring(1) : txt;
                 String[] parts = clean.split("\\s+");
@@ -6035,6 +6050,10 @@ public class Map implements Runnable {
             }
             return;
         } else if (txt.equals("cleareff") || txt.equals("/cleareff") || txt.equals("rmeff") || txt.equals("/rmeff")) {
+            if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
+                return;
+            }
             short[] testIds = new short[] {
                 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
                 124, 125, 126, 127, 128, 130, 131, 132, 133, 134, 135, 136, 140, 141, 142, 143, 144, 145

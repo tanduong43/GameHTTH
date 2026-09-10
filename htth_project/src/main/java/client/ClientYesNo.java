@@ -82,35 +82,27 @@ public class ClientYesNo {
             if (value == 0) { // Đồng ý
                 activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);
                 if (activeHangDong != null) {
-                    activeHangDong.updateMemberReference(p.name, p);
-                    p.dungeon = activeHangDong;
-                    Vgo vgo = new Vgo();
-                    vgo.map_go = new Map[] { activeHangDong.currentMap };
-                    vgo.xnew = 100;
-                    vgo.ynew = 100;
-                    p.goto_map(vgo);
-                    if (activeHangDong.isTransitioning) {
-                        Service.send_time_cool_down(p, activeHangDong.transitionTime, "Chuyển tầng", 2);
-                    } else {
-                        Service.send_time_cool_down(p, activeHangDong.stageEndTime, "Tầng " + (activeHangDong.currentStageIndex + 1), 2);
-                    }
+                    activeHangDong.reconnectPlayer(p);
                 } else {
                     Service.send_box_ThongBao_OK(p, "Phụ bản đã kết thúc!");
                 }
             } else { // Hủy
                 activities.HangDong activeHangDong = activities.HangDong.findActive(p.name);
                 if (activeHangDong != null) {
-                    activeHangDong.partyMembers.removeIf(member -> member.name.equals(p.name));
+                    activeHangDong.partyMembers.removeIf(member -> member != null && member.name.equals(p.name));
+                    activeHangDong.offlineMembers.remove(p.name);
                 }
                 p.dungeon = null;
                 if (p.party != null) {
                     p.party.leave_party(p);
                 }
                 if (activeHangDong != null) {
-                    if (activeHangDong.partyMembers.isEmpty()) {
+                    if (activeHangDong.partyMembers.isEmpty() && activeHangDong.offlineMembers.isEmpty()) {
                         activeHangDong.completeDungeon();
-                    } else if (p.name.equals(activeHangDong.leader.name)) {
-                        activeHangDong.leader = activeHangDong.partyMembers.get(0);
+                    } else if (activeHangDong.leader != null && p.name.equals(activeHangDong.leader.name)) {
+                        if (!activeHangDong.partyMembers.isEmpty()) {
+                            activeHangDong.leader = activeHangDong.partyMembers.get(0);
+                        }
                     }
                 }
             }

@@ -455,13 +455,13 @@ public class MenuController {
                 p, type, get_name_npc(type), new String[] { "Kích Hoạt Tài Khoản", "Thách đấu",
                     "Cao thủ", "Băng hải tặc", "Truy nã", "Đá hành trình",
                     /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip,
-                    "Vị trí Boss", "Top Siêu Trùm", "Top Nạp" },
+                    "Vị trí Boss", "Top Siêu Trùm" /* , "Top Nạp" */ },
                 null);
           } else {
             send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Thách đấu", "Cao thủ",
                 "Băng hải tặc", "Truy nã", "Đá hành trình", /* "Điểm Danh", */ "Điểm Danh Vip " + p.conn.vip,
                 "Vị trí Boss",
-                "Top Siêu Trùm", "Top Nạp" },
+                "Top Siêu Trùm" /* , "Top Nạp" */ },
                 null);
           }
           break;
@@ -3379,7 +3379,9 @@ public class MenuController {
         break;
       }
       case 9: { // Top Nạp
-        BXH.send(p, 17, 0);
+        // Tạm thời đóng BXH Top Nạp
+        Service.send_box_ThongBao_OK(p, "Bảng xếp hạng Top Nạp tạm thời đóng!");
+        // BXH.send(p, 17, 0);
         break;
       }
     }

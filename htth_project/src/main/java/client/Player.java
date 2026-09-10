@@ -1624,14 +1624,16 @@ public class Player {
             ps.setNString(13, js.toJSONString());
             js.clear();
             js = new JSONArray();
-            for (int i = 0; i < p.list_eff.size(); i++) {
-                JSONArray js_temp = new JSONArray();
-                EffTemplate eff_temp = p.list_eff.get(i);
-                if (EffTemplate.check_eff_can_save(eff_temp.id)) {
-                    js_temp.add(eff_temp.id);
-                    js_temp.add(eff_temp.param);
-                    js_temp.add(eff_temp.time - System.currentTimeMillis());
-                    js.add(js_temp);
+            synchronized (p.list_eff) {
+                for (int i = 0; i < p.list_eff.size(); i++) {
+                    JSONArray js_temp = new JSONArray();
+                    EffTemplate eff_temp = p.list_eff.get(i);
+                    if (EffTemplate.check_eff_can_save(eff_temp.id)) {
+                        js_temp.add(eff_temp.id);
+                        js_temp.add(eff_temp.param);
+                        js_temp.add(eff_temp.time - System.currentTimeMillis());
+                        js.add(js_temp);
+                    }
                 }
             }
             ps.setNString(14, js.toJSONString()); // eff
@@ -2433,12 +2435,14 @@ public class Player {
 
     public void update_eff() throws IOException {
         List<EffTemplate> list_temp = new ArrayList<>();
-        for (int i = 0; i < list_eff.size(); i++) {
-            if (list_eff.get(i).time < System.currentTimeMillis()) {
-                list_temp.add(list_eff.get(i));
+        synchronized (this.list_eff) {
+            for (int i = 0; i < list_eff.size(); i++) {
+                if (list_eff.get(i).time < System.currentTimeMillis()) {
+                    list_temp.add(list_eff.get(i));
+                }
             }
+            list_eff.removeAll(list_temp);
         }
-        list_eff.removeAll(list_temp);
         //
         for (int i = 0; i < list_temp.size(); i++) {
             if (list_temp.get(i).id == 7) {
@@ -2509,9 +2513,11 @@ public class Player {
     }
 
     public void update_die() {
-        for (int i = 0; i < list_eff.size(); i++) {
-            if (EffTemplate.check_eff_remove_when_die(list_eff.get(i).id)) {
-                list_eff.get(i).time = System.currentTimeMillis();
+        synchronized (this.list_eff) {
+            for (int i = 0; i < list_eff.size(); i++) {
+                if (EffTemplate.check_eff_remove_when_die(list_eff.get(i).id)) {
+                    list_eff.get(i).time = System.currentTimeMillis();
+                }
             }
         }
     }
