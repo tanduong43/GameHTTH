@@ -41,13 +41,17 @@ public class Option {
                 break;
             }
             case 7: {
-                if (this.id < 28) {
-                    if (this.id == 1 || this.id == 20) {
-                        result = (result * PAR_PER_DIAL[tier]) / 100;
-                    } else {
-                        result = (result * PAR_PER_LEVELUP[tier]) / 100;
-                    }
+                // Nâng cấp dial hiện tại có cơ chế sinh thêm dòng chỉ số mới ở mốc +1, +3, +5
+                // nên tạm thời comment phần tăng chỉ số theo cấp nâng cấp tại đây.
+                /*
+                int t = Math.max(0, Math.min(tier, PAR_PER_DIAL.length - 1));
+                if (this.id == 1 || this.id == 20) {
+                    result = (result * PAR_PER_DIAL[t]) / 100;
+                } else {
+                    int tUp = Math.max(0, Math.min(tier, PAR_PER_LEVELUP.length - 1));
+                    result = (result * PAR_PER_LEVELUP[tUp]) / 100;
                 }
+                */
                 break;
             }
         }

@@ -92,9 +92,9 @@ public class UpgradeDevil {
                 m.writer().writeByte(4);
                 m.writer().writeShort(404);
                 //
-                m.writer().writeInt(15_000);
+                m.writer().writeInt(1_500_000);
                 m.writer().writeShort(0);
-                m.writer().writeInt(2000);
+                m.writer().writeInt(100);
                 m.writer().writeShort(455);
                 m.writer().writeShort(1);
                 m.writer().writeByte(4);
@@ -281,12 +281,12 @@ public class UpgradeDevil {
                     Service.send_box_ThongBao_OK(p, "Không đủ 1 vỏ ốc");
                     return;
                 }
-                if (p.get_vang() < 15_000) {
-                    Service.send_box_ThongBao_OK(p, "Không đủ 15.000 beri");
+                if (p.get_vang() < 1_500_000) {
+                    Service.send_box_ThongBao_OK(p, "Không đủ 1.500.000 beri");
                     return;
                 }
-                if (p.get_vnd() < 2_000) {
-                    Service.send_box_ThongBao_OK(p, "Không đủ 2.000 extol");
+                if (p.get_vnd() < 100) {
+                    Service.send_box_ThongBao_OK(p, "Không đủ 100 extol");
                     return;
                 }
                 boolean suc = p.get_tyle_ghep_dial() > Util.random(150);
@@ -298,8 +298,8 @@ public class UpgradeDevil {
                 p.conn.addmsg(m);
                 m.cleanup();
                 //
-                p.update_vang(-15_000);
-                p.update_vnd(-2_000);
+                p.update_vang(-1_500_000);
+                p.update_vnd(-100);
                 p.update_money();
                 p.item.remove_item47(4, 452, 1);
                 p.item.remove_item47(4, 453, 1);

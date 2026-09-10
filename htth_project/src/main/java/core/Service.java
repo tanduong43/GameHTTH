@@ -1951,22 +1951,22 @@ public class Service {
                                                 value_random = Util.random(10, 15);
                                             }
                                             it_add.option_item.add(new Option(value_random,
-                                                    Util.random(100, 200)));
+                                                    Util.random(70, 121)));
                                             break;
                                         }
                                         case 3: {
                                             it_add.option_item
-                                                    .add(new Option(56, Util.random(100, 200)));
+                                                    .add(new Option(56, Util.random(70, 121)));
                                             break;
                                         }
                                         case 4: {
                                             it_add.option_item
-                                                    .add(new Option(4, Util.random(100, 200)));
+                                                    .add(new Option(4, Util.random(70, 121)));
                                             break;
                                         }
                                         case 5: {
                                             it_add.option_item
-                                                    .add(new Option(53, Util.random(50, 150)));
+                                                    .add(new Option(53, Util.random(70, 121)));
                                             break;
                                         }
                                         case 6: {
@@ -1996,22 +1996,22 @@ public class Service {
                                                 value_random = Util.random(10, 15);
                                             }
                                             it_add.option_item.add(new Option(value_random,
-                                                    Util.random(100, 200)));
+                                                    Util.random(70, 121)));
                                             break;
                                         }
                                         case 3: {
                                             it_add.option_item
-                                                    .add(new Option(56, Util.random(100, 200)));
+                                                    .add(new Option(56, Util.random(70, 121)));
                                             break;
                                         }
                                         case 4: {
                                             it_add.option_item
-                                                    .add(new Option(4, Util.random(100, 200)));
+                                                    .add(new Option(4, Util.random(70, 121)));
                                             break;
                                         }
                                         case 5: {
                                             it_add.option_item
-                                                    .add(new Option(53, Util.random(50, 150)));
+                                                    .add(new Option(53, Util.random(70, 121)));
                                             break;
                                         }
                                         case 6: {

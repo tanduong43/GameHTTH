@@ -1,12 +1,21 @@
 package event;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import client.Player;
 import core.BXH;
@@ -31,6 +40,9 @@ import template.Top_Dame;
  * Chỉ sử dụng item4 có sẵn trong database, không ảnh hưởng code gốc.
  */
 public class EventTrungThu implements Runnable {
+
+    // BXH Điểm Ăn/Nấu Bánh Trung Thu (Player Name -> Point)
+    private final ConcurrentHashMap<String, Integer> pointMap = new ConcurrentHashMap<>();
 
     // ================== CẤU HÌNH SỰ KIỆN ==================
     public static boolean IS_OPEN = false;
@@ -88,6 +100,7 @@ public class EventTrungThu implements Runnable {
 
     // ================== KHỞI TẠO ==================
     private EventTrungThu() {
+        loadData();
         this.eventThread = new Thread(this, "EventTrungThu-Main");
         this.eventThread.start();
     }
@@ -781,7 +794,13 @@ public class EventTrungThu implements Runnable {
             }
         }
 
-        Service.send_gift(p, 0, "Quà trung thu:", "", rewards, true);
+        int points = 1;
+        if (itemId == ITEM_BANH_TRUNG_MUOI || itemId == ITEM_BANH_HAT_SEN) {
+            points = 2;
+        }
+        getInstance().addPoint(p, points);
+
+        Service.send_gift(p, 0, "Quà trung thu (+" + points + " Điểm TT):", "", rewards, true);
     }
 
     /**
@@ -884,7 +903,10 @@ public class EventTrungThu implements Runnable {
         // Thông báo bắn pháo hoa
         Manager.gI().chatKTG(0, "🎆 " + p.name + " đã bắn pháo hoa rực rỡ!", 5);
 
-        Service.send_gift(p, 0, "Bạn nhận được:", "", rewards, true);
+        int points = 2;
+        getInstance().addPoint(p, points);
+
+        Service.send_gift(p, 0, "Bạn nhận được (+" + points + " Điểm TT):", "", rewards, true);
     }
 
     /**
@@ -975,7 +997,10 @@ public class EventTrungThu implements Runnable {
             }
         }
 
-        Service.send_gift(p, 0, "Quà từ Hộp Bánh Trung Thu:", "", rewards, true);
+        int points = 5;
+        getInstance().addPoint(p, points);
+
+        Service.send_gift(p, 0, "Quà từ Hộp Bánh Trung Thu (+" + points + " Điểm TT):", "", rewards, true);
     }
 
     /**
@@ -1066,7 +1091,10 @@ public class EventTrungThu implements Runnable {
             }
         }
 
-        Service.send_gift(p, 0, "Bạn mở Hộp Bánh Thượng Hạng và nhận được:", "", rewards, true);
+        int points = 10;
+        getInstance().addPoint(p, points);
+
+        Service.send_gift(p, 0, "Bạn mở Hộp Bánh Thượng Hạng và nhận được (+" + points + " Điểm TT):", "", rewards, true);
     }
 
     /**
@@ -1378,5 +1406,89 @@ public class EventTrungThu implements Runnable {
             }
         }
         return -1;
+    }
+
+    // ================== HỆ THỐNG ĐIỂM & BXH ĂN BÁNH TRUNG THU ==================
+
+    public void addPoint(Player p, int pt) {
+        if (p == null || pt <= 0)
+            return;
+        pointMap.merge(p.name, pt, Integer::sum);
+        saveData();
+    }
+
+    public int getPlayerPoint(Player p) {
+        if (p == null)
+            return 0;
+        return pointMap.getOrDefault(p.name, 0);
+    }
+
+    public int getRank(Player p) {
+        if (p == null)
+            return -1;
+        List<Entry<String, Integer>> list = new ArrayList<>(pointMap.entrySet());
+        list.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+        for (int i = 0; i < Math.min(10, list.size()); i++) {
+            if (list.get(i).getKey().equals(p.name) && list.get(i).getValue() > 0) {
+                return i + 1;
+            }
+        }
+        return -1;
+    }
+
+    public ConcurrentHashMap<String, Integer> getPointMap() {
+        return pointMap;
+    }
+
+    public void showBanhLeaderboard(Player p) {
+        if (p == null)
+            return;
+        try {
+            core.BXH.send(p, 18, 0);
+        } catch (IOException e) {
+            System.out.println("Error showing banh leaderboard: " + e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private synchronized void saveData() {
+        try {
+            JSONObject root = new JSONObject();
+            JSONObject pointsObj = new JSONObject();
+            for (Entry<String, Integer> e : pointMap.entrySet()) {
+                pointsObj.put(e.getKey(), e.getValue());
+            }
+            root.put("points", pointsObj);
+
+            File f = new File("event_trung_thu_data.json");
+            try (FileWriter fw = new FileWriter(f)) {
+                fw.write(root.toJSONString());
+            }
+        } catch (Exception e) {
+            System.out.println("Error saving event Trung Thu data: " + e.getMessage());
+        }
+    }
+
+    private synchronized void loadData() {
+        try {
+            File f = new File("event_trung_thu_data.json");
+            if (!f.exists())
+                return;
+            String content = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
+            Object obj = JSONValue.parse(content);
+            if (obj instanceof JSONObject) {
+                JSONObject root = (JSONObject) obj;
+                JSONObject pointsObj = (JSONObject) root.get("points");
+                if (pointsObj != null) {
+                    for (Object k : pointsObj.keySet()) {
+                        String name = (String) k;
+                        int pts = Integer.parseInt(pointsObj.get(k).toString());
+                        pointMap.put(name, pts);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading event Trung Thu data: " + e.getMessage());
+        }
     }
 }

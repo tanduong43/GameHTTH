@@ -1,6 +1,7 @@
 package activities;
 
 import client.Player;
+import core.Manager;
 import core.Service;
 import core.Util;
 import io.Message;
@@ -96,11 +97,11 @@ public class UpgradeDial {
                         int beri_req = get_beri_up(it_select.levelup);
                         int extol_req = get_extol_up(it_select.levelup);
                         if (p.get_vang() < beri_req) {
-                            Service.send_box_ThongBao_OK(p, "Không đủ " + beri_req + " beri");
+                            Service.send_box_ThongBao_OK(p, "Không đủ " + Util.number_format(beri_req) + " beri");
                             return;
                         }
                         if (p.get_vnd() < extol_req) {
-                            Service.send_box_ThongBao_OK(p, "Không đủ " + extol_req + " extol");
+                            Service.send_box_ThongBao_OK(p, "Không đủ " + Util.number_format(extol_req) + " extol");
                             return;
                         }
                         int botCH_req = get_botCH(it_select.levelup);
@@ -163,6 +164,13 @@ public class UpgradeDial {
                                     "Nâng cấp thành công vật phẩm lên +" + it_select.levelup);
                             p.conn.addmsg(m);
                             m.cleanup();
+                            if (it_select.levelup >= 3) {
+                                try {
+                                    Manager.gI().chatKTG(0, (p.name + " đã đập " + it_select.template.name
+                                            + " lên cấp +" + it_select.levelup), 5);
+                                } catch (Exception e) {
+                                }
+                            }
                         } else {
                             int percent_rotcap = 85 - p.tool_dial[1] * 5 - p.tool_dial[2] * 20;
                             if (percent_rotcap > Util.random(100)) {
@@ -180,15 +188,13 @@ public class UpgradeDial {
                             m.cleanup();
                         }
                         //
-                        if (it_select.levelup == 3 || it_select.levelup == 5
-                                || (it_select.template.name.equals("Dial Truyền thuyết")
-                                        && it_select.levelup == 1)) {
+                        if (suc && (it_select.levelup == 3 || it_select.levelup == 5)) {
                             if (it_select.template.name.equals("Dial Thần Thoại")) {
                                 boolean add = false;
-                                if (it_select.levelup == 3 && it_select.option_item.size() == 2) {
+                                if (it_select.levelup == 3 && it_select.option_item.size() < 4) {
                                     add = true;
                                 } else if (it_select.levelup == 5
-                                        && it_select.option_item.size() == 3) {
+                                        && it_select.option_item.size() < 5) {
                                     add = true;
                                 }
                                 if (add) {
@@ -210,22 +216,22 @@ public class UpgradeDial {
                                                 value_random = Util.random(10, 15);
                                             }
                                             it_select.option_item.add(new Option(value_random,
-                                                    Util.random(100, 200)));
+                                                    Util.random(70, 121)));
                                             break;
                                         }
                                         case 3: {
                                             it_select.option_item
-                                                    .add(new Option(56, Util.random(100, 200)));
+                                                    .add(new Option(56, Util.random(70, 121)));
                                             break;
                                         }
                                         case 4: {
                                             it_select.option_item
-                                                    .add(new Option(4, Util.random(100, 200)));
+                                                    .add(new Option(4, Util.random(70, 121)));
                                             break;
                                         }
                                         case 5: {
                                             it_select.option_item
-                                                    .add(new Option(53, Util.random(50, 150)));
+                                                    .add(new Option(53, Util.random(70, 121)));
                                             break;
                                         }
                                         case 6: {
@@ -237,13 +243,10 @@ public class UpgradeDial {
                                 }
                             } else if (it_select.template.name.equals("Dial Truyền thuyết")) {
                                 boolean add = false;
-                                if (it_select.levelup == 1 && it_select.option_item.size() == 3) {
-                                    add = true;
-                                } else if (it_select.levelup == 3
-                                        && it_select.option_item.size() == 4) {
+                                if (it_select.levelup == 3 && it_select.option_item.size() < 5) {
                                     add = true;
                                 } else if (it_select.levelup == 5
-                                        && it_select.option_item.size() == 5) {
+                                        && it_select.option_item.size() < 6) {
                                     add = true;
                                 }
                                 if (add) {
@@ -265,22 +268,22 @@ public class UpgradeDial {
                                                 value_random = Util.random(10, 15);
                                             }
                                             it_select.option_item.add(new Option(value_random,
-                                                    Util.random(100, 200)));
+                                                    Util.random(70, 121)));
                                             break;
                                         }
                                         case 3: {
                                             it_select.option_item
-                                                    .add(new Option(56, Util.random(100, 200)));
+                                                    .add(new Option(56, Util.random(70, 121)));
                                             break;
                                         }
                                         case 4: {
                                             it_select.option_item
-                                                    .add(new Option(4, Util.random(100, 200)));
+                                                    .add(new Option(4, Util.random(70, 121)));
                                             break;
                                         }
                                         case 5: {
                                             it_select.option_item
-                                                    .add(new Option(53, Util.random(50, 150)));
+                                                    .add(new Option(53, Util.random(70, 121)));
                                             break;
                                         }
                                         case 6: {
@@ -312,10 +315,10 @@ public class UpgradeDial {
                                 }
                             } else if (it_select.template.name.equals("Dial Sử Thi")) {
                                 boolean add = false;
-                                if (it_select.levelup == 3 && it_select.option_item.size() == 1) {
+                                if (it_select.levelup == 3 && it_select.option_item.size() < 2) {
                                     add = true;
                                 } else if (it_select.levelup == 5
-                                        && it_select.option_item.size() == 2) {
+                                        && it_select.option_item.size() < 3) {
                                     add = true;
                                 }
                                 if (add) {
@@ -337,27 +340,27 @@ public class UpgradeDial {
                                                 value_random = Util.random(10, 15);
                                             }
                                             it_select.option_item.add(new Option(value_random,
-                                                    Util.random(100, 200)));
+                                                    Util.random(70, 121)));
                                             break;
                                         }
                                         case 3: {
                                             it_select.option_item
-                                                    .add(new Option(56, Util.random(100, 200)));
+                                                    .add(new Option(56, Util.random(70, 121)));
                                             break;
                                         }
                                         case 4: {
                                             it_select.option_item
-                                                    .add(new Option(4, Util.random(100, 200)));
+                                                    .add(new Option(4, Util.random(70, 121)));
                                             break;
                                         }
                                     }
                                 }
                             } else if (it_select.template.name.equals("Dial Siêu Năng")) {
                                 boolean add = false;
-                                if (it_select.levelup == 3 && it_select.option_item.size() == 1) {
+                                if (it_select.levelup == 3 && it_select.option_item.size() < 2) {
                                     add = true;
                                 } else if (it_select.levelup == 5
-                                        && it_select.option_item.size() == 2) {
+                                        && it_select.option_item.size() < 3) {
                                     add = true;
                                 }
                                 if (add) {
@@ -379,12 +382,12 @@ public class UpgradeDial {
                                                 value_random = Util.random(10, 15);
                                             }
                                             it_select.option_item.add(new Option(value_random,
-                                                    Util.random(100, 200)));
+                                                    Util.random(70, 121)));
                                             break;
                                         }
                                         case 3: {
                                             it_select.option_item
-                                                    .add(new Option(56, Util.random(100, 200)));
+                                                    .add(new Option(56, Util.random(70, 121)));
                                             break;
                                         }
                                     }
@@ -418,7 +421,7 @@ public class UpgradeDial {
     }
 
     private static int get_beri_up(byte levelup) {
-        return (levelup + 1) * 500_000;
+        return (levelup + 1) * 1_000_000;
     }
 
     private static int get_ruby_up(byte levelup) {
@@ -426,6 +429,6 @@ public class UpgradeDial {
     }
 
     private static int get_extol_up(byte levelup) {
-        return (levelup + 1) * 2_000;
+        return (levelup + 1) * 200_000;
     }
 }

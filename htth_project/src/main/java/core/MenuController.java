@@ -127,7 +127,7 @@ public class MenuController {
         case -154: {
           if (event.EventTrungThu.isEvent()) {
             send_dynamic_menu(p, type, "Chị Hằng",
-                new String[] { "Làm Bánh", "Ghép Đèn", "BXH Giết Lân", "Hướng dẫn" },
+                new String[] { "Làm Bánh", "Ghép Đèn", "BXH Giết Lân", "BXH Ăn Bánh", "Hướng dẫn" },
                 null);
           } else {
             Service.send_box_ThongBao_OK(p, "Sự kiện Vui Hội Trung Thu hiện đã khép lại. Hẹn gặp lại bạn năm sau nhé!");
@@ -447,7 +447,7 @@ public class MenuController {
         case -13:
         case -1: {
           if (p.map != null && p.map.template.id == 2000) {
-            send_dynamic_menu(p, type, "Trưởng Làng", new String[] { "Đổi khu", "Về làng" }, null);
+            send_dynamic_menu(p, type, "Trưởng Làng", new String[] { "Đổi khu", "Về làng", "Số lượng quái" }, null);
             break;
           }
           if (p.conn.status != 1) {
@@ -776,10 +776,14 @@ public class MenuController {
               BXH.send(p, 13, 0);
               break;
             case 3:
+              // BXH Ăn Bánh
+              BXH.send(p, 18, 0);
+              break;
+            case 4:
               // Sub-menu: Hướng dẫn chi tiết
               send_dynamic_menu(p, -1542, "Chị Hằng",
                   new String[] { "Toàn bộ hướng dẫn", "Nguồn nguyên liệu", "Công thức làm bánh",
-                      "Ghép đèn & Hộp bánh", "Boss Lân Sư Tử", "Phần thưởng & Thời trang" },
+                      "Ghép đèn & Hộp bánh", "Boss Lân Sư Tử", "Tích điểm & Đua Top", "Phần thưởng & Thời trang" },
                   null);
               break;
           }
@@ -859,7 +863,17 @@ public class MenuController {
                   + "• Vị trí: Xuất hiện ngẫu nhiên tại các map (ngoại trừ Làng)\n"
                   + "• Hồi sinh: Tự động hồi sinh sau 15 phút khi bị hạ gục\n"
                   + "• Đòn kết liễu: 30% nhận Hộp Thượng Hạng, 50 Ruby, 2 Giấy Gói Quà, Bột Mì, Đường, Trứng Muối + Điểm BXH Giết Lân\b"
-                  + "📍 5. PHẦN THƯỞNG ĐẶC BIỆT:\n\n"
+                  + "📍 5. TÍCH ĐIỂM & ĐUA TOP ĂN BÁNH:\n\n"
+                  + "Khi sử dụng Bánh & Hộp Bánh sẽ nhận quà kèm điểm tích lũy:\n"
+                  + "• Bánh Trung Thu: +1 Điểm\n"
+                  + "• Bánh Đậu Xanh: +1 Điểm\n"
+                  + "• Bánh Trứng Muối: +2 Điểm\n"
+                  + "• Bánh Hạt Sen: +2 Điểm\n"
+                  + "• Đèn Kéo Quân: +2 Điểm\n"
+                  + "• Hộp Bánh Trung Thu: +5 Điểm\n"
+                  + "• Hộp Bánh Thượng Hạng: +10 Điểm\n"
+                  + "👉 Xem thứ hạng tại NPC Chị Hằng → 'BXH Ăn Bánh'!\b"
+                  + "📍 6. PHẦN THƯỞNG ĐẶC BIỆT:\n\n"
                   + "• Mở Bánh & Hộp: Nhận Đá Khảm Cấp 1-6, Ruby, Beri, Tinh Thể Ác Quỷ, Bột Vàng, Mai Rùa, Rương Đại Ác Quỷ...\n"
                   + "• Hộp Thượng Hạng: Cơ hội nhận Thẻ TT Trung Thu!\n"
                   + "• Thẻ TT Trung Thu: Mở nhận Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn (+13% né tránh, +8% HP, +10% Miễn thương)!";
@@ -912,6 +926,22 @@ public class MenuController {
               break;
             }
             case 5: {
+              // Tích điểm & Đua Top
+              Service.send_box_ThongBao_OK(p,
+                  "📍 CHI TIẾT TÍCH ĐIỂM KHI SỬ DỤNG BÁNH:\n\n"
+                      + "Khi sử dụng (ăn) các loại bánh, bạn sẽ nhận được quà kèm điểm tích lũy Đua Top:\n"
+                      + "• 🥮 Bánh Trung Thu: +1 Điểm\n"
+                      + "• 🥮 Bánh Đậu Xanh: +1 Điểm\n"
+                      + "• 🥮 Bánh Trứng Muối: +2 Điểm\n"
+                      + "• 🥮 Bánh Hạt Sen: +2 Điểm\n"
+                      + "• 🏮 Đèn Kéo Quân: +2 Điểm\n"
+                      + "• 🎁 Hộp Bánh Trung Thu: +5 Điểm\n"
+                      + "• 🏆 Hộp Bánh Thượng Hạng: +10 Điểm\n\n"
+                      + "📊 Xem vị trí và điểm số tại NPC Chị Hằng → 'BXH Ăn Bánh'!\n"
+                      + "👑 Top thuyền trưởng có điểm cao nhất sẽ nhận thưởng hấp dẫn từ BQT khi kết thúc sự kiện!");
+              break;
+            }
+            case 6: {
               // Phần thưởng & Thời trang
               Service.send_box_ThongBao_OK(p,
                   "🎁 PHẦN THƯỞNG SỰ KIỆN TRUNG THU:\n\n"
@@ -1803,12 +1833,9 @@ public class MenuController {
         case -45:
         case -31:
         case -21:
-        case -13: {
-          Menu_TruongLang(p, idNPC, index);
-          break;
-        }
+        case -13:
         case -1: {
-          if (p.map.template.id == 2000) {
+          if (p.map != null && p.map.template.id == 2000) {
             if (index == 0) {
               Menu_Change_Zone(p);
             } else if (index == 1) {
@@ -3449,20 +3476,67 @@ public class MenuController {
   }
 
   private static void showHakiMonsterProgress(Player p) throws IOException {
+    Skill_info hq = null, hv = null, hb = null;
+    if (p.skill_point != null) {
+      for (Skill_info sk : p.skill_point) {
+        if (sk != null && sk.temp != null) {
+          if (sk.temp.indexSkillInServer == 900) {
+            hq = sk;
+          } else if (sk.temp.indexSkillInServer == 901) {
+            hv = sk;
+          } else if (sk.temp.indexSkillInServer == 902) {
+            hb = sk;
+          }
+        }
+      }
+    }
+
     StringBuilder sb = new StringBuilder();
-    sb.append("🗡️ TIẾN ĐỘ LUYỆN HAKI (MAP 2000)\n");
-    sb.append("• Số quái đã hạ gục: ").append(p.haki_monster_killed).append(" con\n\n");
-    sb.append("📌 Các mốc lĩnh ngộ Haki:\n");
-    sb.append("• 10 quái: Haki Quan Sát ")
-        .append(p.haki_monster_killed >= 10 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/10)"))
-        .append("\n");
-    sb.append("• 15 quái: Haki Vũ Trang ")
-        .append(p.haki_monster_killed >= 15 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/15)"))
-        .append("\n");
-    sb.append("• 20 quái: Haki Bá Vương ")
-        .append(p.haki_monster_killed >= 20 ? "✅ (Đã mở)" : ("❌ (" + p.haki_monster_killed + "/20)"))
-        .append("\n\n");
-    sb.append("💡 Sau khi mở khóa, tiếp tục hạ quái tại Đảo Luyện Haki để tích EXP thăng cấp kỹ năng Haki!");
+    sb.append("TIẾN ĐỘ LUYỆN HAKI\n");
+    sb.append("• Số quái đã hạ: ").append(Util.number_format(p.haki_monster_killed)).append(" con\n");
+
+    // Haki Quan Sát (900)
+    if (hq == null && p.haki_monster_killed < 10) {
+      sb.append("• Quan Sát: Chưa mở (").append(p.haki_monster_killed).append("/10 quái)\n");
+    } else if (hq != null && hq.temp.Lv_RQ >= Skill_info.EXP_HAKI.length) {
+      sb.append("• Quan Sát C.").append(hq.temp.Lv_RQ).append(": Đạt tối đa\n");
+    } else {
+      int lv = (hq != null) ? hq.temp.Lv_RQ : 1;
+      int lvIdx = Math.max(0, Math.min(lv - 1, Skill_info.EXP_HAKI.length - 1));
+      long cur = (hq != null) ? hq.exp : 0;
+      long req = Skill_info.EXP_HAKI[lvIdx];
+      sb.append("• Quan Sát C.").append(lv).append(": ")
+          .append(Util.number_format(cur)).append("/").append(Util.number_format(req)).append(" quái\n");
+    }
+
+    // Haki Vũ Trang (901)
+    if (hv == null && p.haki_monster_killed < 15) {
+      sb.append("• Vũ Trang: Chưa mở (").append(p.haki_monster_killed).append("/15 quái)\n");
+    } else if (hv != null && hv.temp.Lv_RQ >= Skill_info.EXP_HAKI.length) {
+      sb.append("• Vũ Trang C.").append(hv.temp.Lv_RQ).append(": Đạt tối đa\n");
+    } else {
+      int lv = (hv != null) ? hv.temp.Lv_RQ : 1;
+      int lvIdx = Math.max(0, Math.min(lv - 1, Skill_info.EXP_HAKI.length - 1));
+      long cur = (hv != null) ? hv.exp : 0;
+      long req = Skill_info.EXP_HAKI[lvIdx];
+      sb.append("• Vũ Trang C.").append(lv).append(": ")
+          .append(Util.number_format(cur)).append("/").append(Util.number_format(req)).append(" quái\n");
+    }
+
+    // Haki Bá Vương (902)
+    if (hb == null && p.haki_monster_killed < 20) {
+      sb.append("• Bá Vương: Chưa mở (").append(p.haki_monster_killed).append("/20 quái)");
+    } else if (hb != null && hb.temp.Lv_RQ >= Skill_info.EXP_HAKI.length) {
+      sb.append("• Bá Vương C.").append(hb.temp.Lv_RQ).append(": Đạt tối đa");
+    } else {
+      int lv = (hb != null) ? hb.temp.Lv_RQ : 1;
+      int lvIdx = Math.max(0, Math.min(lv - 1, Skill_info.EXP_HAKI.length - 1));
+      long cur = (hb != null) ? hb.exp : 0;
+      long req = Skill_info.EXP_HAKI[lvIdx];
+      sb.append("• Bá Vương C.").append(lv).append(": ")
+          .append(Util.number_format(cur)).append("/").append(Util.number_format(req)).append(" quái");
+    }
+
     Service.send_box_ThongBao_OK(p, sb.toString());
   }
 

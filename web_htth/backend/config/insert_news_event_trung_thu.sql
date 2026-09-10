@@ -83,43 +83,43 @@ VALUES (
                 <td style="padding:8px;"><strong>🥮 Bánh Trung Thu</strong></td>
                 <td style="padding:8px;">5 Bột Mì + 3 Đường</td>
                 <td style="padding:8px;">500,000 Beri</td>
-                <td style="padding:8px;">Sử dụng nhận Beri, Bột Vàng, Ngôi Sao May Mắn</td>
+                <td style="padding:8px;">Sử dụng nhận Beri, Bột Vàng, Ngôi Sao May Mắn + <strong>1 Điểm Sự Kiện</strong></td>
             </tr>
             <tr style="background-color:#f9f9f9;">
                 <td style="padding:8px;"><strong>🥮 Bánh Đậu Xanh</strong></td>
                 <td style="padding:8px;">5 Bột Mì + 3 Đường + 1 Trứng Muối</td>
                 <td style="padding:8px;">1,000,000 Beri</td>
-                <td style="padding:8px;">Sử dụng nhận Beri, Mai Rùa, Bột Vàng</td>
+                <td style="padding:8px;">Sử dụng nhận Beri, Mai Rùa, Bột Vàng + <strong>1 Điểm Sự Kiện</strong></td>
             </tr>
             <tr style="background-color:#fdfefe;">
                 <td style="padding:8px;"><strong>🥮 Bánh Trứng Muối</strong></td>
                 <td style="padding:8px;">5 Bột Mì + 3 Đường + 2 Trứng Muối</td>
                 <td style="padding:8px;">15,000,000 Beri</td>
-                <td style="padding:8px;">Sử dụng nhận Beri lớn, Đá Khảm cấp 3-4, Khiên Bảo Vệ</td>
+                <td style="padding:8px;">Sử dụng nhận Beri lớn, Đá Khảm cấp 3-4, Khiên Bảo Vệ + <strong>2 Điểm Sự Kiện</strong></td>
             </tr>
             <tr style="background-color:#f9f9f9;">
                 <td style="padding:8px;"><strong>🥮 Bánh Hạt Sen</strong></td>
                 <td style="padding:8px;">5 Bột Mì + 3 Đường + 3 Trứng Muối</td>
                 <td style="padding:8px;">2,000,000 Beri</td>
-                <td style="padding:8px;">Sử dụng nhận Beri, Đá Khảm, Búa Cường Hóa</td>
+                <td style="padding:8px;">Sử dụng nhận Beri, Đá Khảm, Búa Cường Hóa + <strong>2 Điểm Sự Kiện</strong></td>
             </tr>
             <tr style="background-color:#fdfefe;">
                 <td style="padding:8px;"><strong>🏮 Đèn Kéo Quân</strong></td>
                 <td style="padding:8px;">3 Đèn Ông Sao</td>
                 <td style="padding:8px;">2,000,000 Beri</td>
-                <td style="padding:8px;">Sử dụng nhận Rương Cam theo cấp độ, Đá Ác Quỷ</td>
+                <td style="padding:8px;">Sử dụng nhận Rương Cam theo cấp độ, Đá Ác Quỷ + <strong>2 Điểm Sự Kiện</strong></td>
             </tr>
             <tr style="background-color:#f9f9f9;">
                 <td style="padding:8px;"><strong>🎁 Hộp Bánh Trung Thu</strong></td>
                 <td style="padding:8px;">1 Bánh TT + 1 Đậu Xanh + 1 Trứng Muối + 1 Hạt Sen</td>
                 <td style="padding:8px;">2,000,000 Beri + 50 Ruby</td>
-                <td style="padding:8px;">Mở nhận Beri khủng, Ruby, Đá khảm 4-5, Bùa cường hóa, Khiên bảo vệ</td>
+                <td style="padding:8px;">Mở nhận Beri khủng, Ruby, Đá khảm 4-5, Bùa cường hóa, Khiên bảo vệ + <strong>5 Điểm Sự Kiện</strong></td>
             </tr>
             <tr style="background-color:#fdfefe;">
                 <td style="padding:8px;"><strong>🏆 Hộp Bánh Thượng Hạng</strong></td>
                 <td style="padding:8px;">1 Hộp Bánh + 1 Giấy Gói Quà</td>
                 <td style="padding:8px;">2,000,000 Beri + 100 Ruby</td>
-                <td style="padding:8px;">Mở nhận Đá Vô Cực S, Đá Hải Thạch 5-6, Rương Đại Ác Quỷ, <strong>Thẻ Thời Trang Trung Thu</strong></td>
+                <td style="padding:8px;">Mở nhận Đá Vô Cực S, Đá Hải Thạch 5-6, Rương Đại Ác Quỷ, <strong>Thẻ Thời Trang Trung Thu</strong> + <strong>10 Điểm Sự Kiện</strong></td>
             </tr>
         </tbody>
     </table>
@@ -143,16 +143,32 @@ VALUES (
 
     <hr/>
 
-    <h4>👘 5. THỜI TRANG ĐỘC QUYỀN TRUNG THU (VĨNH VIỄN)</h4>
-    <p>Sử dụng <strong>Thẻ Thời Trang Trung Thu</strong> tại NPC Chị Hằng để đổi lấy trang phục độc quyền:</p>
+    <h4>📊 5. CƠ CHẾ TÍCH ĐIỂM & ĐUA TOP ĂN BÁNH TRUNG THU</h4>
+    <p>Khi các Thuyền Trưởng thưởng thức (sử dụng) các loại Bánh Trung Thu, Đèn Kéo Quân hoặc mở Hộp Quà, hệ thống sẽ tự động cộng điểm tích lũy vào <strong>Bảng Xếp Hạng Ăn Bánh</strong>:</p>
     <ul>
-        <li>🥋 <strong>Trang Phục Chú Cuội:</strong> Gia tăng Né tránh, Máu (HP), Xuyên giáp và Miễn thương.</li>
-        <li>💃 <strong>Trang Phục Chị Hằng:</strong> Gia tăng Chí mạng, Sát thương, Máu (HP) và Xuyên giáp.</li>
+        <li>🥮 <strong>Bánh Trung Thu:</strong> +1 Điểm / cái</li>
+        <li>🥮 <strong>Bánh Đậu Xanh:</strong> +1 Điểm / cái</li>
+        <li>🥮 <strong>Bánh Trứng Muối:</strong> +2 Điểm / cái</li>
+        <li>🥮 <strong>Bánh Hạt Sen:</strong> +2 Điểm / cái</li>
+        <li>🏮 <strong>Đèn Kéo Quân:</strong> +2 Điểm / cái</li>
+        <li>🎁 <strong>Hộp Bánh Trung Thu:</strong> +5 Điểm / cái</li>
+        <li>🏆 <strong>Hộp Bánh Thượng Hạng:</strong> +10 Điểm / cái</li>
+    </ul>
+    <p>👉 Thuyền trưởng có thể trực tiếp tra cứu điểm số và thứ hạng của mình tại <strong>NPC Chị Hằng (Mục "BXH Ăn Bánh")</strong>.</p>
+    <p>👑 <em>Sau khi sự kiện khép lại, Ban Quản Trị sẽ tiến hành tổng kết và trao những phần thưởng danh giá cho các Thuyền Trưởng lọt vào TOP Bảng Xếp Hạng!</em></p>
+
+    <hr/>
+
+    <h4>👘 6. THỜI TRANG ĐỘC QUYỀN TRUNG THU (VĨNH VIỄN)</h4>
+    <p>Sử dụng <strong>Thẻ Thời Trang Trung Thu</strong> để nhận trực tiếp Thời trang Chú Cuội hoặc Chị Hằng Vĩnh Viễn:</p>
+    <ul>
+        <li>🥋 <strong>Trang Phục Chú Cuội:</strong> +13% Né tránh, +8% HP, +10% Miễn thương.</li>
+        <li>💃 <strong>Trang Phục Chị Hằng:</strong> +13% Né tránh, +8% HP, +10% Miễn thương.</li>
     </ul>
 
     <div style="background-color:#fef9e7; border-left:4px solid #F39C12; padding:12px; margin:15px 0;">
-        <p style="margin:0; font-weight:bold; color:#B7950B;">🌟 Bảng Xếp Hạng Giết Lân & Nấu Bánh:</p>
-        <p style="margin:5px 0 0 0;">Người chơi có thể theo dõi trực tiếp thành tích săn Boss Lân Sư Tử và số lượng Bánh Trung Thu đã nấu tại menu BXH NPC Chị Hằng để cùng đua tài cùng các thuyền trưởng khác!</p>
+        <p style="margin:0; font-weight:bold; color:#B7950B;">🌟 Bảng Xếp Hạng Sự Kiện (Tại NPC Chị Hằng):</p>
+        <p style="margin:5px 0 0 0;">• <strong>BXH Giết Lân:</strong> Ghi nhận số lần tung đòn kết liễu Boss Lân Sư Tử.<br/>• <strong>BXH Ăn Bánh:</strong> Ghi nhận tổng điểm tích lũy khi sử dụng các loại bánh, đèn và hộp quà.</p>
     </div>
 
     <p style="text-align:right;"><strong>Ban Quản Trị Thế Giới Hải Tặc (HTTH)</strong><br/><em>Kính chúc các Thuyền Trưởng một mùa Trung Thu Vui Vẻ, Đầm Ấm & Bội Thu!</em></p>

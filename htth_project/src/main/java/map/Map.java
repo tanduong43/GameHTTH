@@ -5536,6 +5536,8 @@ public class Map implements Runnable {
                     event.EventNoel.getInstance().showLeaderboard(p);
                 } else if (cmd.equals("event noel menu") || cmd.equals("noel menu")) {
                     event.EventNoelCraft.showCraftHelp(p);
+                } else if (cmd.equals("bxh tt") || cmd.equals("bxh trungthu") || cmd.equals("bxh banh tt")) {
+                    event.EventTrungThu.getInstance().showBanhLeaderboard(p);
                 } else if (cmd.equals("event tt menu") || cmd.equals("tt menu") || cmd.equals("trungthu")
                         || cmd.equals("ghép") || cmd.equals("ghep")) {
                     event.TrungThuCraft.showCraftMenu(p);

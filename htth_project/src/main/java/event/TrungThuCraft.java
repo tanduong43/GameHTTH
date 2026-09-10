@@ -45,7 +45,13 @@ public class TrungThuCraft {
                 + "• Đường: Làm Nhiệm vụ Lặp\n"
                 + "• Trứng Muối: NV Băng / PvP / Truy Nã\n"
                 + "• Đèn Ông Sao: Phó Bản Nami / Đá đít Mr.3\n"
-                + "• Giấy Gói Quà: Săn Boss Lân / Vận buôn");
+                + "• Giấy Gói Quà: Săn Boss Lân / Vận buôn\n\n"
+                + "📍 TÍCH ĐIỂM KHI DÙNG BÁNH (ĐUA TOP):\n"
+                + "• Bánh TT / Đậu Xanh: +1 Điểm\n"
+                + "• Bánh Trứng Muối / Hạt Sen: +2 Điểm\n"
+                + "• Đèn Kéo Quân: +2 Điểm\n"
+                + "• Hộp Bánh: +5 Điểm | Hộp Thượng Hạng: +10 Điểm\n"
+                + "👉 Xem thứ hạng tại NPC Chị Hằng → BXH Ăn Bánh!");
         m.writer().writeByte(0);
         p.conn.addmsg(m);
         m.cleanup();

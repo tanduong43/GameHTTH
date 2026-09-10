@@ -42,6 +42,7 @@ public class BXH {
     public static List<InfoMemList> TOP_SAN_BOSS_LAN = new ArrayList<>();
     public static List<InfoMemList> TOP_NAU_BANH = new ArrayList<>();
     public static List<InfoMemList> TOP_NAP = new ArrayList<>();
+    public static List<InfoMemList> TOP_AN_BANH = new ArrayList<>();
     public static final java.util.Map<Integer, List<InfoMemList>> TOP_SIEU_TRUM_MAP = new java.util.concurrent.ConcurrentHashMap<>();
     public static final java.util.Map<Integer, List<Integer>> claimedTopBossRewards = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -387,6 +388,35 @@ public class BXH {
                 m.writer().writeByte(bound2 - bound1);
                 for (int i = bound1; i < bound2; i++) {
                     InfoMemList temp = BXH.TOP_NAP.get(i);
+                    InfoMemList.WriteInfoMemList(m.writer(), temp);
+                }
+                break;
+            }
+            case 18: {
+                updateTopAnBanh();
+                int bound1 = 0;
+                int bound2 = BXH.TOP_AN_BANH.size();
+                if (BXH.TOP_AN_BANH.size() > 10) {
+                    if (((page + 1) * 10) > BXH.TOP_AN_BANH.size()) {
+                        bound1 = 10 * page;
+                        bound2 = BXH.TOP_AN_BANH.size();
+                        while (bound1 >= bound2) {
+                            bound1 -= 10;
+                            page--;
+                        }
+                    } else {
+                        bound1 = 10 * page;
+                        bound2 = bound1 + 10;
+                    }
+                } else {
+                    page = 0;
+                }
+                m.writer().writeByte(18);
+                m.writer().writeUTF("Top Ăn Bánh");
+                m.writer().writeByte(page);
+                m.writer().writeByte(bound2 - bound1);
+                for (int i = bound1; i < bound2; i++) {
+                    InfoMemList temp = BXH.TOP_AN_BANH.get(i);
                     InfoMemList.WriteInfoMemList(m.writer(), temp);
                 }
                 break;
@@ -760,6 +790,7 @@ public class BXH {
         updateTopSanBossLan();
         updateTopNauBanh();
         updateTopNap();
+        updateTopAnBanh();
     }
 
     private static void updateWanted() {
@@ -2060,6 +2091,181 @@ public class BXH {
             }
             BXH.TOP_NAP.addAll(list_add);
             list_add.clear();
+        }
+    }
+
+    public static void updateTopAnBanh() {
+        List<InfoMemList> list_add = new ArrayList<>();
+        java.util.Map<String, Integer> pointMap = event.EventTrungThu.getInstance().getPointMap();
+        if (pointMap == null || pointMap.isEmpty()) {
+            BXH.TOP_AN_BANH.clear();
+            return;
+        }
+
+        List<java.util.Map.Entry<String, Integer>> sorted = new ArrayList<>(pointMap.entrySet());
+        sorted.removeIf(e -> e.getValue() == null || e.getValue() <= 0);
+        sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+
+        if (sorted.isEmpty()) {
+            BXH.TOP_AN_BANH.clear();
+            return;
+        }
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = SQL.gI().getCon();
+            ps = connection.prepareStatement(
+                    "SELECT `id`, `name`, `level`, `clazz`, `body`, `it_body`, `fashion`, `site` FROM `players` WHERE `name` = ? LIMIT 1;");
+
+            for (int i = 0; i < Math.min(50, sorted.size()); i++) {
+                java.util.Map.Entry<String, Integer> entry = sorted.get(i);
+                String pName = entry.getKey();
+                int points = entry.getValue();
+
+                Player p0 = Map.get_player_by_name_allmap(pName);
+                if (p0 != null) {
+                    InfoMemList temp = new InfoMemList();
+                    temp.id = p0.id;
+                    temp.name = p0.name;
+                    temp.thongthao = points;
+                    temp.level = (short) p0.level;
+                    temp.head = (short) p0.get_head();
+                    temp.hair = (short) p0.get_hair();
+                    temp.hat = p0.get_hat();
+                    temp.info = String.format("Ăn Bánh: %s Điểm", Util.number_format(temp.thongthao));
+                    list_add.add(temp);
+                } else {
+                    ps.setString(1, pName);
+                    rs = ps.executeQuery();
+                    if (rs.next()) {
+                        InfoMemList temp = new InfoMemList();
+                        temp.id = rs.getInt("id");
+                        temp.name = rs.getString("name");
+                        temp.thongthao = points;
+
+                        try {
+                            JSONArray jsLevel = (JSONArray) JSONValue.parse(rs.getString("level"));
+                            if (jsLevel != null && jsLevel.size() > 0) {
+                                temp.level = Short.parseShort(jsLevel.get(0).toString());
+                            } else {
+                                temp.level = 1;
+                            }
+                        } catch (Exception e) {
+                            temp.level = 1;
+                        }
+
+                        List<ItemFashionP2> fashion = new ArrayList<>();
+                        List<ItemFashionP> itfashionP = new ArrayList<>();
+                        try {
+                            JSONArray js0 = (JSONArray) JSONValue.parse(rs.getString("fashion"));
+                            JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js0.get(0).toString());
+                            for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                                JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                                ItemFashionP tempf = new ItemFashionP();
+                                tempf.category = Byte.parseByte(js_temp.get(0).toString());
+                                tempf.id = Short.parseShort(js_temp.get(1).toString());
+                                tempf.icon = Short.parseShort(js_temp.get(2).toString());
+                                tempf.is_use = Byte.parseByte(js_temp.get(3).toString()) == 1;
+                                itfashionP.add(tempf);
+                            }
+                            js_temp_2.clear();
+                            js_temp_2 = (JSONArray) JSONValue.parse(js0.get(1).toString());
+                            for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                                JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                                ItemFashionP2 tempf = new ItemFashionP2();
+                                tempf.id = Short.parseShort(js_temp.get(0).toString());
+                                tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
+                                fashion.add(tempf);
+                            }
+                        } catch (Exception ex) {}
+
+                        short hair_ = -1;
+                        short head_ = -1;
+                        short[] fashion_ = null;
+                        for (int i0 = 0; i0 < fashion.size(); i0++) {
+                            if (fashion.get(i0).is_use) {
+                                ItemFashion tempF = ItemFashion.get_item(fashion.get(i0).id);
+                                if (tempF != null) {
+                                    fashion_ = tempF.mWearing;
+                                    break;
+                                }
+                            }
+                        }
+                        if (fashion_ != null && fashion_[6] != -1) {
+                            hair_ = -2;
+                            head_ = fashion_[6];
+                        } else {
+                            for (int i0 = 0; i0 < itfashionP.size(); i0++) {
+                                if (itfashionP.get(i0).category == 103 && itfashionP.get(i0).is_use) {
+                                    hair_ = itfashionP.get(i0).icon;
+                                }
+                            }
+                            for (int i0 = 0; i0 < itfashionP.size(); i0++) {
+                                if (itfashionP.get(i0).category == 108 && itfashionP.get(i0).is_use) {
+                                    head_ = itfashionP.get(i0).icon;
+                                }
+                            }
+                        }
+                        try {
+                            JSONArray js = (JSONArray) JSONValue.parse(rs.getString("body"));
+                            temp.head = (head_ != -1) ? head_ : Short.parseShort(js.get(0).toString());
+                            temp.hair = (hair_ != -1) ? hair_ : Short.parseShort(js.get(1).toString());
+                        } catch (Exception ex) {}
+
+                        try {
+                            Item_wear[] it = new Item_wear[8];
+                            JSONArray js = (JSONArray) JSONValue.parse(rs.getString("it_body"));
+                            for (int i1 = 0; i1 < js.size(); i1++) {
+                                JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
+                                Item_wear temp2 = new Item_wear();
+                                Item.readUpdateItem(js2.toString(), temp2);
+                                if (temp2.template != null) {
+                                    it[temp2.index] = temp2;
+                                }
+                            }
+                            JSONArray jsSite = (JSONArray) JSONValue.parse(rs.getString("site"));
+                            boolean is_show_hat = Byte.parseByte(jsSite.get(6).toString()) == 1;
+                            if (!is_show_hat || it[1] == null) {
+                                temp.hat = -1;
+                            } else if (fashion_ != null && fashion_[1] != -1) {
+                                temp.hat = fashion_[1];
+                            } else {
+                                temp.hat = ItemTemplate3.get_it_by_id(it[1].template.id).part;
+                            }
+                        } catch (Exception ex) {}
+
+                        temp.info = String.format("Ăn Bánh: %s Điểm", Util.number_format(temp.thongthao));
+                        list_add.add(temp);
+                    }
+                    if (rs != null) {
+                        rs.close();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            list_add.clear();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (list_add.size() > 0) {
+            for (int i = 0; i < list_add.size(); i++) {
+                list_add.get(i).rank = (short) i;
+            }
+            BXH.TOP_AN_BANH.clear();
+            BXH.TOP_AN_BANH.addAll(list_add);
+            list_add.clear();
+        } else {
+            BXH.TOP_AN_BANH.clear();
         }
     }
 
