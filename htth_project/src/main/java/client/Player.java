@@ -3746,7 +3746,7 @@ public class Player {
     public int num4;
     public int num5;
     public int tieu_ruby;
-    public byte[] tichTieuRubyCheck = new byte[10];
+    public byte[] tichTieuRubyCheck = new byte[20];
     public byte[] tichTieuCheck = new byte[10];
     public byte danhhieu = -1;
     public int id_danh_hieu_su_dung = -1;

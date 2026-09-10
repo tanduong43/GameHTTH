@@ -81,6 +81,30 @@ public class ListTichTieu {
         t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 414, 367, 112 };
         t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 10, 1, 20, 1, 10, 1 };
         ENTRY.add(t);
+
+        // MỐC 9: 1.000.000 Ruby
+        t = new ListTichTieu();
+        t.num = 1_000_000;
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327 };
+        t.quant = new short[] { 500, 25, 5, 4, 20, 10, 50, 5, 1, 20 };
+        ENTRY.add(t);
+
+        // MỐC 10: 2.000.000 Ruby
+        t = new ListTichTieu();
+        t.num = 2_000_000;
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 655 };
+        t.quant = new short[] { 500, 25, 5, 4, 20, 10, 50, 5, 1, 20, 1 };
+        ENTRY.add(t);
+
+        // MỐC 11: 5.000.000 Ruby
+        t = new ListTichTieu();
+        t.num = 5_000_000;
+        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 4, 105 };
+        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 660, 115 };
+        t.quant = new short[] { 500, 25, 5, 4, 20, 10, 50, 5, 1, 20, 1, 1 };
+        ENTRY.add(t);
     }
 
     public byte[] cat;

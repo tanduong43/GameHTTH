@@ -874,7 +874,7 @@ def create_all_icons():
     draw_sparkle(d4, 22, 74, r=6, color=(255, 215, 0))
 
     icons_to_save = {
-        2190: im_fruit,
+        # 2190: Trái Nikyu Nikyu là sprite 5 frame chuẩn HTTH (80x400)
         4417: im_sk1,
         4418: im_sk2,
         4419: im_sk3,

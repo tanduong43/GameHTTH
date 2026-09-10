@@ -3689,7 +3689,7 @@ public class MenuController {
                 sess.p.tichtieu_ruby = 0;
                 sess.p.tieu_ruby = 0;
                 sess.p.claimedTichtieuRuby.clear();
-                sess.p.tichTieuRubyCheck = new byte[10];
+                sess.p.tichTieuRubyCheck = new byte[20];
                 try {
                   activities.ListTichTieu.sendUI(sess.p);
                 } catch (Exception e) {
