@@ -244,6 +244,90 @@ router.get('/admin/stats', jwtRequired, isAdmin, async (req, res) => {
             LIMIT 15
         `);
 
+        // Query 4: Top 10 tài khoản Tiêu Ruby nhiều nhất
+        const [spentRubyRows] = await db.execute(`
+            SELECT 
+                a.id AS account_id,
+                a.user AS username,
+                GROUP_CONCAT(p.name SEPARATOR ', ') AS char_names,
+                SUM(GREATEST(COALESCE(p.tieu_ruby, 0), COALESCE(p.tichtieu_ruby, 0))) AS amount
+            FROM accounts a
+            JOIN players p ON (JSON_VALID(a.char) AND JSON_CONTAINS(a.char, JSON_QUOTE(p.name)))
+            GROUP BY a.id, a.user
+            HAVING amount > 0
+            ORDER BY amount DESC, a.id ASC
+            LIMIT 10
+        `);
+        const topSpentRuby = spentRubyRows.map(row => ({
+            account_id: row.account_id,
+            username: row.username,
+            char_names: row.char_names || '',
+            amount: Number(row.amount || 0)
+        }));
+
+        // Query 5: Top 10 tài khoản Có Ruby nhiều nhất
+        const [holdRubyRows] = await db.execute(`
+            SELECT 
+                a.id AS account_id,
+                a.user AS username,
+                GROUP_CONCAT(p.name SEPARATOR ', ') AS char_names,
+                SUM(COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(p.point_inven, '$[1]')) AS UNSIGNED), 0)) AS amount
+            FROM accounts a
+            JOIN players p ON (JSON_VALID(a.char) AND JSON_CONTAINS(a.char, JSON_QUOTE(p.name)))
+            GROUP BY a.id, a.user
+            HAVING amount > 0
+            ORDER BY amount DESC, a.id ASC
+            LIMIT 10
+        `);
+        const topHoldRuby = holdRubyRows.map(row => ({
+            account_id: row.account_id,
+            username: row.username,
+            char_names: row.char_names || '',
+            amount: Number(row.amount || 0)
+        }));
+
+        // Query 6: Top 10 tài khoản Có Extol nhiều nhất
+        const [holdExtolRows] = await db.execute(`
+            SELECT 
+                a.id AS account_id,
+                a.user AS username,
+                GROUP_CONCAT(p.name SEPARATOR ', ') AS char_names,
+                SUM(COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(p.point_inven, '$[2]')) AS UNSIGNED), 0)) AS amount
+            FROM accounts a
+            JOIN players p ON (JSON_VALID(a.char) AND JSON_CONTAINS(a.char, JSON_QUOTE(p.name)))
+            GROUP BY a.id, a.user
+            HAVING amount > 0
+            ORDER BY amount DESC, a.id ASC
+            LIMIT 10
+        `);
+        const topHoldExtol = holdExtolRows.map(row => ({
+            account_id: row.account_id,
+            username: row.username,
+            char_names: row.char_names || '',
+            amount: Number(row.amount || 0)
+        }));
+
+        // Query 7: Top 10 tài khoản Có Beri nhiều nhất
+        const [holdBeriRows] = await db.execute(`
+            SELECT 
+                a.id AS account_id,
+                a.user AS username,
+                GROUP_CONCAT(p.name SEPARATOR ', ') AS char_names,
+                SUM(COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(p.point_inven, '$[0]')) AS DECIMAL(25, 0)), 0)) AS amount
+            FROM accounts a
+            JOIN players p ON (JSON_VALID(a.char) AND JSON_CONTAINS(a.char, JSON_QUOTE(p.name)))
+            GROUP BY a.id, a.user
+            HAVING amount > 0
+            ORDER BY amount DESC, a.id ASC
+            LIMIT 10
+        `);
+        const topHoldBeri = holdBeriRows.map(row => ({
+            account_id: row.account_id,
+            username: row.username,
+            char_names: row.char_names || '',
+            amount: Number(row.amount || 0)
+        }));
+
         return res.json({
             success: true,
             stats: {
@@ -253,7 +337,11 @@ router.get('/admin/stats', jwtRequired, isAdmin, async (req, res) => {
                 failedTxns: Number(summary.failed_txns),
                 pendingTxns: Number(summary.pending_txns),
                 topDepositors,
-                recentTxns
+                recentTxns,
+                topSpentRuby,
+                topHoldRuby,
+                topHoldExtol,
+                topHoldBeri
             }
         });
     } catch (err) {
