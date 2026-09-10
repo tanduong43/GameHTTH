@@ -130,6 +130,20 @@ public class ClientInput {
                         }
                         p.conn.flush();
 
+                        // Cập nhật giftcode: thay thế oldName bằng newName và bổ sung tên tài khoản
+                        try {
+                            String accUser = (p.conn != null && p.conn.user != null) ? p.conn.user : "";
+                            PreparedStatement psGift = conn.prepareStatement(
+                                    "UPDATE `giftcode` SET `used` = REPLACE(`used`, ?, ?) WHERE `used` LIKE ?;");
+                            psGift.setString(1, oldName + ",");
+                            psGift.setString(2, newName + "," + (!accUser.isEmpty() ? accUser + "," : ""));
+                            psGift.setString(3, "%" + oldName + ",%");
+                            psGift.executeUpdate();
+                            psGift.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                         // Update Clan if any
                         if (p.clan != null) {
                             for (int i = 0; i < p.clan.members.size(); i++) {
@@ -671,13 +685,35 @@ public class ClientInput {
                                     "Giftcode này đã đạt lượt nhập tối đa!");
                             return;
                         }
+                        String accUser = (p.conn != null && p.conn.user != null) ? p.conn.user.trim().toLowerCase() : "";
+                        String charName = (p.name != null) ? p.name.trim().toLowerCase() : "";
                         if (!temp.used.isEmpty()) {
                             String[] used_ = temp.used.split(",");
                             for (int i = 0; i < used_.length; i++) {
-                                if (!used_[i].isBlank() && used_[i].equals(p.name)) {
+                                String u = used_[i].trim().toLowerCase();
+                                if (u.isEmpty()) continue;
+                                // 1. Kiểm tra theo tên tài khoản
+                                if (!accUser.isEmpty() && u.equals(accUser)) {
                                     Service.send_box_ThongBao_OK(p,
-                                            "Giftcode không tồn tại hoặc đã được nhập");
+                                            "Tài khoản của bạn đã nhập giftcode này rồi!");
                                     return;
+                                }
+                                // 2. Kiểm tra theo tên nhân vật hiện tại
+                                if (!charName.isEmpty() && u.equals(charName)) {
+                                    Service.send_box_ThongBao_OK(p,
+                                            "Tài khoản của bạn đã nhập giftcode này rồi!");
+                                    return;
+                                }
+                                // 3. Kiểm tra theo tất cả nhân vật thuộc tài khoản này
+                                if (p.conn != null && p.conn.list_char != null) {
+                                    for (int k = 0; k < p.conn.list_char.size(); k++) {
+                                        String cName = p.conn.list_char.get(k);
+                                        if (cName != null && u.equals(cName.trim().toLowerCase())) {
+                                            Service.send_box_ThongBao_OK(p,
+                                                    "Tài khoản của bạn đã nhập giftcode này rồi!");
+                                            return;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -685,7 +721,9 @@ public class ClientInput {
                             boolean can_receiv = false;
                             String[] used_ = temp.special.split(",");
                             for (int i = 0; i < used_.length; i++) {
-                                if (!used_[i].isBlank() && used_[i].equals(p.name)) {
+                                String s = used_[i].trim().toLowerCase();
+                                if (s.isEmpty()) continue;
+                                if ((!charName.isEmpty() && s.equals(charName)) || (!accUser.isEmpty() && s.equals(accUser))) {
                                     can_receiv = true;
                                     break;
                                 }
@@ -702,7 +740,7 @@ public class ClientInput {
                                             + " ô trống trong hành trang");
                             return;
                         }
-                        GiftTemplate.update_used(temp, p.name);
+                        GiftTemplate.update_used(temp, p.name, (p.conn != null ? p.conn.user : null));
                         p.update_vang(temp.beri);
                         p.update_ngoc(temp.ruby);
                         p.update_money();

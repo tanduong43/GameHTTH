@@ -3960,12 +3960,14 @@ public class Map implements Runnable {
         for (int i = 0; i < list_target.length; i++) {
             Mob mob_target = list_target[i];
             if (mob_target != null && !mob_target.isdie && !p.isdie) {
+                boolean isBossDaoRuby = (this.template.id == 1001)
+                        || (mob_target.map != null && mob_target.map.template != null && mob_target.map.template.id == 1001);
                 boolean isBossLan = (mob_target.mob_template != null && (mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
                         || mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
                         || mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
                         || (mob_target.boss_info != null && (mob_target.boss_info.id == 9999 || mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4));
-                boolean isEventBoss1Hp = isBossLan
-                        || (mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET);
+                boolean isEventBoss1Hp = !isBossDaoRuby && (isBossLan
+                        || (event.EventNoel.isEvent() && mob_target.boss_info != null && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET));
 
                 if (isEventBoss1Hp) {
                     if (damagedEventBosses.contains(mob_target)) {
@@ -4062,7 +4064,7 @@ public class Map implements Runnable {
                     dame2 = 1;
                     event.Event2011.getInstance().onBossDamaged(p, 1);
                 }
-                if (event.EventNoel.isEvent() && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET
+                if (!isBossDaoRuby && event.EventNoel.isEvent() && mob_target.boss_info != null && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET
                         && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
@@ -4072,8 +4074,14 @@ public class Map implements Runnable {
                 }
                 if (dame_to_target > 0) {
                     if (!isEventBoss1Hp) {
+                        long raw_total = dame2 + dame_inf.dameM;
                         dame_to_target = mob_target.calculate_damage_taken(dame_to_target);
-                        dame2 = Math.max(0, dame_to_target - dame_inf.dameM);
+                        if (raw_total > 0 && dame_inf.dameM > 0) {
+                            dame2 = (dame2 * dame_to_target) / raw_total;
+                            dame_inf.dameM = (int) (dame_to_target - dame2);
+                        } else {
+                            dame2 = dame_to_target;
+                        }
                     } else {
                         dame_to_target = 1;
                         dame2 = 1;
@@ -4149,7 +4157,7 @@ public class Map implements Runnable {
                     }
                     //
                     if ((mob_target.boss_info != null || isQuaiMap1001) && percent > 0) { // hp 10% reward
-                        value2 = (mob_target.hp - 1) / percent;
+                        value2 = (mob_target.hp <= 0) ? -1 : (mob_target.hp - 1) / percent;
                     }
 
                     if (isQuaiMap1001 && percent > 0 && value1 > value2) {
@@ -4477,6 +4485,9 @@ public class Map implements Runnable {
                 if (mob_target.hp <= 0 && !mob_target.isdie) {
                     mob_target.hp = 0;
                     mob_target.isdie = true;
+                    if (isBossDaoRuby && mob_target.boss_info == null && mob_target.mob_template != null) {
+                        Manager.gI().chatKTG(0, p.name + " đã tiêu diệt Boss Đảo Ruby (" + mob_target.mob_template.name + ")!", 5);
+                    }
                     if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174 && mob_target.boss_info == null) {
                         mob_target.time_refresh = Long.MAX_VALUE; // Khu hiện tại không tự hồi sinh nữa
                         // Chọn ngẫu nhiên 1 khu khác (hoặc chính nó) để hồi sinh sau 30 phút
@@ -4555,10 +4566,10 @@ public class Map implements Runnable {
                         event.Event2011.getInstance().onBossKilled(p);
                     }
                     // Event Noel: Drop Nắm tuyết, Bóng tuyết, Kẹo Noel khi giết quái dã ngoại
-                    if (event.EventNoel.isEvent() && mob_target.boss_info == null) {
+                    if (!isBossDaoRuby && event.EventNoel.isEvent() && mob_target.boss_info == null) {
                         event.EventNoel.onMobKill(p, mob_target);
                     }
-                    if (event.EventNoel.isEvent()
+                    if (!isBossDaoRuby && event.EventNoel.isEvent() && mob_target.boss_info != null
                             && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET) {
                         event.EventNoel.getInstance().onBossKilled(p);
                     }

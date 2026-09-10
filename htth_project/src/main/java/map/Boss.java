@@ -401,6 +401,9 @@ public class Boss {
         if (b.mob == null || b.mob.mob_template == null) {
             return false;
         }
+        if (b.mob.map != null && b.mob.map.template != null && b.mob.map.template.id == 1001) {
+            return false;
+        }
         int mobId = b.mob.mob_template.mob_id;
         return mobId == event.EventTrungThu.MOB_BOSS_LAN
                 || mobId == event.EventTet.MOB_BOSS_LAN_SU_TU
@@ -410,6 +413,9 @@ public class Boss {
 
     public static boolean isEventBossMob(Mob mob) {
         if (mob == null) {
+            return false;
+        }
+        if (mob.map != null && mob.map.template != null && mob.map.template.id == 1001) {
             return false;
         }
         if (mob.boss_info != null && (mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4 || mob.boss_info.id == 9999)) {

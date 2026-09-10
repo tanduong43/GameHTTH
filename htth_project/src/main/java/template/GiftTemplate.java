@@ -49,13 +49,23 @@ public class GiftTemplate {
 		this.special = this.special.replace(" ","");
 	}
 
-	public synchronized static void update_used(GiftTemplate temp, String name) {
+	public synchronized static void update_used(GiftTemplate temp, String name, String account) {
 		Connection conn = null;
 		Statement st = null;
 		try {
 			conn = SQL.gI().getCon();
 			st = conn.createStatement();
-			temp.used += (name + ",");
+			String toAdd = "";
+			if (account != null && !account.trim().isEmpty()) {
+				toAdd += account.trim().toLowerCase() + ",";
+			}
+			if (name != null && !name.trim().isEmpty() && (account == null || !name.trim().equalsIgnoreCase(account.trim()))) {
+				toAdd += name.trim().toLowerCase() + ",";
+			}
+			if (toAdd.isEmpty()) {
+				toAdd = name + ",";
+			}
+			temp.used += toAdd;
 			temp.luotnhap++;
 			st.executeUpdate("UPDATE `giftcode` SET `used` = '" + temp.used + "', `luotnhap` = " + temp.luotnhap
 			      + " WHERE `giftname` = '" + temp.giftname + "' LIMIT 1;");
@@ -73,5 +83,9 @@ public class GiftTemplate {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public synchronized static void update_used(GiftTemplate temp, String name) {
+		update_used(temp, name, null);
 	}
 }
