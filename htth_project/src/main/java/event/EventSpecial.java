@@ -30,7 +30,7 @@ public class EventSpecial {
         } catch (IOException e) {
         }
         if (type == 0 && act >= 90 && act <= 99) {
-            if (p.conn != null && "admin".equals(p.conn.user)) {
+            if (p.conn != null && "admin".equalsIgnoreCase(p.conn.user)) {
                 TaiXiu tx = Manager.gI().TaiXiu();
                 switch (act) {
                     case 90:
@@ -148,7 +148,7 @@ public class EventSpecial {
             Message m = new Message(80);
             m.writer().writeByte(0);
             m.writer().writeByte(0);
-            boolean isAdmin = (p.conn != null && "admin".equals(p.conn.user));
+            boolean isAdmin = (p.conn != null && "admin".equalsIgnoreCase(p.conn.user));
             m.writer().writeUTF(isAdmin ? ("Tài xỉu [Admin:" + Manager.gI().TaiXiu().getShortStatus() + "]") : "Tài xỉu");
             long time_ = Manager.gI().TaiXiu().get_time();
             if (time_ < 0) {

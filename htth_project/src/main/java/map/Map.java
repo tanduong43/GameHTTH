@@ -628,46 +628,70 @@ public class Map implements Runnable {
 
             // 1. Tự động hồi sinh các player đã chết trong lúc trận đấu đang diễn ra
             if (!this.map_pvp_clan.is_notified) {
-                for (int i = 0; i < players.size(); i++) {
-                    Player pl = players.get(i);
-                    if (pl != null && pl.isdie && pl.time_revive_pvp_clan > 0 && now >= pl.time_revive_pvp_clan) {
-                        pl.time_revive_pvp_clan = 0;
-                        pl.isdie = false;
-                        pl.hp = pl.body.get_hp_max(true);
-                        pl.mp = pl.body.get_mp_max(true);
-                        try {
-                            Service.use_potion(pl, 0, pl.hp);
-                            Service.use_potion(pl, 1, pl.mp);
-                        } catch (Exception e) {
-                        }
-                        pl.time_can_mob_atk = now + 2000L;
-                        pl.x = (pl.type_pk == 4) ? (short) 220 : (short) 460;
-                        pl.y = (short) 240;
-                        pl.xold = pl.x;
-                        pl.yold = pl.y;
-                        try {
-                            Message mmove = new Message(1);
-                            mmove.writer().writeByte(0);
-                            mmove.writer().writeShort(pl.index_map);
-                            mmove.writer().writeShort(pl.x);
-                            mmove.writer().writeShort(pl.y);
-                            send_msg_all_p(mmove, pl, true);
-                            mmove.cleanup();
+                List<Player> playerList = new ArrayList<>();
+                synchronized (this) {
+                    playerList.addAll(players);
+                }
+                for (int i = 0; i < playerList.size(); i++) {
+                    Player pl = playerList.get(i);
+                    if (pl != null && pl.conn != null && pl.conn.connected) {
+                        if (pl.isdie || pl.hp <= 0) {
+                            if (pl.time_revive_pvp_clan <= 0) {
+                                // Safety net: Bắt mọi nick bị chết mà chưa có thời gian hồi sinh
+                                pl.isdie = true;
+                                pl.hp = 0;
+                                pl.time_revive_pvp_clan = now + 5_000L;
+                                activities.PvpClan.send_revive_countdown(pl, 5);
+                            } else if (now >= pl.time_revive_pvp_clan) {
+                                pl.time_revive_pvp_clan = 0;
+                                pl.isdie = false;
+                                pl.hp = pl.body.get_hp_max(true);
+                                pl.mp = pl.body.get_mp_max(true);
+                                pl.time_can_mob_atk = now + 2000L;
+                                pl.x = (pl.type_pk == 4) ? (short) 220 : (short) 460;
+                                pl.y = (short) 240;
+                                pl.xold = pl.x;
+                                pl.yold = pl.y;
+                                try {
+                                    // 1. Gửi Message 6 (Revice_Player) chuẩn của client để gọi mainObject.Reveive()
+                                    Message mRevive = new Message(6);
+                                    mRevive.writer().writeShort(pl.index_map);
+                                    mRevive.writer().writeByte(0); // 0 = Player
+                                    mRevive.writer().writeInt(pl.hp);
+                                    mRevive.writer().writeInt(pl.mp);
+                                    send_msg_all_p(mRevive, pl, true);
+                                    mRevive.cleanup();
 
-                            Message mRevive = new Message(-71);
-                            mRevive.writer().writeByte(1);
-                            mRevive.writer().writeShort(pl.index_map);
-                            mRevive.writer().writeByte(0);
-                            mRevive.writer().writeInt(60 * 30);
-                            send_msg_all_p(mRevive, pl, true);
-                            mRevive.cleanup();
+                                    // 2. Cập nhật potion máu & mana (-83)
+                                    Service.use_potion(pl, 0, pl.hp);
+                                    Service.use_potion(pl, 1, pl.mp);
 
-                            // Xóa đồng hồ đếm ngược hồi sinh (gửi 0 giây)
-                            activities.PvpClan.send_revive_countdown(pl, 0);
-                            // Gửi lại bảng điểm số Kill
-                            activities.PvpClan.send_pvp_clan_score(pl, this);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                                    // 3. Di chuyển về căn cứ (Message 1)
+                                    Message mmove = new Message(1);
+                                    mmove.writer().writeByte(0);
+                                    mmove.writer().writeShort(pl.index_map);
+                                    mmove.writer().writeShort(pl.x);
+                                    mmove.writer().writeShort(pl.y);
+                                    send_msg_all_p(mmove, pl, true);
+                                    mmove.cleanup();
+
+                                    // 4. Khiên an toàn (Message -71)
+                                    Message mSafe = new Message(-71);
+                                    mSafe.writer().writeByte(1);
+                                    mSafe.writer().writeShort(pl.index_map);
+                                    mSafe.writer().writeByte(0);
+                                    mSafe.writer().writeInt(60 * 30);
+                                    send_msg_all_p(mSafe, pl, true);
+                                    mSafe.cleanup();
+
+                                    // 5. Xóa đồng hồ đếm ngược hồi sinh (gửi 0 giây)
+                                    activities.PvpClan.send_revive_countdown(pl, 0);
+                                    // 6. Gửi lại bảng điểm số Kill
+                                    activities.PvpClan.send_pvp_clan_score(pl, this);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                     }
                 }
@@ -842,43 +866,68 @@ public class Map implements Runnable {
 
             // 1. Tự động hồi sinh các player đã chết trong Đảo Đào Hoa (Map 2027)
             if (!this.map_dao_hoa.is_notified) {
-                for (int i = 0; i < players.size(); i++) {
-                    Player pl = players.get(i);
-                    if (pl != null && pl.isdie && pl.time_revive_pvp_clan > 0 && now >= pl.time_revive_pvp_clan) {
-                        pl.time_revive_pvp_clan = 0;
-                        pl.isdie = false;
-                        pl.hp = pl.body.get_hp_max(true);
-                        pl.mp = pl.body.get_mp_max(true);
-                        try {
-                            Service.use_potion(pl, 0, pl.hp);
-                            Service.use_potion(pl, 1, pl.mp);
-                        } catch (Exception e) {
-                        }
-                        pl.time_can_mob_atk = now + 2000L;
-                        pl.x = (pl.type_pk == 4) ? (short) 300 : (short) 900;
-                        pl.y = (short) 210;
-                        pl.xold = pl.x;
-                        pl.yold = pl.y;
-                        try {
-                            Message mmove = new Message(1);
-                            mmove.writer().writeByte(0);
-                            mmove.writer().writeShort(pl.index_map);
-                            mmove.writer().writeShort(pl.x);
-                            mmove.writer().writeShort(pl.y);
-                            send_msg_all_p(mmove, pl, true);
-                            mmove.cleanup();
+                List<Player> playerList = new ArrayList<>();
+                synchronized (this) {
+                    playerList.addAll(players);
+                }
+                for (int i = 0; i < playerList.size(); i++) {
+                    Player pl = playerList.get(i);
+                    if (pl != null && pl.conn != null && pl.conn.connected) {
+                        if (pl.isdie || pl.hp <= 0) {
+                            if (pl.time_revive_pvp_clan <= 0) {
+                                // Safety net: Bắt mọi nick bị chết mà chưa có thời gian hồi sinh
+                                pl.isdie = true;
+                                pl.hp = 0;
+                                pl.time_revive_pvp_clan = now + 5_000L;
+                                activities.PvpClan.send_revive_countdown(pl, 5);
+                            } else if (now >= pl.time_revive_pvp_clan) {
+                                pl.time_revive_pvp_clan = 0;
+                                pl.isdie = false;
+                                pl.hp = pl.body.get_hp_max(true);
+                                pl.mp = pl.body.get_mp_max(true);
+                                pl.time_can_mob_atk = now + 2000L;
+                                pl.x = (pl.type_pk == 4) ? (short) 300 : (short) 900;
+                                pl.y = (short) 210;
+                                pl.xold = pl.x;
+                                pl.yold = pl.y;
+                                try {
+                                    // 1. Gửi Message 6 (Revice_Player) chuẩn của client để gọi mainObject.Reveive()
+                                    Message mRevive = new Message(6);
+                                    mRevive.writer().writeShort(pl.index_map);
+                                    mRevive.writer().writeByte(0); // 0 = Player
+                                    mRevive.writer().writeInt(pl.hp);
+                                    mRevive.writer().writeInt(pl.mp);
+                                    send_msg_all_p(mRevive, pl, true);
+                                    mRevive.cleanup();
 
-                            Message mRevive = new Message(-71);
-                            mRevive.writer().writeByte(1);
-                            mRevive.writer().writeShort(pl.index_map);
-                            mRevive.writer().writeByte(0);
-                            mRevive.writer().writeInt(60 * 30);
-                            send_msg_all_p(mRevive, pl, true);
-                            mRevive.cleanup();
+                                    // 2. Cập nhật potion máu & mana (-83)
+                                    Service.use_potion(pl, 0, pl.hp);
+                                    Service.use_potion(pl, 1, pl.mp);
 
-                            activities.PvpClan.send_revive_countdown(pl, 0);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                                    // 3. Di chuyển về căn cứ (Message 1)
+                                    Message mmove = new Message(1);
+                                    mmove.writer().writeByte(0);
+                                    mmove.writer().writeShort(pl.index_map);
+                                    mmove.writer().writeShort(pl.x);
+                                    mmove.writer().writeShort(pl.y);
+                                    send_msg_all_p(mmove, pl, true);
+                                    mmove.cleanup();
+
+                                    // 4. Khiên an toàn (Message -71)
+                                    Message mSafe = new Message(-71);
+                                    mSafe.writer().writeByte(1);
+                                    mSafe.writer().writeShort(pl.index_map);
+                                    mSafe.writer().writeByte(0);
+                                    mSafe.writer().writeInt(60 * 30);
+                                    send_msg_all_p(mSafe, pl, true);
+                                    mSafe.cleanup();
+
+                                    // 5. Xóa đồng hồ đếm ngược hồi sinh (gửi 0 giây)
+                                    activities.PvpClan.send_revive_countdown(pl, 0);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                     }
                 }
@@ -2650,6 +2699,29 @@ public class Map implements Runnable {
         }
         p0.isdie = true;
         p0.update_die();
+        // PVP Băng (Map 123) / Đảo Đào Hoa (Map 2027): Đảm bảo mọi trường hợp tử trận (kể cả phản sát thương, quái đánh...) đều được tính điểm và hẹn giờ hồi sinh
+        if (this.map_pvp_clan != null && !this.map_pvp_clan.is_finish) {
+            if (p0.time_revive_pvp_clan <= 0) {
+                if (p0.type_pk == 4) {
+                    this.map_pvp_clan.score_clan2++;
+                } else if (p0.type_pk == 5) {
+                    this.map_pvp_clan.score_clan1++;
+                }
+                activities.PvpClan.send_pvp_clan_score(this);
+                p0.time_revive_pvp_clan = System.currentTimeMillis() + 5_000L;
+                activities.PvpClan.send_revive_countdown(p0, 5);
+            }
+        } else if (this.map_dao_hoa != null && !this.map_dao_hoa.is_finish) {
+            if (p0.time_revive_pvp_clan <= 0) {
+                if (p0.type_pk == 4) {
+                    this.map_dao_hoa.score_clan2++;
+                } else if (p0.type_pk == 5) {
+                    this.map_dao_hoa.score_clan1++;
+                }
+                p0.time_revive_pvp_clan = System.currentTimeMillis() + 5_000L;
+                activities.PvpClan.send_revive_countdown(p0, 5);
+            }
+        }
         //
         //
         Message m = new Message(7);
@@ -2692,8 +2764,10 @@ public class Map implements Runnable {
                 || this.map_dao_hoa != null || this.map_pvp != null) {
             p.type_pk = -1; // Tháo cờ khi rời Map Đấu Trường / Đảo Ruby / PVP Clan / Đảo Đào Hoa / PVP
             p.targetFight = null;
-            if (this.map_pvp_clan != null) {
+            if (this.map_pvp_clan != null || this.map_dao_hoa != null) {
+                p.time_revive_pvp_clan = 0;
                 activities.PvpClan.clear_pvp_clan_score(p);
+                activities.PvpClan.send_revive_countdown(p, 0);
             }
         }
         if (this.template.id == 119) {

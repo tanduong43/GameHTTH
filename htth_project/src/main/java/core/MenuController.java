@@ -1470,7 +1470,7 @@ public class MenuController {
           break;
         }
         case 9991: { // Admin can thiep Tai Xiu
-          if (p.conn == null || !p.conn.user.equals("admin")) {
+          if (p.conn == null || !p.conn.user.equalsIgnoreCase("admin")) {
             return;
           }
           event.TaiXiu tx = Manager.gI().TaiXiu();

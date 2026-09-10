@@ -2139,8 +2139,9 @@ public class Player {
             }
             byte type = m2.reader().readByte();
             if (type == 1) { //
-                if (Map.is_map_dungeon(this.map.template.id)) {
-                    Service.send_box_ThongBao_OK(this, "Không thể hồi sinh tại chỗ trong phó bản!");
+                if (Map.is_map_dungeon(this.map.template.id)
+                        || (this.map != null && (this.map.map_pvp_clan != null || this.map.map_dao_hoa != null))) {
+                    Service.send_box_ThongBao_OK(this, "Đang trong trận đấu, bạn sẽ tự động hồi sinh sau vài giây!");
                     return;
                 }
                 if (pointPk < 20) {
