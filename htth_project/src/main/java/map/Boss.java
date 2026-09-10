@@ -388,6 +388,44 @@ public class Boss {
     }
 
     /**
+     * Kiểm tra xem một Boss có phải là Boss sự kiện (như Boss Lân Sư Tử, Boss Tết, Boss 20/11, Boss Noel...) hay không.
+     * Boss sự kiện không bị giới hạn cấp độ người chơi tham gia/săn/tấn công.
+     */
+    public static boolean isEventBoss(Boss b) {
+        if (b == null) {
+            return false;
+        }
+        if (b.thegioi == 10 || b.thegioi == 4 || b.id == 9999) {
+            return true;
+        }
+        if (b.mob == null || b.mob.mob_template == null) {
+            return false;
+        }
+        int mobId = b.mob.mob_template.mob_id;
+        return mobId == event.EventTrungThu.MOB_BOSS_LAN
+                || mobId == event.EventTet.MOB_BOSS_LAN_SU_TU
+                || mobId == event.Event2011.MOB_BOSS_LAN_SU_TU
+                || mobId == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET;
+    }
+
+    public static boolean isEventBossMob(Mob mob) {
+        if (mob == null) {
+            return false;
+        }
+        if (mob.boss_info != null && (mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4 || mob.boss_info.id == 9999)) {
+            return true;
+        }
+        if (mob.mob_template == null) {
+            return false;
+        }
+        int mobId = mob.mob_template.mob_id;
+        return mobId == event.EventTrungThu.MOB_BOSS_LAN
+                || mobId == event.EventTet.MOB_BOSS_LAN_SU_TU
+                || mobId == event.Event2011.MOB_BOSS_LAN_SU_TU
+                || mobId == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET;
+    }
+
+    /**
      * Tìm Siêu Trùm (thegioi = 1) đang sống tại mapId và zoneId cụ thể.
      */
     public static Boss getActiveWorldBossInMapAndZone(int mapId, int zoneId) {
@@ -397,6 +435,9 @@ public class Boss {
         for (int i = 0; i < ENTRYS.size(); i++) {
             Boss b = ENTRYS.get(i);
             if (b != null && b.thegioi == 1 && b.mob != null && !b.mob.isdie && b.mob.map != null) {
+                if (isEventBoss(b)) {
+                    continue;
+                }
                 if (b.mob.map.template.id == mapId && b.mob.map.zone_id == zoneId) {
                     return b;
                 }

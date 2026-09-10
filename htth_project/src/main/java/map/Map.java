@@ -2042,6 +2042,13 @@ public class Map implements Runnable {
                                     //
                                     int dame_to_target = p0.body.get_dame(true);
                                     dame_to_target = (dame_to_target * (100 - Util.random(10))) / 100;
+                                    boolean isLanMobSelect = (mob_select.mob_template != null && (mob_select.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
+                                            || mob_select.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                                            || mob_select.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
+                                            || (mob_select.boss_info != null && (mob_select.boss_info.id == 9999 || mob_select.boss_info.thegioi == 10 || mob_select.boss_info.thegioi == 4));
+                                    if (isLanMobSelect) {
+                                        dame_to_target = 1;
+                                    }
                                     if (mob_select.hp - dame_to_target > 0) {
                                         mob_select.hp -= dame_to_target;
                                     } else {
@@ -2253,7 +2260,11 @@ public class Map implements Runnable {
                             && mob.final_dame > 0) {
                         dame = mob.final_dame;
                     } else if (mob.boss_info != null) {
-                        if (mob.boss_info.thegioi == 1) {
+                        if (mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4 || Boss.isEventBoss(mob.boss_info)) {
+                            // Boss sự kiện (Lân Sư Tử...): Sát thương thân thiện theo % máu người chơi (5% - 10%), không oneshot người chơi cấp thấp
+                            int maxHpP = (p0 != null && p0.body != null) ? p0.body.get_hp_max(true) : 1000;
+                            dame = Math.max(50, (maxHpP * Util.random(5, 11)) / 100);
+                        } else if (mob.boss_info.thegioi == 1) {
                             dame = mob.level * 800 + Util.random(10000, 20000);
                         } else {
                             dame = mob.level * 500 + Util.random(5000, 10000);
@@ -2347,6 +2358,13 @@ public class Map implements Runnable {
                         dame_mine = dame;
                     }
                     if (dame_mine > 0) {
+                        boolean isLanMob = (mob.mob_template != null && (mob.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
+                                || mob.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                                || mob.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
+                                || (mob.boss_info != null && (mob.boss_info.id == 9999 || mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4));
+                        if (isLanMob) {
+                            dame_mine = 1;
+                        }
                         mob.hp -= dame_mine;
                         if (mob.hp <= 0) {
                             mob.hp = 1;
@@ -3938,11 +3956,30 @@ public class Map implements Runnable {
         //
         final long damebefore = dame;
         long dame2;
+        java.util.Set<Mob> damagedEventBosses = new java.util.HashSet<>();
         for (int i = 0; i < list_target.length; i++) {
             Mob mob_target = list_target[i];
             if (mob_target != null && !mob_target.isdie && !p.isdie) {
+                boolean isBossLan = (mob_target.mob_template != null && (mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
+                        || mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                        || mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
+                        || (mob_target.boss_info != null && (mob_target.boss_info.id == 9999 || mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4));
+                boolean isEventBoss1Hp = isBossLan
+                        || (mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET);
+
+                if (isEventBoss1Hp) {
+                    if (damagedEventBosses.contains(mob_target)) {
+                        // Trong 1 lần dùng chiêu, boss sự kiện chỉ nhận sát thương đúng 1 lần (1 HP)
+                        // Bỏ qua các target trùng lặp do Boss có nhiều index mob trong Mob.ENTRYS
+                        continue;
+                    }
+                    damagedEventBosses.add(mob_target);
+                }
+
                 if (mob_target.boss_info != null && mob_target.boss_info.thegioi == 1) {
-                    if (!Boss.checkLevelJoinBossTheGioi(p.level, mob_target.level)) {
+                    if (Boss.isEventBossMob(mob_target)) {
+                        // Boss sự kiện (Boss Lân Sư Tử, ...) không giới hạn cấp độ tham gia/tấn công
+                    } else if (!Boss.checkLevelJoinBossTheGioi(p.level, mob_target.level)) {
                         String bName = (mob_target.mob_template != null) ? mob_target.mob_template.name : "Siêu trùm";
                         Service.send_box_ThongBao_OK(p, "Cấp độ của bạn không phù hợp để tấn công Siêu trùm " + bName
                                 + " (" + Boss.getAllowedLevelRangeText(mob_target.level) + ")!");
@@ -3988,6 +4025,10 @@ public class Map implements Runnable {
                 if (!miss && mob_target.ne_don > 0 && Util.random(100) < mob_target.ne_don) {
                     miss = true;
                 }
+                // Boss sự kiện (Lân Sư Tử...) không bị tính miss do chênh lệch cấp
+                if (isEventBoss1Hp) {
+                    miss = false;
+                }
                 if (miss) { // miss
                     dame2 = 0;
                     dame_inf.dameM = 0;
@@ -3996,37 +4037,47 @@ public class Map implements Runnable {
                     dame2 -= (dame2 * Util.random(10)) / 100;
                 }
                 long dame_to_target = dame2 + dame_inf.dameM;
-                if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
-                        && dame_to_target > 0) {
+                if (isBossLan) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
-                    EventTrungThu.getInstance().onBossDamaged(p, 1);
+                    dame2 = 1;
+                    if (EventTrungThu.isEvent() || (mob_target.boss_info != null && (mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4))) {
+                        EventTrungThu.getInstance().onBossDamaged(p, 1);
+                    }
                 }
-                if (event.EventTet.isEvent() && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                if (event.EventTet.isEvent() && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
                         && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
+                    dame2 = 1;
                     event.EventTet.getInstance().onBossDamaged(p, 1);
                 }
-                if (event.Event2011.isEvent() && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU
+                if (event.Event2011.isEvent() && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU
                         && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
+                    dame2 = 1;
                     event.Event2011.getInstance().onBossDamaged(p, 1);
                 }
-                if (event.EventNoel.isEvent() && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET
+                if (event.EventNoel.isEvent() && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET
                         && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
+                    dame2 = 1;
                     event.EventNoel.getInstance().onBossDamaged(p, 1);
                 }
                 if (dame_to_target > 0) {
-                    dame_to_target = mob_target.calculate_damage_taken(dame_to_target);
-                    dame2 = Math.max(0, dame_to_target - dame_inf.dameM);
+                    if (!isEventBoss1Hp) {
+                        dame_to_target = mob_target.calculate_damage_taken(dame_to_target);
+                        dame2 = Math.max(0, dame_to_target - dame_inf.dameM);
+                    } else {
+                        dame_to_target = 1;
+                        dame2 = 1;
+                    }
                 }
                 // Phản sát thương lại người chơi nếu Mob/Boss có chỉ số phản đòn
                 if (dame_to_target > 0 && mob_target.phan_dame > 0 && p != null && !p.isdie) {
@@ -4091,6 +4142,9 @@ public class Map implements Runnable {
                     if (this.clan_resource != null) {
                         this.clan_resource.dame += dame_to_target;
                     } else {
+                        if (isEventBoss1Hp) {
+                            dame_to_target = 1;
+                        }
                         mob_target.hp -= dame_to_target;
                     }
                     //
@@ -4413,7 +4467,12 @@ public class Map implements Runnable {
                     p.item.update_Inventory(-1, false);
                     p.update_money();
                 }
-                dame_inf.dameP = dame2;
+                if (isEventBoss1Hp) {
+                    dame_inf.dameP = 1;
+                    dame_inf.dameM = 0;
+                } else {
+                    dame_inf.dameP = dame2;
+                }
                 mob_target.id_target = p.index_map;
                 if (mob_target.hp <= 0 && !mob_target.isdie) {
                     mob_target.hp = 0;
@@ -4478,8 +4537,10 @@ public class Map implements Runnable {
                             EventTrungThu.addMaterial(p, EventTrungThu.ITEM_BOT_MI, 1);
                         }
                     }
-                    if (EventTrungThu.isEvent() && mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN) {
-                        EventTrungThu.getInstance().onBossKilled(p);
+                    if (isBossLan) {
+                        if (EventTrungThu.isEvent() || (mob_target.boss_info != null && (mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4))) {
+                            EventTrungThu.getInstance().onBossKilled(p);
+                        }
                     }
                     if (event.EventTet.isEvent()
                             && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU) {
@@ -5139,7 +5200,7 @@ public class Map implements Runnable {
                 }
                 exp_up[0] += exp_up_add;
 
-                if (crit) {
+                if (crit && !isEventBoss1Hp) {
                     dame_inf.data.add(new Option_Dame_Msg(1010, (int) dame_inf.dameP, 0));
                 }
                 list.add(dame_inf);

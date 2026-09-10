@@ -72,9 +72,7 @@ public class EventTrungThu implements Runnable {
     // Boss ID
     public static final int MOB_BOSS_LAN = 153;
 
-    // Thời gian sống của Boss (30 phút nếu không ai đánh chết thì tự bỏ đi)
-    private static final long BOSS_LIFETIME_MS = 30 * 60 * 1000L;
-    // Thời gian chờ hồi sinh sau khi Boss chết hoặc biến mất (15 phút)
+    // Thời gian chờ hồi sinh sau khi Boss chết (15 phút)
     public static final long BOSS_RESPAWN_DELAY_MS = 15 * 60 * 1000L;
 
     // ================== TRẠNG THÁI RUNTIME ==================
@@ -207,35 +205,18 @@ public class EventTrungThu implements Runnable {
     }
 
     public void scheduleNextBossSpawn() {
-        long now = System.currentTimeMillis();
-        if (isWithinEventWindow(now)) {
-            nextBossSpawnTime = now;
-        } else {
-            nextBossSpawnTime = getNextWindowStartTime(now);
-        }
-        long diffMinutes = Math.max(0, (nextBossSpawnTime - now) / (60 * 1000));
-        System.out.println("[EventTrungThu] Lên lịch Boss Lân tiếp theo: "
-                + new java.util.Date(nextBossSpawnTime) + " (sau " + diffMinutes + " phút)");
+        nextBossSpawnTime = System.currentTimeMillis();
+        System.out.println("[EventTrungThu] Lên lịch Boss Lân xuất hiện ngay khi kích hoạt sự kiện.");
     }
 
     private synchronized void update() {
-        long now = System.currentTimeMillis();
-
-        if (isWithinEventWindow(now)) {
-            // Trong khung giờ hoạt động: nếu boss chưa sống và đã đến giờ thì xuất hiện
-            if (!bossAlive && (nextBossSpawnTime <= 0 || now >= nextBossSpawnTime)) {
-                spawnBossLan(null);
-            }
-        } else {
-            // Ngoài khung giờ: nếu boss vẫn còn thì despawn
-            if (bossAlive && activeBossLan != null) {
-                despawnBoss("⏰ Hết khung giờ hoạt động, Boss Lân Sư Tử đã bỏ đi!");
-            }
+        if (!IS_OPEN) {
+            return;
         }
-
-        // Tự động despawn sau 30 phút tồn tại
-        if (bossAlive && activeBossLan != null && now >= bossSpawnTime + BOSS_LIFETIME_MS) {
-            despawnBoss("⏰ Hết 30 phút khiêu chiến, Boss Lân Sư Tử đã bỏ đi!");
+        long now = System.currentTimeMillis();
+        // Khi sự kiện đang mở: Boss tồn tại cho đến khi bị tiêu diệt. Sau khi chết 15 phút sẽ hồi sinh con tiếp theo.
+        if (!bossAlive && (nextBossSpawnTime <= 0 || now >= nextBossSpawnTime)) {
+            spawnBossLan(null);
         }
     }
 
@@ -255,6 +236,9 @@ public class EventTrungThu implements Runnable {
         } else {
             List<Map> allowedMaps = new ArrayList<>();
             for (int mapId : Boss.ALLOWED_MAP_IDS) {
+                if (isVillageMap(mapId)) {
+                    continue;
+                }
                 Map[] maps = Map.get_map_by_id(mapId);
                 if (maps != null) {
                     for (Map m : maps) {
@@ -296,18 +280,19 @@ public class EventTrungThu implements Runnable {
 
         Boss boss = new Boss();
         boss.id = 9999;
-        boss.thegioi = 1;
+        boss.thegioi = 10; // Boss sự kiện Lân Sư Tử (thegioi = 10), tách biệt hoàn toàn khỏi Siêu Trùm (1), Boss Làng (2), Boss 24/7 (3)
         boss.mob = new Mob();
         boss.mob.mob_template = mobTemplate;
-        boss.mob.hp_max = mobTemplate.hp_max;
-        boss.hp_max_origin = mobTemplate.hp_max;
+        boss.mob.level = (mobTemplate != null && mobTemplate.level > 0) ? mobTemplate.level : 99;
+        boss.mob.hp_max = (mobTemplate != null && mobTemplate.hp_max > 0) ? mobTemplate.hp_max : 100;
+        boss.hp_max_origin = boss.mob.hp_max;
+        boss.mob.hp = boss.mob.hp_max;
         boss.mob.boss_info = boss;
         boss.TopDame = new ArrayList<>();
         boss.skill = new short[] { 1 };
         boss.buff = new ArrayList<>();
         boss.time_atk = new long[] { 0, 0, 0, 0, 0 };
         boss.levelBoss = 1;
-        boss.updateHpForLevel();
 
         int currentIndex = core.Manager.gI().getIndexMob();
         boss.mob.index = currentIndex;
@@ -385,7 +370,8 @@ public class EventTrungThu implements Runnable {
     }
 
     private boolean isVillageMap(int mapId) {
-        return mapId == 0 || mapId == 21 || mapId == 22;
+        return mapId == 0 || mapId == 1 || mapId == 8 || mapId == 16 || mapId == 21 || mapId == 22
+                || mapId == 24 || mapId == 32 || mapId == 40 || mapId == 48 || mapId == 68 || mapId == 82;
     }
 
     public void onBossDamaged(Player player, int damage) {
@@ -503,7 +489,10 @@ public class EventTrungThu implements Runnable {
                 System.out.println("Error despawning boss: " + e.getMessage());
             }
 
-            // Gỡ khỏi Boss.ENTRYS để tách biệt hoàn toàn, tránh bị World Boss chiếm quyền
+            // Gỡ khỏi Mob.ENTRYS và Boss.ENTRYS
+            for (int j = 0; j < 10; j++) {
+                Mob.ENTRYS.remove(activeBossLan.mob.index + j);
+            }
             if (Boss.ENTRYS != null) {
                 Boss.ENTRYS.remove(activeBossLan);
             }
@@ -514,13 +503,8 @@ public class EventTrungThu implements Runnable {
         bossDamageList.clear();
         participatedPlayers.clear();
 
-        // Tính thời gian hồi sinh: 15 phút sau
-        long candidate = System.currentTimeMillis() + BOSS_RESPAWN_DELAY_MS;
-        if (isWithinEventWindow(candidate)) {
-            nextBossSpawnTime = candidate;
-        } else {
-            nextBossSpawnTime = getNextWindowStartTime(candidate);
-        }
+        // Tính thời gian hồi sinh: 15 phút sau khi bị tiêu diệt
+        nextBossSpawnTime = System.currentTimeMillis() + BOSS_RESPAWN_DELAY_MS;
 
         long diffMinutes = Math.max(0, (nextBossSpawnTime - System.currentTimeMillis()) / (60 * 1000));
         System.out.println("[EventTrungThu] Boss Lân kết thúc. Xuất hiện lại vào: "
