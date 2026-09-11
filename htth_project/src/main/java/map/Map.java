@@ -2792,19 +2792,19 @@ public class Map implements Runnable {
                 this.stop_map();
             }
         }
-        // BossHunt: khi player ngắt kết nối, tạm chuyển vào offlineMembers.
+        // BossHunt: khi player ngắt kết nối (type == 0), tạm chuyển vào offlineMembers.
         // Họ sẽ KHÔNG bị lôi vào tầng mới cho đến khi xác nhận vào lại.
-        if (this.map_bossHunt != null && p.bossHunt != null) {
+        if (type == 0 && this.map_bossHunt != null && p.bossHunt != null) {
             System.out.println("[BossHunt] Player " + p.name
                     + " left BossHunt map (floor " + (p.bossHunt.currentFloor + 1) + ")."
                     + " Moving to offlineMembers.");
             this.map_bossHunt.markOffline(p.name);
         }
-        // HangDong: khi player ngắt kết nối, tạm chuyển vào offlineMembers.
+        // HangDong: khi player ngắt kết nối (type == 0), tạm chuyển vào offlineMembers.
         // Phó bản có 90s ân hạn để người chơi kết nối lại.
-        if (this.map_dungeon != null && this.map_dungeon instanceof activities.HangDong) {
+        if (type == 0 && this.map_dungeon != null && this.map_dungeon instanceof activities.HangDong) {
             System.out.println("[HangDong] Player " + p.name
-                    + " left HangDong map. Moving to offlineMembers.");
+                    + " left HangDong map (disconnect). Moving to offlineMembers.");
             ((activities.HangDong) this.map_dungeon).markOffline(p.name);
         }
         // Reset mob target if mob was targeting the player who left/disconnected
@@ -3013,34 +3013,22 @@ public class Map implements Runnable {
                     int num_mob = 0;
                     for (int i = 0; i < p.dungeon.mobs.size(); i++) {
                         Mob mob_dungeon = p.dungeon.mobs.get(i);
-                        if (mob_dungeon.map.equals(this)) {
+                        if (mob_dungeon != null && !mob_dungeon.isdie && mob_dungeon.hp > 0 && mob_dungeon.map.equals(this)) {
                             num_mob++;
-                            Message mmove = new Message(1);
-                            mmove.writer().writeByte(1);
-                            mmove.writer().writeShort(mob_dungeon.index);
-                            mmove.writer().writeShort(mob_dungeon.x);
-                            mmove.writer().writeShort(mob_dungeon.y);
-                            send_msg_all_p(mmove, p, true);
-                            mmove.cleanup();
+                            break;
                         }
                     }
                     if (num_mob > 0) {
                         return;
                     }
                 }
-                // BossHunt: broadcast vị trí boss cho mọi người khi player mới vào map
+                // BossHunt: không cho chuyển map qua vgo khi boss còn sống
                 if (this.map_bossHunt != null && this.map_bossHunt.active && p.bossHunt != null) {
                     int num_boss = 0;
                     for (Mob mob_boss : this.map_bossHunt.mobs) {
-                        if (mob_boss != null && !mob_boss.isdie && mob_boss.map.equals(this)) {
+                        if (mob_boss != null && !mob_boss.isdie && mob_boss.hp > 0 && mob_boss.map.equals(this)) {
                             num_boss++;
-                            Message mmove = new Message(1);
-                            mmove.writer().writeByte(1);
-                            mmove.writer().writeShort(mob_boss.index);
-                            mmove.writer().writeShort(mob_boss.x);
-                            mmove.writer().writeShort(mob_boss.y);
-                            send_msg_all_p(mmove, p, true);
-                            mmove.cleanup();
+                            break;
                         }
                     }
                     if (num_boss > 0) {

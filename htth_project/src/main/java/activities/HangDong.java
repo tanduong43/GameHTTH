@@ -190,7 +190,7 @@ public class HangDong extends Dungeon {
             }
         }
 
-        int index = -1;
+        int index = -2;
         int floor = stageIndex + 1;
         int mobCount = 50;
         if (floor >= 100 && floor <= 500) {
@@ -216,8 +216,8 @@ public class HangDong extends Dungeon {
 
             Mob mob_add = new Mob();
             mob_add.mob_template = temp.mob_template;
-            // Spawm ngẫu nhiên tọa độ trên mặt đất map 167 (y = 250)
-            mob_add.x = (short) core.Util.random(150, 1400);
+            // Spawm ngẫu nhiên tọa độ trên mặt đất map 167 (maxW = 720, y = 250)
+            mob_add.x = (short) core.Util.random(80, 660);
             mob_add.y = (short) 250;
 
             mob_add.level = maxLevel;
@@ -318,9 +318,14 @@ public class HangDong extends Dungeon {
         if (this.mobs != null && !this.mobs.isEmpty()) {
             for (int i = 0; i < this.mobs.size(); i++) {
                 Mob mob = this.mobs.get(i);
-                if (mob != null && !mob.isdie && mob.hp > 0) {
-                    allDead = false;
-                    break;
+                if (mob != null) {
+                    if (mob.hp <= 0 && !mob.isdie) {
+                        mob.isdie = true;
+                    }
+                    if (!mob.isdie && mob.hp > 0) {
+                        allDead = false;
+                        break;
+                    }
                 }
             }
         }
@@ -686,6 +691,8 @@ public class HangDong extends Dungeon {
             }
             return;
         }
+
+        checkTransition();
 
         // 1. Timeout Check (10 minutes)
         if (System.currentTimeMillis() > this.stageEndTime) {
