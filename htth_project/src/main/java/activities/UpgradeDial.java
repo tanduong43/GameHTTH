@@ -139,7 +139,11 @@ public class UpgradeDial {
                                     "Không đủ " + p.tool_dial[2] + " Khiên");
                             return;
                         }
+                        String dialName = (it_select != null && it_select.template != null) 
+                                ? (it_select.template.name + " (+" + it_select.levelup + " -> +" + (it_select.levelup + 1) + ")") : "Dial";
+                        if (beri_req > 0) p.set_spend_context("Nâng cấp Dial", dialName);
                         p.update_vang(-beri_req);
+                        if (extol_req > 0) p.set_spend_context("Nâng cấp Dial", dialName);
                         p.update_vnd(-extol_req);
                         p.update_money();
                         p.item.remove_item47(7, 1, botCH_req);

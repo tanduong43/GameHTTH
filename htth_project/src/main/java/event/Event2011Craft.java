@@ -113,8 +113,10 @@ public class Event2011Craft {
         }
 
         // Trừ Beri & Ruby
+        p.set_spend_context("Ghép vật phẩm 20/11", "Sự kiện 20/11");
         p.update_vang(-beriCost);
         if (rubyCost > 0) {
+            p.set_spend_context("Ghép vật phẩm 20/11", "Sự kiện 20/11");
             p.update_ngoc(-rubyCost);
         }
 

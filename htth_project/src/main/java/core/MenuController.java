@@ -1442,7 +1442,7 @@ public class MenuController {
           break;
         }
         case 989: { // taixiu
-          if (p.conn == null || p.conn.status != 1) {
+          if (p.conn == null || (p.conn.status != 1 && !"admin".equalsIgnoreCase(p.conn.user))) {
             Service.send_box_ThongBao_OK(p, "Chỉ thành viên đã kích hoạt (MTV) mới có thể tham gia Tài Xỉu!");
             return;
           }
@@ -1463,6 +1463,12 @@ public class MenuController {
             } else {
               Service.send_box_ThongBao_OK(p, "Không thấy thông tin");
             }
+          } else if (index == 2 && p.conn != null && "admin".equalsIgnoreCase(p.conn.user)) {
+            send_dynamic_menu(p, 9991, "Quản Lý Tài Xỉu",
+                new String[] { "Xem thông tin cược", "Ép TÀI (ván này)", "Ép XỈU (ván này)",
+                    "Cố định TÀI (mọi ván)", "Cố định XỈU (mọi ván)", "Đặt 3 xúc xắc cụ thể",
+                    "Hủy can thiệp (Random)" },
+                null);
           }
           break;
         }
@@ -1474,6 +1480,7 @@ public class MenuController {
             return;
           }
           event.TaiXiu tx = Manager.gI().TaiXiu();
+          String targetRound = tx.isSettled() ? "Ván tiếp theo" : "Ván hiện tại";
           switch (index) {
             case 0: { // Xem thong tin cuoc
               Service.send_box_ThongBao_OK(p, tx.getTxDebugInfo());
@@ -1482,13 +1489,13 @@ public class MenuController {
             case 1: { // Ep TAI van nay
               tx.setForceResult(1, false);
               Service.send_box_ThongBao_OK(p,
-                  "Đã can thiệp: Ván hiện tại sẽ ra TÀI (11-17 điểm)!\n\n" + tx.getTxDebugInfo());
+                  "Đã can thiệp: " + targetRound + " sẽ ra TÀI (11-17 điểm)!\n\n" + tx.getTxDebugInfo());
               break;
             }
             case 2: { // Ep XIU van nay
               tx.setForceResult(0, false);
               Service.send_box_ThongBao_OK(p,
-                  "Đã can thiệp: Ván hiện tại sẽ ra XỈU (4-10 điểm)!\n\n" + tx.getTxDebugInfo());
+                  "Đã can thiệp: " + targetRound + " sẽ ra XỈU (4-10 điểm)!\n\n" + tx.getTxDebugInfo());
               break;
             }
             case 3: { // Co dinh TAI moi van
@@ -1602,22 +1609,24 @@ public class MenuController {
               break;
             }
             // case 1: { // Đổi extol
-            //   Service.send_box_yesno(p, 10, "Thông báo",
-            //       "Bạn muốn đổi 1000 ruby sang 750.000 extol?", new String[] { "Đồng ý", "Hủy" },
-            //       new byte[] { 2, 1 });
-            //   break;
+            // Service.send_box_yesno(p, 10, "Thông báo",
+            // "Bạn muốn đổi 1000 ruby sang 750.000 extol?", new String[] { "Đồng ý", "Hủy"
+            // },
+            // new byte[] { 2, 1 });
+            // break;
             // }
             // case 2: { // Nạp tiền
-            //   Service.send_box_ThongBao_OK(p, "Đang bảo trì, anh em lên web nạp nha");
-            //   break;
+            // Service.send_box_ThongBao_OK(p, "Đang bảo trì, anh em lên web nạp nha");
+            // break;
             // }
             case 1: { // GiftCode (cũ: index 3)
               Service.input_text(p, 1, "Quà tặng máy chủ", new String[] { "Nhập giftcode" });
               break;
             }
             // case 4: { // Đổi Ruby (Coin sang Ruby)
-            //   Service.input_text(p, 8, "Đổi Coin Sang Ruby", new String[] { "10 coin = 2 ruby" });
-            //   break;
+            // Service.input_text(p, 8, "Đổi Coin Sang Ruby", new String[] { "10 coin = 2
+            // ruby" });
+            // break;
             // }
             case 2: { // Đổi Beri (cũ: index 5)
               Service.input_text(p, 9, "Đổi Coin Sang Beri", new String[] { "1 coin = 5000 beri" });
@@ -1858,7 +1867,7 @@ public class MenuController {
                 "Tôn Ngộ Không: Lão Tôn xin chào! Ngươi muốn vào Đảo Ruby, Đấu Trường Sinh Tồn, Hang Động hay Đảo Huấn Luyện Pet?");
           } else if (index == 1) {
             if (!map.Map.isRubyIslandOpen()) {
-              Service.send_box_ThongBao_OK(p, "Đảo Ruby chỉ mở cửa từ 7h-8h sáng và 17h-19h tối hàng ngày!");
+              Service.send_box_ThongBao_OK(p, "Đảo Ruby chỉ mở cửa từ 7h-9h sáng và 17h-19h tối hàng ngày!");
               break;
             }
             Vgo vgo = new Vgo();
@@ -2969,11 +2978,15 @@ public class MenuController {
         break;
       }
       case 3: {
-        if (p.conn == null || p.conn.status != 1) {
+        if (p.conn == null || (p.conn.status != 1 && !"admin".equalsIgnoreCase(p.conn.user))) {
           Service.send_box_ThongBao_OK(p, "Chỉ thành viên đã kích hoạt (MTV) mới có thể tham gia Tài Xỉu!");
           return;
         }
-        send_dynamic_menu(p, 989, "Tai xiu", new String[] { "Tham gia", "Nhan thuong" }, null);
+        if (p.conn != null && "admin".equalsIgnoreCase(p.conn.user)) {
+          send_dynamic_menu(p, 989, "Tài Xỉu", new String[] { "Tham gia", "Nhận thưởng", "Quản Lý Tài Xỉu" }, null);
+        } else {
+          send_dynamic_menu(p, 989, "Tài Xỉu", new String[] { "Tham gia", "Nhận thưởng" }, null);
+        }
         break;
       }
       case 4: { // Tich Tieu Ruby
@@ -3603,7 +3616,7 @@ public class MenuController {
   }
 
   public static void Menu_Admin(Player p, byte index) throws IOException {
-    if (p.conn.user.equals("admin")) {
+    if (p.conn != null && "admin".equalsIgnoreCase(p.conn.user)) {
       switch (index) {
         case 0: {
           Service.send_box_ThongBao_OK(p, "Đã kích hoạt đếm ngược bảo trì 5 phút!");
@@ -4207,11 +4220,13 @@ public class MenuController {
       Service.send_box_ThongBao_OK(p, "Bạn đã học kỹ năng Chế tạo DIAL rồi!");
     } else if (p.time_ttvt >= 50) {
       Service.send_box_yesno(p, 55, "Thông báo",
-          "Bạn đã hoàn thành " + p.time_ttvt + "/50 lần Thử Thách Vệ Thần!\nBạn có muốn học kỹ năng Chế tạo DIAL MIỄN PHÍ không?",
+          "Bạn đã hoàn thành " + p.time_ttvt
+              + "/50 lần Thử Thách Vệ Thần!\nBạn có muốn học kỹ năng Chế tạo DIAL MIỄN PHÍ không?",
           new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
     } else {
       Service.send_box_yesno(p, 55, "Thông báo",
-          "Bạn đã hoàn thành Thử Thách Vệ Thần (" + p.time_ttvt + "/50) lần.\nBạn có muốn tốn 500 Ruby để học kỹ năng Chế tạo DIAL ngay không?\n(Nếu hoàn thành đủ 50 lần sẽ được học Miễn phí)",
+          "Bạn đã hoàn thành Thử Thách Vệ Thần (" + p.time_ttvt
+              + "/50) lần.\nBạn có muốn tốn 500 Ruby để học kỹ năng Chế tạo DIAL ngay không?\n(Nếu hoàn thành đủ 50 lần sẽ được học Miễn phí)",
           new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
     }
   }

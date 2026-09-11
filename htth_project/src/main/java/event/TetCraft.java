@@ -97,6 +97,7 @@ public class TetCraft {
         }
 
         // Xóa Beri
+        p.set_spend_context("Nấu Bánh Chưng / Bánh Tét", "Sự kiện Tết");
         p.update_vang(-beriCost);
 
         // Xóa nguyên liệu

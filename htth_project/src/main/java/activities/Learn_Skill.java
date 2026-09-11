@@ -42,6 +42,7 @@ public class Learn_Skill {
 						return;
 					}
 					if (Skill_Template.learn_skill(sk_temp)) {
+						p.set_spend_context("Học kỹ năng", sk_temp.temp.name);
 						p.update_vang(-10_000);
 						p.update_money();
 						p.send_skill();

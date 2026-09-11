@@ -4,11 +4,13 @@ import api from '../../../api/api';
 
 const TYPE_CONFIG = {
   ruby: { label: 'Ruby', icon: '💎', color: '#ff3366', bg: 'rgba(255, 51, 102, 0.15)', border: 'rgba(255, 51, 102, 0.35)' },
-  shop: { label: 'Shop', icon: '🛒', color: '#00e5ff', bg: 'rgba(0, 229, 255, 0.15)', border: 'rgba(0, 229, 255, 0.35)' },
-  item: { label: 'Vật phẩm', icon: '🎁', color: '#52c41a', bg: 'rgba(82, 196, 26, 0.15)', border: 'rgba(82, 196, 26, 0.35)' },
+  beri: { label: 'Beri', icon: '🪙', color: '#faad14', bg: 'rgba(250, 173, 20, 0.15)', border: 'rgba(250, 173, 20, 0.35)' },
+  extol: { label: 'Extol', icon: '💵', color: '#00e5ff', bg: 'rgba(0, 229, 255, 0.15)', border: 'rgba(0, 229, 255, 0.35)' },
+  shop: { label: 'Shop', icon: '🛒', color: '#52c41a', bg: 'rgba(82, 196, 26, 0.15)', border: 'rgba(82, 196, 26, 0.35)' },
+  item: { label: 'Vật phẩm', icon: '🎁', color: '#13c2c2', bg: 'rgba(19, 194, 194, 0.15)', border: 'rgba(19, 194, 194, 0.35)' },
   market: { label: 'Chợ trời', icon: '🏪', color: '#fa8c16', bg: 'rgba(250, 140, 22, 0.15)', border: 'rgba(250, 140, 22, 0.35)' },
   trade: { label: 'Giao dịch', icon: '🤝', color: '#722ed1', bg: 'rgba(114, 46, 209, 0.15)', border: 'rgba(114, 46, 209, 0.35)' },
-  drop_pick: { label: 'Nhặt/Rơi', icon: '🎒', color: '#13c2c2', bg: 'rgba(19, 194, 194, 0.15)', border: 'rgba(19, 194, 194, 0.35)' },
+  drop_pick: { label: 'Nhặt/Rơi', icon: '🎒', color: '#8c8c8c', bg: 'rgba(140, 140, 140, 0.15)', border: 'rgba(140, 140, 140, 0.35)' },
   buff: { label: 'Buff', icon: '⚡', color: '#b37feb', bg: 'rgba(179, 127, 235, 0.15)', border: 'rgba(179, 127, 235, 0.35)' },
   coin: { label: 'Coin', icon: '💰', color: '#faad14', bg: 'rgba(250, 173, 20, 0.15)', border: 'rgba(250, 173, 20, 0.35)' },
   recharge: { label: 'Nạp tiền', icon: '💳', color: '#1890ff', bg: 'rgba(24, 144, 255, 0.15)', border: 'rgba(24, 144, 255, 0.35)' },
@@ -311,12 +313,13 @@ export default function AdminLogs() {
                 }}
               >
                 <option value="" style={{ background: '#1a1a1a', color: '#fff' }}>Tất cả các loại</option>
-                <option value="ruby" style={{ background: '#1a1a1a', color: '#fff' }}>💎 Ruby (Tiêu / Nhận)</option>
+                <option value="ruby" style={{ background: '#1a1a1a', color: '#fff' }}>💎 Ruby (Tiêu Ruby)</option>
+                <option value="beri" style={{ background: '#1a1a1a', color: '#fff' }}>🪙 Beri (Tiêu Beri)</option>
+                <option value="extol" style={{ background: '#1a1a1a', color: '#fff' }}>💵 Extol (Tiêu Extol)</option>
                 <option value="shop" style={{ background: '#1a1a1a', color: '#fff' }}>🛒 Cửa hàng / Shop</option>
                 <option value="item" style={{ background: '#1a1a1a', color: '#fff' }}>🎁 Vật phẩm</option>
                 <option value="market" style={{ background: '#1a1a1a', color: '#fff' }}>🏪 Chợ trời</option>
                 <option value="trade" style={{ background: '#1a1a1a', color: '#fff' }}>🤝 Giao dịch</option>
-                <option value="drop_pick" style={{ background: '#1a1a1a', color: '#fff' }}>🎒 Nhặt / Rơi đồ</option>
                 <option value="buff" style={{ background: '#1a1a1a', color: '#fff' }}>⚡ Buff chỉ số / Admin</option>
                 <option value="coin" style={{ background: '#1a1a1a', color: '#fff' }}>💰 Coin / Tiền tệ</option>
               </select>

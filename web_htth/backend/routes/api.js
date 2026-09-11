@@ -707,11 +707,176 @@ router.post('/admin/update_user', jwtRequired, isAdmin, async (req, res) => {
             }
             await db.execute('UPDATE accounts SET `pass` = ? WHERE user = ?', [password, username]);
             return res.json({ success: true, message: 'Đã đổi mật khẩu thành công!' });
+        } else if (action === 'delete') {
+            if (acc.admin === 1 || (acc.user && acc.user.toLowerCase() === 'admin') || acc.id === req.jwt_user_id) {
+                return res.json({ success: false, message: 'Không thể xóa tài khoản Quản Trị Viên (Admin)!' });
+            }
+
+            // 1. Trích xuất danh sách tên nhân vật của tài khoản
+            const charNames = new Set();
+            try {
+                if (acc.char) {
+                    const parsed = typeof acc.char === 'string' ? JSON.parse(acc.char) : acc.char;
+                    if (Array.isArray(parsed)) {
+                        parsed.forEach(c => {
+                            if (c && typeof c === 'string') charNames.add(c.trim());
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing acc.char:', e);
+            }
+
+            // Kiểm tra thêm xem có nhân vật nào trong players trùng tên tài khoản không
+            try {
+                const [plRows] = await db.execute('SELECT name FROM players WHERE name = ? LIMIT 1', [username]);
+                if (plRows.length > 0 && plRows[0].name) {
+                    charNames.add(plRows[0].name);
+                }
+            } catch (e) {}
+
+            const charList = Array.from(charNames);
+
+            // 2. Dọn dẹp từng nhân vật trong players, clone_char, clan, market
+            for (const cName of charList) {
+                // Xóa trong bảng players
+                await db.execute('DELETE FROM players WHERE name = ?', [cName]);
+
+                // Xóa trong bảng clone_char (nếu có)
+                try {
+                    await db.execute('DELETE FROM clone_char WHERE name = ?', [cName]);
+                } catch (e) {}
+
+                // Dọn dẹp trong bảng clan
+                try {
+                    const [clanRows] = await db.execute('SELECT id, member FROM clan');
+                    for (const cl of clanRows) {
+                        if (cl.member) {
+                            try {
+                                const members = JSON.parse(cl.member);
+                                if (Array.isArray(members)) {
+                                    const filtered = members.filter(m => {
+                                        if (Array.isArray(m) && m.length > 0) {
+                                            return String(m[0]).trim() !== cName;
+                                        }
+                                        return true;
+                                    });
+                                    if (filtered.length !== members.length) {
+                                        await db.execute('UPDATE clan SET member = ? WHERE id = ?', [JSON.stringify(filtered), cl.id]);
+                                    }
+                                }
+                            } catch (errParse) {}
+                        }
+                    }
+                } catch (clanErr) {
+                    console.error('Error cleaning clan membership:', clanErr);
+                }
+
+                // Dọn dẹp vật phẩm bày bán trên chợ (market)
+                try {
+                    const [marketRows] = await db.execute('SELECT id, data FROM market');
+                    for (const mRow of marketRows) {
+                        if (mRow.data) {
+                            try {
+                                const mData = JSON.parse(mRow.data);
+                                let modified = false;
+                                for (const key of ['item3', 'item47']) {
+                                    if (mData[key]) {
+                                        const items = typeof mData[key] === 'string' ? JSON.parse(mData[key]) : mData[key];
+                                        if (Array.isArray(items)) {
+                                            const newItems = items.filter(item => {
+                                                if (Array.isArray(item)) {
+                                                    return !item.some(val => String(val).trim() === cName);
+                                                }
+                                                return true;
+                                            });
+                                            if (newItems.length !== items.length) {
+                                                mData[key] = typeof mData[key] === 'string' ? JSON.stringify(newItems) : newItems;
+                                                modified = true;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (modified) {
+                                    await db.execute('UPDATE market SET data = ? WHERE id = ?', [JSON.stringify(mData), mRow.id]);
+                                }
+                            } catch (errM) {}
+                        }
+                    }
+                } catch (marketErr) {
+                    console.error('Error cleaning market listings:', marketErr);
+                }
+            }
+
+            // 3. Xóa vĩnh viễn tài khoản trong accounts
+            await db.execute('DELETE FROM accounts WHERE id = ?', [acc.id]);
+
+            const charInfo = charList.length > 0 ? ` (bao gồm nhân vật: ${charList.join(', ')})` : '';
+            return res.json({
+                success: true,
+                message: `Đã xóa vĩnh viễn tài khoản "${username}"${charInfo} thành công!`
+            });
         }
 
         return res.json({ success: false, message: 'Hành động không hợp lệ!' });
     } catch (err) {
         console.error('Admin update user error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/admin/delete_user (Alias)
+router.post('/admin/delete_user', jwtRequired, isAdmin, async (req, res) => {
+    req.body.action = 'delete';
+    const { username } = req.body;
+    if (!username) {
+        return res.json({ success: false, message: 'Thiếu tên tài khoản cần xóa!' });
+    }
+
+    try {
+        const [rows] = await db.execute('SELECT * FROM accounts WHERE user = ?', [username]);
+        if (rows.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy tài khoản!' });
+        }
+
+        const acc = rows[0];
+        if (acc.admin === 1 || (acc.user && acc.user.toLowerCase() === 'admin') || acc.id === req.jwt_user_id) {
+            return res.json({ success: false, message: 'Không thể xóa tài khoản Quản Trị Viên (Admin)!' });
+        }
+
+        const charNames = new Set();
+        try {
+            if (acc.char) {
+                const parsed = typeof acc.char === 'string' ? JSON.parse(acc.char) : acc.char;
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(c => {
+                        if (c && typeof c === 'string') charNames.add(c.trim());
+                    });
+                }
+            }
+        } catch (e) {}
+
+        try {
+            const [plRows] = await db.execute('SELECT name FROM players WHERE name = ? LIMIT 1', [username]);
+            if (plRows.length > 0 && plRows[0].name) {
+                charNames.add(plRows[0].name);
+            }
+        } catch (e) {}
+
+        const charList = Array.from(charNames);
+        for (const cName of charList) {
+            await db.execute('DELETE FROM players WHERE name = ?', [cName]);
+            try { await db.execute('DELETE FROM clone_char WHERE name = ?', [cName]); } catch (e) {}
+        }
+
+        await db.execute('DELETE FROM accounts WHERE id = ?', [acc.id]);
+        const charInfo = charList.length > 0 ? ` (bao gồm nhân vật: ${charList.join(', ')})` : '';
+        return res.json({
+            success: true,
+            message: `Đã xóa vĩnh viễn tài khoản "${username}"${charInfo} thành công!`
+        });
+    } catch (err) {
+        console.error('Admin delete user error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
     }
 });
@@ -2029,6 +2194,9 @@ router.get('/admin/player-logs', jwtRequired, isAdmin, async (req, res) => {
             query += ' AND type = ?';
             countQuery += ' AND type = ?';
             params.push(type);
+        } else {
+            query += " AND type != 'drop_pick'";
+            countQuery += " AND type != 'drop_pick'";
         }
 
         const safeLimit = Math.max(1, Math.min(200, parseInt(limit, 10) || 50));

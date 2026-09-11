@@ -442,8 +442,16 @@ public class Upgrade_Skin {
                 if (total_percent > 100) {
                     total_percent = 100;
                 }
+                String skinName = "Skin";
+                if (p.upgrade_skin != null && p.upgrade_skin.skin != null) {
+                    ItemFashion fashion = ItemFashion.get_item(p.upgrade_skin.skin.id);
+                    skinName = (fashion != null ? fashion.name : ("Skin " + p.upgrade_skin.skin.id)) + " (Cấp " + p.upgrade_skin.skin.level + ")";
+                }
+                if (beri_req > 0) p.set_spend_context("Nâng cấp skin", skinName);
                 p.update_vang(-beri_req);
+                if (ruby_req > 0) p.set_spend_context("Nâng cấp skin", skinName);
                 p.update_ngoc(-ruby_req);
+                if (extol_req > 0) p.set_spend_context("Nâng cấp skin", skinName);
                 p.update_vnd(-extol_req);
                 p.update_money();
                 

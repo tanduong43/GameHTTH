@@ -116,6 +116,7 @@ public class Player {
     public Player fight_click_target;
     public Player tang_ruby_target;
     public int fight_ruby_bet; // số ruby cược khi gửi lời mời siêu hạng (type_map=3)
+    public long time_fight_invite; // Thời gian hết hạn lời mời thách đấu (ms)
     public int pvp_win;
     public int pvp_lose;
     public short id_ship_packet = -1;
@@ -124,6 +125,7 @@ public class Player {
     public byte time_namie;
     public byte time_bosshunt;
     public byte time_tower;
+    public byte time_fight_super; // Số lần tham gia thách đấu siêu hạng trong ngày (tối đa 5 lần)
     public byte time_single_dungeon;
     public byte time_hangdong;
     public byte village_tier = 1;
@@ -431,6 +433,11 @@ public class Player {
                 time_tower = safeByteFromJson(js.get(14));
             } else {
                 time_tower = 0;
+            }
+            if (js.size() > 15) {
+                time_fight_super = safeByteFromJson(js.get(15));
+            } else {
+                time_fight_super = 0;
             }
             if (js.size() > 16) {
                 time_single_dungeon = safeByteFromJson(js.get(16));
@@ -1480,7 +1487,7 @@ public class Player {
             }
             js.add(p.time_bosshunt);
             js.add(p.time_tower);
-            js.add(0);
+            js.add(p.time_fight_super);
             js.add(p.time_single_dungeon);
             js.add(p.time_hangdong);
             org.json.simple.JSONArray jsDa = new org.json.simple.JSONArray();
@@ -2233,9 +2240,28 @@ public class Player {
         return this.bua;
     }
 
+    public String last_spend_item = null;
+    public String last_spend_action = null;
+
+    public void set_spend_context(String action, String item) {
+        this.last_spend_action = action;
+        this.last_spend_item = item;
+    }
+
     public synchronized void update_vang(long par) {
         if ((((long) par) + this.vang) < 2_000_000_000_000_000L) {
             this.vang += par;
+            if (par < 0) {
+                long spent = -par;
+                String itemStr = (this.last_spend_item != null) ? this.last_spend_item : "Không xác định";
+                String actionStr = (this.last_spend_action != null) ? this.last_spend_action : "Tiêu Beri";
+                String mapStr = (this.map != null && this.map.template != null) ? (this.map.template.name + " (Map " + this.map.template.id + ")") : "Không rõ";
+                String detail = String.format("%s: %s | Tiêu: %s Beri | Beri còn lại: %s | Tại: %s",
+                        actionStr, itemStr, Util.number_format(spent), Util.number_format(this.vang), mapStr);
+                ActionLogger.insertLogDatabase(this.name, "beri", detail);
+                this.last_spend_item = null;
+                this.last_spend_action = null;
+            }
         }
     }
 
@@ -2244,11 +2270,17 @@ public class Player {
             this.kimcuong += par;
             // Cộng dồn tích tiêu khi người chơi tiêu ngọc (par âm = tiêu ngọc)
             if (par < 0) {
-                this.tichtieu_ruby += (int) (-par);
-                this.tieu_ruby += (int) (-par);
-                ActionLogger.logRuby(this.name, "Tiêu Ruby", (int) (-par), (int) this.kimcuong);
-            } else if (par > 0) {
-                ActionLogger.logRuby(this.name, "Nhận Ruby", (int) par, (int) this.kimcuong);
+                long spent = -par;
+                this.tichtieu_ruby += (int) spent;
+                this.tieu_ruby += (int) spent;
+                String itemStr = (this.last_spend_item != null) ? this.last_spend_item : "Không xác định";
+                String actionStr = (this.last_spend_action != null) ? this.last_spend_action : "Tiêu Ruby";
+                String mapStr = (this.map != null && this.map.template != null) ? (this.map.template.name + " (Map " + this.map.template.id + ")") : "Không rõ";
+                String detail = String.format("%s: %s | Tiêu: %s Ruby | Ruby còn lại: %s | Tại: %s",
+                        actionStr, itemStr, Util.number_format(spent), Util.number_format(this.kimcuong), mapStr);
+                ActionLogger.insertLogDatabase(this.name, "ruby", detail);
+                this.last_spend_item = null;
+                this.last_spend_action = null;
             }
         }
     }
@@ -2357,6 +2389,17 @@ public class Player {
     public synchronized void update_vnd(long par) {
         if ((((long) par) + this.vnd) < 2_000_000_000L) {
             this.vnd += par;
+            if (par < 0) {
+                long spent = -par;
+                String itemStr = (this.last_spend_item != null) ? this.last_spend_item : "Không xác định";
+                String actionStr = (this.last_spend_action != null) ? this.last_spend_action : "Tiêu Extol";
+                String mapStr = (this.map != null && this.map.template != null) ? (this.map.template.name + " (Map " + this.map.template.id + ")") : "Không rõ";
+                String detail = String.format("%s: %s | Tiêu: %s Extol | Extol còn lại: %s | Tại: %s",
+                        actionStr, itemStr, Util.number_format(spent), Util.number_format(this.vnd), mapStr);
+                ActionLogger.insertLogDatabase(this.name, "extol", detail);
+                this.last_spend_item = null;
+                this.last_spend_action = null;
+            }
         }
     }
 
@@ -2919,6 +2962,7 @@ public class Player {
             time_namie = 0;
             time_bosshunt = 0;
             time_tower = 0;
+            time_fight_super = 0;
             time_single_dungeon = 0;
             time_hangdong = 0;
             daily_achievements = new int[8];

@@ -26,6 +26,7 @@ public class SucManhVatLy {
                 return;
             }
             p.lucthuc[2] -= 500;
+            p.set_spend_context("Luyện thể Sức mạnh vật lý", "Tầng " + (p.sucmanhvatly + 1));
             p.update_vang(-5_000_000);
             p.update_ngoc(-2_000);
             p.update_money();

@@ -132,10 +132,12 @@ public class TrungThuCraft {
         }
 
         // Xóa Beri
+        p.set_spend_context("Ghép vật phẩm Trung Thu", "Sự kiện Trung Thu");
         p.update_vang(-beriCost);
 
         // Xóa Ruby
         if (rubyCost > 0) {
+            p.set_spend_context("Ghép vật phẩm Trung Thu", "Sự kiện Trung Thu");
             p.update_ngoc(-rubyCost);
         }
 

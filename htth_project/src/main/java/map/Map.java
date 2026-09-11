@@ -1094,7 +1094,8 @@ public class Map implements Runnable {
                                             + " điểm truy nã cùng 1 Rương Truy nã.");
                         } else if (this.map_pvp.type_map == 3 && this.map_pvp.ruby_bet > 0) {
                             int rubyBet = this.map_pvp.ruby_bet;
-                            int rubyWin = (int) (rubyBet * 2 * 0.9);
+                            int rubyWin = Math.max(rubyBet + 1, (int) (rubyBet * 2 * 0.9));
+                            this.map_pvp.ruby_bet = 0;
                             remainingPlayer.update_ngoc(rubyWin);
                             remainingPlayer.update_money();
                             Service.send_box_ThongBao_OK(remainingPlayer,
@@ -1301,9 +1302,10 @@ public class Map implements Runnable {
                                                     + " điểm truy nã cùng 1 Rương Truy nã.");
                                 }
                             }
-                        } else if (this.map_pvp.type_map == 3 && players.size() >= 2) { // thach dau sieu hang ca cuoc ruby
+                        } else if (this.map_pvp.type_map == 3 && players.size() >= 2 && this.map_pvp.ruby_bet > 0) { // thach dau sieu hang ca cuoc ruby
                             int rubyBet = this.map_pvp.ruby_bet;
-                            int rubyWin = (int) (rubyBet * 2 * 0.9); // nguoi thang nhan 90% tong
+                            int rubyWin = Math.max(rubyBet + 1, (int) (rubyBet * 2 * 0.9)); // nguoi thang nhan 90% tong
+                            this.map_pvp.ruby_bet = 0;
                             Player winner, loser;
                             if (this.map_pvp.num_win_p1 >= 3) {
                                 winner = players.get(0);
@@ -1364,6 +1366,7 @@ public class Map implements Runnable {
                             }
                         } else if (this.map_pvp.type_map == 3 && this.map_pvp.ruby_bet > 0) {
                             int rubyBet = this.map_pvp.ruby_bet;
+                            this.map_pvp.ruby_bet = 0;
                             for (int i = 0; i < players.size(); i++) {
                                 players.get(i).update_ngoc(rubyBet);
                                 players.get(i).update_money();
@@ -2159,6 +2162,7 @@ public class Map implements Runnable {
                             mob.isdie = false;
                             mob.hp = mob.hp_max;
                             mob.id_target = -1;
+                            mob.damageDealers.clear(); // Reset danh sách sát thương khi hồi sinh (Đảo Ruby)
                             //
                             try {
                                 Message m_local = new Message(1);
@@ -2894,7 +2898,7 @@ public class Map implements Runnable {
     public static boolean isRubyIslandOpen() {
         java.util.Calendar cal = java.util.Calendar.getInstance();
         int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
-        return (hour == 7) || (hour >= 17 && hour < 19);
+        return (hour >= 7 && hour < 9) || (hour >= 17 && hour < 19);
     }
 
     public static Player get_player_by_name_allmap(String name) {
@@ -4197,13 +4201,17 @@ public class Map implements Runnable {
                         mob_target.boss_info.TopDame.add(topdame);
                     }
                 }
+                boolean isQuaiMap1001 = mob_target.boss_info == null && this.template.id == 1001;
+                // Ghi nhận người chơi đã gây sát thương vào Boss Đảo Ruby (map 1001)
+                if (isQuaiMap1001 && dame_to_target > 0) {
+                    mob_target.damageDealers.add(p.name);
+                }
                 if (mob_target.hp == mob_target.hp_max && dame_to_target >= mob_target.hp) {
                     mob_target.hp = 1;
                 } else {
                     int value1 = 0;
                     int value2 = 0;
                     int percent = 0;
-                    boolean isQuaiMap1001 = mob_target.boss_info == null && this.template.id == 1001;
 
                     if (mob_target.boss_info != null && !Map.is_map_dungeon(this.template.id)
                             && mob_target.boss_info.thegioi == 1
@@ -4242,14 +4250,28 @@ public class Map implements Runnable {
                     }
 
                     if (isQuaiMap1001 && percent > 0 && value1 > value2) {
-                        // Quái vật tuyết map 1001: mỗi mốc 10% máu, chỉ người trực tiếp đánh nhận 100-200 ruby
+                        // Quái vật tuyết map 1001: mỗi mốc 10% máu, TẤT CẢ người đã gây sát thương đều nhận ruby
                         for (int j = value1 - 1; j >= value2; j--) {
-                            int hpPercent = (10 - j) * 10;
-                            int ruby = Util.random(100, 201);
-                            p.update_ngoc(ruby);
-                            p.update_money();
-                            Service.send_box_ThongBao_OK(p,
-                                    mob_target.mob_template.name + " mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
+                            int hpPercent = (9 - j) * 10;
+                            for (String dealerName : mob_target.damageDealers) {
+                                Player dealer = null;
+                                for (int pi = 0; pi < this.players.size(); pi++) {
+                                    if (this.players.get(pi).name.equals(dealerName)) {
+                                        dealer = this.players.get(pi);
+                                        break;
+                                    }
+                                }
+                                if (dealer != null && dealer.conn != null && dealer.conn.connected && !dealer.isdie) {
+                                    int ruby = Util.random(100, 201);
+                                    dealer.update_ngoc(ruby);
+                                    dealer.update_money();
+                                    try {
+                                        Service.send_box_ThongBao_OK(dealer,
+                                                mob_target.mob_template.name + " mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
+                                    } catch (Exception e) {
+                                    }
+                                }
+                            }
                         }
                     }
                     boolean ch = false;
@@ -5441,7 +5463,7 @@ public class Map implements Runnable {
         String txt = s.trim().toLowerCase();
         System.out.println("[Chat Debug] Player: " + p.name + " (user: " + p.conn.user + ", index_map: " + p.index_map + ") -> " + s);
 
-        if (p.conn.user.equals("admin")) {
+        if (p.conn != null && p.conn.user != null && "admin".equalsIgnoreCase(p.conn.user)) {
             if (txt.equals("saturn") || txt.equals("goisaturn") || txt.equals("goi saturn")) {
                 map.Boss b = map.Boss.spawn_saturn(p, false);
                 Service.send_box_ThongBao_OK(p, "Đã gọi Boss Ngũ Lão Tinh Saturn xuất hiện tại "
@@ -5487,11 +5509,13 @@ public class Map implements Runnable {
                     MenuController.Menu_Admin(p, (byte) 11);
                 else if (cmd.equals("tx tai") || cmd.equals("tx 1") || cmd.equals("taixiu tai")) {
                     Manager.gI().TaiXiu().setForceResult(1, false);
-                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: Ván hiện tại sẽ ra TÀI (11-17 điểm)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                    String roundName = Manager.gI().TaiXiu().isSettled() ? "Ván tiếp theo" : "Ván hiện tại";
+                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: " + roundName + " sẽ ra TÀI (11-17 điểm)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
                 }
                 else if (cmd.equals("tx xiu") || cmd.equals("tx 0") || cmd.equals("taixiu xiu")) {
                     Manager.gI().TaiXiu().setForceResult(0, false);
-                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: Ván hiện tại sẽ ra XỈU (4-10 điểm)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                    String roundName = Manager.gI().TaiXiu().isSettled() ? "Ván tiếp theo" : "Ván hiện tại";
+                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: " + roundName + " sẽ ra XỈU (4-10 điểm)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
                 }
                 else if (cmd.equals("tx codinhtai") || cmd.equals("tx locktai")) {
                     Manager.gI().TaiXiu().setForceResult(1, true);
@@ -5517,7 +5541,8 @@ public class Map implements Runnable {
                                 int total = d1 + d2 + d3;
                                 String side = (total >= 11 && total <= 17) ? "TÀI" : "XỈU";
                                 Manager.gI().TaiXiu().setForceDice(d1, d2, d3);
-                                Service.send_box_ThongBao_OK(p, "Đã đặt 3 xúc xắc: [" + d1 + " - " + d2 + " - " + d3 + "] (Tổng: " + total + " -> " + side + ") cho phiên hiện tại!");
+                                String roundName = Manager.gI().TaiXiu().isSettled() ? "phiên tiếp theo" : "phiên hiện tại";
+                                Service.send_box_ThongBao_OK(p, "Đã đặt 3 xúc xắc: [" + d1 + " - " + d2 + " - " + d3 + "] (Tổng: " + total + " -> " + side + ") cho " + roundName + "!");
                             } else {
                                 Service.send_box_ThongBao_OK(p, "Điểm xúc xắc phải từ 1 đến 6! Ví dụ: admin tx set 6 5 4");
                             }
@@ -6602,7 +6627,6 @@ public class Map implements Runnable {
                                         return;
                                     }
                                     p.item.update_Inventory(-1, false);
-                                    ActionLogger.logItemDropPick(p.name, "Nhặt trang bị: " + temp3.name);
                                 }
                             }
                             list_it_map[i] = null;
@@ -6629,7 +6653,6 @@ public class Map implements Runnable {
                                 }
                                 p.item.update_Inventory(-1, false);
                                 p.update_num_item_quest(2, list_it_map[i].id, list_it_map[i].quant);
-                                ActionLogger.logItemDropPick(p.name, "Nhặt vật phẩm nhiệm vụ ID: " + list_it_map[i].id + " SL: " + list_it_map[i].quant);
                                 list_it_map[i] = null;
                                 code_response = 0;
                             } else {
@@ -6729,7 +6752,6 @@ public class Map implements Runnable {
                                             }
                                             p.update_vang(list_it_map[i].quant);
                                             p.update_money();
-                                            ActionLogger.logItemDropPick(p.name, "Nhặt " + list_it_map[i].quant + " beri");
                                         } else if (list_it_map[i].id == 1) { // ruby
                                             if (p.rms.length > 2 && p.rms[2].length > 3
                                                     && p.rms[2][3] == 1) {
@@ -6737,7 +6759,6 @@ public class Map implements Runnable {
                                             }
                                             // p.update_ngoc(list_it_map[i].quant);
                                             // p.update_money();
-                                            ActionLogger.logItemDropPick(p.name, "Nhặt " + list_it_map[i].quant + " ruby");
                                         } else {
                                             if (p.rms.length > 2 && p.rms[2].length > 3) {
                                                 ItemTemplate4 itemTemplate4 = ItemTemplate4
@@ -6758,7 +6779,6 @@ public class Map implements Runnable {
                                                 return;
                                             }
                                             p.item.update_Inventory(-1, false);
-                                            ActionLogger.logItemDropPick(p.name, "Nhặt " + list_it_map[i].quant + " " + ItemTemplate4.get_item_name(list_it_map[i].id));
                                         }
                                         list_it_map[i] = null;
                                         code_response = 0;
@@ -6786,7 +6806,6 @@ public class Map implements Runnable {
                                 return;
                             }
                             p.item.update_Inventory(-1, false);
-                            ActionLogger.logItemDropPick(p.name, "Nhặt " + list_it_map[i].quant + " " + ItemTemplate7.get_item_name(list_it_map[i].id));
                             list_it_map[i] = null;
                             code_response = 0;
                         } else {

@@ -14,7 +14,7 @@ import java.io.IOException;
  */
 public class EventSpecial {
     public static void process(Player p, Message m2) throws IOException {
-        if (p.conn == null || p.conn.status != 1) {
+        if (p.conn == null || (p.conn.status != 1 && !"admin".equalsIgnoreCase(p.conn.user))) {
             Service.send_box_ThongBao_OK(p, "Chỉ thành viên đã kích hoạt (MTV) mới có thể tham gia Tài Xỉu!");
             return;
         }
@@ -32,18 +32,19 @@ public class EventSpecial {
         if (type == 0 && act >= 90 && act <= 99) {
             if (p.conn != null && "admin".equalsIgnoreCase(p.conn.user)) {
                 TaiXiu tx = Manager.gI().TaiXiu();
+                String targetRound = tx.isSettled() ? "Ván tiếp theo" : "Ván hiện tại";
                 switch (act) {
                     case 90:
                         Service.send_box_ThongBao_OK(p, tx.getTxDebugInfo());
                         break;
                     case 91:
                         tx.setForceResult(1, false);
-                        Service.send_box_ThongBao_OK(p, "Đã can thiệp: Ván hiện tại sẽ ra TÀI (11-17 điểm)!\n\n" + tx.getTxDebugInfo());
+                        Service.send_box_ThongBao_OK(p, "Đã can thiệp: " + targetRound + " sẽ ra TÀI (11-17 điểm)!\n\n" + tx.getTxDebugInfo());
                         show_table(p, 0);
                         break;
                     case 92:
                         tx.setForceResult(0, false);
-                        Service.send_box_ThongBao_OK(p, "Đã can thiệp: Ván hiện tại sẽ ra XỈU (4-10 điểm)!\n\n" + tx.getTxDebugInfo());
+                        Service.send_box_ThongBao_OK(p, "Đã can thiệp: " + targetRound + " sẽ ra XỈU (4-10 điểm)!\n\n" + tx.getTxDebugInfo());
                         show_table(p, 0);
                         break;
                     case 93:
@@ -110,15 +111,19 @@ public class EventSpecial {
     }
 
     private static void notice_dice_TaiXiu(Player p) throws IOException {
+        TaiXiu tx = Manager.gI().TaiXiu();
+        // Dam bao phien da duoc ket toan truoc khi gui xuc xac
+        tx.checkAndSettleResult();
+
         Message m = new Message(80);
         m.writer().writeByte(0);
         m.writer().writeByte(2);
-        byte[] result = Manager.gI().TaiXiu().get_dice_now();
-        if ((result[0] + result[1] + result[2]) >= 11
-                && (result[0] + result[1] + result[2]) <= 17) {
-            m.writer().writeByte(1); // kq
+        byte[] result = tx.get_dice_now();
+        int total = result[0] + result[1] + result[2];
+        if (total >= 11 && total <= 17) {
+            m.writer().writeByte(1); // kq: Tai
         } else {
-            m.writer().writeByte(0); // kq
+            m.writer().writeByte(0); // kq: Xiu
         }
         m.writer().write(result);
         p.conn.addmsg(m);

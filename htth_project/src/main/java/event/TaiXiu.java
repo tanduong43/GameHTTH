@@ -28,6 +28,7 @@ public class TaiXiu implements Runnable {
     private int forceResult = -1;
     private boolean keepForce = false;
     private byte[] forceDice = null;
+    private boolean isSettled = false;
 
     public TaiXiu() {
         time = TIME_ROUND;
@@ -58,74 +59,105 @@ public class TaiXiu implements Runnable {
         }
     }
 
-    private synchronized void update() {
-        if (this.time < 0) {
-            if (this.forceDice != null) {
-                dice[0] = forceDice[0];
-                dice[1] = forceDice[1];
-                dice[2] = forceDice[2];
-                this.forceDice = null; // Áp dụng xong cho phiên hiện tại thì reset
-            } else if (this.forceResult == 1) { // Ép TÀI (11-17 điểm)
-                do {
-                    for (int i = 0; i < 3; i++) {
-                        dice[i] = (byte) Util.random(1, 7);
-                    }
-                } while ((dice[0] + dice[1] + dice[2]) < 11 || (dice[0] + dice[1] + dice[2]) > 17);
-                if (!this.keepForce) {
-                    this.forceResult = -1;
-                }
-            } else if (this.forceResult == 0) { // Ép XỈU (4-10 điểm)
-                do {
-                    for (int i = 0; i < 3; i++) {
-                        dice[i] = (byte) Util.random(1, 7);
-                    }
-                } while ((dice[0] + dice[1] + dice[2]) < 4 || (dice[0] + dice[1] + dice[2]) > 10);
-                if (!this.keepForce) {
-                    this.forceResult = -1;
-                }
-            } else {
+    public synchronized void checkAndSettleResult() {
+        if (!this.isSettled) {
+            settleResult();
+        }
+    }
+
+    public synchronized void settleResult() {
+        if (this.isSettled) {
+            return;
+        }
+        this.isSettled = true;
+        System.out.println("[TaiXiu] Bat dau chot ket qua phien. forceResult=" + this.forceResult 
+                + ", keepForce=" + this.keepForce 
+                + ", forceDice=" + (this.forceDice != null ? (this.forceDice[0] + "-" + this.forceDice[1] + "-" + this.forceDice[2]) : "null"));
+
+        if (this.forceDice != null) {
+            dice[0] = forceDice[0];
+            dice[1] = forceDice[1];
+            dice[2] = forceDice[2];
+            this.forceDice = null; // Áp dụng xong cho phiên hiện tại thì reset
+            System.out.println("[TaiXiu] Ap dung forceDice: " + dice[0] + "-" + dice[1] + "-" + dice[2]);
+        } else if (this.forceResult == 1) { // Ép TÀI (11-17 điểm)
+            do {
                 for (int i = 0; i < 3; i++) {
                     dice[i] = (byte) Util.random(1, 7);
                 }
-                int xucxacResult = dice[0] + dice[1] + dice[2];
-                while (xucxacResult == 3 || xucxacResult == 18) {
-                    for (int i = 0; i < 3; i++) {
-                        dice[i] = (byte) Util.random(1, 7);
-                    }
-                    xucxacResult = dice[0] + dice[1] + dice[2];
+            } while ((dice[0] + dice[1] + dice[2]) < 11 || (dice[0] + dice[1] + dice[2]) > 17);
+            if (!this.keepForce) {
+                this.forceResult = -1;
+            }
+            System.out.println("[TaiXiu] Ap dung ep TAI: " + dice[0] + "-" + dice[1] + "-" + dice[2] + " (Tong: " + (dice[0] + dice[1] + dice[2]) + ")");
+        } else if (this.forceResult == 0) { // Ép XỈU (4-10 điểm)
+            do {
+                for (int i = 0; i < 3; i++) {
+                    dice[i] = (byte) Util.random(1, 7);
                 }
+            } while ((dice[0] + dice[1] + dice[2]) < 4 || (dice[0] + dice[1] + dice[2]) > 10);
+            if (!this.keepForce) {
+                this.forceResult = -1;
+            }
+            System.out.println("[TaiXiu] Ap dung ep XIU: " + dice[0] + "-" + dice[1] + "-" + dice[2] + " (Tong: " + (dice[0] + dice[1] + dice[2]) + ")");
+        } else {
+            for (int i = 0; i < 3; i++) {
+                dice[i] = (byte) Util.random(1, 7);
             }
             int xucxacResult = dice[0] + dice[1] + dice[2];
-            for (Map.Entry<String, TaiXiuInfo> en : this.list_player.entrySet()) {
-                TaiXiuInfo infoJoin = en.getValue();
-                if (xucxacResult >= 11 && xucxacResult <= 17) { // tai
-                    if (en.getValue().TaiorXiu == 1) {
-                        infoJoin.money *= 2;
-                        String nameP = en.getKey();
-                        if (!this.list_result.containsKey(nameP)) {
-                            this.list_result.put(nameP, infoJoin);
-                        } else {
-                            TaiXiuInfo infoJoin_old = this.list_result.get(nameP);
-                            infoJoin_old.money += infoJoin.money;
-                        }
+            while (xucxacResult == 3 || xucxacResult == 18) {
+                for (int i = 0; i < 3; i++) {
+                    dice[i] = (byte) Util.random(1, 7);
+                }
+                xucxacResult = dice[0] + dice[1] + dice[2];
+            }
+            System.out.println("[TaiXiu] Ket qua tu nhien: " + dice[0] + "-" + dice[1] + "-" + dice[2] + " (Tong: " + xucxacResult + ")");
+        }
+
+        int xucxacResult = dice[0] + dice[1] + dice[2];
+        for (Map.Entry<String, TaiXiuInfo> en : this.list_player.entrySet()) {
+            TaiXiuInfo infoJoin = en.getValue();
+            if (xucxacResult >= 11 && xucxacResult <= 17) { // tai
+                if (en.getValue().TaiorXiu == 1) {
+                    infoJoin.money *= 2;
+                    String nameP = en.getKey();
+                    if (!this.list_result.containsKey(nameP)) {
+                        this.list_result.put(nameP, infoJoin);
+                    } else {
+                        TaiXiuInfo infoJoin_old = this.list_result.get(nameP);
+                        infoJoin_old.money += infoJoin.money;
                     }
-                } else {
-                    if (en.getValue().TaiorXiu == 0) {
-                        infoJoin.money *= 2;
-                        String nameP = en.getKey();
-                        if (!this.list_result.containsKey(nameP)) {
-                            this.list_result.put(nameP, infoJoin);
-                        } else {
-                            TaiXiuInfo infoJoin_old = this.list_result.get(nameP);
-                            infoJoin_old.money += infoJoin.money;
-                        }
+                }
+            } else {
+                if (en.getValue().TaiorXiu == 0) {
+                    infoJoin.money *= 2;
+                    String nameP = en.getKey();
+                    if (!this.list_result.containsKey(nameP)) {
+                        this.list_result.put(nameP, infoJoin);
+                    } else {
+                        TaiXiuInfo infoJoin_old = this.list_result.get(nameP);
+                        infoJoin_old.money += infoJoin.money;
                     }
                 }
             }
-            this.time = TIME_ROUND;
-            TaiTotal = 0;
-            XiuTotal = 0;
-            this.list_player.clear();
+        }
+    }
+
+    public synchronized void resetNewRound() {
+        this.time = TIME_ROUND;
+        this.TaiTotal = 0;
+        this.XiuTotal = 0;
+        this.list_player.clear();
+        this.isSettled = false;
+        System.out.println("[TaiXiu] Bat dau phien moi.");
+    }
+
+    private synchronized void update() {
+        if (this.time <= 0 && !this.isSettled) {
+            settleResult();
+        }
+        if (this.time <= -15_000) {
+            resetNewRound();
         }
     }
 
@@ -162,6 +194,7 @@ public class TaiXiu implements Runnable {
         this.forceResult = result;
         this.keepForce = keep;
         this.forceDice = null;
+        System.out.println("[TaiXiu Admin] setForceResult: result=" + result + " (" + (result == 1 ? "TÀI" : "XỈU") + "), keep=" + keep + ", isSettled=" + this.isSettled);
     }
 
     public synchronized int getForceResult() {
@@ -176,16 +209,22 @@ public class TaiXiu implements Runnable {
         this.forceDice = new byte[] { d1, d2, d3 };
         this.forceResult = -1;
         this.keepForce = false;
+        System.out.println("[TaiXiu Admin] setForceDice: " + d1 + " - " + d2 + " - " + d3 + ", isSettled=" + this.isSettled);
     }
 
     public synchronized void clearForce() {
         this.forceResult = -1;
         this.keepForce = false;
         this.forceDice = null;
+        System.out.println("[TaiXiu Admin] clearForce (chuyen sang Ngau nhien)");
     }
 
     public synchronized byte[] getForceDice() {
         return this.forceDice;
+    }
+
+    public synchronized boolean isSettled() {
+        return this.isSettled;
     }
 
     public synchronized String getShortStatus() {
@@ -221,15 +260,17 @@ public class TaiXiu implements Runnable {
             mode = "Ngẫu nhiên (Tự nhiên)";
         }
 
+        String roundStatus = this.isSettled ? "Đã chốt kết quả (đang chờ ván mới)" : "Đang mở cược";
+
         return "🎲 THÔNG TIN TÀI XỈU 🎲\n"
-                + "⏱ Thời gian còn lại: " + sec + " giây\n"
+                + "⏱ Thời gian còn lại: " + sec + " giây (" + roundStatus + ")\n"
                 + "🔵 Cửa XỈU: " + Util.number_format(this.XiuTotal) + " beri (" + countXiu + " người)\n"
                 + "🔴 Cửa TÀI: " + Util.number_format(this.TaiTotal) + " beri (" + countTai + " người)\n"
                 + "⚙️ Chế độ can thiệp: " + mode;
     }
 
     public synchronized void register(Player p, int money, byte taiorXiu) throws IOException {
-        if (p.conn == null || p.conn.status != 1) {
+        if (p.conn == null || (p.conn.status != 1 && !"admin".equalsIgnoreCase(p.conn.user))) {
             Service.send_box_ThongBao_OK(p, "Chỉ thành viên đã kích hoạt (MTV) mới có thể đặt cược Tài Xỉu!");
             return;
         }
@@ -280,6 +321,7 @@ public class TaiXiu implements Runnable {
         } else {
             TaiTotal += money;
         }
+        p.set_spend_context("Đặt cược Tài Xỉu", (taiorXiu == 0 ? "Cược Xỉu" : "Cược Tài"));
         p.update_vang(-money);
         p.update_money();
         if (t != null) {

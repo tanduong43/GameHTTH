@@ -51,36 +51,106 @@ public class ClientInput {
                 break;
             }
             case Fight.INPUT_ID_FIGHT_RUBY: { // Nhập số ruby cược cho thách đấu siêu hạng
-                if (name.length == 1) {
-                    if (!Util.isnumber(name[0])) {
-                        Service.send_box_ThongBao_OK(p, "Số ruby không hợp lệ");
-                        p.fight_click_target = null;
-                        return;
-                    }
-                    int rubyBet = Integer.parseInt(name[0]);
-                    if (rubyBet <= 0) {
-                        Service.send_box_ThongBao_OK(p, "Số ruby cược phải lớn hơn 0");
-                        p.fight_click_target = null;
-                        return;
-                    }
-                    if (p.get_ngoc() < rubyBet) {
-                        Service.send_box_ThongBao_OK(p, "Bạn không đủ " + rubyBet + " ruby!");
-                        p.fight_click_target = null;
-                        return;
-                    }
-                    Player p0 = p.fight_click_target;
-                    p.fight_click_target = null;
-                    if (p0 == null || !p0.map.equals(p.map)) {
-                        Service.send_box_ThongBao_OK(p, "Đối phương đã rời khỏi đây");
-                        return;
-                    }
-                    if (p0.targetFight != null) {
-                        Service.send_box_ThongBao_OK(p, "Đối phương đang nhận lời mời từ người khác");
-                        return;
-                    }
-                    // Gửi lời mời kèm số ruby cược, typeFight=1 (siêu hạng)
-                    Fight.sendFightInvite(p, p0, rubyBet, 1);
+                Player p0 = p.fight_click_target;
+                p.fight_click_target = null;
+                if (p0 == null) {
+                    return;
                 }
+
+                p.change_new_date();
+                p0.change_new_date();
+
+                // Kiểm tra thành viên của cả 2 bên
+                if (p.conn == null || p.conn.status != 1) {
+                    Service.send_box_ThongBao_OK(p, "Chỉ thành viên đã mở (kích hoạt) mới có thể tham gia thách đấu siêu hạng!");
+                    return;
+                }
+                if (p0.conn == null || p0.conn.status != 1) {
+                    Service.send_box_ThongBao_OK(p, "Đối phương chưa mở thành viên, không thể tham gia thách đấu siêu hạng!");
+                    return;
+                }
+
+                // Giới hạn 5 lần/ngày
+                if (p.time_fight_super >= Fight.MAX_FIGHT_SUPER_DAILY) {
+                    Service.send_box_ThongBao_OK(p, "Bạn đã tham gia đủ " + Fight.MAX_FIGHT_SUPER_DAILY + " lượt thách đấu siêu hạng hôm nay!");
+                    return;
+                }
+                if (p0.time_fight_super >= Fight.MAX_FIGHT_SUPER_DAILY) {
+                    Service.send_box_ThongBao_OK(p, "Đối phương đã tham gia đủ " + Fight.MAX_FIGHT_SUPER_DAILY + " lượt thách đấu siêu hạng hôm nay!");
+                    return;
+                }
+
+                if (name == null || name.length == 0 || !Util.isnumber(name[0])) {
+                    Service.send_box_ThongBao_OK(p, "Số ruby nhập không hợp lệ!");
+                    return;
+                }
+
+                int rubyBet;
+                try {
+                    rubyBet = Integer.parseInt(name[0]);
+                } catch (Exception e) {
+                    Service.send_box_ThongBao_OK(p, "Số ruby nhập không hợp lệ!");
+                    return;
+                }
+
+                if (rubyBet <= 0) {
+                    Service.send_box_ThongBao_OK(p, "Số ruby cược phải lớn hơn 0!");
+                    return;
+                }
+                if (rubyBet > Fight.MAX_RUBY_BET) {
+                    Service.send_box_ThongBao_OK(p, "Số ruby cược tối đa là " + Fight.MAX_RUBY_BET + " ruby!");
+                    return;
+                }
+
+                if (p.get_ngoc() < rubyBet) {
+                    Service.send_box_ThongBao_OK(p, "Bạn không đủ " + rubyBet + " ruby (hiện có " + p.get_ngoc() + " ruby)!");
+                    return;
+                }
+                if (p0.get_ngoc() < rubyBet) {
+                    Service.send_box_ThongBao_OK(p, "Đối phương không đủ " + rubyBet + " ruby để tham gia!");
+                    return;
+                }
+
+                if (p.conn == null || !p.conn.connected || p0.conn == null || !p0.conn.connected
+                        || p.map == null || p0.map == null || !p0.map.equals(p.map)) {
+                    Service.send_box_ThongBao_OK(p, "Đối phương không còn ở cùng khu vực!");
+                    return;
+                }
+                if (p.map.map_pvp != null || p0.map.map_pvp != null) {
+                    Service.send_box_ThongBao_OK(p, "Không thể thách đấu khi đang trong trận chiến!");
+                    return;
+                }
+                if (p.isdie || p0.isdie) {
+                    Service.send_box_ThongBao_OK(p, "Không thể thách đấu khi đang kiệt sức!");
+                    return;
+                }
+                if (p.trade_target != null || p0.trade_target != null) {
+                    Service.send_box_ThongBao_OK(p, "Không thể thách đấu khi đang có giao dịch!");
+                    return;
+                }
+                if (p.ship_pet != null || p0.ship_pet != null) {
+                    Service.send_box_ThongBao_OK(p, "Không thể thách đấu khi đang vận chuyển hàng!");
+                    return;
+                }
+
+                // Tự động dọn dẹp nếu lời mời trước đó của p0 đã hết hạn
+                if (p0.targetFight != null) {
+                    if (p0.targetFight.conn == null || !p0.targetFight.conn.connected
+                            || p0.targetFight.map == null || !p0.targetFight.map.equals(p0.map)
+                            || p0.targetFight.map.map_pvp != null || p0.targetFight.isdie
+                            || (p0.time_fight_invite > 0 && System.currentTimeMillis() > p0.time_fight_invite)) {
+                        p0.targetFight = null;
+                        p0.time_fight_invite = 0;
+                    }
+                }
+                if (p0.targetFight != null) {
+                    Service.send_box_ThongBao_OK(p, "Đối phương đang nhận lời mời từ người khác");
+                    return;
+                }
+
+                // Gửi lời mời kèm số ruby cược, typeFight=1 (siêu hạng)
+                Fight.sendFightInvite(p, p0, rubyBet, 1);
+                Service.send_box_ThongBao_OK(p, "Đã gửi lời mời thách đấu siêu hạng (" + rubyBet + " ruby) tới " + p0.name + "!");
                 break;
             }
             case 271: {
@@ -1032,7 +1102,7 @@ public class ClientInput {
                 break;
             }
             case 32009: {
-                if (p.conn != null && p.conn.user.equals("admin")) {
+                if (p.conn != null && "admin".equalsIgnoreCase(p.conn.user)) {
                     if (name.length == 3) {
                         if (!Util.isnumber(name[0]) || !Util.isnumber(name[1]) || !Util.isnumber(name[2])) {
                             Service.send_box_ThongBao_OK(p, "3 xúc xắc phải là số từ 1 đến 6!");
@@ -1047,8 +1117,10 @@ public class ClientInput {
                         }
                         int total = d1 + d2 + d3;
                         String side = (total >= 11 && total <= 17) ? "TÀI" : "XỈU";
-                        core.Manager.gI().TaiXiu().setForceDice(d1, d2, d3);
-                        Service.send_box_ThongBao_OK(p, "Đã đặt kết quả 3 xúc xắc: [" + d1 + " - " + d2 + " - " + d3 + "] (Tổng: " + total + " điểm -> " + side + ") cho phiên hiện tại!");
+                        event.TaiXiu tx = core.Manager.gI().TaiXiu();
+                        tx.setForceDice(d1, d2, d3);
+                        String targetRound = tx.isSettled() ? "phiên tiếp theo" : "phiên hiện tại";
+                        Service.send_box_ThongBao_OK(p, "Đã đặt kết quả 3 xúc xắc: [" + d1 + " - " + d2 + " - " + d3 + "] (Tổng: " + total + " điểm -> " + side + ") cho " + targetRound + "!");
                         event.EventSpecial.show_table(p, 0);
                     }
                 }

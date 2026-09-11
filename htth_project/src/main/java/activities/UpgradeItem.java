@@ -134,12 +134,16 @@ public class UpgradeItem {
                     Service.send_box_ThongBao_OK(p, "Đã có lỗi xảy ra");
                     return;
                 }
+                String itName = (it != null && it.template != null)
+                        ? (it.template.name + " (+" + it.levelup + " -> +" + (it.levelup + 1) + ")")
+                        : "Trang bị";
                 if (bery_gem == 1) {
                     if (p.get_vang() < UpgradeItem.DATA.get(it.levelup).beri) {
                         Service.send_box_ThongBao_OK(p,
                                 "Không đủ " + UpgradeItem.DATA.get(it.levelup).beri + " beri");
                         return;
                     }
+                    p.set_spend_context("Cường hóa trang bị", itName);
                     p.update_vang(-UpgradeItem.DATA.get(it.levelup).beri);
                     p.update_money();
                 } else {
@@ -148,6 +152,7 @@ public class UpgradeItem {
                                 "Không đủ " + UpgradeItem.DATA.get(it.levelup).ruby + " ruby");
                         return;
                     }
+                    p.set_spend_context("Cường hóa trang bị", itName);
                     p.update_ngoc(-UpgradeItem.DATA.get(it.levelup).ruby);
                     p.update_money();
                 }

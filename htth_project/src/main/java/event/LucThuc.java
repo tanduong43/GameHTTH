@@ -50,6 +50,7 @@ public class LucThuc {
                 }
                 
                 p.lucthuc[2] -= 500;
+                p.set_spend_context("Nâng cấp Lục Thức", LucThuc.NAME[p.lucthuc[0] - 1] + " (" + LucThuc.NAME_2[p.lucthuc[1] - 1] + ")");
                 p.update_vang(-10_000_000);
                 p.update_ngoc(-3_000);
                 p.update_money();
@@ -73,6 +74,7 @@ public class LucThuc {
                     return;
                 }
                 p.lucthuc[2] -= 1000;
+                p.set_spend_context("Đột phá Lục Thức", LucThuc.NAME[p.lucthuc[0] - 1]);
                 p.update_vang(-20_000_000);
                 p.update_ngoc(-10_000);
                 p.update_money();

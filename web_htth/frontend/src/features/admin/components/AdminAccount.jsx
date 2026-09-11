@@ -88,6 +88,43 @@ function AdminAccount() {
   });
   const [submittingCurrency, setSubmittingCurrency] = useState(false);
 
+  // Delete Account Modal state
+  const [deleteModalAccount, setDeleteModalAccount] = useState(null);
+  const [submittingDelete, setSubmittingDelete] = useState(false);
+
+  const handleOpenDeleteModal = (acc) => {
+    setDeleteModalAccount(acc);
+  };
+
+  const handleConfirmDeleteAccount = async () => {
+    if (!deleteModalAccount) return;
+    const targetUsername = deleteModalAccount.user || deleteModalAccount.username;
+    if (!targetUsername) return;
+
+    setSubmittingDelete(true);
+    try {
+      const res = await api.post('admin/update_user', {
+        username: targetUsername,
+        action: 'delete'
+      });
+      if (res.data.success) {
+        showMessage('success', res.data.message || 'Đã xóa tài khoản thành công!');
+        if (detailData?.account?.user === targetUsername) {
+          setDetailModalOpen(false);
+          setDetailData(null);
+        }
+        setDeleteModalAccount(null);
+        fetchAccounts(page, limit);
+      } else {
+        showMessage('error', res.data.message || 'Không thể xóa tài khoản!');
+      }
+    } catch {
+      showMessage('error', 'Lỗi kết nối máy chủ khi xóa tài khoản!');
+    } finally {
+      setSubmittingDelete(false);
+    }
+  };
+
   const handleOpenDetailModal = async (username) => {
     setDetailModalOpen(true);
     setDetailLoading(true);
@@ -870,6 +907,30 @@ function AdminAccount() {
                       >
                         {acc.lock === 1 ? '🔓 Mở Khóa' : '🔒 Khóa Nick'}
                       </button>
+                      <button
+                        onClick={() => handleOpenDeleteModal(acc)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(255, 77, 79, 0.4)',
+                          background: 'rgba(255, 77, 79, 0.1)',
+                          color: '#ff4d4f',
+                          cursor: 'pointer',
+                          fontSize: '12.5px',
+                          fontWeight: 'bold',
+                          transition: 'all 0.2s ease',
+                          whiteSpace: 'nowrap'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = 'rgba(255, 77, 79, 0.25)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = 'rgba(255, 77, 79, 0.1)';
+                        }}
+                        title="Xóa vĩnh viễn tài khoản & nhân vật"
+                      >
+                        🗑️ Xóa Nick
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -1218,27 +1279,58 @@ function AdminAccount() {
                 )}
               </div>
 
-              <button
-                onClick={() => setDetailModalOpen(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
-                  color: '#aaa',
-                  fontSize: '18px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,77,79,0.2)'; e.currentTarget.style.color = '#ff4d4f'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#aaa'; }}
-              >
-                ✕
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => handleOpenDeleteModal(detailData.account)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 77, 79, 0.4)',
+                    background: 'rgba(255, 77, 79, 0.15)',
+                    color: '#ff4d4f',
+                    cursor: 'pointer',
+                    fontSize: '12.5px',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 77, 79, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 77, 79, 0.15)';
+                  }}
+                  title="Xóa vĩnh viễn tài khoản & toàn bộ dữ liệu nhân vật"
+                >
+                  <span>🗑️</span>
+                  <span>Xóa Nick</span>
+                </button>
+
+                <button
+                  onClick={() => setDetailModalOpen(false)}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '50%',
+                    width: '36px',
+                    height: '36px',
+                    color: '#aaa',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,77,79,0.2)'; e.currentTarget.style.color = '#ff4d4f'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#aaa'; }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             {/* Modal Tabs Bar */}
@@ -2776,6 +2868,163 @@ function AdminAccount() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Xác Nhận Xóa Vĩnh Viễn Tài Khoản */}
+      {deleteModalAccount && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 3000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1f1111 0%, #181818 100%)',
+            border: '1px solid rgba(255, 77, 79, 0.5)',
+            borderRadius: '16px',
+            maxWidth: '520px',
+            width: '100%',
+            padding: '28px',
+            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 77, 79, 0.25)',
+            color: '#fff',
+            position: 'relative'
+          }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'rgba(255, 77, 79, 0.15)',
+                border: '1px solid rgba(255, 77, 79, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                flexShrink: 0
+              }}>
+                ⚠️
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#ff4d4f' }}>
+                  XÁC NHẬN XÓA VĨNH VIỄN TÀI KHOẢN
+                </h3>
+                <div style={{ fontSize: '12.5px', color: '#aaa', marginTop: '2px' }}>
+                  Hành động nguy hiểm - Dữ liệu không thể hoàn tác
+                </div>
+              </div>
+            </div>
+
+            {/* Account Info Box */}
+            <div style={{
+              background: 'rgba(0, 0, 0, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '10px',
+              padding: '14px 16px',
+              marginBottom: '18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              fontSize: '13.5px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#888' }}>Tài khoản:</span>
+                <strong style={{ color: '#00e5ff' }}>{deleteModalAccount.user || deleteModalAccount.username}</strong>
+              </div>
+              {deleteModalAccount.char && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#888' }}>Nhân vật:</span>
+                  <strong style={{ color: '#ff8a00' }}>
+                    {(() => {
+                      try {
+                        const parsed = typeof deleteModalAccount.char === 'string' ? JSON.parse(deleteModalAccount.char) : deleteModalAccount.char;
+                        return Array.isArray(parsed) && parsed.length > 0 ? parsed.join(', ') : 'Chưa có nhân vật';
+                      } catch {
+                        return deleteModalAccount.char;
+                      }
+                    })()}
+                  </strong>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#888' }}>Web Coin:</span>
+                <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{(deleteModalAccount.coin || 0).toLocaleString()} Coin</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#888' }}>Trạng thái:</span>
+                <span style={{ color: deleteModalAccount.lock === 1 ? '#ff4d4f' : '#52c41a' }}>
+                  {deleteModalAccount.lock === 1 ? 'Đang bị khóa (BANNED)' : 'Đang hoạt động'}
+                </span>
+              </div>
+            </div>
+
+            {/* Warning Message */}
+            <div style={{
+              background: 'rgba(255, 77, 79, 0.1)',
+              border: '1px solid rgba(255, 77, 79, 0.25)',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              marginBottom: '22px',
+              fontSize: '12.5px',
+              color: '#ffb3b3',
+              lineHeight: '1.5'
+            }}>
+              💥 <strong>Cảnh báo:</strong> Toàn bộ dữ liệu tài khoản, nhân vật, cấp độ, trang bị, rương đồ, số dư Ruby/Beri và các tin rao trên chợ sẽ bị <strong>XÓA HOÀN TOÀN</strong> khỏi cơ sở dữ liệu.
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setDeleteModalAccount(null)}
+                disabled={submittingDelete}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  background: 'transparent',
+                  color: '#aaa',
+                  cursor: submittingDelete ? 'not-allowed' : 'pointer',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteAccount}
+                disabled={submittingDelete}
+                style={{
+                  padding: '10px 22px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)',
+                  color: '#fff',
+                  cursor: submittingDelete ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  boxShadow: '0 4px 15px rgba(255, 77, 79, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {submittingDelete ? 'Đang xóa...' : '🗑️ Xác Nhận Xóa Vĩnh Viễn'}
+              </button>
+            </div>
           </div>
         </div>
       )}

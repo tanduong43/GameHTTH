@@ -34,6 +34,9 @@ public class Mob {
 	public int phan_dame = 0;        // % Phản sát thương lại cho người chơi đánh
 	public int giam_mien_thuong = 0; // Điểm giảm miễn thương của mục tiêu khi tấn công (thang 1000, vd 400 = giảm 40%)
 
+	// Danh sách tên người chơi đã gây sát thương (dùng cho Đảo Ruby map 1001 - thưởng Ruby cho tất cả người tham gia)
+	public java.util.Set<String> damageDealers = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
 	public boolean isRauTrang() {
 		return (this.mob_template != null && (this.mob_template.mob_id == 172
 				|| (this.mob_template.name != null && (this.mob_template.name.toLowerCase().contains("râu trắng") || this.mob_template.name.toLowerCase().contains("rau trang")))))

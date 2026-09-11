@@ -119,9 +119,11 @@ public class EventNoelCraft {
 
         // Trừ phí
         if (beriCost > 0) {
+            p.set_spend_context("Làm Bánh / Kẹo Noel", "Sự kiện Noel");
             p.update_vang(-beriCost);
         }
         if (rubyCost > 0) {
+            p.set_spend_context("Làm Bánh / Kẹo Noel", "Sự kiện Noel");
             p.update_ngoc(-rubyCost);
         }
 

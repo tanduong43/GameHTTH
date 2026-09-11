@@ -149,12 +149,14 @@ public class UpgradeSuperItem {
                             + ItemTemplate7.get_it_by_id(id_matrial_1).name);
                     return;
                 }
+                String itName = (it_select != null && it_select.template != null) ? it_select.template.name : "Trang bị";
                 if (beri_gem == 1) {
                     int vang_req = UpgradeSuperItem.get_material(2, it_select);
                     if (p.get_vang() < vang_req) {
                         Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " beri");
                         return;
                     }
+                    p.set_spend_context("Cường hóa siêu cấp", itName);
                     p.update_vang(-vang_req);
                 } else {
                     int vang_req = UpgradeSuperItem.get_material(3, it_select);
@@ -162,6 +164,7 @@ public class UpgradeSuperItem {
                         Service.send_box_ThongBao_OK(p, "Không đủ " + vang_req + " ruby");
                         return;
                     }
+                    p.set_spend_context("Cường hóa siêu cấp", itName);
                     p.update_ngoc(-vang_req);
                 }
                 p.update_money();

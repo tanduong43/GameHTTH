@@ -232,6 +232,7 @@ public class UpgradeDevil {
                 p.conn.addmsg(m);
                 m.cleanup();
                 //
+                p.set_spend_context("Ghép sách công thức", "Sách công thức (ID 452)");
                 p.update_vang(-10_000);
                 p.update_money();
                 p.item.remove_item47(4, 451, 5);
@@ -261,6 +262,7 @@ public class UpgradeDevil {
                 p.conn.addmsg(m);
                 m.cleanup();
                 //
+                p.set_spend_context("Ghép vỏ ốc", "Vỏ ốc (ID 453)");
                 p.update_vang(-10_000);
                 p.update_money();
                 p.item.remove_item47(4, 454, 5);
@@ -298,7 +300,9 @@ public class UpgradeDevil {
                 p.conn.addmsg(m);
                 m.cleanup();
                 //
+                p.set_spend_context("Ghép rương dial", "Rương dial (ID 455)");
                 p.update_vang(-1_500_000);
+                p.set_spend_context("Ghép rương dial", "Rương dial (ID 455)");
                 p.update_vnd(-100);
                 p.update_money();
                 p.item.remove_item47(4, 452, 1);

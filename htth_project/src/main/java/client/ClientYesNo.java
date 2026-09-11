@@ -2422,6 +2422,12 @@ public class ClientYesNo {
                                     + it_receive.quant) <= DataTemplate.MAX_ITEM_IN_BAG) {
                                 it_receive.time_market = 0;
                                 it_receive.type_market = 2;
+                                String itBuyName = (it_receive.category == 4 && it_receive.id == 0)
+                                        ? (it_receive.quant + " triệu beri")
+                                        : ((it_receive.category == 4)
+                                                ? (it_receive.quant + " " + ItemTemplate4.get_item_name(it_receive.id))
+                                                : (it_receive.quant + " " + ItemTemplate7.get_item_name(it_receive.id)));
+                                p.set_spend_context("Mua chợ trời", itBuyName);
                                 p.update_vnd(-it_receive.price_market);
                                 if (!(it_receive.category == 4 && it_receive.id == 0)) {
                                     p.update_money();
@@ -2500,6 +2506,7 @@ public class ClientYesNo {
                                 if (it_add.template != null) {
                                     it_receive.time_market = 0;
                                     it_receive.type_market = 2;
+                                    p.set_spend_context("Mua trang bị chợ", it_receive.template.name);
                                     p.update_vnd(-it_receive.price_market);
                                     p.update_money();
                                     //
@@ -2582,6 +2589,7 @@ public class ClientYesNo {
                                 p.map_tele = null;
                                 return;
                             }
+                            p.set_spend_context("Phí gia hạn chợ", it_receive.template.name);
                             p.update_vnd(-1_500);
                             p.update_money();
                             it_receive.time_market = System.currentTimeMillis() + 60_000L * 60 * 24;
@@ -2653,6 +2661,8 @@ public class ClientYesNo {
                             it_add.seller = p.name;
                             it_add.type_market = 1;
                             if (it_add.index != -1) {
+                                String itSellName = (p.data_yesno[0] == 4 ? ItemTemplate4.get_item_name(p.data_yesno[1]) : ItemTemplate7.get_item_name(p.data_yesno[1])) + " (x" + p.data_yesno[2] + ")";
+                                p.set_spend_context("Phí đăng bán chợ", itSellName);
                                 p.update_vnd(-2_000);
                                 p.update_money();
                                 p.item.remove_item47(p.data_yesno[0], p.data_yesno[1],
@@ -2871,7 +2881,9 @@ public class ClientYesNo {
                             it_add.seller = p.name;
                             it_add.type_market = 1;
                             if (it_add.index != -1) {
+                                p.set_spend_context("Phí đăng bán chợ", p.data_yesno[0] + " triệu beri");
                                 p.update_vnd(-2000);
+                                p.set_spend_context("Đăng bán beri", p.data_yesno[0] + " triệu beri");
                                 p.update_vang(-beri_add);
                                 p.update_money();
                                 getMarket.item47.add(it_add);
@@ -2919,6 +2931,7 @@ public class ClientYesNo {
                                 it_add.price_market = p.data_yesno[1];
                                 it_add.seller = p.name;
                                 if (it_add.index != -1) {
+                                    p.set_spend_context("Phí đăng bán chợ", it_select.template.name);
                                     p.update_vnd(-2000);
                                     p.update_money();
                                     //
