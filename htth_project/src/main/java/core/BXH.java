@@ -428,6 +428,10 @@ public class BXH {
                 }
                 break;
             }
+            case 19: {
+                activities.BigBattle.sendBXH(p, page);
+                return;
+            }
         }
         p.conn.addmsg(m);
         m.cleanup();
@@ -1683,7 +1687,7 @@ public class BXH {
                 InfoMemList temp = new InfoMemList();
                 temp.id = rs.getInt("id");
                 temp.name = rs.getString("name");
-                temp.thongthao = rs.getInt("so_lan_san_boss_lan");
+                temp.thongthao = rs.getInt("lan_kills");
                 List<ItemFashionP2> fashion = new ArrayList<>();
                 List<ItemFashionP> itfashionP = new ArrayList<>();
                 JSONArray js0 = (JSONArray) JSONValue.parse(rs.getString("fashion"));
@@ -1799,7 +1803,7 @@ public class BXH {
                 InfoMemList temp = new InfoMemList();
                 temp.id = rs.getInt("id");
                 temp.name = rs.getString("name");
-                temp.thongthao = rs.getInt("so_lan_nau_banh");
+                temp.thongthao = rs.getInt("tet_banh_chung");
                 List<ItemFashionP2> fashion = new ArrayList<>();
                 List<ItemFashionP> itfashionP = new ArrayList<>();
                 JSONArray js0 = (JSONArray) JSONValue.parse(rs.getString("fashion"));

@@ -1100,6 +1100,11 @@ public class Map implements Runnable {
                             remainingPlayer.update_money();
                             Service.send_box_ThongBao_OK(remainingPlayer,
                                     "Đối thủ đã rời trận! Bạn chiến thắng và nhận được " + rubyWin + " ruby!");
+                        } else if (this.map_pvp.type_map == 4) { // Trận Chiến Lớn
+                            Player opponent = remainingPlayer.targetFight != null ? remainingPlayer.targetFight : remainingPlayer;
+                            activities.BigBattle.onBattleEnd(remainingPlayer, opponent);
+                            remainingPlayer.targetFight = null;
+                            activities.BigBattle.returnToWaitingRoom(remainingPlayer);
                         } else {
                             Service.send_box_ThongBao_OK(remainingPlayer,
                                     "Đối thủ đã rời trận! Bạn là người chiến thắng.");
@@ -1325,6 +1330,12 @@ public class Map implements Runnable {
                                 Service.send_box_ThongBao_OK(loser,
                                         "Trận đấu kết thúc! Bạn thua và mất " + rubyBet + " ruby.");
                             }
+                        } else if (this.map_pvp.type_map == 4 && players.size() >= 2) { // Trận Chiến Lớn
+                            Player winner = (this.map_pvp.num_win_p1 >= 3) ? players.get(0) : players.get(1);
+                            Player loser = (this.map_pvp.num_win_p1 >= 3) ? players.get(1) : players.get(0);
+                            Pvp.pvp_notice(winner, 3);
+                            Pvp.pvp_notice(loser, 4);
+                            activities.BigBattle.onBattleEnd(winner, loser);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1371,6 +1382,24 @@ public class Map implements Runnable {
                                 players.get(i).update_ngoc(rubyBet);
                                 players.get(i).update_money();
                             }
+                        } else if (this.map_pvp.type_map == 4 && players.size() >= 2) { // Trận Chiến Lớn
+                            Player winner, loser;
+                            if (this.map_pvp.num_win_p1 > this.map_pvp.num_win_p2) {
+                                winner = players.get(0);
+                                loser = players.get(1);
+                            } else if (this.map_pvp.num_win_p1 < this.map_pvp.num_win_p2) {
+                                winner = players.get(1);
+                                loser = players.get(0);
+                            } else {
+                                if (players.get(0).hp >= players.get(1).hp) {
+                                    winner = players.get(0);
+                                    loser = players.get(1);
+                                } else {
+                                    winner = players.get(1);
+                                    loser = players.get(0);
+                                }
+                            }
+                            activities.BigBattle.onBattleEnd(winner, loser);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1422,7 +1451,10 @@ public class Map implements Runnable {
 
                             // Xac dinh Vgo tuong ung cho tung nguoi choi
                             Vgo vgo = new Vgo();
-                            if (this.map_pvp.type_map == 2) { // Truy na -> ve phong cho 119
+                            if (this.map_pvp.type_map == 4) { // Trận Chiến Lớn -> về sảnh chờ
+                                activities.BigBattle.returnToWaitingRoom(l);
+                                continue;
+                            } else if (this.map_pvp.type_map == 2) { // Truy na -> ve phong cho 119
                                 vgo.map_go = Map.get_map_by_id(119);
                                 if (vgo.map_go != null && vgo.map_go.length > 0) {
                                     short maxW = vgo.map_go[0].template.maxW;
@@ -6545,6 +6577,7 @@ public class Map implements Runnable {
         return check || id == 64 || id == 984 || id == 1000 || id == 9998 || id == 9999 || id == 115
                 || id == 81 || id == 120 || id == 122 || id == 123 || id == 119 || id == 58
                 || id == 2000 || id == 2028 || id == 2026 || id == 1001
+                || id == 2030 || id == 2031 || id == 2032
                 || Map.is_map_boss(id) || Map.is_map_dungeon(id)
                 || activities.BossHunt.isBossHuntMap(id);
     }

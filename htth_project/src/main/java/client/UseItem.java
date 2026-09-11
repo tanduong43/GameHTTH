@@ -1852,12 +1852,12 @@ public class UseItem {
                         break;
                     }
                     case 414: {
-                        // Check if player has any upgradeable default skill (< 30)
+                        // Check if player has any upgradeable default skill (< 31)
                         boolean canUpgrade = false;
                         for (int i = 0; i < p.skill_point.size(); i++) {
                             Skill_info sk = p.skill_point.get(i);
                             if (sk.temp.typeSkill == 1 && sk.temp.typeDevil == 0 && sk.temp.ID < 2000) {
-                                if (sk.temp.Lv_RQ < 30) {
+                                if (sk.temp.Lv_RQ < 31) {
                                     canUpgrade = true;
                                     break;
                                 }
@@ -1865,17 +1865,17 @@ public class UseItem {
                         }
 
                         if (!canUpgrade) {
-                            Service.send_box_ThongBao_OK(p, "Tất cả kỹ năng mặc định đã đạt cấp tối đa (30)!");
+                            Service.send_box_ThongBao_OK(p, "Tất cả kỹ năng mặc định đã đạt cấp tối đa (31)!");
                             used = false;
                             break;
                         }
 
-                        // Upgrade all default skills that are < 30 by 1 level
+                        // Upgrade all default skills that are < 31 by 1 level
                         boolean upgradedAny = false;
                         for (int i = 0; i < p.skill_point.size(); i++) {
                             Skill_info sk = p.skill_point.get(i);
                             if (sk.temp.typeSkill == 1 && sk.temp.typeDevil == 0 && sk.temp.ID < 2000) {
-                                if (sk.temp.Lv_RQ < 30) {
+                                if (sk.temp.Lv_RQ < 31) {
                                     if (Skill_Template.upgrade_skill(sk, p.clazz)) {
                                         sk.exp = 0; // reset exp to 0 for the new level
                                         upgradedAny = true;

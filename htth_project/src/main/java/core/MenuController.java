@@ -473,6 +473,10 @@ public class MenuController {
               null);
           break;
         }
+        case -996: { // NPC Đô Đốc Trận Chiến Lớn
+          activities.BigBattle.sendNpcMenu(p);
+          break;
+        }
         case -999: {
           activities.PetTraining.sendMainMenu(p, (short) type);
           break;
@@ -2076,6 +2080,14 @@ public class MenuController {
           Menu_Buggi(p, index);
           break;
         }
+        case -996: { // NPC Đô Đốc Trận Chiến Lớn
+          activities.BigBattle.handleNpcMenu(p, index);
+          break;
+        }
+        case -9970: { // Nhận thưởng mốc chuỗi thắng Trận Chiến Lớn
+          activities.BigBattle.claimReward(p, index);
+          break;
+        }
         case -999: {
           activities.PetTraining.handleMenu(p, (short) idNPC, index);
           break;
@@ -2699,6 +2711,7 @@ public class MenuController {
   private static void Menu_Zosaku(Player p, byte index) throws IOException {
     switch (index) {
       case 3: { // Trận chiến lớn
+        activities.BigBattle.joinWaitingRoom(p);
         break;
       }
       case 0: { // Săn trùm

@@ -1893,6 +1893,7 @@ router.post('/admin/upload', jwtRequired, isAdmin, async (req, res) => {
 // GET /api/recharge/bank_config (Lấy cấu hình ngân hàng công khai & sự kiện nạp)
 router.get('/recharge/bank_config', async (req, res) => {
     let depositMultiplier = 1;
+    let rechargeEnabled = true;
     try {
         const [rows] = await db.execute("SELECT `value` FROM `server_config` WHERE `key` = 'deposit_multiplier' LIMIT 1");
         if (rows.length > 0 && rows[0].value) {
@@ -1901,8 +1902,12 @@ router.get('/recharge/bank_config', async (req, res) => {
                 depositMultiplier = parsed;
             }
         }
+        const [statusRows] = await db.execute("SELECT `value` FROM `server_config` WHERE `key` = 'recharge_enabled' LIMIT 1");
+        if (statusRows.length > 0 && statusRows[0].value !== null) {
+            rechargeEnabled = statusRows[0].value.trim() !== '0';
+        }
     } catch (e) {
-        console.error('Error fetching multiplier in bank_config:', e.message);
+        console.error('Error fetching multiplier / recharge config in bank_config:', e.message);
     }
 
     return res.json({
@@ -1913,7 +1918,8 @@ router.get('/recharge/bank_config', async (req, res) => {
         bankName: process.env.BANK_NAME || `${process.env.BANK_ID || 'MB'} Bank`,
         momoPhone: process.env.MOMO_PHONE || '0987654321',
         momoName: process.env.MOMO_NAME || 'NGUYEN VAN A',
-        depositMultiplier: depositMultiplier
+        depositMultiplier: depositMultiplier,
+        rechargeEnabled: rechargeEnabled
     });
 });
 

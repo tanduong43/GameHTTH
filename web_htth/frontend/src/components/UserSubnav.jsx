@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useConfig } from '../context/ConfigContext';
 
 export default function UserSubnav({ activeTab }) {
   const navigate = useNavigate();
   const { handleLogout } = useAuth();
+  const { rechargeEnabled } = useConfig();
 
   return (
     <div className="forum-subnav">
@@ -19,12 +21,14 @@ export default function UserSubnav({ activeTab }) {
       >
         🔒 Đổi Mật Khẩu
       </button>
-      <button
-        className={`subnav-btn ${activeTab === 'topup' ? 'active' : ''}`}
-        onClick={() => navigate('/nap-tien')}
-      >
-        🪙 Nạp Tiền
-      </button>
+      {rechargeEnabled && (
+        <button
+          className={`subnav-btn ${activeTab === 'topup' ? 'active' : ''}`}
+          onClick={() => navigate('/nap-tien')}
+        >
+          🪙 Nạp Tiền
+        </button>
+      )}
 
       <button className="subnav-btn subnav-logout" onClick={handleLogout}>
         🚪 Đăng Xuất

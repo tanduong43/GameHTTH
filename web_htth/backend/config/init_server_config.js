@@ -20,6 +20,14 @@ async function initServerConfigTable() {
         `;
         await db.query(insertDefaultSql);
 
+        // Ensure default key for recharge_enabled exists (1 = On, 0 = Off)
+        const insertDefaultRechargeSql = `
+            INSERT INTO server_config (\`key\`, \`value\`, \`description\`)
+            VALUES ('recharge_enabled', '1', 'Trạng thái tính năng nạp thẻ / nạp tiền trên web (1 = Bật/Hiển thị, 0 = Tắt/Ẩn)')
+            ON DUPLICATE KEY UPDATE \`description\` = VALUES(\`description\`);
+        `;
+        await db.query(insertDefaultRechargeSql);
+
         console.log("Database table 'server_config' initialized successfully.");
     } catch (err) {
         console.error("Error initializing server_config table:", err.message);

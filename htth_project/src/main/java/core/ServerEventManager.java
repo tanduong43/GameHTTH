@@ -67,6 +67,7 @@ public class ServerEventManager {
                         
                         Clan.reset_day();
                         LittleGarden.LIST.clear();
+                        activities.BigBattle.resetDailyMatches();
                     }
                     // Boss làng (thegioi=2) tự hồi độc lập trong Boss.update_bosses() — không random 1 con/5 phút nữa
 

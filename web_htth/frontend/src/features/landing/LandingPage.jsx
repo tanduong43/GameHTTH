@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/api';
+import { useConfig } from '../../context/ConfigContext';
 import '../../styles/App.css';
 
 // 3 custom banner sliders
@@ -114,6 +115,7 @@ const NEWS = [
 function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { rechargeEnabled } = useConfig();
 
   // Banner State
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -773,7 +775,9 @@ function LandingPage() {
             <div className="footer-links">
               <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Trang Chủ</a>
               <a href="#download" onClick={(e) => { e.preventDefault(); document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' }); }}>Tải Game</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); navigate('/nap-tien'); }}>Nạp Thẻ</a>
+              {rechargeEnabled && (
+                <a href="#" onClick={(e) => { e.preventDefault(); navigate('/nap-tien'); }}>Nạp Thẻ</a>
+              )}
               <a href="#" onClick={(e) => { e.preventDefault(); navigate('/tai-khoan'); }}>Tài Khoản</a>
             </div>
           </div>

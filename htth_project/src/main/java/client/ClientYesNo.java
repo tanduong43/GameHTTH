@@ -58,6 +58,13 @@ public class ClientYesNo {
         short id = m2.reader().readShort();
         byte value = m2.reader().readByte();
         // core.Service.send_box_ThongBao_OK(p, "DEBUG: id=" + id + " value=" + value);
+        if (id == 1998) { // Xác nhận rời sảnh chờ Trận Chiến Lớn
+            if (value == 0) { // Đồng ý
+                activities.BigBattle.leaveWaitingRoom(p);
+            }
+            p.map_tele = null;
+            return;
+        }
         if (id == activities.Bank.YESNO_ID_BANK_EXCHANGE_COIN) {
             activities.Bank.processConfirmExchangeCoin(p, value);
             p.map_tele = null;

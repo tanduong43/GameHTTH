@@ -18,22 +18,27 @@ export default function AdminBanking() {
   const [filter, setFilter] = useState('pending'); // 'all' | 'pending' | 'done' | 'failed'
   const [multiplier, setMultiplier] = useState(1);
   const [updatingMultiplier, setUpdatingMultiplier] = useState(false);
+  const [rechargeEnabled, setRechargeEnabled] = useState(true);
+  const [updatingRechargeStatus, setUpdatingRechargeStatus] = useState(false);
 
-  const fetchMultiplier = async () => {
+  const fetchConfig = async () => {
     try {
-      const res = await api.get('banking/multiplier');
+      const res = await api.get('banking/status');
       if (res.data && res.data.success) {
         setMultiplier(res.data.multiplier || 1);
+        if (res.data.rechargeEnabled !== undefined) {
+          setRechargeEnabled(Boolean(res.data.rechargeEnabled));
+        }
       }
     } catch (e) {
-      console.error('Error fetching multiplier:', e);
+      console.error('Error fetching config in AdminBanking:', e);
     }
   };
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      await fetchMultiplier();
+      await fetchConfig();
       const res = await api.get('admin/banking/orders');
       if (res.data && res.data.success) {
         setOrders(res.data.orders);
@@ -51,6 +56,31 @@ export default function AdminBanking() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  const handleToggleRecharge = async () => {
+    const nextStatus = !rechargeEnabled;
+    const confirmMsg = nextStatus
+      ? 'Bạn có chắc chắn muốn BẬT lại tính năng nạp thẻ trên Web? Người chơi sẽ thấy lại nút nạp tiền và có thể tạo đơn nạp bình thường.'
+      : '⚠️ CẢNH BÁO: Bạn có chắc chắn muốn TẮT tính năng nạp thẻ trên Web?\n\n- Toàn bộ nút "Nạp Tiền" / "Nạp Thẻ" trên Navbar, Footer, Menu người chơi sẽ bị ẨN NGAY LẬP TỨC.\n- Người chơi truy cập link /nap-tien sẽ thấy thông báo bảo trì và không thể tạo đơn nạp.';
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      setUpdatingRechargeStatus(true);
+      const res = await api.post('admin/banking/toggle_recharge', { enabled: nextStatus });
+      if (res.data && res.data.success) {
+        setRechargeEnabled(res.data.rechargeEnabled);
+        showMessage('success', res.data.message || (nextStatus ? 'Đã bật nạp thẻ!' : 'Đã tắt nạp thẻ!'));
+      } else {
+        showMessage('error', res.data?.message || 'Không thể đổi trạng thái nạp thẻ.');
+      }
+    } catch (err) {
+      console.error('Error toggling recharge status:', err);
+      showMessage('error', 'Lỗi kết nối khi cập nhật trạng thái nạp thẻ.');
+    } finally {
+      setUpdatingRechargeStatus(false);
+    }
+  };
 
   const handleSetMultiplier = async (newMult) => {
     if (newMult === multiplier) return;
@@ -167,6 +197,75 @@ export default function AdminBanking() {
         <button onClick={fetchOrders} className="btn btn-outline" style={{ borderColor: 'rgba(255,255,255,0.15)', color: '#ccc', padding: '8px 16px', fontSize: '13px', background: 'transparent', cursor: 'pointer', borderRadius: '6px' }}>
           🔄 Tải lại
         </button>
+      </div>
+
+      {/* Recharge On/Off Status Config Panel */}
+      <div className="glass-panel" style={{
+        padding: '18px 25px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '15px',
+        background: rechargeEnabled
+          ? 'linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(24, 144, 255, 0.05) 100%)'
+          : 'linear-gradient(135deg, rgba(245, 34, 45, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%)',
+        border: rechargeEnabled ? '1px solid rgba(82, 196, 26, 0.4)' : '1px solid rgba(245, 34, 45, 0.4)',
+        borderRadius: '8px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '26px' }}>{rechargeEnabled ? '🟢' : '🛑'}</span>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#fff' }}>Tính Năng Nạp Thẻ / Nạp Tiền Trên Web</span>
+              <span style={{
+                fontSize: '12px',
+                fontWeight: 'bold',
+                padding: '2px 10px',
+                borderRadius: '4px',
+                background: rechargeEnabled ? '#52c41a' : '#f5222d',
+                color: '#fff'
+              }}>
+                {rechargeEnabled ? 'ĐANG BẬT (HIỂN THỊ TRÊN WEB)' : 'ĐÃ TẮT (ẨN TRÊN TOÀN BỘ WEB)'}
+              </span>
+            </div>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#aaa' }}>
+              {rechargeEnabled
+                ? 'Người chơi đang thấy các nút nạp tiền và có thể tạo đơn nạp bình thường.'
+                : 'Toàn bộ nút nạp trên Navbar, Footer, Menu người chơi đã bị ẩn. Trang nạp báo bảo trì và Backend từ chối mọi yêu cầu tạo đơn.'}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            disabled={updatingRechargeStatus}
+            onClick={handleToggleRecharge}
+            style={{
+              padding: '9px 20px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              cursor: updatingRechargeStatus ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              border: 'none',
+              background: rechargeEnabled
+                ? 'linear-gradient(135deg, #f5222d, #cf1322)'
+                : 'linear-gradient(135deg, #52c41a, #389e0d)',
+              color: '#fff',
+              boxShadow: rechargeEnabled
+                ? '0 2px 8px rgba(245, 34, 45, 0.4)'
+                : '0 2px 8px rgba(82, 196, 26, 0.4)'
+            }}
+          >
+            {updatingRechargeStatus
+              ? 'Đang cập nhật...'
+              : rechargeEnabled
+                ? '🛑 Tắt Tính Năng Nạp Thẻ'
+                : '🚀 Bật Lại Tính Năng Nạp Thẻ'}
+          </button>
+        </div>
       </div>
 
       {/* Event Multiplier Config Panel */}

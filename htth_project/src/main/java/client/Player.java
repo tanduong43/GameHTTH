@@ -248,6 +248,14 @@ public class Player {
     public boolean isBot = false;
     public long time_start_find_wanted = 0;
 
+    // Dữ liệu tính năng Trận Chiến Lớn
+    public int big_battle_streak = 0;
+    public int big_battle_max_streak = 0;
+    public int big_battle_total_win = 0;
+    public int big_battle_total_fight = 0;
+    public List<Integer> big_battle_claimed_rewards = new ArrayList<>();
+    public int big_battle_bracket = 0;
+
     // Thợ săn hải tặc bounty
     public int thosan_bounty = 0;
     public long time_bounty_posted = 0;

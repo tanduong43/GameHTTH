@@ -107,6 +107,7 @@ public class Manager {
         EventTet.getInstance();
         event.Event2011.getInstance();
         event.GuildWarDaoHoa.getInstance().init();
+        activities.BigBattle.init();
         a = Rebuild_Item.ID_SELL.length;
         a = Red_Line.KEY0.length;
         a = UpgradeItem.DATA.size();

@@ -174,7 +174,8 @@ public class Skill_Template {
                         if (temp_ss.indexSkillInServer >= 0 && temp_ss.indexSkillInServer < 60
                                 || temp_ss.indexSkillInServer >= 375 && temp_ss.indexSkillInServer < 395
                                 || temp_ss.indexSkillInServer >= 566 && temp_ss.indexSkillInServer <= 583
-                                || temp_ss.indexSkillInServer >= 667 && temp_ss.indexSkillInServer <= 678) {
+                                || temp_ss.indexSkillInServer >= 667 && temp_ss.indexSkillInServer <= 678
+                                || temp_ss.indexSkillInServer >= 727 && temp_ss.indexSkillInServer <= 729) {
                             result = temp_ss;
                         }
                         break;
@@ -183,7 +184,8 @@ public class Skill_Template {
                         if (temp_ss.indexSkillInServer >= 60 && temp_ss.indexSkillInServer < 120
                                 || temp_ss.indexSkillInServer >= 395 && temp_ss.indexSkillInServer < 415
                                 || temp_ss.indexSkillInServer >= 584 && temp_ss.indexSkillInServer <= 601
-                                || temp_ss.indexSkillInServer >= 679 && temp_ss.indexSkillInServer <= 690) {
+                                || temp_ss.indexSkillInServer >= 679 && temp_ss.indexSkillInServer <= 690
+                                || temp_ss.indexSkillInServer >= 730 && temp_ss.indexSkillInServer <= 732) {
                             result = temp_ss;
                         }
                         break;
@@ -192,7 +194,8 @@ public class Skill_Template {
                         if (temp_ss.indexSkillInServer >= 120 && temp_ss.indexSkillInServer < 180
                                 || temp_ss.indexSkillInServer >= 415 && temp_ss.indexSkillInServer < 435
                                 || temp_ss.indexSkillInServer >= 602 && temp_ss.indexSkillInServer <= 619
-                                || temp_ss.indexSkillInServer >= 691 && temp_ss.indexSkillInServer <= 702) {
+                                || temp_ss.indexSkillInServer >= 691 && temp_ss.indexSkillInServer <= 702
+                                || temp_ss.indexSkillInServer >= 733 && temp_ss.indexSkillInServer <= 735) {
                             result = temp_ss;
                         }
                         break;
@@ -201,7 +204,8 @@ public class Skill_Template {
                         if (temp_ss.indexSkillInServer >= 180 && temp_ss.indexSkillInServer < 240
                                 || temp_ss.indexSkillInServer >= 435 && temp_ss.indexSkillInServer < 455
                                 || temp_ss.indexSkillInServer >= 620 && temp_ss.indexSkillInServer <= 637
-                                || temp_ss.indexSkillInServer >= 703 && temp_ss.indexSkillInServer <= 714) {
+                                || temp_ss.indexSkillInServer >= 703 && temp_ss.indexSkillInServer <= 714
+                                || temp_ss.indexSkillInServer >= 736 && temp_ss.indexSkillInServer <= 738) {
                             result = temp_ss;
                         }
                         break;
@@ -210,7 +214,8 @@ public class Skill_Template {
                         if (temp_ss.indexSkillInServer >= 240 && temp_ss.indexSkillInServer < 300
                                 || temp_ss.indexSkillInServer >= 455 && temp_ss.indexSkillInServer < 475
                                 || temp_ss.indexSkillInServer >= 638 && temp_ss.indexSkillInServer <= 655
-                                || temp_ss.indexSkillInServer >= 715 && temp_ss.indexSkillInServer <= 726) {
+                                || temp_ss.indexSkillInServer >= 715 && temp_ss.indexSkillInServer <= 726
+                                || temp_ss.indexSkillInServer >= 739 && temp_ss.indexSkillInServer <= 741) {
                             result = temp_ss;
                         }
                         break;
@@ -235,7 +240,7 @@ public class Skill_Template {
             }
         }
         if (result != null && result.Lv_RQ > 0) {
-            if (result.Lv_RQ > 30) {
+            if (result.Lv_RQ > 31) {
                 return false;
             } else {
                 sk_info.temp = result;

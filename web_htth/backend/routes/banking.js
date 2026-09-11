@@ -46,6 +46,23 @@ async function getDepositMultiplier(connection = null) {
 }
 
 /**
+ * Kiểm tra tính năng nạp thẻ / nạp tiền có đang mở không từ bảng `server_config`.
+ * Mặc định trả về true nếu chưa có cấu hình hoặc cấu hình khác '0'.
+ */
+async function isRechargeEnabled(connection = null) {
+    try {
+        const executor = connection || db;
+        const [rows] = await executor.execute("SELECT `value` FROM `server_config` WHERE `key` = 'recharge_enabled' LIMIT 1");
+        if (rows.length > 0 && rows[0].value !== null) {
+            return rows[0].value.trim() !== '0';
+        }
+    } catch (e) {
+        console.error('[Banking] Error reading recharge_enabled:', e.message);
+    }
+    return true;
+}
+
+/**
  * Handle incoming webhook payment notifications.
  * - If actualAmount === deposit.amount: auto process and credit immediately.
  * - If actualAmount !== deposit.amount: do NOT credit automatically; update real_amount and hold in status = 0 (Pending) for manual admin review.
@@ -304,6 +321,15 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
 
 // POST /api/banking/deposit - Create a deposit order
 router.post('/banking/deposit', jwtRequired, async (req, res) => {
+    // Kiểm tra xem tính năng nạp tiền có đang bị Admin tạm đóng hay không
+    const rechargeActive = await isRechargeEnabled();
+    if (!rechargeActive) {
+        return res.json({
+            success: false,
+            message: 'Tính năng nạp thẻ / nạp tiền trên Web hiện đang tạm đóng để bảo trì. Vui lòng quay lại sau!'
+        });
+    }
+
     const { amount } = req.body;
     const depositAmount = parseInt(amount, 10);
 
@@ -845,6 +871,59 @@ router.get('/banking/multiplier', async (req, res) => {
         return res.json({ success: true, multiplier });
     } catch (err) {
         return res.json({ success: true, multiplier: 1 });
+    }
+});
+
+// GET /api/banking/status - Lấy trạng thái nạp thẻ và hệ số nạp
+router.get('/banking/status', async (req, res) => {
+    try {
+        const [multiplier, rechargeEnabled] = await Promise.all([
+            getDepositMultiplier(),
+            isRechargeEnabled()
+        ]);
+        return res.json({ success: true, multiplier, rechargeEnabled });
+    } catch (err) {
+        return res.json({ success: true, multiplier: 1, rechargeEnabled: true });
+    }
+});
+
+// POST /api/admin/banking/toggle_recharge - Bật / Tắt tính năng nạp thẻ trên web từ trang Admin
+router.post('/admin/banking/toggle_recharge', jwtRequired, isAdmin, async (req, res) => {
+    const { enabled } = req.body;
+    const isEnabled = Boolean(enabled);
+    const valStr = isEnabled ? '1' : '0';
+
+    try {
+        await db.execute(
+            "INSERT INTO server_config (`key`, `value`, `description`) VALUES ('recharge_enabled', ?, 'Trạng thái tính năng nạp thẻ / nạp tiền trên web (1 = Bật, 0 = Tắt)') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)",
+            [valStr]
+        );
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('recharge_status_changed', { enabled: isEnabled });
+            if (isEnabled) {
+                io.emit('global_notification', {
+                    type: 'info',
+                    message: '📢 THÔNG BÁO: Tính năng nạp thẻ / nạp tiền trên Web đã được Admin mở lại bình thường!'
+                });
+            } else {
+                io.emit('global_notification', {
+                    type: 'warning',
+                    message: '⚠️ THÔNG BÁO: Tính năng nạp thẻ / nạp tiền trên Web hiện đang tạm đóng để bảo trì hệ thống!'
+                });
+            }
+        }
+
+        console.log(`[Admin] Đã cập nhật trạng thái nạp thẻ: ${isEnabled ? 'BẬT (1)' : 'TẮT (0)'}`);
+        return res.json({
+            success: true,
+            rechargeEnabled: isEnabled,
+            message: isEnabled ? 'Đã BẬT tính năng nạp thẻ thành công!' : 'Đã TẮT tính năng nạp thẻ thành công!'
+        });
+    } catch (err) {
+        console.error('Cập nhật trạng thái nạp thẻ lỗi:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
     }
 });
 

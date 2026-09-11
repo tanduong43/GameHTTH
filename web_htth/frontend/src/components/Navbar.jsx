@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useConfig } from '../context/ConfigContext';
 import '../styles/App.css';
 
 function Navbar() {
   const { user } = useAuth();
+  const { rechargeEnabled } = useConfig();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -97,13 +99,15 @@ function Navbar() {
         >
           Tải Game
         </a>
-        <Link 
-          to="/nap-tien" 
-          onClick={closeMobileMenu}
-          className={`nav-btn ${isTopupActive ? 'active' : ''}`}
-        >
-          Nạp Tiền
-        </Link>
+        {rechargeEnabled && (
+          <Link 
+            to="/nap-tien" 
+            onClick={closeMobileMenu}
+            className={`nav-btn ${isTopupActive ? 'active' : ''}`}
+          >
+            Nạp Tiền
+          </Link>
+        )}
         <Link 
           to={user ? "/tai-khoan" : "/login"} 
           onClick={closeMobileMenu}

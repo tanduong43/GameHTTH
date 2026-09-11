@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import { useConfig } from '../../context/ConfigContext';
 import AuthForm from '../../components/AuthForm';
 import api from '../../api/api';
 import '../../styles/App.css';
@@ -8,6 +9,7 @@ import '../../styles/App.css';
 function TopupPage() {
   const { user, loading, fetchUser } = useAuth();
   const socket = useSocket();
+  const { rechargeEnabled } = useConfig();
 
   const [transferAmountOption, setTransferAmountOption] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
@@ -284,6 +286,11 @@ function TopupPage() {
   };
 
   const handleCreateDeposit = async (amountToCreate) => {
+    if (!rechargeEnabled) {
+      showMessage('error', '⚠️ Tính năng nạp thẻ / nạp tiền hiện đang tạm đóng để bảo trì!');
+      return;
+    }
+
     if (!amountToCreate || amountToCreate.toString().trim() === '') {
       showMessage('error', '⚠️ Vui lòng chọn hoặc nhập số tiền cần nạp trước khi tạo mã QR!');
       return;
@@ -407,6 +414,57 @@ function TopupPage() {
 
   if (loading) {
     return <div className="loader">Đang tải dữ liệu...</div>;
+  }
+
+  if (!rechargeEnabled) {
+    return (
+      <div className="forum-page topup-page">
+        <div className="forum-content">
+          <div className="topup-panel" style={{ textAlign: 'center', padding: '60px 24px' }}>
+            <div style={{ fontSize: '60px', marginBottom: '16px' }}>🛠️</div>
+            <h2 style={{ color: '#ff4d4f', fontSize: '24px', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              TÍNH NĂNG NẠP THẺ ĐANG TẠM ĐÓNG
+            </h2>
+            <p style={{ color: '#bbb', fontSize: '15px', maxWidth: '580px', margin: '0 auto 26px auto', lineHeight: '1.6' }}>
+              Hệ thống nạp thẻ và nạp tiền trên Website hiện đang được Ban Quản Trị tạm dừng để bảo trì và nâng cấp.
+              Vui lòng quay lại sau khi tính năng được mở lại!
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <button
+                className="btn-primary"
+                onClick={() => window.location.href = '/'}
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #1890ff, #096dd9)',
+                  color: '#fff',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                ⚓ Về Trang Chủ
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => window.location.href = '/tai-khoan'}
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: '6px',
+                  border: '1px solid #444',
+                  background: '#222',
+                  color: '#eee',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                👤 Trang Cá Nhân
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
