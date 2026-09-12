@@ -287,6 +287,16 @@ public class UseItem {
                     }
                 }
             } else {
+                if (id == 89) {
+                    if (p.isdie || p.hp <= 0) {
+                        if (Player.do_revive_with_ticket(p)) {
+                            Service.send_box_ThongBao_OK(p, "Đã hồi sinh bằng Vé Hồi Sinh và được bảo vệ 30 phút!");
+                        }
+                    } else {
+                        Service.send_box_ThongBao_OK(p, "Vé Hồi Sinh sẽ tự động được sử dụng khi bạn bị tiêu diệt (bảo vệ 30 phút chống PK)!");
+                    }
+                    return true;
+                }
                 // Event Trung Thu: Xử lý các item đặc biệt
                 if (EventTrungThu.isEvent() && (id == EventTrungThu.ITEM_BANH_TRUNG_THU
                         || id == EventTrungThu.ITEM_BANH_DAU_XANH

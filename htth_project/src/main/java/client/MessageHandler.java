@@ -288,32 +288,10 @@ public class MessageHandler {
                 break;
             }
             case -71: { // auto revive
-                if (conn.p != null && conn.p.map != null && conn.p.map.map_pvp == null
-                        && conn.p.map.map_little_garden == null) {
-                    if (conn.p.type_pk == -1 && conn.p.typePirate == -1 && conn.p.pointPk == 0) {
-                        if (m.reader().readByte() == 1) {
-                            if (conn.p.item.total_item_bag_by_id(4, 89) > 0) {
-                                conn.p.item.remove_item47(4, 89, 1);
-                                conn.p.item.update_Inventory(-1, false);
-                                conn.p.isdie = false;
-                                Service.use_potion(conn.p, 0, conn.p.body.get_hp_max(true));
-                                Service.use_potion(conn.p, 1, conn.p.body.get_mp_max(true));
-                                //
-                                Message m2 = new Message(-71);
-                                m2.writer().writeByte(1);
-                                m2.writer().writeShort(conn.p.index_map);
-                                m2.writer().writeByte(0);
-                                m2.writer().writeInt(60 * 30);
-                                conn.p.map.send_msg_all_p(m2, conn.p, true);
-                                m2.cleanup();
-                                EffTemplate eff = conn.p.get_eff(7);
-                                if (eff != null) {
-                                    eff.time = System.currentTimeMillis() + 60_000L * 15;
-                                } else {
-                                    conn.p.add_new_eff(7, 1, 60_000L * 15);
-                                }
-                            }
-                        }
+                if (conn.p != null) {
+                    byte type = m.reader().readByte();
+                    if (type == 1 && (conn.p.isdie || conn.p.hp <= 0)) {
+                        Player.do_revive_with_ticket(conn.p);
                     }
                 }
                 break;

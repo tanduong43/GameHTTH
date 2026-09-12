@@ -2035,6 +2035,11 @@ public class Map implements Runnable {
                     client.Pet.check_expiry_pet(p0, true);
                     p0.check_expiry_fashion(true);
                 }
+                // Tự động hồi sinh bằng Vé Hồi Sinh sau 4 giây
+                if (p0.isdie && p0.time_auto_revive_ticket > 0 && System.currentTimeMillis() >= p0.time_auto_revive_ticket) {
+                    p0.time_auto_revive_ticket = 0;
+                    Player.do_revive_with_ticket(p0);
+                }
                 //
                 if ((this.template.id == 81 && this.map_little_garden != null) || this.template.id == 2026) {
                     if (p0.isdie && p0.time_hs_little_garden <= System.currentTimeMillis()) {
@@ -2735,6 +2740,9 @@ public class Map implements Runnable {
         }
         p0.isdie = true;
         p0.update_die();
+        if (p0.item.total_item_bag_by_id(4, 89) > 0) {
+            p0.time_auto_revive_ticket = System.currentTimeMillis() + 4_000L;
+        }
         // PVP Băng (Map 123) / Đảo Đào Hoa (Map 2027): Đảm bảo mọi trường hợp tử trận (kể cả phản sát thương, quái đánh...) đều được tính điểm và hẹn giờ hồi sinh
         if (this.map_pvp_clan != null && !this.map_pvp_clan.is_finish) {
             if (p0.time_revive_pvp_clan <= 0) {
@@ -2812,6 +2820,7 @@ public class Map implements Runnable {
         synchronized (this) {
             players.remove(p);
         }
+        p.time_auto_revive_ticket = 0;
         p.is_combo = null;
         p.time_combo = 0;
         p.id_meet_in_map.clear();

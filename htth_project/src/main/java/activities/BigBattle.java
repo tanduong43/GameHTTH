@@ -111,6 +111,26 @@ public class BigBattle {
         return BRACKET_3;
     }
 
+    public static short getWaitingNpcX(int bracket) {
+        return 480;
+    }
+
+    public static short getWaitingNpcY(int bracket) {
+        if (bracket == BRACKET_2) return 200;
+        if (bracket == BRACKET_3) return 165;
+        return 170;
+    }
+
+    public static short getWaitingSpawnX(int bracket) {
+        return 440;
+    }
+
+    public static short getWaitingSpawnY(int bracket) {
+        if (bracket == BRACKET_2) return 200;
+        if (bracket == BRACKET_3) return 165;
+        return 170;
+    }
+
     /**
      * Lấy hoặc tạo Map Sảnh Chờ theo Bracket
      */
@@ -143,7 +163,7 @@ public class BigBattle {
         // Tạo Map instance riêng cho sảnh chờ
         Map waitMap = new Map();
         MapTemplate temp = new MapTemplate();
-        temp.id = baseMap.template.id;
+        temp.id = sqlMapId;
         temp.name = "Sảnh Chờ - Trận Chiến Lớn (" + (bracket == BRACKET_1 ? "20-39" : (bracket == BRACKET_2 ? "40-69" : "70+")) + ")";
         temp.max_zone = 1;
         temp.max_player = 50;
@@ -165,17 +185,17 @@ public class BigBattle {
         npc.name = "Đô Đốc";
         npc.namegt = "Trận Chiến Lớn";
         npc.chat = "Đấu trường đỉnh cao - Vinh quang hải tặc!";
-        npc.x = (short) (temp.maxW > 0 ? (temp.maxW / 2) : 480);
-        npc.y = 240;
+        npc.x = getWaitingNpcX(bracket);
+        npc.y = getWaitingNpcY(bracket);
         npc.isPerson = 1;
         npc.typeIcon = 0;
         npc.wBlock = 0;
         npc.hBlock = 0;
-        npc.b3 = 1;
+        npc.b3 = 0; // 0 = Sprite NPC
         npc.head = 0;
         npc.hair = 0;
-        npc.wearing = new short[] { 423 }; // Part 423 chứa image 5014 trong parts.csv
-        npc.dataFrame = new byte[] { 71, 2 };
+        npc.wearing = new short[0];
+        npc.dataFrame = new byte[] { 14, 2 }; // Image 5000 + 14 = 5014, 2 frames
         temp.npcs.add(npc);
 
         waitMap.template = temp;
@@ -231,8 +251,8 @@ public class BigBattle {
         Map waitMap = getOrCreateWaitingMap(bracket);
         Vgo vgo = new Vgo();
         vgo.map_go = new Map[] { waitMap };
-        vgo.xnew = (short) (waitMap.template.maxW > 0 ? (waitMap.template.maxW / 2 - 40) : 440);
-        vgo.ynew = 240;
+        vgo.xnew = getWaitingSpawnX(bracket);
+        vgo.ynew = getWaitingSpawnY(bracket);
         p.goto_map(vgo);
 
         Service.send_box_ThongBao_OK(p,
@@ -475,8 +495,8 @@ public class BigBattle {
             Map waitMap = getOrCreateWaitingMap(bracket);
             Vgo vgo = new Vgo();
             vgo.map_go = new Map[] { waitMap };
-            vgo.xnew = (short) (waitMap.template.maxW > 0 ? (waitMap.template.maxW / 2 - 40) : 440);
-            vgo.ynew = 240;
+            vgo.xnew = getWaitingSpawnX(bracket);
+            vgo.ynew = getWaitingSpawnY(bracket);
             p.goto_map(vgo);
             Service.update_PK(p, p, true);
         } catch (Exception e) {

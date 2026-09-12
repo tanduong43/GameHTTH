@@ -26,84 +26,100 @@ public class ListTichTieu {
         t.quant = new short[] { 100, 50, 10, 100 };
         ENTRY.add(t);
 
-        // MỐC 2: 1000 Ruby
+        // MỐC 2: 1000 Ruby (Đã bỏ Khiên)
         t = new ListTichTieu();
         t.num = 1_000;
-        t.cat = new byte[] { 7, 7, 7, 7, 4 };
-        t.id = new short[] { 4, 6, 9, 10, 225 };
-        t.quant = new short[] { 200, 20, 200, 1, 5 };
+        t.cat = new byte[] { 7, 7, 7, 4 };
+        t.id = new short[] { 4, 6, 9, 225 };
+        t.quant = new short[] { 200, 20, 200, 5 };
         ENTRY.add(t);
 
-        // MỐC 3: 3000 Ruby
+        // MỐC 3: 3000 Ruby (Đã bỏ Khiên)
         t = new ListTichTieu();
         t.num = 3_000;
-        t.cat = new byte[] { 7, 7, 7, 4, 7, 4, 4 };
-        t.id = new short[] { 4, 6, 9, 225, 10, 159, 232 };
-        t.quant = new short[] { 200, 20, 200, 5, 1, 20, 20 };
+        t.cat = new byte[] { 7, 7, 7, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 9, 225, 159, 232 };
+        t.quant = new short[] { 300, 25, 300, 10, 20, 20 };
         ENTRY.add(t);
 
-        // MỐC 4: 5000 Ruby
+        // MỐC 4: 5000 Ruby (Đã bỏ Khiên)
         t = new ListTichTieu();
         t.num = 5_000;
-        t.cat = new byte[] { 7, 7, 7, 4, 7, 4, 4 };
-        t.id = new short[] { 4, 6, 9, 339, 10, 159, 232 };
-        t.quant = new short[] { 200, 20, 200, 5, 2, 20, 20 };
+        t.cat = new byte[] { 7, 7, 7, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 9, 339, 159, 232 };
+        t.quant = new short[] { 500, 30, 500, 5, 30, 30 };
         ENTRY.add(t);
 
-        // MỐC 5: 10000 Ruby
+        // MỐC 5: 10000 Ruby (Đã bỏ Khiên)
         t = new ListTichTieu();
         t.num = 10_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 232 };
-        t.quant = new short[] { 200, 20, 5, 3, 20, 10, 20 };
+        t.cat = new byte[] { 7, 7, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 159, 349, 232 };
+        t.quant = new short[] { 800, 40, 10, 40, 10, 40 };
         ENTRY.add(t);
 
-        // MỐC 6: 30000 Ruby
+        // MỐC 6: 30000 Ruby (Đã bỏ Khiên)
         t = new ListTichTieu();
         t.num = 30_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 105 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 77 };
-        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 1 };
+        t.cat = new byte[] { 7, 7, 4, 4, 4, 4, 105 };
+        t.id = new short[] { 4, 6, 339, 159, 349, 131, 77 };
+        t.quant = new short[] { 1_200, 50, 15, 50, 20, 50, 1 };
         ENTRY.add(t);
 
-        // MỐC 7: 50000 Ruby
+        // MỐC 7: 50000 Ruby (Đã bỏ Khiên)
         t = new ListTichTieu();
         t.num = 50_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 327 };
-        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 10, 20 };
+        t.cat = new byte[] { 7, 7, 4, 4, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 159, 349, 131, 457, 327 };
+        t.quant = new short[] { 1_500, 60, 20, 60, 30, 50, 5, 20 };
         ENTRY.add(t);
 
-        // MỐC 8: 100000 Ruby
+        // MỐC 8: 100000 Ruby (Đã bỏ Khiên)
         t = new ListTichTieu();
         t.num = 100_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 4, 4, 105 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 414, 367, 112 };
-        t.quant = new short[] { 500, 20, 5, 3, 20, 10, 50, 10, 1, 20, 1, 10, 1 };
+        t.cat = new byte[] { 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 105 };
+        t.id = new short[] { 4, 6, 339, 323, 159, 349, 131, 457, 327, 414, 367, 112 };
+        t.quant = new short[] { 2_500, 80, 25, 1, 80, 50, 50, 10, 30, 1, 10, 1 };
         ENTRY.add(t);
 
-        // MỐC 9: 1.000.000 Ruby
+        // MỐC 9: 200.000 Ruby (Đã bỏ Khiên)
+        t = new ListTichTieu();
+        t.num = 200_000;
+        t.cat = new byte[] { 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 339, 323, 159, 349, 131, 457, 327, 414, 324 };
+        t.quant = new short[] { 5_000, 100, 30, 2, 100, 100, 50, 10, 40, 2, 1 };
+        ENTRY.add(t);
+
+        // MỐC 10: 500.000 Ruby (Bắt đầu có Khiên)
+        t = new ListTichTieu();
+        t.num = 500_000;
+        t.cat = new byte[] { 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 10, 339, 323, 159, 349, 131, 457, 327, 414, 413, 326, 655 };
+        t.quant = new short[] { 8_000, 150, 15, 40, 3, 150, 200, 100, 15, 50, 3, 10, 1, 1 };
+        ENTRY.add(t);
+
+        // MỐC 11: 1.000.000 Ruby
         t = new ListTichTieu();
         t.num = 1_000_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327 };
-        t.quant = new short[] { 500, 25, 5, 4, 20, 10, 50, 5, 1, 20 };
+        t.cat = new byte[] { 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 105 };
+        t.id = new short[] { 4, 6, 10, 339, 323, 159, 349, 131, 457, 327, 414, 413, 1004, 59 };
+        t.quant = new short[] { 10_000, 200, 20, 50, 5, 200, 300, 100, 20, 60, 5, 20, 2, 1 };
         ENTRY.add(t);
 
-        // MỐC 10: 2.000.000 Ruby
+        // MỐC 12: 2.000.000 Ruby
         t = new ListTichTieu();
         t.num = 2_000_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 4 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 655 };
-        t.quant = new short[] { 500, 25, 5, 4, 20, 10, 50, 5, 1, 20, 1 };
+        t.cat = new byte[] { 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 };
+        t.id = new short[] { 4, 6, 10, 339, 323, 159, 349, 131, 457, 327, 414, 413, 160, 1004 };
+        t.quant = new short[] { 15_000, 300, 30, 60, 8, 300, 500, 150, 30, 80, 10, 30, 1, 3 };
         ENTRY.add(t);
 
-        // MỐC 11: 5.000.000 Ruby
+        // MỐC 13: 5.000.000 Ruby
         t = new ListTichTieu();
         t.num = 5_000_000;
-        t.cat = new byte[] { 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 4, 105 };
-        t.id = new short[] { 4, 6, 339, 10, 159, 349, 131, 457, 323, 327, 660, 115 };
-        t.quant = new short[] { 500, 25, 5, 4, 20, 10, 50, 5, 1, 20, 1, 1 };
+        t.cat = new byte[] { 7, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 105 };
+        t.id = new short[] { 4, 6, 10, 339, 323, 159, 349, 131, 457, 327, 414, 413, 660, 1004, 115 };
+        t.quant = new short[] { 20_000, 500, 50, 100, 15, 500, 1_000, 200, 50, 100, 20, 50, 1, 5, 1 };
         ENTRY.add(t);
     }
 

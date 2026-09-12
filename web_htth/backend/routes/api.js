@@ -1116,7 +1116,9 @@ router.get('/admin/account_detail', jwtRequired, isAdmin, async (req, res) => {
             { id: 3, num: 300000, label: '300.000đ (300k Extol)' },
             { id: 4, num: 500000, label: '500.000đ (500k Extol)' },
             { id: 5, num: 600000, label: '600.000đ (600k Extol)' },
-            { id: 6, num: 1000000, label: '1.000.000đ (1M Extol)' }
+            { id: 6, num: 1000000, label: '1.000.000đ (1M Extol)' },
+            { id: 7, num: 2000000, label: '2.000.000đ (2M Extol)' },
+            { id: 8, num: 5000000, label: '5.000.000đ (5M Extol)' }
         ];
 
         const claimedStr = acc.claimed_milestones || '';

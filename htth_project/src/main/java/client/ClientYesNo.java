@@ -3085,9 +3085,17 @@ public class ClientYesNo {
                         p.time_can_hs--;
                         p.update_money();
                         p.time_can_mob_atk = System.currentTimeMillis() + 1200L;
+                        p.isdie = false;
+                        p.time_auto_revive_ticket = 0;
                         Service.use_potion(p, 0, p.body.get_hp_max(true));
                         Service.use_potion(p, 1, p.body.get_mp_max(true));
-                        p.isdie = false;
+                        Message mRevive = new Message(6);
+                        mRevive.writer().writeShort(p.index_map);
+                        mRevive.writer().writeByte(0);
+                        mRevive.writer().writeInt(p.hp);
+                        mRevive.writer().writeInt(p.mp);
+                        p.map.send_msg_all_p(mRevive, p, true);
+                        mRevive.cleanup();
                     }
                     break;
                 }

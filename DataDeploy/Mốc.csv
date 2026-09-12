@@ -4,9 +4,9 @@ Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl
 7,5,Ngôi sao may mắn,,50,,7,6,Mai rùa,,20,,7,6,Mai rùa,,20
 7,6,Mai rùa,,10,,7,9,Đá ác quỷ,,200,,7,9,Đá ác quỷ,,200
 7,9,Đá ác quỷ,,100,,4,225,Hải thạch 5,,5,,4,225,Hải thạch 5,,5
-,,,,,,7,10,Khiên,,1,,7,10,Khiên,,1
 ,,,,,,,,,,,,4,159,XP skill,,20
 ,,,,,,,,,,,,4,232,Vé vòng quay may mắn,,20
+,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
@@ -15,11 +15,11 @@ Mốc 5k,,,,,,Mốc 10k,,,,,,Mốc 30k,,,,
 Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl
 7,4,Bột vàng,,200,,7,4,Bột vàng,,200,,7,4,Bột vàng,,500
 7,6,Mai rùa,,20,,7,6,Mai rùa,,20,,7,6,Mai rùa,,20
-7,9,Đá ác quỷ,,200,,4,339,Búa sơ cấp,,5,,4,339,Búa sơ cấp,,5
-4,339,Búa sơ cấp,,5,,7,10,Khiên,,3,,7,10,Khiên,,3
-7,10,Khiên,,2,,4,159,XP skill,,20,,4,159,XP skill,,20
-4,159,XP skill,,20,,4,349,Túi beri,,10,,4,349,Túi beri,,10
-4,232,Vé vòng quay may mắn,,20,,4,232,Vé vòng quay may mắn,,20,,4,131,Rương cam cùng hệ lv100,,50
+7,9,Đá ác quỷ,,200,,4,339,Búa sơ cấp,,5,,4,339,Búa sơ cấp,,15
+4,339,Búa sơ cấp,,5,,4,159,XP skill,,20,,4,159,XP skill,,50
+4,159,XP skill,,20,,4,349,Túi beri,,10,,4,349,Túi beri,,20
+4,232,Vé vòng quay may mắn,,20,,4,232,Vé vòng quay may mắn,,40,,4,131,Rương cam cùng hệ lv100,,50
+,,,,,,,,,,,,105,77,Thời trang Chuột Thần Tài,,1
 ,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
@@ -27,19 +27,17 @@ Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl
 ,,,,,,,,,,,,,,,,
 Mốc 50k,,,,,,Mốc 100k,,,,,,Mốc 200k,,,,
 Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl
-7,4,Bột vàng,,500,,7,4,Bột vàng,,500,,7,4,Bột vàng,,500
-7,6,Mai rùa,,20,,7,6,Mai rùa,,20,,7,6,Mai rùa,,20
-4,339,Búa sơ cấp,,5,,4,339,Búa sơ cấp,,5,,4,339,Búa sơ cấp,,5
-7,10,Khiên,,3,,7,10,Khiên,,3,,7,10,Khiên,,3
-4,159,XP skill,,20,,4,159,XP skill,,20,,4,159,XP skill,,20
-4,349,Túi beri,,10,,4,349,Túi beri,,10,,4,349,Túi beri,,10
+7,4,Bột vàng,,500,,7,4,Bột vàng,,500,,7,4,Bột vàng,,5000
+7,6,Mai rùa,,20,,7,6,Mai rùa,,20,,7,6,Mai rùa,,25
+4,339,Búa sơ cấp,,20,,4,339,Búa sơ cấp,,25,,4,339,Búa sơ cấp,,30
+4,159,XP skill,,60,,4,159,XP skill,,80,,4,159,XP skill,,100
+4,349,Túi beri,,10,,4,349,Túi beri,,10,,4,349,Túi beri,,100
 4,131,Rương cam cùng hệ lv100,,50,,4,131,Rương cam cùng hệ lv100,,50,,4,131,Rương cam cùng hệ lv100,,50
-4,457,Búa đục dial,,10,,4,457,Búa đục dial,,10,,4,457,Búa đục dial,,10
-4,327,Đá khảm ngẫu nhiên,,20,,4,323,Búa siêu cấp,,1,,4,323,Búa siêu cấp,,1
-,,,,,,4,327,Đá khảm ngẫu nhiên,,20,,4,327,Đá khảm ngẫu nhiên,,20
-,,,,,,4,414,Kỹ năng đơn,,1,,4,414,Kỹ năng đơn,,1
-,,,,,,4,367,Đá Hổ phách 6,,10,,4,367,Đá Hổ phách 6,,10
-,,,,,,,,,,,,105,59,Trang phục Đấng,,1
+4,457,Búa đục dial,,10,,4,457,Búa đục dial,,10,,4,457,Búa đục dial,,1
+4,327,Đá khảm ngẫu nhiên,,20,,4,323,Búa siêu cấp,,1,,4,327,Đá khảm ngẫu nhiên,,20
+,,,,,,4,327,Đá khảm ngẫu nhiên,,20,,4,324,Đá khảm vô cực,,1
+,,,,,,4,414,Kỹ năng đơn,,1,,,,
+,,,,,,4,367,Đá Hổ phách 6,,10,,,,
 ,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
@@ -81,3 +79,17 @@ Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl,,,,,,
 4,457,Búa đục dial,,20,,4,457,Búa đục dial,,20,,,,,,
 4,323,Búa siêu cấp,,6,,4,323,Búa siêu cấp,,6,,,,,,
 4,455,Rương dial,,50,,4,455,Rương dial,,50,,,,,,
+Nạp 2M,,,,,,Nạp 5M,,,,,,,,,,
+Type,id ,name ,icon,sl,,Type,id ,name ,icon,sl,,,,,,
+4,1002,Hộp thời trang cao,,2,,4,1002,Hộp thời trang cao,,3,,,,,,
+4,1016,Trái Ope Ope,,1,,4,427,Trái bóng tối,,1,,,,,,
+4,1004,Rương đá thần thoại tự chọn,,10,,4,1004,Rương đá thần thoại tự chọn,,30,,,,,,
+4,551,Bảo hiểm chuyển hóa cao,,5,,4,326,Đá khảm vô cực S,,20,,,,,,
+4,349,Túi beri,,2000,,4,551,Bảo hiểm chuyển hóa cao,,20,,,,,,
+4,226,Đá hải thạch 6,,250,,4,349,Túi beri,,3000,,,,,,
+4,159,XP skill,,300,,4,226,Đá hải thạch 6,,300,,,,,,
+4,457,Búa đục dial,,30,,4,159,XP skill,,500,,,,,,
+4,323,Búa siêu cấp,,10,,4,457,Búa đục dial,,50,,,,,,
+4,455,Rương dial,,100,,4,323,Búa siêu cấp,,20,,,,,,
+7,10,Khiên,,200,,4,455,Rương dial,,200,,,,,,
+,,,,,,7,10,Khiên,,300,,,,,,

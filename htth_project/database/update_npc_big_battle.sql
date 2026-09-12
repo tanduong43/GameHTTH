@@ -1,0 +1,3 @@
+﻿UPDATE maps SET npcs = '[[-996, "Đô Đốc", "Trận Chiến Lớn", "Đấu trường đỉnh cao - Vinh quang hải tặc!", 480, 170, 1, 0, 0, 0, 0, [14, 2], 0, 0, []], [-7, " ", "Chuyển khu", "", 385, 170, 99, -1, 24, 24, 0, [5, 1], 0, 0, []]]' WHERE id = 2030;
+UPDATE maps SET npcs = '[[-996, "Đô Đốc", "Trận Chiến Lớn", "Đấu trường đỉnh cao - Vinh quang hải tặc!", 480, 200, 1, 0, 0, 0, 0, [14, 2], 0, 0, []], [-7, " ", "Chuyển khu", "", 385, 200, 99, -1, 24, 24, 0, [5, 1], 0, 0, []]]' WHERE id = 2031;
+UPDATE maps SET npcs = '[[-996, "Đô Đốc", "Trận Chiến Lớn", "Đấu trường đỉnh cao - Vinh quang hải tặc!", 480, 165, 1, 0, 0, 0, 0, [14, 2], 0, 0, []], [-7, " ", "Chuyển khu", "", 385, 165, 99, -1, 24, 24, 0, [5, 1], 0, 0, []]]' WHERE id = 2032;

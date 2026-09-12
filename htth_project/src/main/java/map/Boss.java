@@ -20,7 +20,7 @@ import template.Top_Dame;
  */
 public class Boss {
     public static final Set<Integer> ALLOWED_MAP_IDS = Set.of(
-            0, 2, 3, 4, 8, 10, 11, 12, 13, 16, 18, 19, 20, 24, 26, 27, 28, 32, 34, 35, 36, 40, 42,
+            0, 2, 3, 4, 8, 10, 11, 12, 16, 18, 19, 20, 24, 26, 27, 28, 32, 34, 35, 36, 40, 42,
             43, 44, 48, 50, 51, 52, 65, 68, 70, 71, 72, 82, 84, 85, 86, 94, 95, 96, 97, 98, 99, 100, 101, 112,
             115, 116, 117, 118, 124, 125, 126, 192, 193, 194, 195, 196, 197);
     public static List<Boss> ENTRYS;
@@ -349,11 +349,13 @@ public class Boss {
     }
 
     /**
-     * Kiểm tra xem người chơi có đủ điều kiện cấp độ để vào/chiến đấu với Siêu Trùm (thegioi = 1) hay không.
+     * Kiểm tra xem người chơi có đủ điều kiện cấp độ để vào/chiến đấu với Siêu Trùm
+     * (thegioi = 1) hay không.
      * Quy tắc:
      * - Boss lv 4x (40-49): người chơi cấp 3x và 4x (level 30 - 49) được vào.
      * - Boss lv 9x (90-99): người chơi cấp 9x và 10x (level >= 90) được vào.
-     * - Các boss khác (như lv 5x, 6x, 7x, 8x): chỉ người chơi cùng mốc lv boss (level / 10 == bossLevel / 10) được vào.
+     * - Các boss khác (như lv 5x, 6x, 7x, 8x): chỉ người chơi cùng mốc lv boss
+     * (level / 10 == bossLevel / 10) được vào.
      */
     public static boolean checkLevelJoinBossTheGioi(int playerLevel, int bossLevel) {
         int bossTier = bossLevel / 10;
@@ -388,7 +390,8 @@ public class Boss {
     }
 
     /**
-     * Kiểm tra xem một Boss có phải là Boss sự kiện (như Boss Lân Sư Tử, Boss Tết, Boss 20/11, Boss Noel...) hay không.
+     * Kiểm tra xem một Boss có phải là Boss sự kiện (như Boss Lân Sư Tử, Boss Tết,
+     * Boss 20/11, Boss Noel...) hay không.
      * Boss sự kiện không bị giới hạn cấp độ người chơi tham gia/săn/tấn công.
      */
     public static boolean isEventBoss(Boss b) {
@@ -418,7 +421,8 @@ public class Boss {
         if (mob.map != null && mob.map.template != null && mob.map.template.id == 1001) {
             return false;
         }
-        if (mob.boss_info != null && (mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4 || mob.boss_info.id == 9999)) {
+        if (mob.boss_info != null
+                && (mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4 || mob.boss_info.id == 9999)) {
             return true;
         }
         if (mob.mob_template == null) {
@@ -449,7 +453,8 @@ public class Boss {
                 }
             }
         }
-        // Kiểm tra bổ sung theo BOSS_AREA và BOSS_LIVE đối với 6 boss thế giới (135 - 140)
+        // Kiểm tra bổ sung theo BOSS_AREA và BOSS_LIVE đối với 6 boss thế giới (135 -
+        // 140)
         for (int i = 0; i < BOSS_LIVE.length; i++) {
             if (BOSS_LIVE[i] == 1 && BOSS_AREA[i] != -1 && BOSS_AREA[i] == zoneId) {
                 int mobId = 135 + i;
@@ -524,12 +529,12 @@ public class Boss {
             saturn.mob.isdie = false;
             saturn.mob.id_target = -1;
             // Chỉ số trâu bò của Ngũ Lão Tinh Saturn
-            saturn.mob.phong_thu = 50000;        // Phòng thủ 50,000
-            saturn.mob.mien_thuong = 70;         // Miễn thương 70% (giảm 70% sát thương nhận vào)
+            saturn.mob.phong_thu = 50000; // Phòng thủ 50,000
+            saturn.mob.mien_thuong = 70; // Miễn thương 70% (giảm 70% sát thương nhận vào)
             saturn.mob.max_dame_per_hit = 2000000;// Mỗi hit mất tối đa 2,000,000 HP (chống oneshot)
-            saturn.mob.final_dame = 180000;      // Sát thương tấn công người chơi (180,000 dame)
-            saturn.mob.ne_don = 10;              // 10% tỷ lệ né đòn
-            saturn.mob.phan_dame = 5;            // 5% phản sát thương lại người đánh
+            saturn.mob.final_dame = 180000; // Sát thương tấn công người chơi (180,000 dame)
+            saturn.mob.ne_don = 10; // 10% tỷ lệ né đòn
+            saturn.mob.phan_dame = 5; // 5% phản sát thương lại người đánh
             int curIndex = Manager.gI().getIndexMob();
             saturn.mob.index = curIndex;
             saturn.index_mob_save = curIndex;
@@ -646,7 +651,8 @@ public class Boss {
             }
         }
         if (targetBoss != null) {
-            if (targetBoss.mob != null && targetBoss.mob.mob_template != null && targetBoss.mob.mob_template.mob_id == 172) {
+            if (targetBoss.mob != null && targetBoss.mob.mob_template != null
+                    && targetBoss.mob.mob_template.mob_id == 172) {
                 targetBoss.skill = new short[] { 210, 211, 243, 244 };
                 targetBoss.mob.mob_template.skill = new short[] { 210, 211, 243, 244 };
                 targetBoss.mob.mob_template.hOne = 120;
@@ -865,7 +871,7 @@ public class Boss {
             List<Boss> worldBosses = new ArrayList<>();
             for (int i = 0; i < Boss.ENTRYS.size(); i++) {
                 Boss b = Boss.ENTRYS.get(i);
-                if (b != null && b.thegioi == 1 && b.mob != null && b.mob.isdie 
+                if (b != null && b.thegioi == 1 && b.mob != null && b.mob.isdie
                         && b.mob.mob_template != null && isWorldBoss(b.mob.mob_template.mob_id)) {
                     worldBosses.add(b);
                 }

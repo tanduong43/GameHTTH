@@ -218,6 +218,7 @@ public class Player {
     public long time_skill_decrease;
     public long time_can_mob_atk;
     public long time_revive_pvp_clan = 0; // Thời gian tự hồi sinh trong Phó bản PVP Băng (ms)
+    public long time_auto_revive_ticket = 0; // Hẹn giờ tự động hồi sinh bằng Vé Hồi Sinh (ms)
     public boolean is_show_weapon;
     public final java.util.Map<Short, Long> activeHakiEffects = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -2131,6 +2132,63 @@ public class Player {
         m.cleanup();
     }
 
+    public static boolean do_revive_with_ticket(Player p) {
+        if (p == null || p.conn == null || !p.conn.connected || p.map == null) {
+            return false;
+        }
+        if (p.map.map_pvp != null || p.map.map_little_garden != null
+                || Map.is_map_dungeon(p.map.template.id)
+                || p.dungeon instanceof activities.HangDong
+                || p.map.map_dungeon instanceof activities.HangDong
+                || (p.map.map_pvp_clan != null && !p.map.map_pvp_clan.is_finish)
+                || (p.map.map_dao_hoa != null && !p.map.map_dao_hoa.is_finish)) {
+            return false;
+        }
+        if (p.item.total_item_bag_by_id(4, 89) <= 0) {
+            return false;
+        }
+        try {
+            p.item.remove_item47(4, 89, 1);
+            p.item.update_Inventory(-1, false);
+            p.isdie = false;
+            p.time_auto_revive_ticket = 0;
+            p.time_can_mob_atk = System.currentTimeMillis() + 3000L;
+
+            Service.use_potion(p, 0, p.body.get_hp_max(true));
+            Service.use_potion(p, 1, p.body.get_mp_max(true));
+
+            // 1. Gửi Message 6 (Revive packet) để client gọi Reveive()
+            Message mRevive = new Message(6);
+            mRevive.writer().writeShort(p.index_map);
+            mRevive.writer().writeByte(0); // 0 = Player
+            mRevive.writer().writeInt(p.hp);
+            mRevive.writer().writeInt(p.mp);
+            p.map.send_msg_all_p(mRevive, p, true);
+            mRevive.cleanup();
+
+            // 2. Gửi Message -71 (Bật lại auto và đếm ngược bảo vệ 30 phút)
+            Message m2 = new Message(-71);
+            m2.writer().writeByte(1);
+            m2.writer().writeShort(p.index_map);
+            m2.writer().writeByte(0);
+            m2.writer().writeInt(60 * 30);
+            p.map.send_msg_all_p(m2, p, true);
+            m2.cleanup();
+
+            // 3. Thêm hiệu ứng 7 (bảo vệ chống PK 30 phút)
+            EffTemplate eff = p.get_eff(7);
+            if (eff != null) {
+                eff.time = System.currentTimeMillis() + 60_000L * 30;
+            } else {
+                p.add_new_eff(7, 1, 60_000L * 30);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public void request_live_from_die(Message m2) throws IOException {
         try {
             if (this.map == null) {
@@ -2158,6 +2216,12 @@ public class Player {
                         || (this.map != null && (this.map.map_pvp_clan != null || this.map.map_dao_hoa != null))) {
                     Service.send_box_ThongBao_OK(this, "Đang trong trận đấu, bạn sẽ tự động hồi sinh sau vài giây!");
                     return;
+                }
+                if (this.item.total_item_bag_by_id(4, 89) > 0) {
+                    if (do_revive_with_ticket(this)) {
+                        Service.send_box_ThongBao_OK(this, "Đã hồi sinh tại chỗ bằng Vé Hồi Sinh và được bảo vệ 30 phút!");
+                        return;
+                    }
                 }
                 if (pointPk < 20) {
                     Service.send_box_yesno(this, 14, "Thông báo",
@@ -2196,6 +2260,7 @@ public class Player {
                         return;
                     }
                     this.isdie = false;
+                    this.time_auto_revive_ticket = 0;
                     Vgo vgo = new Vgo();
                     vgo.map_go = Map.get_map_by_id(this.id_map_save);
                     if (vgo.map_go == null || vgo.map_go.length == 0) {
@@ -3806,7 +3871,7 @@ public class Player {
     public int num5;
     public int tieu_ruby;
     public byte[] tichTieuRubyCheck = new byte[20];
-    public byte[] tichTieuCheck = new byte[10];
+    public byte[] tichTieuCheck = new byte[20];
     public byte danhhieu = -1;
     public int id_danh_hieu_su_dung = -1;
     public java.util.List<Integer> id_danh_hieu_da_so_huu = new java.util.ArrayList<>();

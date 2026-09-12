@@ -78,6 +78,22 @@ public class ListTichNap {
         t.id = new short[]{74, 119, 226, 159, 349, 325, 1004, 413, 10, 457, 323, 455};
         t.quant = new short[]{1, 1, 150, 200, 200, 5, 10, 20, 100, 20, 6, 50};
         ENTRY.add(t);
+
+        // MỐC 8: 2M Extol (2.000.000đ)
+        t = new ListTichNap();
+        t.num = 2_000_000;
+        t.cat = new byte[]{4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7};
+        t.id = new short[]{1002, 1016, 1004, 551, 349, 226, 159, 457, 323, 455, 10};
+        t.quant = new short[]{2, 1, 10, 5, 2000, 250, 300, 30, 10, 100, 200};
+        ENTRY.add(t);
+
+        // MỐC 9: 5M Extol (5.000.000đ)
+        t = new ListTichNap();
+        t.num = 5_000_000;
+        t.cat = new byte[]{4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7};
+        t.id = new short[]{1002, 427, 1004, 326, 551, 349, 226, 159, 457, 323, 455, 10};
+        t.quant = new short[]{3, 1, 30, 20, 20, 3000, 300, 500, 50, 20, 200, 300};
+        ENTRY.add(t);
     }
 
     public byte[] cat;
@@ -408,6 +424,8 @@ public class ListTichNap {
         if (num == 300_000) return "Top 3 Nạp";
         if (num == 500_000) return "Top 2 Nạp";
         if (num == 1_000_000) return "Top 1 Nạp";
+        if (num == 2_000_000) return "Trùm Cuối";
+        if (num == 5_000_000) return "Thần Thoại";
         return "";
     }
 
