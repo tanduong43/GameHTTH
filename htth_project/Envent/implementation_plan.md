@@ -57,7 +57,7 @@
 ```text
 [5 Bột Mì (202)]    + [3 Đường (200)]                  + 500.000 Beri                         ───► 🥮 Bánh Trung Thu (207)
 [5 Bột Mì (202)]    + [3 Đường (200)] + [1 Trứng Muối] + 1.000.000 Beri                       ───► 🥮 Bánh Đậu Xanh (208)
-[5 Bột Mì (202)]    + [3 Đường (200)] + [2 Trứng Muối] + 15.000.000 Beri                      ───► 🥮 Bánh Trứng Muối (209)
+[5 Bột Mì (202)]    + [3 Đường (200)] + [2 Trứng Muối] + 1.500.000 Beri                      ───► 🥮 Bánh Trứng Muối (209)
 [5 Bột Mì (202)]    + [3 Đường (200)] + [3 Trứng Muối] + 2.000.000 Beri                       ───► 🥮 Bánh Hạt Sen (210)
 [3 Đèn Ông Sao (473)] + 2.000.000 Beri                                                        ───► 🏮 Đèn Kéo Quân (410)
 [1 Bánh Trung Thu]  + [1 Bánh Đậu Xanh] + [1 Bánh Trứng Muối] + [1 Bánh Hạt Sen] + 2.000.000 Beri + 50 Ruby  ───► 🎁 Hộp Bánh Trung Thu (211)
@@ -68,7 +68,7 @@
 | :--- | :--- | :---: | :---: |
 | **Bánh Trung Thu (207)** | `5 Bột Mì (202)` + `3 Đường (200)` | 500.000 Beri | 100% |
 | **Bánh Đậu Xanh (208)** | `5 Bột Mì (202)` + `3 Đường (200)` + `1 Trứng Muối (203)` | 1.000.000 Beri | 100% |
-| **Bánh Trứng Muối (209)**| `5 Bột Mì (202)` + `3 Đường (200)` + `2 Trứng Muối (203)` | 15.000.000 Beri | 100% |
+| **Bánh Trứng Muối (209)**| `5 Bột Mì (202)` + `3 Đường (200)` + `2 Trứng Muối (203)` | 1.500.000 Beri | 100% |
 | **Bánh Hạt Sen (210)** | `5 Bột Mì (202)` + `3 Đường (200)` + `3 Trứng Muối (203)` | 2.000.000 Beri | 100% |
 | **Đèn Kéo Quân (410)** | `3 Đèn Ông Sao (473)` | 2.000.000 Beri | 100% |
 | **Hộp Bánh Trung Thu (211)**| `1 Bánh Trung Thu` + `1 Bánh Đậu Xanh` + `1 Bánh Trứng Muối` + `1 Bánh Hạt Sen` | 2.000.000 Beri + 50 Ruby | 100% |

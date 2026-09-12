@@ -38,16 +38,26 @@ public class Skill_Template {
         if (info == null || info.isBlank()) {
             return 100;
         }
-        Pattern pattern = Pattern.compile("[\\d]+(?=%)");
+        Pattern pattern = Pattern.compile("([\\d]+)%\\s+sát\\s+thương\\s+của\\s+chiêu", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(info);
         if (matcher.find()) {
             try {
-                return Integer.parseInt(matcher.group());
+                return Integer.parseInt(matcher.group(1));
+            } catch (Exception ignored) {}
+        }
+        pattern = Pattern.compile("([\\d]+)(?=%)");
+        matcher = pattern.matcher(info);
+        String percent = "";
+        while (matcher.find()) {
+            percent = matcher.group(1);
+        }
+        if (!percent.isBlank()) {
+            try {
+                return Integer.parseInt(percent);
             } catch (Exception ignored) {}
         }
         pattern = Pattern.compile("[\\d]+");
         matcher = pattern.matcher(info);
-        String percent = "";
         while (matcher.find()) {
             percent = matcher.group();
         }
@@ -83,15 +93,22 @@ public class Skill_Template {
             }
         }
         String percent = "";
-        Pattern pattern = Pattern.compile("[\\d]+(?=%)");
+        Pattern pattern = Pattern.compile("([\\d]+)%\\s+sát\\s+thương\\s+của\\s+chiêu", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(info);
         if (matcher.find()) {
-            percent = matcher.group();
+            percent = matcher.group(1);
         } else {
-            pattern = Pattern.compile("[\\d]+");
+            pattern = Pattern.compile("([\\d]+)(?=%)");
             matcher = pattern.matcher(info);
             while (matcher.find()) {
-                percent = matcher.group();
+                percent = matcher.group(1);
+            }
+            if (percent.isBlank()) {
+                pattern = Pattern.compile("[\\d]+");
+                matcher = pattern.matcher(info);
+                while (matcher.find()) {
+                    percent = matcher.group();
+                }
             }
         }
         if (!percent.isBlank()) {
@@ -119,7 +136,7 @@ public class Skill_Template {
                         break;
                     }
                 }
-                result = result.replace(percent, (value + ""));
+                result = result.replace(percent + "%", (value + "%"));
             } catch (Exception ignored) {}
         }
         return result;
@@ -164,64 +181,52 @@ public class Skill_Template {
         return null;
     }
 
+    public static boolean isClassSkill(int idx, byte clazz) {
+        switch (clazz) {
+            case 1:
+                return (idx >= 0 && idx < 60) || (idx >= 375 && idx < 395) || (idx >= 566 && idx <= 583) || (idx >= 667 && idx <= 678);
+            case 2:
+                return (idx >= 60 && idx < 120) || (idx >= 395 && idx < 415) || (idx >= 584 && idx <= 601) || (idx >= 679 && idx <= 690);
+            case 3:
+                return (idx >= 120 && idx < 180) || (idx >= 415 && idx < 435) || (idx >= 602 && idx <= 619) || (idx >= 691 && idx <= 702);
+            case 4:
+                return (idx >= 180 && idx < 240) || (idx >= 435 && idx < 455) || (idx >= 620 && idx <= 637) || (idx >= 703 && idx <= 714);
+            case 5:
+                return (idx >= 240 && idx < 300) || (idx >= 455 && idx < 475) || (idx >= 638 && idx <= 655) || (idx >= 715 && idx <= 726);
+            default:
+                return false;
+        }
+    }
+
+    public static byte getClassOfSkill(int idx) {
+        for (byte c = 1; c <= 5; c++) {
+            if (isClassSkill(idx, c)) {
+                return c;
+            }
+        }
+        return 0;
+    }
+
+    public static Skill_Template getClassSkillTemplate(byte clazz, int skillId, int level) {
+        for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
+            Skill_Template entry = Skill_Template.ENTRYS.get(i);
+            if (entry.ID == skillId && entry.Lv_RQ == level && isClassSkill(entry.indexSkillInServer, clazz)) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
     public static boolean upgrade_skill(Skill_info sk_info, byte clazz) {
+        if (sk_info == null || sk_info.temp == null || sk_info.temp.Lv_RQ >= 30) {
+            return false;
+        }
         Skill_Template result = null;
         for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
             Skill_Template temp_ss = Skill_Template.ENTRYS.get(i);
             if (sk_info.temp.ID == temp_ss.ID && temp_ss.Lv_RQ == (sk_info.temp.Lv_RQ + 1)) {
-                switch (clazz) {
-                    case 1: {
-                        if (temp_ss.indexSkillInServer >= 0 && temp_ss.indexSkillInServer < 60
-                                || temp_ss.indexSkillInServer >= 375 && temp_ss.indexSkillInServer < 395
-                                || temp_ss.indexSkillInServer >= 566 && temp_ss.indexSkillInServer <= 583
-                                || temp_ss.indexSkillInServer >= 667 && temp_ss.indexSkillInServer <= 678
-                                || temp_ss.indexSkillInServer >= 727 && temp_ss.indexSkillInServer <= 729) {
-                            result = temp_ss;
-                        }
-                        break;
-                    }
-                    case 2: {
-                        if (temp_ss.indexSkillInServer >= 60 && temp_ss.indexSkillInServer < 120
-                                || temp_ss.indexSkillInServer >= 395 && temp_ss.indexSkillInServer < 415
-                                || temp_ss.indexSkillInServer >= 584 && temp_ss.indexSkillInServer <= 601
-                                || temp_ss.indexSkillInServer >= 679 && temp_ss.indexSkillInServer <= 690
-                                || temp_ss.indexSkillInServer >= 730 && temp_ss.indexSkillInServer <= 732) {
-                            result = temp_ss;
-                        }
-                        break;
-                    }
-                    case 3: {
-                        if (temp_ss.indexSkillInServer >= 120 && temp_ss.indexSkillInServer < 180
-                                || temp_ss.indexSkillInServer >= 415 && temp_ss.indexSkillInServer < 435
-                                || temp_ss.indexSkillInServer >= 602 && temp_ss.indexSkillInServer <= 619
-                                || temp_ss.indexSkillInServer >= 691 && temp_ss.indexSkillInServer <= 702
-                                || temp_ss.indexSkillInServer >= 733 && temp_ss.indexSkillInServer <= 735) {
-                            result = temp_ss;
-                        }
-                        break;
-                    }
-                    case 4: {
-                        if (temp_ss.indexSkillInServer >= 180 && temp_ss.indexSkillInServer < 240
-                                || temp_ss.indexSkillInServer >= 435 && temp_ss.indexSkillInServer < 455
-                                || temp_ss.indexSkillInServer >= 620 && temp_ss.indexSkillInServer <= 637
-                                || temp_ss.indexSkillInServer >= 703 && temp_ss.indexSkillInServer <= 714
-                                || temp_ss.indexSkillInServer >= 736 && temp_ss.indexSkillInServer <= 738) {
-                            result = temp_ss;
-                        }
-                        break;
-                    }
-                    case 5: {
-                        if (temp_ss.indexSkillInServer >= 240 && temp_ss.indexSkillInServer < 300
-                                || temp_ss.indexSkillInServer >= 455 && temp_ss.indexSkillInServer < 475
-                                || temp_ss.indexSkillInServer >= 638 && temp_ss.indexSkillInServer <= 655
-                                || temp_ss.indexSkillInServer >= 715 && temp_ss.indexSkillInServer <= 726
-                                || temp_ss.indexSkillInServer >= 739 && temp_ss.indexSkillInServer <= 741) {
-                            result = temp_ss;
-                        }
-                        break;
-                    }
-                }
-                if (result != null) {
+                if (isClassSkill(temp_ss.indexSkillInServer, clazz)) {
+                    result = temp_ss;
                     break;
                 }
             }
@@ -234,13 +239,13 @@ public class Skill_Template {
             for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
                 Skill_Template temp_ss = Skill_Template.ENTRYS.get(i);
                 if (sk_info.temp.ID == temp_ss.ID && temp_ss.Lv_RQ == (sk_info.temp.Lv_RQ + 1)) {
-                    result=temp_ss;
+                    result = temp_ss;
                     break;
                 }
             }
         }
         if (result != null && result.Lv_RQ > 0) {
-            if (result.Lv_RQ > 31) {
+            if (result.Lv_RQ > 30) {
                 return false;
             } else {
                 sk_info.temp = result;
@@ -251,13 +256,20 @@ public class Skill_Template {
     }
 
     public static boolean learn_skill(Skill_info sk_info) {
+        if (sk_info == null || sk_info.temp == null) {
+            return false;
+        }
+        byte c = getClassOfSkill(sk_info.temp.indexSkillInServer);
         if (sk_info.temp.Lv_RQ == -1) {
             Skill_Template result = null;
             for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
-                if (sk_info.temp.indexSkillInServer == Skill_Template.ENTRYS.get(i).indexSkillInServer
-                        && sk_info.temp.ID == Skill_Template.ENTRYS.get(i).ID && Skill_Template.ENTRYS.get(i).Lv_RQ == 1) {
-                    result = Skill_Template.ENTRYS.get(i);
-                    break;
+                Skill_Template entry = Skill_Template.ENTRYS.get(i);
+                if (sk_info.temp.indexSkillInServer == entry.indexSkillInServer
+                        && sk_info.temp.ID == entry.ID && entry.Lv_RQ == 1) {
+                    if (c == 0 || isClassSkill(entry.indexSkillInServer, c)) {
+                        result = entry;
+                        break;
+                    }
                 }
             }
             if (result != null) {
@@ -268,9 +280,12 @@ public class Skill_Template {
         } else {
             Skill_Template result = null;
             for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
-                if (sk_info.temp.indexSkillInServer == (Skill_Template.ENTRYS.get(i).indexSkillInServer - 1)) {
-                    result = Skill_Template.ENTRYS.get(i);
-                    break;
+                Skill_Template entry = Skill_Template.ENTRYS.get(i);
+                if (sk_info.temp.ID == entry.ID && entry.Lv_RQ == (sk_info.temp.Lv_RQ + 1)) {
+                    if (c == 0 || isClassSkill(entry.indexSkillInServer, c)) {
+                        result = entry;
+                        break;
+                    }
                 }
             }
             if (result != null) {
@@ -283,14 +298,18 @@ public class Skill_Template {
     }
 
     public static void reset_skill(Skill_info sk_info) {
-        if (sk_info.temp.Lv_RQ == -1) {
+        if (sk_info == null || sk_info.temp == null || sk_info.temp.Lv_RQ == -1) {
             return;
         }
+        byte c = getClassOfSkill(sk_info.temp.indexSkillInServer);
         for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
-            if (sk_info.temp.ID == Skill_Template.ENTRYS.get(i).ID && Skill_Template.ENTRYS.get(i).Lv_RQ == -1) {
-                sk_info.temp = Skill_Template.ENTRYS.get(i);
-                sk_info.exp = -1;
-                break;
+            Skill_Template entry = Skill_Template.ENTRYS.get(i);
+            if (sk_info.temp.ID == entry.ID && sk_info.temp.typeSkill == entry.typeSkill && entry.Lv_RQ == -1) {
+                if (c == 0 || isClassSkill(entry.indexSkillInServer, c)) {
+                    sk_info.temp = entry;
+                    sk_info.exp = -1;
+                    break;
+                }
             }
         }
     }

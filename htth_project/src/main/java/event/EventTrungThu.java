@@ -1147,7 +1147,7 @@ public class EventTrungThu implements Runnable {
             case ITEM_BANH_DAU_XANH:
                 return new int[] { ITEM_BANH_DAU_XANH, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 1, ITEM_TRUNG_MUOI, 1000000, 0 };
             case ITEM_BANH_TRUNG_MUOI:
-                return new int[] { ITEM_BANH_TRUNG_MUOI, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 2, ITEM_TRUNG_MUOI, 15000000,
+                return new int[] { ITEM_BANH_TRUNG_MUOI, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 2, ITEM_TRUNG_MUOI, 1500000,
                         0 };
             case ITEM_BANH_HAT_SEN:
                 return new int[] { ITEM_BANH_HAT_SEN, 5, ITEM_BOT_MI, 3, ITEM_DUONG, 3, ITEM_TRUNG_MUOI, 2000000, 0 };
@@ -1174,7 +1174,7 @@ public class EventTrungThu implements Runnable {
             case ITEM_BANH_DAU_XANH:
                 return "5 Bột Mì + 3 Đường + 1 Trứng Muối + 1.000.000 Beri";
             case ITEM_BANH_TRUNG_MUOI:
-                return "5 Bột Mì + 3 Đường + 2 Trứng Muối + 15.000.000 Beri";
+                return "5 Bột Mì + 3 Đường + 2 Trứng Muối + 1.500.000 Beri";
             case ITEM_BANH_HAT_SEN:
                 return "5 Bột Mì + 3 Đường + 3 Trứng Muối + 2.000.000 Beri";
             case ITEM_DEN_KEO_QUAN:

@@ -1056,6 +1056,7 @@ public class Player {
                 }
             } catch (Exception e) {
             }
+            this.normalize_skill_list();
             js.clear();
             //
             // Load friend an toàn
@@ -1409,6 +1410,9 @@ public class Player {
 
     @SuppressWarnings("unchecked")
     public static int flush(Player p, boolean print) {
+        if (p != null) {
+            p.normalize_skill_list();
+        }
         int result = 0;
         String query = "UPDATE `players` SET `level` = ?, `date` = ?, `site` = ?, `point_inven` = ?, "
                 + "`bag3` = ?, `it_body` = ?, `potential` = ?, `bag47` = ?, "
@@ -2748,6 +2752,7 @@ public class Player {
     }
 
     public void send_skill() throws IOException {
+        this.normalize_skill_list();
         // update list can combo
         list_can_combo.clear();
         //
@@ -2801,6 +2806,118 @@ public class Player {
         dos.writeByte(sk_info.devilpercent);
     }
 
+    public void normalize_skill_list() {
+        if (this.clazz < 1 || this.clazz > 5 || this.skill_point == null || this.skill_point.isEmpty()) {
+            return;
+        }
+
+        List<Skill_info> classSkills = new ArrayList<>();
+        List<Skill_info> otherSkills = new ArrayList<>();
+
+        for (int i = 0; i < this.skill_point.size(); i++) {
+            Skill_info sk = this.skill_point.get(i);
+            if (sk == null || sk.temp == null) {
+                continue;
+            }
+            if (sk.temp.Lv_RQ >= 30) {
+                sk.exp = 0;
+            } else if (sk.temp.Lv_RQ == -1) {
+                sk.exp = -1;
+            }
+
+            if (sk.temp.ID >= 0 && sk.temp.ID <= 3 && (sk.temp.typeSkill == 1 || sk.temp.typeSkill == 4)) {
+                if (Skill_Template.isClassSkill(sk.temp.indexSkillInServer, this.clazz)) {
+                    classSkills.add(sk);
+                }
+            } else if (sk.temp.ID >= 1010 && sk.temp.ID <= 1014) {
+                int expectedBuffId = 1009 + this.clazz;
+                if (sk.temp.ID == expectedBuffId) {
+                    otherSkills.add(sk);
+                }
+            } else {
+                otherSkills.add(sk);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        List<Skill_info>[] byId = new ArrayList[4];
+        for (int i = 0; i < 4; i++) {
+            byId[i] = new ArrayList<>();
+        }
+        for (int i = 0; i < classSkills.size(); i++) {
+            Skill_info sk = classSkills.get(i);
+            int id = sk.temp.ID;
+            if (id >= 0 && id < 4) {
+                byId[id].add(sk);
+            }
+        }
+
+        Skill_info[] finalClassSkills = new Skill_info[4];
+        List<Skill_info> duplicatePool = new ArrayList<>();
+
+        for (int id = 0; id < 4; id++) {
+            List<Skill_info> list = byId[id];
+            if (!list.isEmpty()) {
+                Skill_info best = list.get(0);
+                for (int j = 1; j < list.size(); j++) {
+                    Skill_info curr = list.get(j);
+                    if (curr.temp.Lv_RQ > best.temp.Lv_RQ || (curr.temp.Lv_RQ == best.temp.Lv_RQ && curr.exp > best.exp)) {
+                        duplicatePool.add(best);
+                        best = curr;
+                    } else {
+                        duplicatePool.add(curr);
+                    }
+                }
+                finalClassSkills[id] = best;
+            }
+        }
+
+        for (int id = 0; id < 4; id++) {
+            if (finalClassSkills[id] == null) {
+                if (!duplicatePool.isEmpty()) {
+                    Skill_info reused = duplicatePool.remove(0);
+                    int targetLv = reused.temp.Lv_RQ;
+                    if (id == 3 && targetLv > 20) {
+                        targetLv = 20;
+                    }
+                    Skill_Template newTemp = Skill_Template.getClassSkillTemplate(this.clazz, id, targetLv);
+                    if (newTemp == null) {
+                        newTemp = Skill_Template.getClassSkillTemplate(this.clazz, id, (id == 0 ? 1 : -1));
+                    }
+                    if (newTemp != null) {
+                        reused.temp = newTemp;
+                        if (reused.temp.Lv_RQ >= 30) {
+                            reused.exp = 0;
+                        } else if (reused.temp.Lv_RQ == -1) {
+                            reused.exp = -1;
+                        }
+                        finalClassSkills[id] = reused;
+                    }
+                }
+                if (finalClassSkills[id] == null) {
+                    Skill_info newSk = new Skill_info();
+                    int defaultLv = (id == 0) ? 1 : -1;
+                    newSk.temp = Skill_Template.getClassSkillTemplate(this.clazz, id, defaultLv);
+                    newSk.exp = (defaultLv == -1) ? -1 : 0;
+                    newSk.lvdevil = 0;
+                    newSk.devilpercent = 0;
+                    finalClassSkills[id] = newSk;
+                }
+            }
+        }
+
+        List<Skill_info> result = new ArrayList<>();
+        for (int id = 0; id < 4; id++) {
+            if (finalClassSkills[id] != null && finalClassSkills[id].temp != null) {
+                result.add(finalClassSkills[id]);
+            }
+        }
+        result.addAll(otherSkills);
+
+        this.skill_point.clear();
+        this.skill_point.addAll(result);
+    }
+
     public void update_skill_exp(int index, long exp) throws IOException {
         exp *= Manager.gI().exp;
         if (index < 4 || index == 5000) {
@@ -2814,15 +2931,28 @@ public class Player {
             }
             if (sk_info != null) {
                 if (sk_info.exp > -1) {
+                    if (sk_info.temp.Lv_RQ >= 30) {
+                        sk_info.exp = 0;
+                        return;
+                    }
                     sk_info.exp += exp;
-                    long exp_total = Skill_info.EXP[sk_info.temp.Lv_RQ - 1];
+                    int idx = sk_info.temp.Lv_RQ - 1;
+                    if (idx < 0) {
+                        idx = 0;
+                    }
+                    if (idx >= Skill_info.EXP.length) {
+                        idx = Skill_info.EXP.length - 1;
+                    }
+                    long exp_total = Skill_info.EXP[idx];
                     if (sk_info.exp >= exp_total && sk_info.temp.Lv_RQ >= this.level) {
                         sk_info.exp = exp_total - 1;
                     }
                     if (sk_info.exp >= exp_total) {
                         if (Skill_Template.upgrade_skill(sk_info, this.clazz)) {
                             sk_info.exp -= exp_total;
-                            if (sk_info.exp >= exp_total) {
+                            if (sk_info.temp.Lv_RQ >= 30) {
+                                sk_info.exp = 0;
+                            } else if (sk_info.exp >= exp_total) {
                                 sk_info.exp = 1;
                             }
                             this.send_skill_lv_up(sk_info);
@@ -2830,7 +2960,7 @@ public class Player {
                             this.send_skill();
                             this.update_info_to_all();
                         } else {
-                            sk_info.exp = exp_total - 1;
+                            sk_info.exp = (sk_info.temp.Lv_RQ >= 30) ? 0 : (exp_total - 1);
                             Learn_Skill.send_skill_percent(this, sk_info);
                         }
                     } else {

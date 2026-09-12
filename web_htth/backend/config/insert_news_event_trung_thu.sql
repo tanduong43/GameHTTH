@@ -94,7 +94,7 @@ VALUES (
             <tr style="background-color:#fdfefe;">
                 <td style="padding:8px;"><strong>🥮 Bánh Trứng Muối</strong></td>
                 <td style="padding:8px;">5 Bột Mì + 3 Đường + 2 Trứng Muối</td>
-                <td style="padding:8px;">15,000,000 Beri</td>
+                <td style="padding:8px;">1,500,000 Beri</td>
                 <td style="padding:8px;">Sử dụng nhận Beri lớn, Đá Khảm cấp 3-4, Khiên Bảo Vệ + <strong>2 Điểm Sự Kiện</strong></td>
             </tr>
             <tr style="background-color:#f9f9f9;">

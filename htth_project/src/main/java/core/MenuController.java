@@ -856,7 +856,7 @@ public class MenuController {
                   + "📍 2. CÔNG THỨC LÀM BÁNH (NPC Chị Hằng):\n\n"
                   + "• Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500.000 Beri\n"
                   + "• Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1.000.000 Beri\n"
-                  + "• Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15.000.000 Beri\n"
+                  + "• Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 1.500.000 Beri\n"
                   + "• Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2.000.000 Beri\b"
                   + "📍 3. GHÉP ĐÈN & HỘP BÁNH:\n\n"
                   + "• Đèn Kéo Quân: 3 Đèn Ông Sao + 2.000.000 Beri (Thắp đèn bắn pháo hoa nhận quà)\n"
@@ -901,7 +901,7 @@ public class MenuController {
                   "📍 CÔNG THỨC LÀM BÁNH (NPC Chị Hằng):\n\n"
                       + "1. 🥮 Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500.000 Beri\n"
                       + "2. 🥮 Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1.000.000 Beri\n"
-                      + "3. 🥮 Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15.000.000 Beri\n"
+                      + "3. 🥮 Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 1.500.000 Beri\n"
                       + "4. 🥮 Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2.000.000 Beri\n\n"
                       + "👉 Chọn mục 'Làm Bánh' tại NPC Chị Hằng để bắt đầu làm bánh!");
               break;

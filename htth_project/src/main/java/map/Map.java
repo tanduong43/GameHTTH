@@ -1705,15 +1705,6 @@ public class Map implements Runnable {
                     }
                 }
                 if (num_mob == 0 && p0.dungeon.time > System.currentTimeMillis()) {
-                    if (this.template.id == 175) {
-                        if (this.map_dungeon != null && !this.map_dungeon.checkG.contains(175)) {
-                            System.out.println(
-                                    "[Dungeon Debug] Map 175 cleared! Setting 10s countdown to return to village for "
-                                            + p0.name);
-                            p0.dungeon.time = System.currentTimeMillis() + 10_000L;
-                            Service.send_time_cool_down(p0, p0.dungeon.time, "Về Làng", 2);
-                        }
-                    }
                     if (!this.map_dungeon.checkG.contains(this.template.id)) {
                         this.map_dungeon.checkG.add(this.template.id);
                         //
@@ -1812,8 +1803,20 @@ public class Map implements Runnable {
                             p0.update_skill_exp(sk_id, exp_skill_gain);
                         }
 
-                        Service.send_gift(p0, 1, "Ải đơn cấp độ " + (mode_dungeon + 3),
+                        Service.send_gift(p0, 1, "Ải đơn cấp độ " + (mode_dungeon + 3),
                                 "Phần thưởng", list_gift, true);
+                        System.out.println("[Dungeon] Trao quà phòng " + this.template.id
+                                + " cho player " + p0.name);
+
+                        // FIX: Phòng cuối (map 175): set countdown "Về Làng" SAU khi trao quà
+                        // Đảm bảo quà được trao trước khi timeout đối xuống
+                        if (this.template.id == 175) {
+                            System.out.println(
+                                    "[Dungeon] Map 175 cleared! Setting 10s countdown to return to village for "
+                                            + p0.name);
+                            p0.dungeon.time = System.currentTimeMillis() + 10_000L;
+                            Service.send_time_cool_down(p0, p0.dungeon.time, "Về Làng", 2);
+                        }
                     }
                 }
                 boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
@@ -1832,6 +1835,39 @@ public class Map implements Runnable {
                             + " back to Syrup Village.");
                     ok_out_map = true;
                     p_select = p0;
+                }
+            } else {
+                // FIX KẸT MAP: Khi không có player trong map này (players.size()==0)
+                // nhưng map_dungeon còn active và timeout đã hết,
+                // scan toàn bộ dungeon maps để tìm và teleport player bị kẹt về làng.
+                if (this.map_dungeon != null && this.map_dungeon.getClass() == activities.Dungeon.class
+                        && this.map_dungeon.time < System.currentTimeMillis()) {
+                    for (Map dungeonMap : this.map_dungeon.maps) {
+                        if (dungeonMap == null) continue;
+                        List<Player> playersSnapshot = new java.util.ArrayList<>(dungeonMap.players);
+                        for (Player stuckPlayer : playersSnapshot) {
+                            if (stuckPlayer != null && stuckPlayer.dungeon == this.map_dungeon
+                                    && stuckPlayer.conn != null && stuckPlayer.conn.connected) {
+                                System.out.println("[Dungeon] FIX KẸT MAP: Teleport player "
+                                        + stuckPlayer.name + " khỏi dungeon (timeout hết mà không được gọi teleport bình thường).");
+                                try {
+                                    if (stuckPlayer.isdie) {
+                                        stuckPlayer.isdie = false;
+                                        stuckPlayer.hp = stuckPlayer.body.get_hp_max(true);
+                                        stuckPlayer.mp = stuckPlayer.body.get_mp_max(true);
+                                    }
+                                    Vgo vgoBack = new Vgo();
+                                    vgoBack.map_go = Map.get_map_by_id(25);
+                                    vgoBack.xnew = 390;
+                                    vgoBack.ynew = 240;
+                                    stuckPlayer.goto_map(vgoBack);
+                                    stuckPlayer.dungeon = null;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
                 }
             }
             if (ok_out_map && p_select != null && p_select.conn != null) {

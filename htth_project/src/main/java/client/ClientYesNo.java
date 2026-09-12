@@ -3522,75 +3522,17 @@ public class ClientYesNo {
                                     return;
                                 } else if (temp.temp.Lv_RQ != -1) {
                                     if (temp.temp.Lv_RQ >= 5) {
-                                        Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra hoặc Không đủ sách haki ");
+                                        Service.send_box_ThongBao_OK(p, "Kỹ năng đã đạt cấp tối đa");
                                         p.data_yesno = null;
                                         p.map_tele = null;
                                         return;
                                     } else {
-                                        if (temp.temp.indexSkillInServer == 667
-                                                || temp.temp.indexSkillInServer == 668
-                                                || temp.temp.indexSkillInServer == 669
-                                                || temp.temp.indexSkillInServer == 670) {
-                                            if (p.item.total_item_bag_by_id(4, 800) > 0) {
-                                                p.item.remove_item47(4, 800, 1);
-                                                p.update_ngoc(-500);
-                                                p.tieu_ruby += 500;
-                                                p.item.update_Inventory(-1, false);
-                                                int index_new = temp.temp.indexSkillInServer + 1;
-                                                temp = new Skill_info();
-                                                temp.temp = Skill_Template.get_temp(index_new, 0);
-                                                temp.exp = 0;
-                                                temp.lvdevil = 0;
-                                                temp.devilpercent = 0;
-                                            } else {
-                                                Service.send_box_ThongBao_OK(p, "Không đủ sách haki quan sát");
-                                            }
-
-                                        } else if (temp.temp.indexSkillInServer == 673
-                                                || temp.temp.indexSkillInServer == 674
-                                                || temp.temp.indexSkillInServer == 675
-                                                || temp.temp.indexSkillInServer == 672) {
-                                            if (p.item.total_item_bag_by_id(4, 801) > 0) {
-                                                p.item.remove_item47(4, 801, 1);
-                                                p.item.update_Inventory(-1, false);
-                                                p.update_ngoc(-500);
-                                                p.tieu_ruby += 500;
-                                                int index_new = temp.temp.indexSkillInServer + 1;
-                                                temp = new Skill_info();
-                                                temp.temp = Skill_Template.get_temp(index_new, 0);
-                                                temp.exp = 0;
-                                                temp.lvdevil = 0;
-                                                temp.devilpercent = 0;
-                                            } else {
-                                                Service.send_box_ThongBao_OK(p, "Không đủ sách haki bá vương");
-                                            }
-
-                                        } else if (temp.temp.indexSkillInServer == 678
-                                                || temp.temp.indexSkillInServer == 679
-                                                || temp.temp.indexSkillInServer == 680
-                                                || temp.temp.indexSkillInServer == 677) {
-                                            if (p.item.total_item_bag_by_id(4, 802) > 0) {
-                                                p.item.remove_item47(4, 802, 1);
-                                                p.update_ngoc(-500);
-                                                p.tieu_ruby += 500;
-                                                p.item.update_Inventory(-1, false);
-                                                int index_new = temp.temp.indexSkillInServer + 1;
-                                                temp = new Skill_info();
-                                                temp.temp = Skill_Template.get_temp(index_new, 0);
-                                                temp.exp = 0;
-                                                temp.lvdevil = 0;
-                                                temp.devilpercent = 0;
-                                            } else {
-                                                Service.send_box_ThongBao_OK(p, "Không đủ sách haki vũ trang");
-                                            }
-                                        } else {
-                                            int index_new = temp.temp.indexSkillInServer + 1;
-                                            temp = new Skill_info();
-                                            temp.temp = Skill_Template.get_temp(index_new, 0);
-                                            temp.exp = 0;
-                                            temp.lvdevil = 0;
-                                            temp.devilpercent = 0;
-                                        }
+                                        int index_new = temp.temp.indexSkillInServer + 1;
+                                        temp = new Skill_info();
+                                        temp.temp = Skill_Template.get_temp(index_new, 0);
+                                        temp.exp = 0;
+                                        temp.lvdevil = 0;
+                                        temp.devilpercent = 0;
                                     }
                                 }
                             }

@@ -14,7 +14,7 @@ import template.ItemTemplate4;
  * Công thức ghép:
  * - Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500k Beri
  * - Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1M Beri
- * - Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15M Beri
+ * - Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 1.5M Beri
  * - Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2M Beri
  * - Đèn Kéo Quân: 3 Đèn Ông Sao + 2M Beri
  * - Hộp Bánh: 1 mỗi loại bánh + 2M Beri + 50 Ruby
@@ -34,7 +34,7 @@ public class TrungThuCraft {
                 + "📍 LÀM BÁNH (NPC Chị Hằng → Làm Bánh):\n"
                 + "1. 🥮 Bánh Trung Thu: 5 Bột Mì + 3 Đường + 500.000 Beri\n"
                 + "2. 🥮 Bánh Đậu Xanh: 5 Bột Mì + 3 Đường + 1 Trứng Muối + 1.000.000 Beri\n"
-                + "3. 🥮 Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 15.000.000 Beri\n"
+                + "3. 🥮 Bánh Trứng Muối: 5 Bột Mì + 3 Đường + 2 Trứng Muối + 1.500.000 Beri\n"
                 + "4. 🥮 Bánh Hạt Sen: 5 Bột Mì + 3 Đường + 3 Trứng Muối + 2.000.000 Beri\n"
                 + "5. 🎁 Hộp Bánh: 1 mỗi loại bánh + 2.000.000 Beri + 50 Ruby\n"
                 + "6. 🏆 Hộp Thượng Hạng: 1 Hộp Bánh + 1 Giấy Gói Quà + 2.000.000 Beri + 100 Ruby\n\n"
@@ -188,7 +188,7 @@ public class TrungThuCraft {
                 {EventTrungThu.ITEM_DUONG, 3},
                 {EventTrungThu.ITEM_TRUNG_MUOI, 2}
         };
-        int beriCost = 15_000_000;
+        int beriCost = 1_500_000;
 
         if (checkAndRemoveMaterials(p, materials, beriCost, 0)) {
             p.item.add_item_bag47(4, EventTrungThu.ITEM_BANH_TRUNG_MUOI, 1);

@@ -23,6 +23,10 @@ public class Dungeon {
         maps = new ArrayList<>();
         mobs = new ArrayList<>();
         int index = -2;
+        // FIX: Khởi tạo checkG 1 lần duy nhất TRƯỚC vòng lặp.
+        // Trước đây checkG bị reset mỗi iteration và pre-add 167
+        // khiến phòng 1 (map 167) không bao giờ nhận được quà.
+        this.checkG = new HashSet<>();
         for (int j = 167; j < 176; j++) {
             // create map
             Map mapTemplate = Map.get_map_by_id(j)[0];
@@ -66,8 +70,8 @@ public class Dungeon {
             }
             map_dungeon.start_map();
             map_dungeon.map_dungeon = this;
-            map_dungeon.map_dungeon.checkG = new HashSet<>();
-            map_dungeon.map_dungeon.checkG.add(167);
+            // FIX: Không reset checkG và không pre-add bất kỳ ID nào ở đây.
+            // checkG đã được khởi tạo 1 lần trước vòng lặp.
             Map.add_map_plus(map_dungeon);
             maps.add(map_dungeon);
         }

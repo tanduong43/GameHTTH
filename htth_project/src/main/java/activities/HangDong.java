@@ -172,7 +172,7 @@ public class HangDong extends Dungeon {
 
         Map map_dungeon = new Map();
         map_dungeon.template = mapTemplate.template;
-        map_dungeon.zone_id = (byte) (stageIndex % 100);
+        map_dungeon.zone_id = (byte) (1 + (stageIndex % 99));
         map_dungeon.list_mob = new int[0];
         this.mobs = new CopyOnWriteArrayList<>();
         if (this.maps == null) {
@@ -192,16 +192,12 @@ public class HangDong extends Dungeon {
 
         int index = -2;
         int floor = stageIndex + 1;
-        int mobCount = 50;
-        if (floor >= 100 && floor <= 500) {
-            mobCount = 150;
-        } else if (floor > 500) {
-            mobCount = 200;
-        }
+        // Giới hạn 30 quái để đảm bảo quái xuất hiện đầy đủ 100%, không bị client drop vì vượt giới hạn vecObjMove <= 50
+        int mobCount = 30;
 
         // Tạo quái theo số lượng tùy thuộc vào tầng
         for (int i = 0; i < mobCount; i++) {
-            // Lấy ngẫu nhiên template quái từ 1 đến 100
+            // Lấy ngẫu nhiên template quái từ 1 đến 50
             int mobTemplateId = 1 + core.Util.random(1, 50); // random mobs
             Mob temp = null;
             for (Mob m : Mob.ENTRYS.values()) {
@@ -216,40 +212,40 @@ public class HangDong extends Dungeon {
 
             Mob mob_add = new Mob();
             mob_add.mob_template = temp.mob_template;
-            // Spawm ngẫu nhiên tọa độ trên mặt đất map 167 (maxW = 720, y = 250)
+            // Spawn ngẫu nhiên tọa độ trên mặt đất map 167 (maxW = 720, y = 250)
             mob_add.x = (short) core.Util.random(80, 660);
             mob_add.y = (short) 250;
 
             mob_add.level = maxLevel;
-            int base_hp = 5000 + (maxLevel * 1000);
             if (floor >= 100) {
-                // Tăng HP quái tuyến tính theo từng tầng (từ tầng 100 bắt đầu tăng, tầng 1000 tăng gấp 10 lần)
-                int hp_val = base_hp + base_hp * (floor - 100) / 100;
+                // Tầng >= 100: Tăng mạnh Máu và Sát thương (Dame)
+                // Base HP mốc tầng 100: ~2.000.000 HP + tăng dần theo từng tầng
+                long base_hp = 1_000_000L + ((long) maxLevel * 10_000L);
+                long hp_val = base_hp + (base_hp * (floor - 100) * 2 / 100);
 
-                // Tính sát thương (dame) cơ bản dựa trên cấp độ người chơi
-                int default_dame = maxLevel * 3;
-                if (maxLevel > 90) {
-                    default_dame = (default_dame * 25) / 10;
-                }
-                // Tăng Dame quái tuyến tính theo từng tầng (từ tầng 100 bắt đầu tăng, tầng 1000 tăng gấp 10 lần)
-                int final_dame_val = default_dame + default_dame * (floor - 100) / 100;
+                // Dame cơ bản tầng 100: ~30.000 + tăng dần theo từng tầng
+                int default_dame = 15_000 + (maxLevel * 150);
+                int final_dame_val = default_dame + (default_dame * (floor - 100) / 100);
 
                 // Tăng đột biến thêm máu và dame khi vượt mốc tầng 500
                 if (floor >= 500) {
-                    hp_val = (hp_val * 15) / 10; // Tăng thêm 50% HP
+                    hp_val = hp_val * 2; // Tăng gấp đôi HP
                     final_dame_val = final_dame_val * 2; // Tăng gấp đôi Dame
                 }
 
-                mob_add.hp_max = hp_val;
+                mob_add.hp_max = (int) Math.min(hp_val, 1_500_000_000L);
 
-                // Tạo dao động ngẫu nhiên cho sát thương khoảng +-20%
-                int variation = final_dame_val * 20 / 100;
-                if (variation <= 0)
-                    variation = 10;
+                // Tạo dao động ngẫu nhiên cho sát thương khoảng +-15%
+                int variation = Math.max(10, final_dame_val * 15 / 100);
                 mob_add.final_dame = core.Util.random(final_dame_val - variation, final_dame_val + variation);
             } else {
-                mob_add.hp_max = base_hp;
-                mob_add.final_dame = 0;
+                // Tầng 1 - 99: HP và Dame tăng theo cấp độ và tầng hiện tại
+                long base_hp = 50_000L + ((long) maxLevel * 2_000L) + ((long) floor * 5_000L);
+                mob_add.hp_max = (int) Math.min(base_hp, 2_000_000_000L);
+
+                int default_dame = 1_000 + (maxLevel * 30) + (floor * 50);
+                int variation = Math.max(10, default_dame * 15 / 100);
+                mob_add.final_dame = core.Util.random(default_dame - variation, default_dame + variation);
             }
             mob_add.hp = mob_add.hp_max;
 
@@ -305,6 +301,7 @@ public class HangDong extends Dungeon {
 
         // Sau khi đã teleport tất cả người chơi sang tầng mới, tiến hành xóa map cũ
         if (oldMap != null) {
+            oldMap.stop_map();
             Map.remove_map_plus(oldMap);
             oldMap.map_dungeon = null;
         }
@@ -600,7 +597,7 @@ public class HangDong extends Dungeon {
 
         // Clean up maps and mobs to avoid memory leaks
         if (this.currentMap != null) {
-            this.currentMap.running = false;
+            this.currentMap.stop_map();
             Map.remove_map_plus(this.currentMap);
             this.currentMap.map_dungeon = null;
             this.currentMap = null;
@@ -608,7 +605,7 @@ public class HangDong extends Dungeon {
 
         if (this.maps != null) {
             for (Map m : this.maps) {
-                m.running = false;
+                m.stop_map();
                 Map.remove_map_plus(m);
                 m.map_dungeon = null;
             }
