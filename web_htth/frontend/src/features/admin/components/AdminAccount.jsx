@@ -45,6 +45,7 @@ function AdminAccount() {
   const [totalAccounts, setTotalAccounts] = useState(0);
   const [totalOnline, setTotalOnline] = useState(0);
   const [totalMembers, setTotalMembers] = useState(0);
+  const [totalOffline15Days, setTotalOffline15Days] = useState(0);
   const [filteredCount, setFilteredCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -55,7 +56,16 @@ function AdminAccount() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [lockFilter, setLockFilter] = useState('all');
   const [onlineFilter, setOnlineFilter] = useState('all');
+  const [offlineFilter, setOfflineFilter] = useState('all');
+  const [selectedAccounts, setSelectedAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Bulk Delete Modal state
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [bulkDeleteType, setBulkDeleteType] = useState('filter_15days'); // 'filter_15days' | 'selected'
+  const [bulkProtectTopup, setBulkProtectTopup] = useState(true);
+  const [bulkOfflineDays, setBulkOfflineDays] = useState(15);
+  const [submittingBulkDelete, setSubmittingBulkDelete] = useState(false);
 
   // Buff Nạp Modal state
   const [buffModalUser, setBuffModalUser] = useState(null);
@@ -83,6 +93,8 @@ function AdminAccount() {
     tongnap: 0,
     vip: 0,
     autoVip: true,
+    resetMilestones: false,
+    resetTichTieuMilestones: false,
     extol: 0,
     tichtieu_ruby: 0
   });
@@ -206,6 +218,8 @@ function AdminAccount() {
       tongnap: detailData.account.tongnap || 0,
       vip: detailData.account.vip || 0,
       autoVip: true,
+      resetMilestones: false,
+      resetTichTieuMilestones: false,
       extol: detailData.player ? (detailData.player.extol ?? detailData.player.vnd ?? 0) : (detailData.account.extol ?? detailData.account.vnd ?? 0),
       tichtieu_ruby: detailData.player ? (detailData.player.tichtieu_ruby ?? 0) : 0
     });
@@ -223,7 +237,9 @@ function AdminAccount() {
         coin: Number(currencyData.coin) || 0,
         tichnap: Number(currencyData.tichnap) || 0,
         tongnap: Number(currencyData.tongnap) || 0,
-        vip: currencyData.autoVip ? undefined : (Number(currencyData.vip) || 0)
+        vip: currencyData.autoVip ? undefined : (Number(currencyData.vip) || 0),
+        resetMilestones: !!currencyData.resetMilestones,
+        resetTichTieuMilestones: !!currencyData.resetTichTieuMilestones
       };
 
       if (currencyData.hasPlayer) {
@@ -249,6 +265,25 @@ function AdminAccount() {
     }
   };
 
+  const handleResetUserMilestones = async (username, type) => {
+    const typeLabel = type === 'tichnap' ? 'Tích Lũy Nạp' : (type === 'tichtieu' ? 'Tích Tiêu Ruby' : 'Tất Cả Mốc');
+    if (!window.confirm(`⚠️ Bạn có chắc chắn muốn RESET mốc ${typeLabel} của tài khoản "${username}" về 0 và xóa trạng thái đã nhận?`)) {
+      return;
+    }
+    try {
+      const res = await api.post('admin/reset_user_milestones', { username, type });
+      if (res.data.success) {
+        showMessage('success', res.data.message || `Đã reset mốc ${typeLabel} thành công!`);
+        handleOpenDetailModal(username);
+        fetchAccounts(page, limit);
+      } else {
+        showMessage('error', res.data.message || 'Lỗi khi reset mốc!');
+      }
+    } catch {
+      showMessage('error', 'Lỗi kết nối máy chủ khi reset mốc!');
+    }
+  };
+
   const fetchAccounts = useCallback(async (targetPage = page, targetLimit = limit) => {
     setLoading(true);
     try {
@@ -259,7 +294,8 @@ function AdminAccount() {
           search: searchQuery,
           status: statusFilter,
           lock: lockFilter,
-          online: onlineFilter
+          online: onlineFilter,
+          offlineDays: offlineFilter
         }
       });
       if (res.data.success) {
@@ -267,6 +303,7 @@ function AdminAccount() {
         setTotalAccounts(res.data.totalAccounts || 0);
         setTotalOnline(res.data.totalOnline || 0);
         setTotalMembers(res.data.totalMembers || 0);
+        setTotalOffline15Days(res.data.totalOffline15Days || 0);
         setFilteredCount(res.data.filteredCount || 0);
         setTotalPages(res.data.totalPages || 1);
         setPage(res.data.currentPage || targetPage);
@@ -276,7 +313,7 @@ function AdminAccount() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, statusFilter, lockFilter, onlineFilter, limit, page]);
+  }, [searchQuery, statusFilter, lockFilter, onlineFilter, offlineFilter, limit, page]);
 
   // Fetch when page changes or when search/filters change
   useEffect(() => {
@@ -285,7 +322,7 @@ function AdminAccount() {
       fetchOrphanedPlayers();
     }, 300);
     return () => clearTimeout(timer);
-  }, [page, limit, searchQuery, statusFilter, lockFilter, onlineFilter, fetchAccounts, fetchOrphanedPlayers]);
+  }, [page, limit, searchQuery, statusFilter, lockFilter, onlineFilter, offlineFilter, fetchAccounts, fetchOrphanedPlayers]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -307,22 +344,163 @@ function AdminAccount() {
     setPage(1);
   };
 
+  const handleOfflineChange = (e) => {
+    setOfflineFilter(e.target.value);
+    setPage(1);
+  };
+
   const handleCardClickAll = () => {
     setOnlineFilter('all');
     setStatusFilter('all');
     setLockFilter('all');
+    setOfflineFilter('all');
     setSearchQuery('');
+    setSelectedAccounts([]);
     setPage(1);
   };
 
   const handleCardClickOnline = () => {
     setOnlineFilter((prev) => (prev === 'online' ? 'all' : 'online'));
+    setOfflineFilter('all');
     setPage(1);
   };
 
   const handleCardClickMembers = () => {
     setStatusFilter((prev) => (prev === 'active' ? 'all' : 'active'));
     setPage(1);
+  };
+
+  const handleCardClickOffline15 = () => {
+    setOfflineFilter((prev) => (prev === '15' ? 'all' : '15'));
+    setOnlineFilter('all');
+    setPage(1);
+  };
+
+  const handleSelectAccount = (username) => {
+    setSelectedAccounts(prev => 
+      prev.includes(username) ? prev.filter(u => u !== username) : [...prev, username]
+    );
+  };
+
+  const handleSelectAllOnPage = () => {
+    const selectableUsers = accounts
+      .map(a => a.user)
+      .filter(u => u && u.toLowerCase() !== 'admin');
+    
+    const allSelected = selectableUsers.length > 0 && selectableUsers.every(u => selectedAccounts.includes(u));
+    if (allSelected) {
+      setSelectedAccounts(prev => prev.filter(u => !selectableUsers.includes(u)));
+    } else {
+      setSelectedAccounts(prev => Array.from(new Set([...prev, ...selectableUsers])));
+    }
+  };
+
+  const handleOpenBulkDeleteModal = (type = 'filter_15days') => {
+    setBulkDeleteType(type);
+    setShowBulkDeleteModal(true);
+  };
+
+  const handleExecuteBulkDelete = async () => {
+    setSubmittingBulkDelete(true);
+    try {
+      const payload = {
+        protectTopup: bulkProtectTopup
+      };
+      if (bulkDeleteType === 'selected') {
+        payload.usernames = selectedAccounts;
+      } else {
+        payload.offlineDays = bulkOfflineDays;
+      }
+
+      const res = await api.post('admin/bulk_delete_clone', payload);
+      if (res.data.success) {
+        showMessage('success', res.data.message || 'Đã dọn dẹp tài khoản clone thành công!');
+        setShowBulkDeleteModal(false);
+        setSelectedAccounts([]);
+        fetchAccounts(page, limit);
+        fetchOrphanedPlayers();
+      } else {
+        showMessage('error', res.data.message || 'Không thể dọn dẹp tài khoản!');
+      }
+    } catch (err) {
+      showMessage('error', err.response?.data?.message || 'Lỗi máy chủ khi dọn dẹp tài khoản!');
+    } finally {
+      setSubmittingBulkDelete(false);
+    }
+  };
+
+  const formatLastActive = (acc) => {
+    if (acc.onl === 1) {
+      return (
+        <span style={{ 
+          fontSize: '11px', 
+          padding: '3px 8px', 
+          borderRadius: '4px', 
+          background: 'rgba(46, 204, 113, 0.15)', 
+          color: '#2ecc71', 
+          border: '1px solid rgba(46, 204, 113, 0.4)', 
+          fontWeight: 'bold',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px',
+          whiteSpace: 'nowrap'
+        }}>
+          🟢 Online
+        </span>
+      );
+    }
+
+    const days = acc.daysOffline;
+    if (days == null) {
+      return <span style={{ color: '#777', fontSize: '12px' }}>Chưa có dữ liệu</span>;
+    }
+
+    let badgeColor = '#52c41a';
+    let badgeBg = 'rgba(82, 196, 26, 0.15)';
+    let badgeBorder = 'rgba(82, 196, 26, 0.3)';
+    let text = `${days} ngày trước`;
+
+    if (days === 0) {
+      text = 'Hôm nay';
+      badgeColor = '#2ecc71';
+      badgeBg = 'rgba(46, 204, 113, 0.12)';
+      badgeBorder = 'rgba(46, 204, 113, 0.25)';
+    } else if (days < 7) {
+      badgeColor = '#faad14';
+      badgeBg = 'rgba(250, 173, 20, 0.15)';
+      badgeBorder = 'rgba(250, 173, 20, 0.3)';
+    } else if (days < 15) {
+      badgeColor = '#fa8c16';
+      badgeBg = 'rgba(250, 140, 22, 0.15)';
+      badgeBorder = 'rgba(250, 140, 22, 0.3)';
+    } else {
+      badgeColor = '#ff4d4f';
+      badgeBg = 'rgba(255, 77, 79, 0.18)';
+      badgeBorder = 'rgba(255, 77, 79, 0.45)';
+      text = `🔴 Off ${days} ngày`;
+    }
+
+    const dateStr = acc.lastLogin ? new Date(acc.lastLogin).toLocaleDateString('vi-VN') : '';
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+        <span style={{ 
+          padding: '2px 7px', 
+          borderRadius: '4px', 
+          fontSize: '11px', 
+          background: badgeBg, 
+          color: badgeColor, 
+          border: `1px solid ${badgeBorder}`,
+          fontWeight: days >= 15 ? '700' : '600',
+          display: 'inline-block',
+          width: 'fit-content',
+          whiteSpace: 'nowrap'
+        }}>
+          {text}
+        </span>
+        {dateStr && <span style={{ fontSize: '10.5px', color: '#888' }}>{dateStr}</span>}
+      </div>
+    );
   };
 
   const handleLimitChange = (e) => {
@@ -592,6 +770,61 @@ function AdminAccount() {
           </div>
           <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '80px', opacity: 0.05 }}>👑</div>
         </div>
+
+        {/* Total Offline > 15 Days */}
+        <div 
+          onClick={handleCardClickOffline15}
+          title="Nhấn để lọc danh sách tài khoản đã Offline hơn 15 ngày (Clone)"
+          style={{
+            background: offlineFilter === '15' 
+              ? 'linear-gradient(135deg, rgba(255, 77, 79, 0.22) 0%, rgba(20,20,20,0.9) 100%)' 
+              : 'linear-gradient(135deg, rgba(20,20,20,0.8) 0%, rgba(30,30,30,0.8) 100%)',
+            backdropFilter: 'blur(10px)',
+            border: offlineFilter === '15' 
+              ? '1.5px solid #ff4d4f' 
+              : '1px solid rgba(255,255,255,0.05)',
+            borderRadius: '16px',
+            padding: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            boxShadow: offlineFilter === '15' 
+              ? '0 8px 32px rgba(255, 77, 79, 0.35)' 
+              : '0 8px 32px rgba(0,0,0,0.2)',
+            position: 'relative',
+            overflow: 'hidden',
+            cursor: 'pointer',
+            transition: 'all 0.25s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          <div style={{
+            background: 'rgba(255, 77, 79, 0.15)',
+            width: '60px',
+            height: '60px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+            marginRight: '20px',
+            border: '1px solid rgba(255, 77, 79, 0.3)'
+          }}>
+            ⏳
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', color: '#aaa', fontWeight: '600', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>Off &gt; 15 Ngày</span>
+              {offlineFilter === '15' && (
+                <span style={{ fontSize: '11px', color: '#ff4d4f', fontWeight: 'bold', background: 'rgba(255,77,79,0.15)', padding: '1px 6px', borderRadius: '4px', border: '1px solid rgba(255,77,79,0.3)' }}>
+                  ✓ Đang lọc
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: offlineFilter === '15' ? '#ff4d4f' : '#fff' }}>{totalOffline15Days.toLocaleString()}</div>
+          </div>
+          <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '80px', opacity: 0.05 }}>⏳</div>
+        </div>
       </div>
 
       {/* Orphaned Players Alert Banner */}
@@ -743,6 +976,32 @@ function AdminAccount() {
             <option value="banned">Bị Banned</option>
           </select>
         </div>
+        <div style={{ flex: '1 1 130px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#aaa', fontWeight: '600' }}>Thời gian Offline:</label>
+          <select
+            value={offlineFilter}
+            onChange={handleOfflineChange}
+            style={{
+              width: '100%',
+              padding: '11px 14px',
+              borderRadius: '8px',
+              border: offlineFilter !== 'all' ? '1px solid #ff4d4f' : '1px solid rgba(255, 255, 255, 0.1)',
+              backgroundColor: 'rgba(0, 0, 0, 0.45)',
+              color: offlineFilter !== 'all' ? '#ff7875' : '#fff',
+              outline: 'none',
+              boxSizing: 'border-box',
+              fontSize: '14px',
+              fontWeight: offlineFilter !== 'all' ? '700' : 'normal',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="all">Tất cả thời gian</option>
+            <option value="7">🟡 Off &gt; 7 ngày</option>
+            <option value="15">🔴 Off &gt; 15 ngày (Clone)</option>
+            <option value="30">🔴 Off &gt; 30 ngày</option>
+            <option value="60">🔴 Off &gt; 60 ngày</option>
+          </select>
+        </div>
         <div style={{ flex: '0 1 110px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', color: '#aaa', fontWeight: '600' }}>Hiển thị:</label>
           <select
@@ -788,14 +1047,59 @@ function AdminAccount() {
           flexWrap: 'wrap',
           gap: '10px'
         }}>
-          <h4 style={{ 
-            color: '#fff', 
-            margin: 0,
-            fontWeight: '700',
-            fontSize: '16px'
-          }}>
-            📋 DANH SÁCH TÀI KHOẢN ({filteredCount} / {totalAccounts})
-          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <h4 style={{ 
+              color: '#fff', 
+              margin: 0,
+              fontWeight: '700',
+              fontSize: '16px'
+            }}>
+              📋 DANH SÁCH TÀI KHOẢN ({filteredCount} / {totalAccounts})
+            </h4>
+            {selectedAccounts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => handleOpenBulkDeleteModal('selected')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 77, 79, 0.6)',
+                  background: 'rgba(255, 77, 79, 0.2)',
+                  color: '#ff4d4f',
+                  cursor: 'pointer',
+                  fontSize: '12.5px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                🗑️ Xóa đã chọn ({selectedAccounts.length})
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => handleOpenBulkDeleteModal('filter_15days')}
+              style={{
+                padding: '5px 12px',
+                borderRadius: '6px',
+                border: '1px solid rgba(250, 173, 20, 0.5)',
+                background: 'rgba(250, 173, 20, 0.15)',
+                color: '#ffd591',
+                cursor: 'pointer',
+                fontSize: '12.5px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.2s'
+              }}
+              title="Dọn dẹp tài khoản clone offline quá 15 ngày có bảo vệ tài khoản nạp"
+            >
+              🧹 Dọn dẹp clone off &gt; 15 ngày
+            </button>
+          </div>
           <div style={{ fontSize: '13px', color: '#aaa' }}>
             {filteredCount > 0 ? (
               <span>Hiển thị <strong style={{ color: '#ffd700' }}>{startRecord} - {endRecord}</strong> trên tổng <strong style={{ color: '#fff' }}>{filteredCount}</strong> kết quả</span>
@@ -809,9 +1113,19 @@ function AdminAccount() {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', color: '#eee' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.12)', background: 'rgba(0,0,0,0.3)' }}>
+                <th style={{ padding: '12px 10px', textAlign: 'center', width: '36px' }}>
+                  <input
+                    type="checkbox"
+                    checked={accounts.length > 0 && accounts.filter(a => a.user?.toLowerCase() !== 'admin').every(a => selectedAccounts.includes(a.user))}
+                    onChange={handleSelectAllOnPage}
+                    title="Chọn tất cả tài khoản trên trang này (ngoại trừ Admin)"
+                    style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                  />
+                </th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>ID</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Tài khoản</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Nhân vật</th>
+                <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Đăng nhập cuối</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Coin</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Thành viên</th>
                 <th style={{ padding: '12px 10px', color: '#999', fontSize: '12.5px', textTransform: 'uppercase', fontWeight: '600' }}>Trạng thái</th>
@@ -821,13 +1135,22 @@ function AdminAccount() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="7" style={{ padding: '30px', textAlign: 'center', color: '#aaa' }}>
+                  <td colSpan="9" style={{ padding: '30px', textAlign: 'center', color: '#aaa' }}>
                     🔄 Đang tải dữ liệu từ máy chủ...
                   </td>
                 </tr>
               ) : accounts.length > 0 ? (
                 accounts.map(acc => (
-                  <tr key={acc.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <tr key={acc.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: selectedAccounts.includes(acc.user) ? 'rgba(255, 77, 79, 0.08)' : 'transparent' }}>
+                    <td style={{ padding: '14px 10px', textAlign: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedAccounts.includes(acc.user)}
+                        onChange={() => handleSelectAccount(acc.user)}
+                        disabled={acc.user?.toLowerCase() === 'admin'}
+                        style={{ cursor: acc.user?.toLowerCase() === 'admin' ? 'not-allowed' : 'pointer', width: '15px', height: '15px' }}
+                      />
+                    </td>
                     <td style={{ padding: '14px 10px', color: '#888' }}>{acc.id}</td>
                     <td style={{ padding: '14px 10px', fontWeight: 'bold' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -880,6 +1203,9 @@ function AdminAccount() {
                       >
                         {acc.charName || "Chưa tạo"}
                       </span>
+                    </td>
+                    <td style={{ padding: '14px 10px' }}>
+                      {formatLastActive(acc)}
                     </td>
                     <td style={{ padding: '14px 10px', color: '#faad14', fontWeight: '500' }}>💰 {acc.coin.toLocaleString()}</td>
                     <td style={{ padding: '14px 10px' }}>
@@ -2079,8 +2405,33 @@ function AdminAccount() {
                             {detailData.account.tichnap.toLocaleString()}đ <span style={{ fontSize: '14px', color: '#aaa', fontWeight: 'normal' }}>/ Tổng nạp: {detailData.account.tongnap.toLocaleString()}đ</span>
                           </div>
                         </div>
-                        <div style={{ fontSize: '13.5px', color: '#aaa' }}>
-                          Mốc đã nhận: <strong style={{ color: '#52c41a' }}>{detailData.account.claimed_milestones || 'Chưa nhận'}</strong>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                          <div style={{ fontSize: '13.5px', color: '#aaa' }}>
+                            Mốc đã nhận: <strong style={{ color: '#52c41a' }}>{detailData.account.claimed_milestones || 'Chưa nhận'}</strong>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleResetUserMilestones(detailData.account.user, 'tichnap')}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(255, 77, 79, 0.5)',
+                              background: 'rgba(255, 77, 79, 0.15)',
+                              color: '#ff7875',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              fontWeight: 'bold',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = 'rgba(255, 77, 79, 0.3)'}
+                            onMouseLeave={(e) => e.target.style.background = 'rgba(255, 77, 79, 0.15)'}
+                            title="Xóa mốc đã nhận và reset tích nạp của tài khoản này về 0"
+                          >
+                            🔄 Reset Mốc Nạp
+                          </button>
                         </div>
                       </div>
 
@@ -2169,19 +2520,44 @@ function AdminAccount() {
                             {(detailData.player?.tichtieu_ruby || 0).toLocaleString()} <span style={{ fontSize: '15px', color: '#ff85c0' }}>Ruby</span>
                           </div>
                         </div>
-                        <div style={{ fontSize: '13.5px', color: '#aaa', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span>Mốc đã nhận:</span>
-                          <span style={{ 
-                            fontSize: '13px', 
-                            padding: '3px 10px', 
-                            borderRadius: '10px', 
-                            background: 'rgba(82, 196, 26, 0.2)', 
-                            border: '1px solid rgba(82, 196, 26, 0.4)', 
-                            color: '#52c41a', 
-                            fontWeight: 'bold' 
-                          }}>
-                            {detailData.player?.spendingMilestones?.filter(m => m.isClaimed).length || 0} / {detailData.player?.spendingMilestones?.length || 8} mốc
-                          </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                          <div style={{ fontSize: '13.5px', color: '#aaa', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span>Mốc đã nhận:</span>
+                            <span style={{ 
+                              fontSize: '13px', 
+                              padding: '3px 10px', 
+                              borderRadius: '10px', 
+                              background: 'rgba(82, 196, 26, 0.2)', 
+                              border: '1px solid rgba(82, 196, 26, 0.4)', 
+                              color: '#52c41a', 
+                              fontWeight: 'bold' 
+                            }}>
+                              {detailData.player?.spendingMilestones?.filter(m => m.isClaimed).length || 0} / {detailData.player?.spendingMilestones?.length || 13} mốc
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleResetUserMilestones(detailData.account.user, 'tichtieu')}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(255, 77, 79, 0.5)',
+                              background: 'rgba(255, 77, 79, 0.15)',
+                              color: '#ff7875',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              fontWeight: 'bold',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = 'rgba(255, 77, 79, 0.3)'}
+                            onMouseLeave={(e) => e.target.style.background = 'rgba(255, 77, 79, 0.15)'}
+                            title="Xóa mốc tích tiêu đã nhận và reset ruby đã tiêu về 0"
+                          >
+                            🔄 Reset Mốc Tiêu
+                          </button>
                         </div>
                       </div>
 
@@ -2912,6 +3288,36 @@ function AdminAccount() {
                 )}
               </div>
 
+              {/* Reset Milestones Options */}
+              <div style={{
+                background: 'rgba(255, 77, 79, 0.06)',
+                padding: '12px 14px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 77, 79, 0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#ff7875', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={currencyData.resetMilestones || false}
+                    onChange={(e) => setCurrencyData({ ...currencyData, resetMilestones: e.target.checked })}
+                    style={{ accentColor: '#ff4d4f', width: '16px', height: '16px' }}
+                  />
+                  <span>🔄 Reset các mốc nạp đã nhận (Xóa trạng thái đã nhận mốc nạp)</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#ff7875', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={currencyData.resetTichTieuMilestones || false}
+                    onChange={(e) => setCurrencyData({ ...currencyData, resetTichTieuMilestones: e.target.checked })}
+                    style={{ accentColor: '#ff4d4f', width: '16px', height: '16px' }}
+                  />
+                  <span>🔄 Reset các mốc tích tiêu ruby đã nhận</span>
+                </label>
+              </div>
+
               {/* Tip info */}
               <div style={{
                 fontSize: '12px',
@@ -3282,6 +3688,206 @@ function AdminAccount() {
                   {cleaningOrphaned ? 'Đang dọn dẹp...' : `🧹 Xóa Tất Cả (${orphanedList.length})`}
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Clone Accounts Modal */}
+      {showBulkDeleteModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(5px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#1a1a1a',
+            border: '1px solid rgba(255, 77, 79, 0.4)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '520px',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              padding: '18px 24px',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'linear-gradient(90deg, rgba(255,77,79,0.15) 0%, transparent 100%)'
+            }}>
+              <h4 style={{ margin: 0, color: '#ff4d4f', fontSize: '17px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🧹</span>
+                <span>
+                  {bulkDeleteType === 'selected' 
+                    ? `DỌN DẸP ${selectedAccounts.length} TÀI KHOẢN ĐÃ CHỌN` 
+                    : `DỌN DẸP TÀI KHOẢN CLONE OFF > ${bulkOfflineDays} NGÀY`}
+                </span>
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowBulkDeleteModal(false)}
+                disabled={submittingBulkDelete}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#888',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: '24px', maxHeight: '60vh', overflowY: 'auto' }}>
+              <div style={{
+                background: 'rgba(255, 77, 79, 0.1)',
+                border: '1px solid rgba(255, 77, 79, 0.3)',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                color: '#ff7875',
+                fontSize: '13px',
+                lineHeight: '1.5',
+                marginBottom: '18px'
+              }}>
+                ⚠️ <strong>Lưu ý:</strong> Hành động này sẽ xóa <strong>vĩnh viễn</strong> tài khoản và tất cả nhân vật, túi đồ, kho đồ, bài đăng chợ liên kết khỏi cơ sở dữ liệu.
+              </div>
+
+              {bulkDeleteType === 'selected' ? (
+                <div>
+                  <div style={{ fontSize: '13.5px', color: '#ccc', marginBottom: '10px' }}>
+                    Danh sách các tài khoản sẽ bị xóa ({selectedAccounts.length}):
+                  </div>
+                  <div style={{
+                    maxHeight: '120px',
+                    overflowY: 'auto',
+                    background: 'rgba(0,0,0,0.3)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    fontSize: '13px',
+                    color: '#ff8a00',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '6px'
+                  }}>
+                    {selectedAccounts.map(u => (
+                      <span key={u} style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: '4px' }}>
+                        {u}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '13px', color: '#aaa', marginBottom: '6px', fontWeight: '600' }}>
+                      Mốc thời gian Offline cần dọn dẹp:
+                    </label>
+                    <select
+                      value={bulkOfflineDays}
+                      onChange={(e) => setBulkOfflineDays(parseInt(e.target.value, 10))}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        background: '#222',
+                        color: '#fff',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value={7}>Offline trên 7 ngày</option>
+                      <option value={15}>Offline trên 15 ngày (Khuyên dùng cho clone)</option>
+                      <option value={30}>Offline trên 30 ngày (1 tháng)</option>
+                      <option value={60}>Offline trên 60 ngày (2 tháng)</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              <div style={{
+                marginTop: '18px',
+                padding: '12px 14px',
+                background: 'rgba(46, 204, 113, 0.08)',
+                border: '1px solid rgba(46, 204, 113, 0.25)',
+                borderRadius: '8px'
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#eee' }}>
+                  <input
+                    type="checkbox"
+                    checked={bulkProtectTopup}
+                    onChange={(e) => setBulkProtectTopup(e.target.checked)}
+                    style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                  />
+                  <span>
+                    🛡️ <strong>Bảo vệ tài khoản có nạp tiền</strong> (Bỏ qua tài khoản có Tổng nạp &gt; 0, Coin &gt; 0, VIP &gt; 0 hoặc đã kích hoạt thành viên)
+                  </span>
+                </label>
+              </div>
+
+              <div style={{ marginTop: '12px', fontSize: '12px', color: '#888' }}>
+                🔒 Tài khoản Quản Trị Viên (Admin) luôn được hệ thống bảo vệ tuyệt đối và không thể bị xóa.
+              </div>
+            </div>
+
+            <div style={{
+              padding: '16px 24px',
+              borderTop: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <button
+                type="button"
+                onClick={() => setShowBulkDeleteModal(false)}
+                disabled={submittingBulkDelete}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  background: 'transparent',
+                  color: '#aaa',
+                  cursor: 'pointer',
+                  fontSize: '13px'
+                }}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteBulkDelete}
+                disabled={submittingBulkDelete || (bulkDeleteType === 'selected' && selectedAccounts.length === 0)}
+                style={{
+                  padding: '9px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)',
+                  color: '#fff',
+                  cursor: submittingBulkDelete ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '13.5px',
+                  boxShadow: '0 4px 15px rgba(255, 77, 79, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {submittingBulkDelete ? 'Đang dọn dẹp...' : '🧹 Xác Nhận Xóa'}
+              </button>
             </div>
           </div>
         </div>

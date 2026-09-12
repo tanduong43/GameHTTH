@@ -98,6 +98,10 @@ router.post('/login', async (req, res) => {
         }
 
         const account = rows[0];
+        try {
+            await db.execute('UPDATE accounts SET `last_login` = NOW() WHERE id = ?', [account.id]);
+        } catch (e) {}
+
         const token = jwt.sign({ user_id: account.id }, JWT_SECRET, { expiresIn: '2h' });
 
         return res.json({
@@ -755,6 +759,7 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
 router.post('/admin/reset_tichnap', jwtRequired, isAdmin, async (req, res) => {
     try {
         await db.execute("UPDATE accounts SET tichnap = 0, claimed_milestones = ''");
+        await db.execute("UPDATE players SET tichluycheck = '[]'");
         return res.json({ success: true, message: 'Đã reset tích lũy nạp của toàn bộ tài khoản về 0 thành công!' });
     } catch (err) {
         console.error('Admin reset tichnap error:', err);
@@ -765,7 +770,7 @@ router.post('/admin/reset_tichnap', jwtRequired, isAdmin, async (req, res) => {
 // POST /api/admin/reset_tichtieu/
 router.post('/admin/reset_tichtieu', jwtRequired, isAdmin, async (req, res) => {
     try {
-        await db.execute("UPDATE players SET tichtieu_ruby = 0, claimed_tichtieu_ruby = ''");
+        await db.execute("UPDATE players SET tichtieu_ruby = 0, tieu_ruby = 0, claimed_tichtieu_ruby = '', tich_tieu_check = '[]'");
         return res.json({ success: true, message: 'Đã reset tích tiêu Ruby của toàn bộ nhân vật về 0 thành công!' });
     } catch (err) {
         console.error('Admin reset tichtieu error:', err);
@@ -815,11 +820,15 @@ router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
         const status = req.query.status || 'all';
         const lock = req.query.lock || 'all';
         const online = req.query.online || 'all';
+        const offlineDays = req.query.offlineDays || 'all';
 
         // Overall statistics
         const [[{ totalAccounts }]] = await db.execute('SELECT COUNT(*) as totalAccounts FROM accounts');
         const [[{ totalOnline }]] = await db.execute('SELECT COUNT(*) as totalOnline FROM accounts WHERE onl = 1');
         const [[{ totalMembers }]] = await db.execute('SELECT COUNT(*) as totalMembers FROM accounts WHERE status = 1');
+        const [[{ totalOffline15Days }]] = await db.execute(
+            'SELECT COUNT(*) as totalOffline15Days FROM accounts WHERE onl != 1 AND COALESCE(last_login, created_at) <= NOW() - INTERVAL 15 DAY'
+        );
 
         // Build SQL WHERE clause for filtering
         let whereConditions = [];
@@ -845,6 +854,14 @@ router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
             whereConditions.push('onl != 1');
         }
 
+        if (offlineDays && offlineDays !== 'all') {
+            const days = parseInt(offlineDays, 10);
+            if (!isNaN(days) && days > 0) {
+                whereConditions.push('onl != 1 AND COALESCE(last_login, created_at) <= NOW() - INTERVAL ? DAY');
+                params.push(days);
+            }
+        }
+
         const whereSql = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
 
         // Filtered count
@@ -856,13 +873,18 @@ router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
 
         // Query paginated accounts with string interpolation for numeric limit & offset to prevent mysql driver param binding issues with LIMIT
         const [rows] = await db.execute(
-            `SELECT id, user, coin, status, \`lock\`, onl, \`char\` FROM accounts ${whereSql} ORDER BY id DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`,
+            `SELECT id, user, coin, status, \`lock\`, onl, \`char\`, created_at, last_login,
+             TIMESTAMPDIFF(SECOND, COALESCE(last_login, created_at), NOW()) as seconds_offline
+             FROM accounts ${whereSql} ORDER BY id DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`,
             params
         );
 
         const accounts = rows.map(acc => {
             const charList = extractCharNames(acc.char);
             const charName = charList.length > 0 ? charList.join(', ') : "Chưa tạo nhân vật";
+            const effectiveLastLogin = acc.last_login || acc.created_at || null;
+            const secondsOffline = acc.seconds_offline != null ? Math.max(0, parseInt(acc.seconds_offline, 10)) : null;
+            const daysOffline = secondsOffline != null ? Math.floor(secondsOffline / 86400) : null;
             return {
                 id: acc.id,
                 user: acc.user,
@@ -872,7 +894,11 @@ router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
                 onl: acc.onl,
                 charName: charName,
                 char: acc.char,
-                charList: charList
+                charList: charList,
+                createdAt: acc.created_at,
+                lastLogin: effectiveLastLogin,
+                secondsOffline: acc.onl === 1 ? 0 : secondsOffline,
+                daysOffline: acc.onl === 1 ? 0 : daysOffline
             };
         });
 
@@ -882,6 +908,7 @@ router.get('/admin/accounts', jwtRequired, isAdmin, async (req, res) => {
             totalAccounts,
             totalOnline,
             totalMembers,
+            totalOffline15Days: totalOffline15Days || 0,
             filteredCount,
             totalPages,
             currentPage,
@@ -978,6 +1005,68 @@ router.post('/admin/delete_user', jwtRequired, isAdmin, async (req, res) => {
     const charNameHint = charName || characterName || null;
     const result = await deleteAccountAndCharacters(target, req.jwt_user_id, charNameHint);
     return res.json(result);
+});
+
+// POST /api/admin/bulk_delete_clone (Dọn dẹp hàng loạt tài khoản clone)
+router.post('/admin/bulk_delete_clone', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const { usernames, offlineDays, protectTopup = true } = req.body;
+        let targets = [];
+
+        if (Array.isArray(usernames) && usernames.length > 0) {
+            targets = usernames.map(u => String(u).trim()).filter(Boolean);
+        } else if (offlineDays) {
+            const days = parseInt(offlineDays, 10) || 15;
+            let query = `
+                SELECT user FROM accounts 
+                WHERE onl != 1 
+                  AND COALESCE(last_login, created_at) <= NOW() - INTERVAL ? DAY
+                  AND admin != 1 
+                  AND LOWER(user) != 'admin' 
+                  AND id != ?
+            `;
+            const queryParams = [days, req.jwt_user_id];
+
+            if (protectTopup) {
+                query += ' AND (coin = 0 AND tongnap = 0 AND sumamount = 0 AND tichnap = 0 AND vip = 0 AND status = 0)';
+            }
+
+            const [matchedRows] = await db.execute(query, queryParams);
+            targets = matchedRows.map(r => r.user);
+        }
+
+        if (targets.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy tài khoản clone nào phù hợp điều kiện để xóa!' });
+        }
+
+        const deletedList = [];
+        const failedList = [];
+
+        for (const u of targets) {
+            try {
+                const delRes = await deleteAccountAndCharacters(u, req.jwt_user_id);
+                if (delRes && delRes.success) {
+                    deletedList.push(u);
+                } else {
+                    failedList.push({ user: u, reason: delRes?.message || 'Lỗi không xác định' });
+                }
+            } catch (errOne) {
+                failedList.push({ user: u, reason: errOne.message });
+            }
+        }
+
+        return res.json({
+            success: true,
+            message: `Đã dọn dẹp thành công ${deletedList.length} tài khoản clone!` + (failedList.length > 0 ? ` (${failedList.length} tài khoản không thể xóa)` : ''),
+            deletedCount: deletedList.length,
+            deletedAccounts: deletedList,
+            failedCount: failedList.length,
+            failedAccounts: failedList
+        });
+    } catch (err) {
+        console.error('Admin bulk delete clone error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
 });
 
 // GET /api/admin/orphaned_players (Danh sách nhân vật trong players không thuộc account nào)
@@ -1364,7 +1453,12 @@ router.get('/admin/account_detail', jwtRequired, isAdmin, async (req, res) => {
                     { id: 4, num: 10000, label: '10.000 Ruby' },
                     { id: 5, num: 30000, label: '30.000 Ruby' },
                     { id: 6, num: 50000, label: '50.000 Ruby' },
-                    { id: 7, num: 100000, label: '100.000 Ruby (Trùm Ve Chai)' }
+                    { id: 7, num: 100000, label: '100.000 Ruby (Trùm Ve Chai)' },
+                    { id: 8, num: 200000, label: '200.000 Ruby' },
+                    { id: 9, num: 500000, label: '500.000 Ruby' },
+                    { id: 10, num: 1000000, label: '1.000.000 Ruby' },
+                    { id: 11, num: 2000000, label: '2.000.000 Ruby' },
+                    { id: 12, num: 5000000, label: '5.000.000 Ruby' }
                 ];
 
                 const claimedTieuStr = pl.claimed_tichtieu_ruby || '';
@@ -1464,7 +1558,7 @@ router.get('/admin/account_detail', jwtRequired, isAdmin, async (req, res) => {
 
 // POST /api/admin/adjust_currency
 router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => {
-    const { username, ruby, vang, coin, tichnap, tongnap, vip, extol, vnd, tichtieu_ruby } = req.body;
+    const { username, ruby, vang, coin, tichnap, tongnap, vip, extol, vnd, tichtieu_ruby, resetMilestones, resetTichTieuMilestones } = req.body;
 
     if (!username) {
         return res.json({ success: false, message: 'Thiếu tên tài khoản (username)!' });
@@ -1497,6 +1591,19 @@ router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => 
             updateParams.push(Math.max(0, newTichNap));
         }
 
+        const charNames = extractCharNames(acc.char);
+
+        if (resetMilestones) {
+            updateSets.push('`claimed_milestones` = ""');
+            if (charNames.length > 0) {
+                try {
+                    await db.query("UPDATE players SET tichluycheck = '[]' WHERE name IN (?)", [charNames]);
+                } catch (e) {
+                    console.warn('Reset player tichluycheck error:', e);
+                }
+            }
+        }
+
         if (newTongNap !== null && !isNaN(newTongNap)) {
             updateSets.push('`tongnap` = ?');
             updateParams.push(Math.max(0, newTongNap));
@@ -1526,40 +1633,35 @@ router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => 
             await db.execute(`UPDATE accounts SET ${updateSets.join(', ')} WHERE user = ?`, updateParams);
         }
 
+        if (resetTichTieuMilestones && charNames.length > 0) {
+            try {
+                await db.query("UPDATE players SET claimed_tichtieu_ruby = '', tich_tieu_check = '[]' WHERE name IN (?)", [charNames]);
+            } catch (e) {
+                console.warn('Reset player tich_tieu_check error:', e);
+            }
+        }
+
         // Update players table (vang, ruby, extol, tichtieu_ruby)
         let newRuby = ruby !== undefined && ruby !== null && ruby !== '' ? parseInt(ruby, 10) : null;
         let newVang = vang !== undefined && vang !== null && vang !== '' ? parseInt(vang, 10) : null;
-        const rawExtol = extol !== undefined && extol !== null && extol !== '' ? extol : (vnd !== undefined && vnd !== null && vnd !== '' ? vnd : null);
-        let newExtol = rawExtol !== null ? parseInt(rawExtol, 10) : null;
+        let newExtol = (extol !== undefined && extol !== null && extol !== '') ? parseInt(extol, 10) : ((vnd !== undefined && vnd !== null && vnd !== '') ? parseInt(vnd, 10) : null);
         let newTichTieu = tichtieu_ruby !== undefined && tichtieu_ruby !== null && tichtieu_ruby !== '' ? parseInt(tichtieu_ruby, 10) : null;
 
-        if ((newRuby !== null && !isNaN(newRuby)) || (newVang !== null && !isNaN(newVang)) || (newExtol !== null && !isNaN(newExtol)) || (newTichTieu !== null && !isNaN(newTichTieu))) {
-            let charName = null;
-            if (acc.char) {
+        if ((newRuby !== null || newVang !== null || newExtol !== null || newTichTieu !== null) && charNames.length > 0) {
+            const [playerRows] = await db.query('SELECT id, name, point_inven, tichtieu_ruby FROM players WHERE name IN (?) LIMIT 1', [charNames]);
+            if (playerRows.length > 0) {
+                const pl = playerRows[0];
+                let pointInvenArr = null;
                 try {
-                    const chars = typeof acc.char === 'string' ? JSON.parse(acc.char) : acc.char;
-                    if (Array.isArray(chars) && chars.length > 0) charName = chars[0];
-                } catch (e) {}
-            }
+                    pointInvenArr = typeof pl.point_inven === 'string' ? JSON.parse(pl.point_inven) : pl.point_inven;
+                } catch (e) {
+                    console.error('Parse point_inven error:', e);
+                }
 
-            if (charName) {
-                const [plRows] = await db.execute('SELECT id, point_inven, tichtieu_ruby, tieu_ruby FROM players WHERE name = ? LIMIT 1', [charName]);
-                if (plRows.length > 0) {
-                    const pl = plRows[0];
-                    let pointInvenArr = [];
-                    try {
-                        if (pl.point_inven) {
-                            pointInvenArr = typeof pl.point_inven === 'string' ? JSON.parse(pl.point_inven) : pl.point_inven;
-                        }
-                    } catch (e) {}
+                if (Array.isArray(pointInvenArr)) {
+                    while (pointInvenArr.length < 13) pointInvenArr.push(0);
 
-                    if (!Array.isArray(pointInvenArr)) {
-                        pointInvenArr = [0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0];
-                    }
-                    while (pointInvenArr.length < 12) {
-                        pointInvenArr.push(0);
-                    }
-
+                    // Index 0: Beri (Vàng), Index 1: Ruby, Index 2: Extol (VND)
                     if (newVang !== null && !isNaN(newVang)) {
                         pointInvenArr[0] = Math.max(0, newVang);
                     }
@@ -1587,6 +1689,37 @@ router.post('/admin/adjust_currency', jwtRequired, isAdmin, async (req, res) => 
         return res.json({ success: true, message: 'Cập nhật tiền tệ và tài sản thành công!' });
     } catch (err) {
         console.error('Admin adjust currency error:', err);
+        return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
+    }
+});
+
+// POST /api/admin/reset_user_milestones
+router.post('/admin/reset_user_milestones', jwtRequired, isAdmin, async (req, res) => {
+    const { username, type } = req.body; // 'tichnap' | 'tichtieu' | 'all'
+    if (!username) {
+        return res.json({ success: false, message: 'Thiếu tên tài khoản (username)!' });
+    }
+    try {
+        const [accRows] = await db.execute('SELECT `char` FROM accounts WHERE user = ? LIMIT 1', [username]);
+        if (accRows.length === 0) {
+            return res.json({ success: false, message: 'Không tìm thấy tài khoản!' });
+        }
+        const charNames = extractCharNames(accRows[0].char);
+
+        if (type === 'tichnap' || type === 'all') {
+            await db.execute("UPDATE accounts SET tichnap = 0, claimed_milestones = '' WHERE user = ?", [username]);
+            if (charNames.length > 0) {
+                await db.query("UPDATE players SET tichluycheck = '[]' WHERE name IN (?)", [charNames]);
+            }
+        }
+        if (type === 'tichtieu' || type === 'all') {
+            if (charNames.length > 0) {
+                await db.query("UPDATE players SET tichtieu_ruby = 0, tieu_ruby = 0, claimed_tichtieu_ruby = '', tich_tieu_check = '[]' WHERE name IN (?)", [charNames]);
+            }
+        }
+        return res.json({ success: true, message: `Đã reset mốc thành công cho tài khoản ${username}!` });
+    } catch (err) {
+        console.error('Reset user milestones error:', err);
         return res.json({ success: false, message: `Lỗi hệ thống: ${err.message}` });
     }
 });
