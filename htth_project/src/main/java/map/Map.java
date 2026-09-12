@@ -43,6 +43,7 @@ import template.Map_Dao_Hoa;
 import template.Map_ThuThachVeThan;
 import template.Map_clan_resource;
 import template.Map_pvp;
+import template.Option;
 import template.Option_Dame_Msg;
 import template.Ship_pet;
 import template.Skill_Template;
@@ -3432,6 +3433,20 @@ public class Map implements Runnable {
         int dame_magic_plus_percent = p.body.get_dame_ap();
         int crit_skill = p.body.get_crit(true);
         int multi_dame_skill = p.body.get_multi_dame_when_crit(true);
+        int pierce_skill = p.body.get_pierce(true);
+        if (sk_temp.temp != null && sk_temp.temp.op != null) {
+            for (Option op : sk_temp.temp.op) {
+                if (op.id == 1) {
+                    dame_plus_percent += op.getParam();
+                } else if (op.id == 10) {
+                    crit_skill += op.getParam();
+                } else if (op.id == 11) {
+                    multi_dame_skill += op.getParam();
+                } else if (op.id == 13) {
+                    pierce_skill += op.getParam();
+                }
+            }
+        }
         boolean crit = false;
         //
         List<Dame_Msg> list = new ArrayList<>();
@@ -3478,6 +3493,10 @@ public class Map implements Runnable {
                         / ((long) p.skill_point.get(0).get_dame(p));
                 long def = p_target.body.get_def(true);
                 def = (def * (1000L + (long) p_target.body.get_def_percent(true))) / 1_000L;
+                if (pierce_skill > 0) {
+                    long reduce_percent = Math.min(1000L, (long) pierce_skill);
+                    def = (def * (1000L - reduce_percent)) / 1000L;
+                }
                 dame2 -= def;
                 crit = (crit_skill) > Util.random(1000);
                 //
@@ -4064,6 +4083,17 @@ public class Map implements Runnable {
         int dame_magic_plus_percent = p.body.get_dame_ap();
         int crit_skill = p.body.get_crit(true);
         int multi_dame_skill = p.body.get_multi_dame_when_crit(true);
+        if (sk_temp.temp != null && sk_temp.temp.op != null) {
+            for (Option op : sk_temp.temp.op) {
+                if (op.id == 1) {
+                    dame_plus_percent += op.getParam();
+                } else if (op.id == 10) {
+                    crit_skill += op.getParam();
+                } else if (op.id == 11) {
+                    multi_dame_skill += op.getParam();
+                }
+            }
+        }
         boolean crit = (crit_skill) > Util.random(1000);
         List<Dame_Msg> list = new ArrayList<>();
         HashMap<Integer, Integer> id_mob_die = new HashMap<>(); // quest relative to mob

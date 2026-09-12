@@ -1711,25 +1711,28 @@ def create_all_ope_icons():
     draw_sparkle(d2, 76, 20, r=11, color=(255, 255, 255))
     draw_sparkle(d2, 28, 68, r=6, color=(0, 255, 170))
 
-    # Icon 4: Skill 3 - Trận Pháp Trái Tim Ope (Icon File ID 4423)
+    # Icon 4: Skill 3 - Khiên Phẫu Thuật Curtain / Room Cầu Xanh (Icon File ID 4423)
     im_sk3 = Image.new('RGBA', (96, 96), (0, 0, 0, 0))
     d3 = ImageDraw.Draw(im_sk3)
-    d3.rounded_rectangle([4, 4, 92, 92], radius=16, fill=(18, 12, 35, 245), outline=(0, 229, 255), width=3)
-    d3.ellipse([12, 12, 84, 84], outline=(0, 229, 255, 220), width=2)
-    d3.ellipse([20, 20, 76, 76], outline=(255, 64, 129, 180), width=2)
+    d3.rounded_rectangle([3, 3, 92, 92], radius=14, fill=(12, 18, 30, 252), outline=(0, 215, 255), width=3)
+    d3.rounded_rectangle([5, 5, 90, 90], radius=12, outline=(0, 130, 210, 180), width=1)
+    d3.ellipse([48 - 40, 48 - 40, 48 + 40, 48 + 40], outline=(0, 190, 255, 90), width=2)
     for ang_i in [0, 90, 180, 270]:
-        d3.arc([48 - 28, 48 - 28, 48 + 28, 48 + 28], start=ang_i, end=ang_i+70, fill=(0, 255, 220, 230), width=3)
-    df_mini = d3
-    df_mini.ellipse([32, 34, 48, 50], fill=(229, 57, 53, 240), outline=(255, 215, 0, 240), width=1)
-    df_mini.ellipse([48, 34, 64, 50], fill=(229, 57, 53, 240), outline=(255, 215, 0, 240), width=1)
-    df_mini.polygon([(33, 44), (63, 44), (48, 64)], fill=(229, 57, 53, 240))
-    df_mini.line([(33, 44), (48, 64)], fill=(255, 215, 0, 240), width=1)
-    df_mini.line([(63, 44), (48, 64)], fill=(255, 215, 0, 240), width=1)
-    df_mini.arc([40, 40, 56, 56], start=45, end=270, fill=(255, 255, 255, 240), width=1)
-    draw_sparkle(d3, 20, 20, r=7, color=(0, 229, 255))
-    draw_sparkle(d3, 76, 20, r=6, color=(255, 215, 0))
-    draw_sparkle(d3, 76, 76, r=7, color=(0, 229, 255))
-    draw_sparkle(d3, 20, 76, r=6, color=(255, 215, 0))
+        d3.arc([48 - 36, 48 - 36, 48 + 36, 48 + 36], start=ang_i, end=ang_i+65, fill=(0, 240, 255, 200), width=2)
+
+    # Đặt quả cầu Room xanh phát sáng rực rỡ vào trung tâm icon
+    bubble_path = os.path.join(script_dir, 'data', 'room_bubble.png')
+    if os.path.exists(bubble_path):
+        src_bubble = Image.open(bubble_path).convert('RGBA')
+        bubble_icon = src_bubble.resize((68, 68), Image.Resampling.LANCZOS)
+        im_sk3.alpha_composite(bubble_icon, (14, 14))
+    else:
+        d3.ellipse([18, 18, 78, 78], fill=(30, 130, 230), outline=(255, 255, 255), width=3)
+
+    draw_sparkle(d3, 16, 16, r=6, color=(0, 235, 255))
+    draw_sparkle(d3, 80, 16, r=5, color=(210, 245, 255))
+    draw_sparkle(d3, 80, 80, r=6, color=(0, 235, 255))
+    draw_sparkle(d3, 16, 80, r=5, color=(210, 245, 255))
 
     # Icon 5: Skill 4 - Bác Sĩ Tử Thần (Icon File ID 4424)
     im_sk4 = Image.new('RGBA', (96, 96), (0, 0, 0, 0))
@@ -1766,7 +1769,13 @@ def create_all_ope_icons():
             dir_icon = os.path.join(base_icon_dir, z)
             os.makedirs(dir_icon, exist_ok=True)
             im_z.save(os.path.join(dir_icon, f'{icon_id}.png'), format='PNG', optimize=True)
-        print(f"-> Đã tạo thành công Icon ID {icon_id} tại data/icon/ cho toàn bộ x0..x4")
+            
+            # Cập nhật thêm vào data/nro/normal/image/{1..4}/icon nếu là zoom x1..x4
+            if z.startswith('x') and z[1:] in ('1', '2', '3', '4'):
+                nro_icon_dir = os.path.join(script_dir, 'data', 'nro', 'normal', 'image', z[1:], 'icon')
+                if os.path.exists(nro_icon_dir):
+                    im_z.save(os.path.join(nro_icon_dir, f'{icon_id}.png'), format='PNG', optimize=True)
+        print(f"-> Đã tạo thành công Icon ID {icon_id} tại data/icon/ và data/nro/normal/image/ cho toàn bộ x0..x4")
 
 if __name__ == '__main__':
     print("=== ĐANG TẠO SPRITE SHEETS & DATA EFFECT CHO TRÁI OPE OPE NO MI (ID 914..916) ===")

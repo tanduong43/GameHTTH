@@ -28,17 +28,17 @@ VALUES (1016, 'Khi ăn Trái Ác Quỷ Ope Ope (Phẫu Thuật), bạn sẽ th�
 -- 3.1. Skill 1: Room - Trảm Không Gian (Amputate / Shambles Slash)
 -- Nguyên tác: Cắt rời không gian bỏ qua giáp và phòng thủ trong Room, độ chính xác tuyệt đối
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1078, 914, 2064, 421, 1, 0, 'Trảm Không Gian', 914, 160, 4, 140, 75, 55, 18000, 1, 'Mở trường phẫu thuật Room, chém kiếm khí Kikoku phân tách không gian, gây 350% sát thương của chiêu Quả đấm tốc độ và xuyên 45% giáp lên 4 mục tiêu', 1, 1, '[[1, 420], [13, 450], [28, 4], [29, 300], [30, 20]]', '[4, 300, 20]');
+VALUES (1078, 914, 2064, 421, 1, 0, 'Trảm Không Gian', 914, 160, 4, 140, 75, 55, 18000, 1, 'Mở trường phẫu thuật Room, chém kiếm khí Kikoku phân tách không gian, gây 350% sát thương của chiêu Quả đấm tốc độ, tăng 40% tỉ lệ chí mạng và 36% sát thương chí mạng lên 4 mục tiêu', 1, 1, '[[10, 400], [11, 360], [28, 4], [29, 300], [30, 20]]', '[4, 300, 20]');
 
 -- 3.2. Skill 2: Dao Phóng Xạ Gamma (Gamma Knife - Internal Organs Destruction)
 -- Nguyên tác: Đâm dao điện Plasma Gamma xuyên thẳng nội tạng, bạo kích cực hạn và gây sát thương chí mạng
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1079, 915, 2065, 422, 1, 0, 'Dao Phóng Xạ Gamma', 915, 140, 1, 0, 75, 65, 20000, 1, 'Tạo quả cầu Room giam giữ mục tiêu và phóng dao plasma Gamma nghiền nát, tăng 40% tỉ lệ chí mạng và 25% sát thương chí mạng', 1, 1, '[[10, 400], [11, 250], [28, 9], [29, 500], [30, 20]]', '[9, 500, 20]');
+VALUES (1079, 915, 2065, 422, 1, 0, 'Dao Phóng Xạ Gamma', 915, 140, 1, 0, 75, 65, 20000, 1, 'Tạo quả cầu Room giam giữ mục tiêu và phóng dao plasma Gamma nghiền nát, tăng 40% sức tấn công và xuyên 35% giáp của mục tiêu', 1, 1, '[[1, 400], [13, 350], [28, 9], [29, 500], [30, 20]]', '[9, 500, 20]');
 
 -- 3.3. Skill 3: Curtain & Scan (Khiên Phẫu Thuật Curtain)
 -- Nguyên tác: Màn chắn Curtain chặn đòn hủy diệt, tăng giáp phòng thủ và miễn thương
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1080, 916, 2066, 423, 2, 1, 'Khiên Phẫu Thuật', 916, 120, 1, 120, 0, 90, 38000, 0, 'Dựng màn chắn không gian Curtain bảo hộ bản thân: Tăng 40% phòng thủ và 25% miễn thương trong 25 giây', 1, 1, '[[4, 400], [53, 250], [31, 1], [32, 250]]', '[0, -1, -1]');
+VALUES (1080, 916, 2066, 423, 2, 1, 'Khiên Phẫu Thuật', 916, 120, 1, 120, 0, 90, 38000, 0, 'Dựng màn chắn không gian Curtain bảo hộ bản thân: Tăng 25% miễn thương, 40% né tránh và 50% chí mạng trong 25 giây', 1, 1, '[[53, 250], [12, 400], [10, 500], [31, 1], [32, 250]]', '[0, -1, -1]');
 
 -- 3.4. Skill 4: Bác Sĩ Tử Thần (Surgeon of Death - Tri Thức Phẫu Thuật Gia)
 -- Nguyên tác: Hiểu rõ mọi tử huyệt sinh học, tăng vĩnh viễn 30% Phản đòn, 30% Né tránh và 30% S.t chí mạng
