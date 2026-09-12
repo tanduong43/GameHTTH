@@ -1205,11 +1205,11 @@ public class Session implements Runnable {
             st = connection.createStatement();
             if (type == 0 && this.p != null) {
                 st.executeUpdate(
-                        "UPDATE `accounts` SET `onl` = " + type + " WHERE BINARY `user` = '"
+                        "UPDATE `accounts` SET `onl` = " + type + ", `last_login` = NOW() WHERE BINARY `user` = '"
                                 + this.user + "' AND BINARY `pass` = '" + this.pass + "' LIMIT 1;");
             } else {
                 st.executeUpdate(
-                        "UPDATE `accounts` SET `onl` = " + type + " WHERE BINARY `user` = '"
+                        "UPDATE `accounts` SET `onl` = " + type + ", `last_login` = NOW() WHERE BINARY `user` = '"
                                 + this.user + "' AND BINARY `pass` = '" + this.pass + "' LIMIT 1;");
             }
         } catch (SQLException e) {

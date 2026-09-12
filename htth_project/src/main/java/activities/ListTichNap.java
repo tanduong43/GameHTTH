@@ -123,10 +123,17 @@ public class ListTichNap {
                 }
 
                 p.claimedMilestones.clear();
+                p.tichTieuCheck = new byte[20];
                 if (!p.conn.claimed_milestones.isEmpty()) {
                     for (String s : p.conn.claimed_milestones.split(",")) {
                         try {
-                            p.claimedMilestones.add(Integer.parseInt(s.trim()));
+                            int mid = Integer.parseInt(s.trim());
+                            if (mid >= 0 && mid < ENTRY.size()) {
+                                p.claimedMilestones.add(mid);
+                                if (mid < p.tichTieuCheck.length) {
+                                    p.tichTieuCheck[mid] = 1;
+                                }
+                            }
                         } catch (NumberFormatException e) {
                             // ignore
                         }
@@ -166,9 +173,7 @@ public class ListTichNap {
         for (int i = 0; i < ENTRY.size(); i++) {
             ListTichNap t = ENTRY.get(i);
             byte status = 0;
-            if ((i < p.tichTieuCheck.length && p.tichTieuCheck[i] == 1)
-                    || p.claimedMilestones.contains(i)
-                    || p.conn.claimed_milestones.contains(String.valueOf(i))) {
+            if (p.claimedMilestones.contains(i)) {
                 status = 2; // Đã nhận
             } else if (tongnap >= t.num) {
                 status = 1; // Đủ điều kiện nhận
@@ -258,9 +263,7 @@ public class ListTichNap {
             return;
         }
 
-        if ((id < p.tichTieuCheck.length && p.tichTieuCheck[id] == 1)
-                || p.claimedMilestones.contains(id)
-                || p.conn.claimed_milestones.contains(String.valueOf(id))) {
+        if (p.claimedMilestones.contains(id)) {
             Service.send_box_ThongBao_OK(p, "Bạn đã nhận quà mốc này rồi!");
             return;
         }

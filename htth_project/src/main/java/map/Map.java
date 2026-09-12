@@ -2818,6 +2818,9 @@ public class Map implements Runnable {
         if (this.template.id == 119) {
             Wanted.remove_player_wait(p);
         }
+        if (activities.BigBattle.isWaitingMap(this)) {
+            activities.BigBattle.handlePlayerExit(p);
+        }
         synchronized (this) {
             players.remove(p);
         }

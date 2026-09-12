@@ -28,6 +28,7 @@ public class SessionManager {
             ss.connected = false;
             try {
                 if (ss.p != null) {
+                    activities.BigBattle.handlePlayerExit(ss.p);
                     if (!ss.p.isdie || ss.p.dungeon != null || ss.p.bossHunt != null) {
                         client.ReconnectSession.create(ss.p);
                     } else if (ss.p.party != null) {

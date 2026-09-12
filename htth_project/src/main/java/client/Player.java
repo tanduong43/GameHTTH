@@ -517,10 +517,15 @@ public class Player {
                 village_tier = 1;
             }
             this.claimedMilestones = new ArrayList<>();
+            this.tichTieuCheck = new byte[20];
             if (this.conn != null && this.conn.claimed_milestones != null && !this.conn.claimed_milestones.isEmpty()) {
                 for (String s : this.conn.claimed_milestones.split(",")) {
                     try {
-                        this.claimedMilestones.add(Integer.parseInt(s.trim()));
+                        int mid = Integer.parseInt(s.trim());
+                        if (mid >= 0 && mid < 20) {
+                            this.claimedMilestones.add(mid);
+                            this.tichTieuCheck[mid] = 1;
+                        }
                     } catch (NumberFormatException e) {
                         // ignore
                     }
@@ -651,11 +656,17 @@ public class Player {
             } catch (Exception e) {
             }
             try {
-                JSONArray jsTich = (JSONArray) JSONValue.parse(rs.getString("tichluycheck"));
-                if (jsTich != null) {
-                    for (int i = 0; i < jsTich.size() && i < this.tichTieuCheck.length; i++) {
-                        this.tichTieuCheck[i] = Byte.parseByte(jsTich.get(i).toString());
+                if (!this.claimedMilestones.isEmpty()) {
+                    JSONArray jsTich = (JSONArray) JSONValue.parse(rs.getString("tichluycheck"));
+                    if (jsTich != null) {
+                        for (int i = 0; i < jsTich.size() && i < this.tichTieuCheck.length; i++) {
+                            if (this.claimedMilestones.contains(i)) {
+                                this.tichTieuCheck[i] = 1;
+                            }
+                        }
                     }
+                } else {
+                    this.tichTieuCheck = new byte[20];
                 }
             } catch (Exception e) {
             }
@@ -674,13 +685,17 @@ public class Player {
             int savedMapId = Integer.parseInt(js.get(0).toString());
             boolean wasBossHuntMap = activities.BossHunt.isBossHuntMap(savedMapId);
             boolean wasNamieMap = activities.NamieTreasureDefense.isDefenseMap(savedMapId);
+            boolean wasBigBattleMap = (savedMapId >= 2030 && savedMapId <= 2032)
+                    || savedMapId == 120 || savedMapId == 122 || savedMapId == 123;
             boolean wasSpecialRedirectMap = (savedMapId == 2000 || savedMapId == 2028 
                     || savedMapId == activities.PetTraining.MAP_TRAIN_PET_ID 
-                    || savedMapId == 2026 || savedMapId == 1001);
+                    || savedMapId == 2026 || savedMapId == 1001 || savedMapId == 58
+                    || wasBigBattleMap);
             if (wasBossHuntMap || wasSpecialRedirectMap) {
                 System.out.println("[MapRedirect] Player " + this.name + " saved map was (" + savedMapId
-                        + "). Redirecting to map 1 (Windmill Village).");
-                savedMapId = 1;
+                        + "). Redirecting to saved village.");
+                savedMapId = (this.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(this.id_map_save) && this.id_map_save != 120 && this.id_map_save != 122 && this.id_map_save != 123)
+                        ? this.id_map_save : 1;
             }
             if (wasNamieMap) {
                 System.out.println("[NamieDefense] Player " + this.name + " saved map was Namie defense map (" + savedMapId
@@ -1241,15 +1256,23 @@ public class Player {
             this.originalX = session.originalX;
             this.originalY = session.originalY;
             if (session.oldMap != null) {
-                if (session.oldMap.map_pvp != null) {
-                    // Out game khi dang pvp, dua ve originalMapId hoac phong cho 119
-                    int targetMap = (session.oldMap.map_pvp.type_map == 2) ? 119
-                            : (this.originalMapId > 0 ? this.originalMapId : (this.id_map_save > 0 ? this.id_map_save : 1));
+                boolean isWaitingMap = (session.oldMap.template != null && (session.oldMap.template.id >= 2030 && session.oldMap.template.id <= 2032))
+                        || activities.BigBattle.isWaitingMap(session.oldMap);
+                if (session.oldMap.map_pvp != null || isWaitingMap) {
+                    // Out game khi dang pvp hoac trong sanh cho, dua ve lang
+                    int targetMap = 1;
+                    if (session.oldMap.map_pvp != null && session.oldMap.map_pvp.type_map == 2) {
+                        targetMap = 119;
+                    } else if (this.originalMapId > 0 && !activities.BigBattle.isWaitingMapId(this.originalMapId)) {
+                        targetMap = this.originalMapId;
+                    } else if (this.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(this.id_map_save)) {
+                        targetMap = this.id_map_save;
+                    }
                     Map[] targetMaps = Map.get_map_by_id(targetMap);
                     if (targetMaps != null && targetMaps.length > 0) {
                         this.map = targetMaps[0];
-                        this.x = (this.originalX > 0) ? this.originalX : 300;
-                        this.y = (this.originalY > 0) ? this.originalY : 250;
+                        this.x = (this.originalX > 0 && targetMap == this.originalMapId) ? this.originalX : 611;
+                        this.y = (this.originalY > 0 && targetMap == this.originalMapId) ? this.originalY : 250;
                     }
                     this.originalMapId = -1;
                     this.originalX = -1;
@@ -1410,13 +1433,23 @@ public class Player {
             js = new JSONArray();
             if (p.map.template.id == 2000 || p.map.template.id == 2028
                     || p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID
-                    || p.map.template.id == 2026 || p.map.template.id == 1001) {
-                js.add(1);
+                    || p.map.template.id == 2026 || p.map.template.id == 1001
+                    || (p.map.template.id >= 2030 && p.map.template.id <= 2032)
+                    || activities.BigBattle.isWaitingMap(p.map)
+                    || (p.map.map_pvp != null && p.map.map_pvp.type_map == 4)
+                    || p.map.template.id == 120 || p.map.template.id == 122 || p.map.template.id == 123) {
+                int returnMapId = 1;
+                if (p.originalMapId > 0 && !activities.BigBattle.isWaitingMapId(p.originalMapId)) {
+                    returnMapId = p.originalMapId;
+                } else if (p.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(p.id_map_save) && p.id_map_save != 120 && p.id_map_save != 122 && p.id_map_save != 123) {
+                    returnMapId = p.id_map_save;
+                }
+                js.add(returnMapId);
                 js.add(0);
                 js.add(p.hp);
                 js.add(p.mp);
-                js.add(611);
-                js.add(250);
+                js.add((p.originalX > 0 && returnMapId == p.originalMapId) ? p.originalX : 611);
+                js.add((p.originalY > 0 && returnMapId == p.originalMapId) ? p.originalY : 250);
             } else if (Map.map_cant_save_site(p.map.template.id)) {
                 //
                 int x_save = -1, y_save = -1;

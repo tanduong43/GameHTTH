@@ -3729,6 +3729,7 @@ public class MenuController {
             connection = database.SQL.gI().getCon();
             st = connection.createStatement();
             st.executeUpdate("UPDATE `accounts` SET `tichnap` = 0, `claimed_milestones` = ''");
+            st.executeUpdate("UPDATE `players` SET `tichluycheck` = '[]'");
           } catch (java.sql.SQLException e) {
             e.printStackTrace();
           } finally {
@@ -3750,6 +3751,7 @@ public class MenuController {
                 sess.tichnap = 0;
                 sess.claimed_milestones = "";
                 sess.p.claimedMilestones.clear();
+                sess.p.tichTieuCheck = new byte[20];
                 try {
                   activities.ListTichNap.sendUI(sess.p);
                 } catch (Exception e) {
@@ -3769,7 +3771,7 @@ public class MenuController {
           try {
             connDb = database.SQL.gI().getCon();
             st = connDb.createStatement();
-            st.executeUpdate("UPDATE `players` SET `tichtieu_ruby` = 0, `claimed_tichtieu_ruby` = ''");
+            st.executeUpdate("UPDATE `players` SET `tichtieu_ruby` = 0, `tieu_ruby` = 0, `claimed_tichtieu_ruby` = '', `tich_tieu_check` = '[]'");
           } catch (java.sql.SQLException e) {
             e.printStackTrace();
           } finally {

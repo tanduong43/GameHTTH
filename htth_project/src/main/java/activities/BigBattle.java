@@ -59,6 +59,12 @@ public class BigBattle {
     // Lịch sử các cặp đã đấu trong ngày: "minId_maxId"
     public static final Set<String> MATCHED_PAIRS_TODAY = ConcurrentHashMap.newKeySet();
 
+    // Danh sách người chơi đang trong 30s đếm ngược chờ vào trận
+    public static final Set<Integer> PENDING_MATCH_PLAYERS = ConcurrentHashMap.newKeySet();
+
+    // Cặp đối thủ đang đếm ngược: PlayerId -> OpponentId
+    public static final java.util.Map<Integer, Integer> PENDING_OPPONENTS = new ConcurrentHashMap<>();
+
     // BXH Top Chuỗi Thắng (In-memory cache)
     public static final List<InfoMemList> TOP_STREAK = new ArrayList<>();
 
@@ -92,6 +98,8 @@ public class BigBattle {
      */
     public static void resetDailyMatches() {
         MATCHED_PAIRS_TODAY.clear();
+        PENDING_MATCH_PLAYERS.clear();
+        PENDING_OPPONENTS.clear();
         System.out.println("[BigBattle] Da reset lich su cap dau Tran Chien Lon hom nay!");
     }
 
@@ -178,6 +186,11 @@ public class BigBattle {
         temp.id_eff_map = baseMap.template.id_eff_map;
         temp.level = baseMap.template.level;
         temp.typeChangeMap = baseMap.template.typeChangeMap;
+        temp.b = baseMap.template.b;
+        temp.specMap = baseMap.template.specMap;
+        temp.type_view_p = baseMap.template.type_view_p;
+        temp.mPosMapTrain = baseMap.template.mPosMapTrain;
+        temp.strTimeChange = baseMap.template.strTimeChange;
 
         // Tạo NPC Image 5014 đứng tại sảnh chờ
         Npc npc = new Npc();
@@ -245,7 +258,6 @@ public class BigBattle {
             p.originalMapId = p.map.template.id;
             p.originalX = p.x;
             p.originalY = p.y;
-            p.map.leave_map(p, 2);
         }
 
         Map waitMap = getOrCreateWaitingMap(bracket);
@@ -255,10 +267,16 @@ public class BigBattle {
         vgo.ynew = getWaitingSpawnY(bracket);
         p.goto_map(vgo);
 
-        Service.send_box_ThongBao_OK(p,
-                "Chào mừng bạn đến với Sảnh Chờ Trận Chiến Lớn (Cấp "
-                        + (bracket == BRACKET_1 ? "20-39" : (bracket == BRACKET_2 ? "40-69" : "70+"))
-                        + ")!\n\nHệ thống đang tự động tìm kiếm đối thủ phù hợp. Bạn hãy đợi trong giây lát hoặc gặp NPC Đô Đốc để xem BXH & Nhận thưởng.");
+        if (p.map != null && p.map.template.id == waitMap.template.id) {
+            Service.send_box_ThongBao_OK(p,
+                    "Chào mừng bạn đến với Sảnh Chờ Trận Chiến Lớn (Cấp "
+                            + (bracket == BRACKET_1 ? "20-39" : (bracket == BRACKET_2 ? "40-69" : "70+"))
+                            + ")!\n\nHệ thống đang tự động tìm kiếm đối thủ phù hợp. Bạn hãy đợi trong giây lát hoặc gặp NPC Đô Đốc để xem BXH & Nhận thưởng.");
+        }
+    }
+
+    public static boolean isWaitingMapId(int id) {
+        return id == MAP_WAITING_BRACKET_1 || id == MAP_WAITING_BRACKET_2 || id == MAP_WAITING_BRACKET_3;
     }
 
     /**
@@ -267,7 +285,7 @@ public class BigBattle {
     public static boolean isWaitingMap(Map map) {
         if (map == null || map.template == null) return false;
         int id = map.template.id;
-        if (id == MAP_WAITING_BRACKET_1 || id == MAP_WAITING_BRACKET_2 || id == MAP_WAITING_BRACKET_3) {
+        if (isWaitingMapId(id)) {
             return true;
         }
         for (Map waitMap : WAITING_MAPS.values()) {
@@ -288,6 +306,148 @@ public class BigBattle {
     }
 
     /**
+     * Tìm Player đang đứng trong bất kỳ Sảnh Chờ nào theo ID
+     */
+    public static Player findPlayerInWaitingMaps(int playerId) {
+        for (Map waitMap : WAITING_MAPS.values()) {
+            if (waitMap != null) {
+                synchronized (waitMap.players) {
+                    for (Player p : waitMap.players) {
+                        if (p != null && p.id == playerId) {
+                            return p;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Kiểm tra người chơi có sẵn sàng trong sảnh chờ để ghép trận hay không
+     */
+    public static boolean isPlayerReadyInWaiting(Player p, Map waitMap) {
+        return p != null && p.conn != null && p.conn.connected && !p.isdie && !p.isBot
+                && p.targetFight == null && (p.map != null && p.map.equals(waitMap));
+    }
+
+    /**
+     * Xử lý khi người chơi thoát sảnh chờ hoặc mất kết nối
+     */
+    public static void handlePlayerExit(Player p) {
+        if (p == null) return;
+        try {
+            Service.send_time_cool_down(p, 0, "", 0);
+        } catch (Exception ignored) {}
+
+        PENDING_MATCH_PLAYERS.remove(p.id);
+        Integer oppId = PENDING_OPPONENTS.remove(p.id);
+        if (oppId != null) {
+            PENDING_OPPONENTS.remove(oppId);
+            PENDING_MATCH_PLAYERS.remove(oppId);
+            String pairKey = getPairKey(p.id, oppId);
+            MATCHED_PAIRS_TODAY.remove(pairKey);
+
+            Player opp = findPlayerInWaitingMaps(oppId);
+            if (opp != null && opp.conn != null && opp.conn.connected) {
+                try {
+                    Service.send_time_cool_down(opp, 0, "", 0);
+                    Service.send_box_ThongBao_OK(opp,
+                            "Đối thủ (" + p.name + ") đã thoát game hoặc rời khỏi sảnh chờ!\n"
+                            + "Trận đấu bị hủy, hệ thống đang tiếp tục tìm kiếm đối thủ mới cho bạn.");
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    /**
+     * Bắt đầu đếm ngược 30 giây khi ghép trận thành công
+     */
+    public static void prepareBattle(Player p1, Player p2, int bracket) {
+        PENDING_MATCH_PLAYERS.add(p1.id);
+        PENDING_MATCH_PLAYERS.add(p2.id);
+        PENDING_OPPONENTS.put(p1.id, p2.id);
+        PENDING_OPPONENTS.put(p2.id, p1.id);
+
+        long startTime = System.currentTimeMillis() + 30_000L;
+
+        try {
+            Service.send_box_ThongBao_OK(p1,
+                    "⚔️ GHÉP TRẬN THÀNH CÔNG!\n\n"
+                    + "Đối thủ: " + p2.name + " (Cấp " + p2.level + ")\n"
+                    + "Trận chiến lớn sẽ bắt đầu sau 30 giây!\n"
+                    + "Hãy chuẩn bị sẵn sàng hành trang và kỹ năng.");
+            Service.send_time_cool_down(p1, startTime, "Chiến đấu vs " + p2.name, 2);
+        } catch (Exception ignored) {}
+
+        try {
+            Service.send_box_ThongBao_OK(p2,
+                    "⚔️ GHÉP TRẬN THÀNH CÔNG!\n\n"
+                    + "Đối thủ: " + p1.name + " (Cấp " + p1.level + ")\n"
+                    + "Trận chiến lớn sẽ bắt đầu sau 30 giây!\n"
+                    + "Hãy chuẩn bị sẵn sàng hành trang và kỹ năng.");
+            Service.send_time_cool_down(p2, startTime, "Chiến đấu vs " + p1.name, 2);
+        } catch (Exception ignored) {}
+
+        try {
+            String notice = "⚔️ [Trận Chiến Lớn]: Cặp đấu " + p1.name + " (Lv " + p1.level + ") VS " + p2.name + " (Lv " + p2.level + ") sẽ bắt đầu sau 30 giây!";
+            Manager.gI().chatKTG(0, notice, 5);
+        } catch (Exception ignored) {}
+
+        scheduler.schedule(() -> {
+            try {
+                processPendingMatch(p1, p2, bracket);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 30, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Xử lý sau 30 giây đếm ngược: nếu cả 2 vẫn sẵn sàng thì đưa vào lôi đài PvP
+     */
+    private static void processPendingMatch(Player p1, Player p2, int bracket) {
+        PENDING_MATCH_PLAYERS.remove(p1.id);
+        PENDING_MATCH_PLAYERS.remove(p2.id);
+        PENDING_OPPONENTS.remove(p1.id);
+        PENDING_OPPONENTS.remove(p2.id);
+
+        Map waitMap = WAITING_MAPS.get(bracket);
+        boolean p1Ready = isPlayerReadyInWaiting(p1, waitMap);
+        boolean p2Ready = isPlayerReadyInWaiting(p2, waitMap);
+
+        if (p1Ready && p2Ready) {
+            try {
+                Service.send_time_cool_down(p1, 0, "", 0);
+                Service.send_time_cool_down(p2, 0, "", 0);
+            } catch (Exception ignored) {}
+
+            short mapId = PVP_MAP_IDS[Util.random(PVP_MAP_IDS.length)];
+            startBattle(p1, p2, mapId, bracket);
+        } else {
+            String pairKey = getPairKey(p1.id, p2.id);
+            MATCHED_PAIRS_TODAY.remove(pairKey);
+
+            if (p1Ready) {
+                try {
+                    Service.send_time_cool_down(p1, 0, "", 0);
+                    Service.send_box_ThongBao_OK(p1,
+                            "Đối thủ (" + p2.name + ") đã thoát hoặc rời khỏi sảnh chờ!\n"
+                            + "Trận đấu bị hủy, hệ thống đang tiếp tục tìm kiếm đối thủ mới cho bạn.");
+                } catch (Exception ignored) {}
+            }
+            if (p2Ready) {
+                try {
+                    Service.send_time_cool_down(p2, 0, "", 0);
+                    Service.send_box_ThongBao_OK(p2,
+                            "Đối thủ (" + p1.name + ") đã thoát hoặc rời khỏi sảnh chờ!\n"
+                            + "Trận đấu bị hủy, hệ thống đang tiếp tục tìm kiếm đối thủ mới cho bạn.");
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    /**
      * Luồng ghép trận tự động (quét mỗi 5 giây)
      */
     public static void runMatchmaking() {
@@ -301,8 +461,7 @@ public class BigBattle {
             List<Player> readyPlayers = new ArrayList<>();
             synchronized (waitMap.players) {
                 for (Player pl : waitMap.players) {
-                    if (pl != null && pl.conn != null && pl.conn.connected && !pl.isdie && !pl.isBot
-                            && pl.targetFight == null && (pl.map != null && pl.map.equals(waitMap))) {
+                    if (isPlayerReadyInWaiting(pl, waitMap) && !PENDING_MATCH_PLAYERS.contains(pl.id)) {
                         readyPlayers.add(pl);
                     }
                 }
@@ -315,15 +474,15 @@ public class BigBattle {
             // Xáo trộn ngẫu nhiên để công bằng
             Collections.shuffle(readyPlayers);
 
-            // Tìm các cặp hợp lệ (chưa từng đấu nhau trong ngày)
+            // Tìm các cặp hợp lệ (chưa từng đấu nhau trong ngày và chưa ở trạng thái chờ)
             List<Player> matchedThisRound = new ArrayList<>();
             for (int i = 0; i < readyPlayers.size(); i++) {
                 Player p1 = readyPlayers.get(i);
-                if (matchedThisRound.contains(p1)) continue;
+                if (matchedThisRound.contains(p1) || PENDING_MATCH_PLAYERS.contains(p1.id)) continue;
 
                 for (int j = i + 1; j < readyPlayers.size(); j++) {
                     Player p2 = readyPlayers.get(j);
-                    if (matchedThisRound.contains(p2)) continue;
+                    if (matchedThisRound.contains(p2) || PENDING_MATCH_PLAYERS.contains(p2.id)) continue;
 
                     String pairKey = getPairKey(p1.id, p2.id);
                     if (!MATCHED_PAIRS_TODAY.contains(pairKey)) {
@@ -332,9 +491,8 @@ public class BigBattle {
                         matchedThisRound.add(p1);
                         matchedThisRound.add(p2);
 
-                        // Ghép trận đưa vào map PvP
-                        short mapId = PVP_MAP_IDS[Util.random(PVP_MAP_IDS.length)];
-                        startBattle(p1, p2, mapId, bracket);
+                        // Bắt đầu 30s đếm ngược và thông báo cho 2 bên
+                        prepareBattle(p1, p2, bracket);
                         break;
                     }
                 }
@@ -508,9 +666,15 @@ public class BigBattle {
      * Rời Sảnh Chờ quay về làng xuất phát
      */
     public static void leaveWaitingRoom(Player p) throws IOException {
+        handlePlayerExit(p);
         p.targetFight = null;
         p.type_pk = -1;
-        int targetMapId = p.originalMapId > 0 ? p.originalMapId : 1;
+        int targetMapId = 1;
+        if (p.originalMapId > 0 && !isWaitingMapId(p.originalMapId)) {
+            targetMapId = p.originalMapId;
+        } else if (p.id_map_save > 0 && !isWaitingMapId(p.id_map_save)) {
+            targetMapId = p.id_map_save;
+        }
         Map[] targetMaps = Map.get_map_by_id(targetMapId);
         if (targetMaps == null || targetMaps.length == 0) {
             targetMaps = Map.get_map_by_id(1); // Làng cối xay gió
@@ -518,8 +682,8 @@ public class BigBattle {
 
         Vgo vgo = new Vgo();
         vgo.map_go = targetMaps;
-        vgo.xnew = p.originalX > 0 ? p.originalX : 611;
-        vgo.ynew = p.originalY > 0 ? p.originalY : 250;
+        vgo.xnew = (p.originalX > 0 && targetMapId == p.originalMapId) ? p.originalX : 611;
+        vgo.ynew = (p.originalY > 0 && targetMapId == p.originalMapId) ? p.originalY : 250;
         p.goto_map(vgo);
         Service.update_PK(p, p, true);
         Service.send_box_ThongBao_OK(p, "Bạn đã rời khỏi Sảnh Chờ Trận Chiến Lớn.");
