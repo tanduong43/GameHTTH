@@ -92,34 +92,83 @@ function AdminAccount() {
   const [deleteModalAccount, setDeleteModalAccount] = useState(null);
   const [submittingDelete, setSubmittingDelete] = useState(false);
 
+  // Orphaned Players state (nhân vật mồ côi không có tài khoản)
+  const [orphanedCount, setOrphanedCount] = useState(0);
+  const [orphanedList, setOrphanedList] = useState([]);
+  const [showOrphanedModal, setShowOrphanedModal] = useState(false);
+  const [cleaningOrphaned, setCleaningOrphaned] = useState(false);
+
+  const fetchOrphanedPlayers = useCallback(async () => {
+    try {
+      const res = await api.get('admin/orphaned_players');
+      if (res.data && res.data.success) {
+        setOrphanedCount(res.data.count || 0);
+        setOrphanedList(res.data.orphanedPlayers || []);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleDeleteOrphaned = async (charName = null) => {
+    const confirmMsg = charName
+      ? `Bạn có chắc muốn xóa vĩnh viễn nhân vật mồ côi "${charName}"?`
+      : `Bạn có chắc muốn xóa TẤT CẢ ${orphanedCount} nhân vật mồ côi không có tài khoản liên kết?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setCleaningOrphaned(true);
+    try {
+      const payload = charName ? { charNames: [charName] } : { all: true };
+      const res = await api.post('admin/delete_orphaned_players', payload);
+      if (res.data && res.data.success) {
+        showMessage('success', res.data.message || 'Đã dọn dẹp nhân vật mồ côi thành công!');
+        fetchOrphanedPlayers();
+        fetchAccounts(page, limit);
+        if (!charName || orphanedList.length <= 1) {
+          setShowOrphanedModal(false);
+        }
+      } else {
+        showMessage('error', res.data?.message || 'Không thể xóa nhân vật mồ côi!');
+      }
+    } catch {
+      showMessage('error', 'Lỗi kết nối máy chủ!');
+    } finally {
+      setCleaningOrphaned(false);
+    }
+  };
+
   const handleOpenDeleteModal = (acc) => {
-    setDeleteModalAccount(acc);
+    const charName = acc?.charName || (detailData?.player?.name) || (typeof acc?.char === 'string' && acc.char !== '[]' ? acc.char : null);
+    setDeleteModalAccount({ ...acc, charName });
   };
 
   const handleConfirmDeleteAccount = async () => {
     if (!deleteModalAccount) return;
     const targetUsername = deleteModalAccount.user || deleteModalAccount.username;
     if (!targetUsername) return;
+    const targetCharName = deleteModalAccount.charName || (detailData?.player?.name) || null;
 
     setSubmittingDelete(true);
     try {
       const res = await api.post('admin/update_user', {
         username: targetUsername,
+        charName: targetCharName,
         action: 'delete'
       });
       if (res.data.success) {
-        showMessage('success', res.data.message || 'Đã xóa tài khoản thành công!');
+        showMessage('success', res.data.message || 'Đã xóa tài khoản và nhân vật thành công!');
         if (detailData?.account?.user === targetUsername) {
           setDetailModalOpen(false);
           setDetailData(null);
         }
         setDeleteModalAccount(null);
         fetchAccounts(page, limit);
+        fetchOrphanedPlayers();
       } else {
         showMessage('error', res.data.message || 'Không thể xóa tài khoản!');
       }
-    } catch {
-      showMessage('error', 'Lỗi kết nối máy chủ khi xóa tài khoản!');
+    } catch (err) {
+      showMessage('error', err.response?.data?.message || 'Lỗi kết nối máy chủ khi xóa tài khoản!');
     } finally {
       setSubmittingDelete(false);
     }
@@ -233,9 +282,10 @@ function AdminAccount() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchAccounts(page, limit);
+      fetchOrphanedPlayers();
     }, 300);
     return () => clearTimeout(timer);
-  }, [page, limit, searchQuery, statusFilter, lockFilter, onlineFilter]);
+  }, [page, limit, searchQuery, statusFilter, lockFilter, onlineFilter, fetchAccounts, fetchOrphanedPlayers]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -543,6 +593,50 @@ function AdminAccount() {
           <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '80px', opacity: 0.05 }}>👑</div>
         </div>
       </div>
+
+      {/* Orphaned Players Alert Banner */}
+      {orphanedCount > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'linear-gradient(90deg, rgba(250, 173, 20, 0.15), rgba(255, 77, 79, 0.15))',
+          border: '1px solid rgba(250, 173, 20, 0.4)',
+          borderRadius: '12px',
+          padding: '14px 20px',
+          marginBottom: '20px',
+          color: '#ffd591',
+          fontSize: '13.5px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+          gap: '12px',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px' }}>⚠️</span>
+            <span>
+              Phát hiện <strong>{orphanedCount}</strong> nhân vật mồ côi (tài khoản đã bị xóa trước đây nhưng nhân vật vẫn còn trong Database).
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowOrphanedModal(true)}
+            style={{
+              padding: '7px 16px',
+              borderRadius: '8px',
+              border: '1px solid rgba(250, 173, 20, 0.6)',
+              background: 'rgba(250, 173, 20, 0.25)',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '13px',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s'
+            }}
+          >
+            🧹 Xem & Dọn dẹp ({orphanedCount})
+          </button>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div style={{
@@ -2941,21 +3035,27 @@ function AdminAccount() {
                 <span style={{ color: '#888' }}>Tài khoản:</span>
                 <strong style={{ color: '#00e5ff' }}>{deleteModalAccount.user || deleteModalAccount.username}</strong>
               </div>
-              {deleteModalAccount.char && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#888' }}>Nhân vật:</span>
-                  <strong style={{ color: '#ff8a00' }}>
-                    {(() => {
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#888' }}>Nhân vật:</span>
+                <strong style={{ color: '#ff8a00' }}>
+                  {(() => {
+                    const c = deleteModalAccount.charName || deleteModalAccount.char;
+                    if (!c || c === '[]') return 'Chưa tạo nhân vật';
+                    if (Array.isArray(c)) return c.join(', ');
+                    if (typeof c === 'string') {
                       try {
-                        const parsed = typeof deleteModalAccount.char === 'string' ? JSON.parse(deleteModalAccount.char) : deleteModalAccount.char;
-                        return Array.isArray(parsed) && parsed.length > 0 ? parsed.join(', ') : 'Chưa có nhân vật';
+                        const parsed = JSON.parse(c);
+                        if (Array.isArray(parsed) && parsed.length > 0) return parsed.join(', ');
                       } catch {
-                        return deleteModalAccount.char;
+                        // ignore
                       }
-                    })()}
-                  </strong>
-                </div>
-              )}
+                      const cleaned = c.replace(/[\[\]"']/g, '').trim();
+                      return cleaned || 'Chưa tạo nhân vật';
+                    }
+                    return String(c);
+                  })()}
+                </strong>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#888' }}>Web Coin:</span>
                 <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{(deleteModalAccount.coin || 0).toLocaleString()} Coin</span>
@@ -2979,7 +3079,7 @@ function AdminAccount() {
               color: '#ffb3b3',
               lineHeight: '1.5'
             }}>
-              💥 <strong>Cảnh báo:</strong> Toàn bộ dữ liệu tài khoản, nhân vật, cấp độ, trang bị, rương đồ, số dư Ruby/Beri và các tin rao trên chợ sẽ bị <strong>XÓA HOÀN TOÀN</strong> khỏi cơ sở dữ liệu.
+              💥 <strong>Cảnh báo:</strong> Thao tác này sẽ xóa <strong>đồng thời cả Tài khoản và Nhân vật</strong> (bao gồm cấp độ, trang bị, rương đồ, số dư Ruby/Beri, bang hội, chợ đồ) vĩnh viễn khỏi Database và không thể phục hồi.
             </div>
 
             {/* Action Buttons */}
@@ -3024,6 +3124,164 @@ function AdminAccount() {
               >
                 {submittingDelete ? 'Đang xóa...' : '🗑️ Xác Nhận Xóa Vĩnh Viễn'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Orphaned Players Management Modal */}
+      {showOrphanedModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(5px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#181818',
+            border: '1px solid rgba(250, 173, 20, 0.4)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '650px',
+            maxHeight: '85vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.8)'
+          }}>
+            <div style={{
+              padding: '20px',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#ffd591', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  🧹 Dọn Dẹp Nhân Vật Mồ Côi ({orphanedList.length})
+                </h3>
+                <div style={{ fontSize: '12.5px', color: '#888', marginTop: '4px' }}>
+                  Các nhân vật này tồn tại trong bảng players nhưng tài khoản sở hữu đã bị xóa trước đây.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOrphanedModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#aaa',
+                  fontSize: '20px',
+                  cursor: 'pointer'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1 }}>
+              {orphanedList.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: '#888' }}>
+                  Không có nhân vật mồ côi nào trong hệ thống!
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {orphanedList.map((p) => (
+                    <div
+                      key={p.id || p.name}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderRadius: '10px',
+                        padding: '12px 16px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 'bold', color: '#ff8a00', fontSize: '15px' }}>
+                          {p.name}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#888', marginTop: '2px', display: 'flex', gap: '12px' }}>
+                          <span>Cấp: <strong style={{ color: '#fff' }}>{p.level || 1}</strong></span>
+                          <span>Beri: <strong style={{ color: '#ffd700' }}>{(p.vang || 0).toLocaleString()}</strong></span>
+                          <span>Ruby: <strong style={{ color: '#ff4d4f' }}>{(p.ruby || 0).toLocaleString()}</strong></span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOrphaned(p.name)}
+                        disabled={cleaningOrphaned}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(255, 77, 79, 0.4)',
+                          background: 'rgba(255, 77, 79, 0.1)',
+                          color: '#ff4d4f',
+                          cursor: cleaningOrphaned ? 'not-allowed' : 'pointer',
+                          fontSize: '12px',
+                          fontWeight: '600'
+                        }}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              padding: '16px 20px',
+              borderTop: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <button
+                type="button"
+                onClick={() => setShowOrphanedModal(false)}
+                disabled={cleaningOrphaned}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  background: 'transparent',
+                  color: '#aaa',
+                  cursor: 'pointer',
+                  fontSize: '13px'
+                }}
+              >
+                Đóng
+              </button>
+              {orphanedList.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteOrphaned(null)}
+                  disabled={cleaningOrphaned}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)',
+                    color: '#fff',
+                    cursor: cleaningOrphaned ? 'not-allowed' : 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '13px',
+                    boxShadow: '0 4px 15px rgba(255, 77, 79, 0.3)'
+                  }}
+                >
+                  {cleaningOrphaned ? 'Đang dọn dẹp...' : `🧹 Xóa Tất Cả (${orphanedList.length})`}
+                </button>
+              )}
             </div>
           </div>
         </div>
