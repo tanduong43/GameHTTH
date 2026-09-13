@@ -242,6 +242,10 @@ public class MenuController {
                 new String[] { "Đổi Ruby", "Thành tích hằng ngày", "Tích lũy nạp thẻ", "Đấu giá",
                     "Điểm nạp tích lũy", "Chợ mua bán", "Danh Hiệu" },
                 new short[] { 132, 134, 110, 169, 170, 152, 170 });
+          } else if (p.map.template.id == 62) {
+            send_dynamic_menu(p, type, "Namie",
+                new String[] { "Thông tin" },
+                new short[] { 136 });
           } else {
             send_dynamic_menu(
                 p, type, "Nami", new String[] { "Đổi Ruby", "Thành tích hằng ngày",
@@ -2654,6 +2658,22 @@ public class MenuController {
   }
 
   private static void Menu_Nami(Player p, byte index) throws IOException {
+    if (p.map.template.id == 62) {
+      if (p.dungeon instanceof activities.NamieTreasureDefense) {
+        activities.NamieTreasureDefense nd = (activities.NamieTreasureDefense) p.dungeon;
+        int wave = nd.currentWaveIndex + 1;
+        if (wave > activities.NamieTreasureDefense.TOTAL_WAVES) {
+          wave = activities.NamieTreasureDefense.TOTAL_WAVES;
+        }
+        Service.send_box_ThongBao_OK(p, "PHÓ BẢN KHO BÁU NAMIE\n"
+            + "- Đợt hiện tại: " + wave + "/" + activities.NamieTreasureDefense.TOTAL_WAVES + "\n"
+            + "- Máu kho báu: " + nd.treasureHp + "/" + activities.NamieTreasureDefense.TREASURE_HP_MAX + " (" + nd.treasurePercent() + "%)\n"
+            + "- Hãy cùng đồng đội bảo vệ rương khỏi các đợt tấn công của Hải quân!");
+      } else {
+        Service.send_box_ThongBao_OK(p, "Ngươi đang ở trong vườn cam của ta.");
+      }
+      return;
+    }
     if (p.map.template.id == 17 && index == 5) {
       Market.show_table(p);
     } else {

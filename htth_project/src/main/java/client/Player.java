@@ -690,11 +690,12 @@ public class Player {
             boolean wasSpecialRedirectMap = (savedMapId == 2000 || savedMapId == 2028 
                     || savedMapId == activities.PetTraining.MAP_TRAIN_PET_ID 
                     || savedMapId == 2026 || savedMapId == 1001 || savedMapId == 58
+                    || savedMapId == 119
                     || wasBigBattleMap);
             if (wasBossHuntMap || wasSpecialRedirectMap) {
                 System.out.println("[MapRedirect] Player " + this.name + " saved map was (" + savedMapId
                         + "). Redirecting to saved village.");
-                savedMapId = (this.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(this.id_map_save) && this.id_map_save != 120 && this.id_map_save != 122 && this.id_map_save != 123)
+                savedMapId = (this.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(this.id_map_save) && this.id_map_save != 119 && this.id_map_save != 120 && this.id_map_save != 122 && this.id_map_save != 123)
                         ? this.id_map_save : 1;
             }
             if (wasNamieMap) {
@@ -1257,23 +1258,33 @@ public class Player {
             this.originalX = session.originalX;
             this.originalY = session.originalY;
             if (session.oldMap != null) {
-                boolean isWaitingMap = (session.oldMap.template != null && (session.oldMap.template.id >= 2030 && session.oldMap.template.id <= 2032))
+                boolean isWaitingMap = (session.oldMap.template != null && ((session.oldMap.template.id >= 2030 && session.oldMap.template.id <= 2032) || session.oldMap.template.id == 119))
                         || activities.BigBattle.isWaitingMap(session.oldMap);
                 if (session.oldMap.map_pvp != null || isWaitingMap) {
                     // Out game khi dang pvp hoac trong sanh cho, dua ve lang
                     int targetMap = 1;
-                    if (session.oldMap.map_pvp != null && session.oldMap.map_pvp.type_map == 2) {
-                        targetMap = 119;
-                    } else if (this.originalMapId > 0 && !activities.BigBattle.isWaitingMapId(this.originalMapId)) {
+                    if (this.originalMapId > 0 && this.originalMapId != 119 && !activities.BigBattle.isWaitingMapId(this.originalMapId)) {
                         targetMap = this.originalMapId;
-                    } else if (this.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(this.id_map_save)) {
+                    } else if (this.id_map_save > 0 && this.id_map_save != 119 && !activities.BigBattle.isWaitingMapId(this.id_map_save)) {
                         targetMap = this.id_map_save;
                     }
                     Map[] targetMaps = Map.get_map_by_id(targetMap);
                     if (targetMaps != null && targetMaps.length > 0) {
                         this.map = targetMaps[0];
-                        this.x = (this.originalX > 0 && targetMap == this.originalMapId) ? this.originalX : 611;
-                        this.y = (this.originalY > 0 && targetMap == this.originalMapId) ? this.originalY : 250;
+                        short x_target = (this.originalX > 0 && targetMap == this.originalMapId) ? this.originalX : -1;
+                        short y_target = (this.originalY > 0 && targetMap == this.originalMapId) ? this.originalY : -1;
+                        if (x_target <= 0 || y_target <= 0) {
+                            for (int i = 0; i < targetMaps[0].template.npcs.size(); i++) {
+                                Npc npc_temp = targetMaps[0].template.npcs.get(i);
+                                if (npc_temp != null && npc_temp.namegt != null && npc_temp.namegt.equals("Bản đồ")) {
+                                    x_target = npc_temp.x;
+                                    y_target = (short) (npc_temp.y < 250 ? (npc_temp.y + 20) : (npc_temp.y - 40));
+                                    break;
+                                }
+                            }
+                        }
+                        this.x = x_target > 0 ? x_target : 611;
+                        this.y = y_target > 0 ? y_target : 250;
                     }
                     this.originalMapId = -1;
                     this.originalX = -1;
@@ -1443,9 +1454,9 @@ public class Player {
                     || (p.map.map_pvp != null && p.map.map_pvp.type_map == 4)
                     || p.map.template.id == 120 || p.map.template.id == 122 || p.map.template.id == 123) {
                 int returnMapId = 1;
-                if (p.originalMapId > 0 && !activities.BigBattle.isWaitingMapId(p.originalMapId)) {
+                if (p.originalMapId > 0 && p.originalMapId != 119 && !activities.BigBattle.isWaitingMapId(p.originalMapId)) {
                     returnMapId = p.originalMapId;
-                } else if (p.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(p.id_map_save) && p.id_map_save != 120 && p.id_map_save != 122 && p.id_map_save != 123) {
+                } else if (p.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(p.id_map_save) && p.id_map_save != 119 && p.id_map_save != 120 && p.id_map_save != 122 && p.id_map_save != 123) {
                     returnMapId = p.id_map_save;
                 }
                 js.add(returnMapId);

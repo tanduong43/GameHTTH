@@ -191,6 +191,8 @@ public class Manager {
                 ps.executeUpdate("UPDATE `mobs` SET `hOne` = 120, `hp` = 2000000000, `skill` = '[210,211,243,244]' WHERE `id` = 172;");
                 ps.executeUpdate("UPDATE `boss` SET `hp` = 2000000000, `skill` = '[210,211,243,244]' WHERE `id` = 11 OR `mob_id` = 172;");
                 ps.executeUpdate("UPDATE `parts` SET `data` = '[[8328,-2,-5],[8329,-2,-5],[8330,-2,-5],[8331,-2,-5],[8332,-1,-5]]' WHERE `id` = 729;");
+                // Tự động sửa lỗi thiếu ngoặc đóng ] trong npcs map 62 (Vườn Cam Namie)
+                ps.executeUpdate("UPDATE `maps` SET `npcs` = CONCAT(`npcs`, ']') WHERE `id` = 62 AND `npcs` LIKE '%[]]';");
             } catch (Exception ignored) {
             }
             // load mobs
@@ -285,6 +287,12 @@ public class Manager {
                     try {
                         js_npc = (JSONArray) JSONValue.parse(npcsStr);
                     } catch (Exception e) {}
+                    // Tự động sửa lỗi thiếu ngoặc đóng ] ở cuối (ví dụ map 62: [[...[]])
+                    if (js_npc == null && npcsStr.startsWith("[[") && !npcsStr.endsWith("]]")) {
+                        try {
+                            js_npc = (JSONArray) JSONValue.parse(npcsStr + "]");
+                        } catch (Exception ignored) {}
+                    }
                 }
                 if (js_npc == null) {
                     js_npc = new JSONArray();
@@ -355,6 +363,36 @@ public class Manager {
                         bankNpc.hair = 0;
                         bankNpc.wearing = new short[0];
                         map_temp.npcs.add(bankNpc);
+                    }
+                }
+                // Tự động kiểm tra và thêm NPC Namie vào Vườn Cam Namie (Map 62) nếu chưa có
+                if (id_map == 62) {
+                    boolean hasNamie = false;
+                    for (int nIdx = 0; nIdx < map_temp.npcs.size(); nIdx++) {
+                        Npc n = map_temp.npcs.get(nIdx);
+                        if (n.iditem == -72 || (n.name != null && n.name.equalsIgnoreCase("Namie"))) {
+                            hasNamie = true;
+                            break;
+                        }
+                    }
+                    if (!hasNamie) {
+                        Npc namiNpc = new Npc();
+                        namiNpc.iditem = -72;
+                        namiNpc.name = "Namie";
+                        namiNpc.namegt = "Thông tin";
+                        namiNpc.chat = "Ngươi đang ở trong vườn cam của ta.";
+                        namiNpc.x = 550;
+                        namiNpc.y = 172;
+                        namiNpc.isPerson = 1;
+                        namiNpc.typeIcon = -1;
+                        namiNpc.wBlock = 0;
+                        namiNpc.hBlock = 0;
+                        namiNpc.b3 = 0;
+                        namiNpc.dataFrame = new byte[] { 30, 2 };
+                        namiNpc.head = 0;
+                        namiNpc.hair = 0;
+                        namiNpc.wearing = new short[0];
+                        map_temp.npcs.add(namiNpc);
                     }
                 }
                 js_npc.clear();

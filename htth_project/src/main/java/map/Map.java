@@ -283,12 +283,12 @@ public class Map implements Runnable {
         if (this.template.id == 119) {
             Player[] p0 = Wanted.get_p_random_waiting();
             if (p0 != null && p0[0] != null && p0[1] != null) {
-                p0[0].originalMapId = 119;
-                p0[0].originalX = p0[0].x;
-                p0[0].originalY = p0[0].y;
-                p0[1].originalMapId = 119;
-                p0[1].originalX = p0[1].x;
-                p0[1].originalY = p0[1].y;
+                p0[0].originalMapId = (p0[0].id_map_save > 0 && p0[0].id_map_save != 119) ? p0[0].id_map_save : 1;
+                p0[0].originalX = -1;
+                p0[0].originalY = -1;
+                p0[1].originalMapId = (p0[1].id_map_save > 0 && p0[1].id_map_save != 119) ? p0[1].id_map_save : 1;
+                p0[1].originalX = -1;
+                p0[1].originalY = -1;
                 p0[0].map.leave_map(p0[0], 2);
                 p0[1].map.leave_map(p0[1], 2);
                 p0[0].type_pk = -1;
@@ -345,9 +345,9 @@ public class Map implements Runnable {
                     map_create.list_mob = new int[0];
 
                     // set up human
-                    p_waiting.originalMapId = 119;
-                    p_waiting.originalX = p_waiting.x;
-                    p_waiting.originalY = p_waiting.y;
+                    p_waiting.originalMapId = (p_waiting.id_map_save > 0 && p_waiting.id_map_save != 119) ? p_waiting.id_map_save : 1;
+                    p_waiting.originalX = -1;
+                    p_waiting.originalY = -1;
                     p_waiting.map.leave_map(p_waiting, 2);
                     p_waiting.type_pk = -1;
                     p_waiting.map = map_create;
@@ -1540,8 +1540,8 @@ public class Map implements Runnable {
                                         stuck.targetFight = null;
                                         change_flag(stuck, -1);
                                         Vgo vgoRescue = new Vgo();
-                                        int rescueMapId = (this.map_pvp != null && this.map_pvp.type_map == 2) ? 119
-                                                : (stuck.originalMapId > 0 ? stuck.originalMapId : (stuck.id_map_save > 0 ? stuck.id_map_save : 1));
+                                        int rescueMapId = (stuck.originalMapId > 0 && stuck.originalMapId != 119) ? stuck.originalMapId
+                                                : (stuck.id_map_save > 0 && stuck.id_map_save != 119 ? stuck.id_map_save : 1);
                                         vgoRescue.map_go = Map.get_map_by_id(rescueMapId);
                                         if (vgoRescue.map_go == null || vgoRescue.map_go.length == 0) {
                                             vgoRescue.map_go = Map.get_map_by_id(1);

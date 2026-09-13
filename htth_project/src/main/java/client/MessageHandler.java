@@ -1105,28 +1105,38 @@ public class MessageHandler {
                 conn.p.originalY = -1;
             }
 
-            // Safety check: nếu out game khi đang trong Map Lôi Đài PK (58, 120, 122, 123) hoặc map_pvp != null
-            if (conn.p.map != null && (conn.p.map.template.id == 58 || conn.p.map.template.id == 120
-                    || conn.p.map.template.id == 122 || conn.p.map.template.id == 123
+            // Safety check: nếu out game khi đang trong Map Lôi Đài PK (58, 120, 122, 123), map phòng chờ truy nã (119) hoặc map_pvp != null
+            if (conn.p.map != null && (conn.p.map.template.id == 58 || conn.p.map.template.id == 119
+                    || conn.p.map.template.id == 120 || conn.p.map.template.id == 122 || conn.p.map.template.id == 123
                     || conn.p.map.map_pvp != null)) {
                 int targetMapId = 1;
-                if (conn.p.map.map_pvp != null && conn.p.map.map_pvp.type_map == 2) {
-                    targetMapId = 119;
-                } else if (conn.p.originalMapId > 0 && !activities.BigBattle.isWaitingMapId(conn.p.originalMapId)) {
+                if (conn.p.originalMapId > 0 && conn.p.originalMapId != 119 && !activities.BigBattle.isWaitingMapId(conn.p.originalMapId)) {
                     targetMapId = conn.p.originalMapId;
-                } else if (conn.p.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(conn.p.id_map_save)) {
+                } else if (conn.p.id_map_save > 0 && conn.p.id_map_save != 119 && !activities.BigBattle.isWaitingMapId(conn.p.id_map_save)) {
                     targetMapId = conn.p.id_map_save;
                 }
                 System.out.println("[PVP Login safety]: player " + conn.p.name
-                        + " logged in while in PVP map (" + conn.p.map.template.id + "), redirecting to map " + targetMapId);
+                        + " logged in while in PVP/Waiting map (" + conn.p.map.template.id + "), redirecting to map " + targetMapId);
                 map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap == null || villageMap.length == 0) {
                     villageMap = map.Map.get_map_by_id(1);
                 }
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
-                    conn.p.x = (conn.p.originalX > 0 && targetMapId == conn.p.originalMapId) ? conn.p.originalX : (short) (villageMap[0].template.maxW > 0 ? villageMap[0].template.maxW / 2 : 611);
-                    conn.p.y = (conn.p.originalY > 0 && targetMapId == conn.p.originalMapId) ? conn.p.originalY : (short) (villageMap[0].template.maxH > 0 ? villageMap[0].template.maxH / 2 : 250);
+                    short x_target = (conn.p.originalX > 0 && targetMapId == conn.p.originalMapId) ? conn.p.originalX : -1;
+                    short y_target = (conn.p.originalY > 0 && targetMapId == conn.p.originalMapId) ? conn.p.originalY : -1;
+                    if (x_target <= 0 || y_target <= 0) {
+                        for (int i = 0; i < villageMap[0].template.npcs.size(); i++) {
+                            map.Npc npc_temp = villageMap[0].template.npcs.get(i);
+                            if (npc_temp != null && npc_temp.namegt != null && npc_temp.namegt.equals("Bản đồ")) {
+                                x_target = npc_temp.x;
+                                y_target = (short) (npc_temp.y < 250 ? (npc_temp.y + 20) : (npc_temp.y - 40));
+                                break;
+                            }
+                        }
+                    }
+                    conn.p.x = x_target > 0 ? x_target : (short) (villageMap[0].template.maxW > 0 ? villageMap[0].template.maxW / 2 : 611);
+                    conn.p.y = y_target > 0 ? y_target : (short) (villageMap[0].template.maxH > 0 ? villageMap[0].template.maxH / 2 : 250);
                 }
                 conn.p.type_pk = -1;
                 conn.p.targetFight = null;

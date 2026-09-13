@@ -191,7 +191,7 @@ public class NamieTreasureDefense extends Dungeon {
         this.currentMap = mapDungeon;
         this.maps = new ArrayList<>();
         this.maps.add(mapDungeon);
-        this.mobs = new ArrayList<>();
+        this.mobs = new CopyOnWriteArrayList<>();
 
         Map.add_map_plus(mapDungeon);
 
@@ -248,16 +248,18 @@ public class NamieTreasureDefense extends Dungeon {
             this.currentWaveFuture = null;
         }
 
+        this.mobs.removeIf(m -> m.isdie);
+
         long now = System.currentTimeMillis();
         int mobIndex = -2 - (waveIndex * 100); // tách biệt index giữa các đợt để tránh trùng
         List<Mob> waveMobs = new ArrayList<>();
 
-        // Select a random lane
+        // Select a random lane (an toàn trong giới hạn bản đồ width=1056, height=408)
         int[][] lanes = {
-            {60, 205},
-            {60, 335},
-            {1050, 205},
-            {1050, 335}
+            {100, 205},
+            {100, 335},
+            {950, 205},
+            {950, 335}
         };
         int laneIndex = Util.random(lanes.length);
         int spawnX = lanes[laneIndex][0];
@@ -271,7 +273,7 @@ public class NamieTreasureDefense extends Dungeon {
         String laneName = laneNames[laneIndex];
 
         int templateId = (waveIndex == 19) ? 36 : 5; 
-        MobTemplate mt = MobTemplate.ENTRYS.get(templateId);
+        MobTemplate mt = getMobTemplate(templateId);
 
         if (mt != null) {
             for (int i = 0; i < 10; i++) {
@@ -280,8 +282,11 @@ public class NamieTreasureDefense extends Dungeon {
                 mob.x = (short) (spawnX + Util.random(-20, 20));
                 mob.y = (short) (spawnY + Util.random(-20, 20));
                 
-                int baseHp = this.partyMaxDamage * 6;
+                int baseHp = Math.max(500, this.partyMaxDamage * 6);
                 mob.hp_max = (int)(baseHp + baseHp * 0.2 * waveIndex);
+                if (waveIndex == 19 && i == 9) {
+                    mob.hp_max *= 3; // Boss cuối trâu hơn
+                }
                 mob.hp = mob.hp_max;
                 mob.level = (short) this.partyMaxLevel;
                 mob.isdie = false;
@@ -291,6 +296,21 @@ public class NamieTreasureDefense extends Dungeon {
                 mob.boss_info = null;
                 this.mobs.add(mob);
                 waveMobs.add(mob);
+            }
+        }
+
+        // GỬI GÓI TIN HIỂN THỊ QUÁI CHO TẤT CẢ NGƯỜI CHƠI TRONG PHÓ BẢN
+        for (Mob mob : waveMobs) {
+            try {
+                Message m_local = new Message(1);
+                m_local.writer().writeByte(1);
+                m_local.writer().writeShort(mob.index);
+                m_local.writer().writeShort(mob.x);
+                m_local.writer().writeShort(mob.y);
+                this.currentMap.send_msg_all_p(m_local, null, true);
+                m_local.cleanup();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -310,6 +330,18 @@ public class NamieTreasureDefense extends Dungeon {
                 }
             }
         }
+    }
+
+    private MobTemplate getMobTemplate(int templateId) {
+        for (MobTemplate mt : MobTemplate.ENTRYS) {
+            if (mt != null && mt.mob_id == templateId) {
+                return mt;
+            }
+        }
+        if (templateId >= 0 && templateId < MobTemplate.ENTRYS.size()) {
+            return MobTemplate.ENTRYS.get(templateId);
+        }
+        return MobTemplate.ENTRYS.isEmpty() ? null : MobTemplate.ENTRYS.get(0);
     }
 
 
@@ -389,14 +421,37 @@ public class NamieTreasureDefense extends Dungeon {
             return;
         }
 
-        // 4. Kiểm tra đợt hiện tại đã sạch quái chưa
+        // 4. Kiểm tra đợt hiện tại & di chuyển quái về phía kho báu
         int aliveMobs = 0;
         int mobsAtTreasure = 0;
         for (Mob mob : this.mobs) {
-            if (mob.map.equals(map) && !mob.isdie) {
+            if (mob.map != null && mob.map.equals(map) && !mob.isdie) {
                 aliveMobs++;
-                if (Math.abs(mob.x - 540) <= 60 && Math.abs(mob.y - 260) <= 60) {
+                int dx = TREASURE_X - mob.x;
+                int dy = TREASURE_Y - mob.y;
+                double dist = Math.hypot(dx, dy);
+
+                if (dist <= 60) {
                     mobsAtTreasure++;
+                } else {
+                    // Quái bước về phía kho báu mỗi tick (~18-22 px mỗi giây)
+                    int step = (this.currentWaveIndex == 19) ? 22 : 18;
+                    if (dist <= step) {
+                        mob.x = TREASURE_X;
+                        mob.y = TREASURE_Y;
+                    } else {
+                        mob.x += (short) Math.round((dx / dist) * step);
+                        mob.y += (short) Math.round((dy / dist) * step);
+                    }
+                    try {
+                        Message mmove = new Message(1);
+                        mmove.writer().writeByte(1);
+                        mmove.writer().writeShort(mob.index);
+                        mmove.writer().writeShort(mob.x);
+                        mmove.writer().writeShort(mob.y);
+                        this.currentMap.send_msg_all_p(mmove, null, true);
+                        mmove.cleanup();
+                    } catch (Exception ignored) { }
                 }
             }
         }
