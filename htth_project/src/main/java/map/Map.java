@@ -76,6 +76,7 @@ public class Map implements Runnable {
     public Map_Pvp_Clan map_pvp_clan;
     public Map_Dao_Hoa map_dao_hoa;
     public activities.BossHunt map_bossHunt;
+    public activities.Battleground5v5 map_battleground5v5;
     public ItemMap[] list_it_map = new ItemMap[1_000];
     public boolean can_PK = true;
     public long lastBotActionTime = 0;
@@ -170,6 +171,13 @@ public class Map implements Runnable {
         update_map_bossHunt();
         update_map_HangDong();
         update_map_pet_train();
+        update_map_battleground5v5();
+    }
+
+    private void update_map_battleground5v5() {
+        if (this.map_battleground5v5 != null) {
+            this.map_battleground5v5.update();
+        }
     }
 
     private long time_update_pet_train = 0;
@@ -345,7 +353,9 @@ public class Map implements Runnable {
                     map_create.list_mob = new int[0];
 
                     // set up human
-                    p_waiting.originalMapId = (p_waiting.id_map_save > 0 && p_waiting.id_map_save != 119) ? p_waiting.id_map_save : 1;
+                    p_waiting.originalMapId = (p_waiting.id_map_save > 0 && p_waiting.id_map_save != 119)
+                            ? p_waiting.id_map_save
+                            : 1;
                     p_waiting.originalX = -1;
                     p_waiting.originalY = -1;
                     p_waiting.map.leave_map(p_waiting, 2);
@@ -485,7 +495,9 @@ public class Map implements Runnable {
                                     + "- " + num2 + " Mảnh vỏ ốc\n"
                                     + "- " + num3 + " Lông vũ\n"
                                     + "(Tiến trình: " + l.time_ttvt + "/50 lần"
-                                    + (l.time_ttvt >= 50 ? " - Đủ điều kiện học MIỄN PHÍ kỹ năng Chế tạo DIAL tại Wipper!)" : ")");
+                                    + (l.time_ttvt >= 50
+                                            ? " - Đủ điều kiện học MIỄN PHÍ kỹ năng Chế tạo DIAL tại Wipper!)"
+                                            : ")");
                             Service.send_box_ThongBao_OK(l, msgReward);
                         }
                         l.goto_map(vgo);
@@ -1048,7 +1060,8 @@ public class Map implements Runnable {
                     return;
                 }
 
-                // Neu chi con < 2 nguoi choi va tran dau chua ket thuc (status_pvp != 4 && status_pvp != 99), xu thang ngay cho nguoi con lai
+                // Neu chi con < 2 nguoi choi va tran dau chua ket thuc (status_pvp != 4 &&
+                // status_pvp != 99), xu thang ngay cho nguoi con lai
                 if (players.size() < 2 && this.map_pvp.status_pvp != 4 && this.map_pvp.status_pvp != 99) {
                     Player remainingPlayer = null;
                     for (Player pl : players) {
@@ -1102,7 +1115,8 @@ public class Map implements Runnable {
                             Service.send_box_ThongBao_OK(remainingPlayer,
                                     "Đối thủ đã rời trận! Bạn chiến thắng và nhận được " + rubyWin + " ruby!");
                         } else if (this.map_pvp.type_map == 4) { // Trận Chiến Lớn
-                            Player opponent = remainingPlayer.targetFight != null ? remainingPlayer.targetFight : remainingPlayer;
+                            Player opponent = remainingPlayer.targetFight != null ? remainingPlayer.targetFight
+                                    : remainingPlayer;
                             activities.BigBattle.onBattleEnd(remainingPlayer, opponent);
                             remainingPlayer.targetFight = null;
                             activities.BigBattle.returnToWaitingRoom(remainingPlayer);
@@ -1129,7 +1143,8 @@ public class Map implements Runnable {
                     } else if (this.map_pvp.status_pvp == 2 && this.map_pvp.time_pvp <= 0) {
                         for (int i = 0; i < players.size(); i++) {
                             Pvp.pvp_notice(players.get(i), 2);
-                            Pvp.show_info(players.get(i), 180, (i == 0 ? this.map_pvp.num_win_p1 : this.map_pvp.num_win_p2),
+                            Pvp.show_info(players.get(i), 180,
+                                    (i == 0 ? this.map_pvp.num_win_p1 : this.map_pvp.num_win_p2),
                                     (i == 0 ? this.map_pvp.num_win_p2 : this.map_pvp.num_win_p1), 3);
                             change_flag(players.get(i), 0);
                         }
@@ -1308,7 +1323,13 @@ public class Map implements Runnable {
                                                     + " điểm truy nã cùng 1 Rương Truy nã.");
                                 }
                             }
-                        } else if (this.map_pvp.type_map == 3 && players.size() >= 2 && this.map_pvp.ruby_bet > 0) { // thach dau sieu hang ca cuoc ruby
+                        } else if (this.map_pvp.type_map == 3 && players.size() >= 2 && this.map_pvp.ruby_bet > 0) { // thach
+                                                                                                                     // dau
+                                                                                                                     // sieu
+                                                                                                                     // hang
+                                                                                                                     // ca
+                                                                                                                     // cuoc
+                                                                                                                     // ruby
                             int rubyBet = this.map_pvp.ruby_bet;
                             int rubyWin = Math.max(rubyBet + 1, (int) (rubyBet * 2 * 0.9)); // nguoi thang nhan 90% tong
                             this.map_pvp.ruby_bet = 0;
@@ -1488,7 +1509,8 @@ public class Map implements Runnable {
                                 if (vgo.map_go != null && vgo.map_go.length > 0) {
                                     for (int i1 = 0; i1 < vgo.map_go[0].template.npcs.size(); i1++) {
                                         Npc npc_temp = vgo.map_go[0].template.npcs.get(i1);
-                                        if (npc_temp != null && npc_temp.namegt != null && npc_temp.namegt.equals("Bản đồ")) {
+                                        if (npc_temp != null && npc_temp.namegt != null
+                                                && npc_temp.namegt.equals("Bản đồ")) {
                                             vgo.xnew = npc_temp.x;
                                             if (npc_temp.y < 250) {
                                                 vgo.ynew = (short) (npc_temp.y + 20);
@@ -1540,8 +1562,10 @@ public class Map implements Runnable {
                                         stuck.targetFight = null;
                                         change_flag(stuck, -1);
                                         Vgo vgoRescue = new Vgo();
-                                        int rescueMapId = (stuck.originalMapId > 0 && stuck.originalMapId != 119) ? stuck.originalMapId
-                                                : (stuck.id_map_save > 0 && stuck.id_map_save != 119 ? stuck.id_map_save : 1);
+                                        int rescueMapId = (stuck.originalMapId > 0 && stuck.originalMapId != 119)
+                                                ? stuck.originalMapId
+                                                : (stuck.id_map_save > 0 && stuck.id_map_save != 119 ? stuck.id_map_save
+                                                        : 1);
                                         vgoRescue.map_go = Map.get_map_by_id(rescueMapId);
                                         if (vgoRescue.map_go == null || vgoRescue.map_go.length == 0) {
                                             vgoRescue.map_go = Map.get_map_by_id(1);
@@ -1843,13 +1867,15 @@ public class Map implements Runnable {
                 if (this.map_dungeon != null && this.map_dungeon.getClass() == activities.Dungeon.class
                         && this.map_dungeon.time < System.currentTimeMillis()) {
                     for (Map dungeonMap : this.map_dungeon.maps) {
-                        if (dungeonMap == null) continue;
+                        if (dungeonMap == null)
+                            continue;
                         List<Player> playersSnapshot = new java.util.ArrayList<>(dungeonMap.players);
                         for (Player stuckPlayer : playersSnapshot) {
                             if (stuckPlayer != null && stuckPlayer.dungeon == this.map_dungeon
                                     && stuckPlayer.conn != null && stuckPlayer.conn.connected) {
                                 System.out.println("[Dungeon] FIX KẸT MAP: Teleport player "
-                                        + stuckPlayer.name + " khỏi dungeon (timeout hết mà không được gọi teleport bình thường).");
+                                        + stuckPlayer.name
+                                        + " khỏi dungeon (timeout hết mà không được gọi teleport bình thường).");
                                 try {
                                     if (stuckPlayer.isdie) {
                                         stuckPlayer.isdie = false;
@@ -1972,35 +1998,35 @@ public class Map implements Runnable {
                 }
                 // Tạm thời comment cấp đồ +16, chỉ cho cấp đồ lớn nhất là +15
                 /*
-                boolean allLevelUp16 = true;
-                for (int j = 0; j < 6; j++) {
-                    Item_wear it = p0.item.it_body[j];
-                    if (it == null || it.levelup < 16) {
-                        allLevelUp16 = false;
-                        break;
-                    }
-                }
-                if (allLevelUp16) {
-                    Message m3 = new Message(74);
-                    m3.writer().writeByte(1);
-                    m3.writer().writeShort(p0.index_map);
-                    m3.writer().writeShort(23); // id Eff
-                    m3.writer().writeInt(5_000); // time
-                    m3.writer().writeByte(0); // type move
-                    m3.writer().writeByte(20); // loop
-                    this.send_msg_all_p(m3, null, true);
-                    m3.cleanup();
-                    Message m4 = new Message(74);
-                    m4.writer().writeByte(1);
-                    m4.writer().writeShort(p0.index_map);
-                    m4.writer().writeShort(20); // id Eff
-                    m4.writer().writeInt(5_000); // time
-                    m4.writer().writeByte(0); // type move
-                    m4.writer().writeByte(20); // loop
-                    this.send_msg_all_p(m4, null, true);
-                    m4.cleanup();
-                }
-                */
+                 * boolean allLevelUp16 = true;
+                 * for (int j = 0; j < 6; j++) {
+                 * Item_wear it = p0.item.it_body[j];
+                 * if (it == null || it.levelup < 16) {
+                 * allLevelUp16 = false;
+                 * break;
+                 * }
+                 * }
+                 * if (allLevelUp16) {
+                 * Message m3 = new Message(74);
+                 * m3.writer().writeByte(1);
+                 * m3.writer().writeShort(p0.index_map);
+                 * m3.writer().writeShort(23); // id Eff
+                 * m3.writer().writeInt(5_000); // time
+                 * m3.writer().writeByte(0); // type move
+                 * m3.writer().writeByte(20); // loop
+                 * this.send_msg_all_p(m3, null, true);
+                 * m3.cleanup();
+                 * Message m4 = new Message(74);
+                 * m4.writer().writeByte(1);
+                 * m4.writer().writeShort(p0.index_map);
+                 * m4.writer().writeShort(20); // id Eff
+                 * m4.writer().writeInt(5_000); // time
+                 * m4.writer().writeByte(0); // type move
+                 * m4.writer().writeByte(20); // loop
+                 * this.send_msg_all_p(m4, null, true);
+                 * m4.cleanup();
+                 * }
+                 */
                 // up hp pet ship
                 if (p0.ship_pet != null && p0.ship_pet.time_buff_hp < System.currentTimeMillis()
                         && (Map.isMapLang(this.template.id))) {
@@ -2073,7 +2099,8 @@ public class Map implements Runnable {
                     p0.check_expiry_fashion(true);
                 }
                 // Tự động hồi sinh bằng Vé Hồi Sinh sau 4 giây
-                if (p0.isdie && p0.time_auto_revive_ticket > 0 && System.currentTimeMillis() >= p0.time_auto_revive_ticket) {
+                if (p0.isdie && p0.time_auto_revive_ticket > 0
+                        && System.currentTimeMillis() >= p0.time_auto_revive_ticket) {
                     p0.time_auto_revive_ticket = 0;
                     Player.do_revive_with_ticket(p0);
                 }
@@ -2168,10 +2195,13 @@ public class Map implements Runnable {
                                     //
                                     int dame_to_target = p0.body.get_dame(true);
                                     dame_to_target = (dame_to_target * (100 - Util.random(10))) / 100;
-                                    boolean isLanMobSelect = (mob_select.mob_template != null && (mob_select.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
-                                            || mob_select.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
-                                            || mob_select.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
-                                            || (mob_select.boss_info != null && (mob_select.boss_info.id == 9999 || mob_select.boss_info.thegioi == 10 || mob_select.boss_info.thegioi == 4));
+                                    boolean isLanMobSelect = (mob_select.mob_template != null
+                                            && (mob_select.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
+                                                    || mob_select.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                                                    || mob_select.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
+                                            || (mob_select.boss_info != null && (mob_select.boss_info.id == 9999
+                                                    || mob_select.boss_info.thegioi == 10
+                                                    || mob_select.boss_info.thegioi == 4));
                                     if (isLanMobSelect) {
                                         dame_to_target = 1;
                                     }
@@ -2221,8 +2251,10 @@ public class Map implements Runnable {
                     if (!mob.isdie) {
                         if (mob.mob_template != null && mob.mob_template.mob_id == 174 && Util.random(100) < 3) {
                             try {
-                                send_chat_popup(1, mob.index, "KKK các hải tặc tép riu như các ngươi mà đòi ăn Saturn ta à.", false);
-                            } catch (Exception e) {}
+                                send_chat_popup(1, mob.index,
+                                        "KKK các hải tặc tép riu như các ngươi mà đòi ăn Saturn ta à.", false);
+                            } catch (Exception e) {
+                            }
                         }
                         if (mob.id_target != -1) {
                             try {
@@ -2275,8 +2307,10 @@ public class Map implements Runnable {
                     if (!mob.isdie) {
                         if (mob.mob_template != null && mob.mob_template.mob_id == 174 && Util.random(100) < 3) {
                             try {
-                                send_chat_popup(1, mob.index, "KKK các hải tặc tép riu như các ngươi mà đòi ăn Saturn ta à.", false);
-                            } catch (Exception e) {}
+                                send_chat_popup(1, mob.index,
+                                        "KKK các hải tặc tép riu như các ngươi mà đòi ăn Saturn ta à.", false);
+                            } catch (Exception e) {
+                            }
                         }
                         if (mob.id_target != -1) {
                             try {
@@ -2356,10 +2390,14 @@ public class Map implements Runnable {
                         && p0.time_can_mob_atk < System.currentTimeMillis()) {
                     int dame;
                     boolean isSaturn = (mob.mob_template != null && (mob.mob_template.mob_id == 174
-                            || (mob.mob_template.name != null && mob.mob_template.name.toLowerCase().contains("saturn"))))
+                            || (mob.mob_template.name != null
+                                    && mob.mob_template.name.toLowerCase().contains("saturn"))))
                             || (mob.boss_info != null && (mob.boss_info.id == 28 || (mob.boss_info.mob != null
                                     && mob.boss_info.mob.mob_template != null
-                                    && (mob.boss_info.mob.mob_template.mob_id == 174 || (mob.boss_info.mob.mob_template.name != null && mob.boss_info.mob.mob_template.name.toLowerCase().contains("saturn"))))));
+                                    && (mob.boss_info.mob.mob_template.mob_id == 174
+                                            || (mob.boss_info.mob.mob_template.name != null
+                                                    && mob.boss_info.mob.mob_template.name.toLowerCase()
+                                                            .contains("saturn"))))));
 
                     boolean isRauTrang = mob.isRauTrang();
 
@@ -2387,8 +2425,10 @@ public class Map implements Runnable {
                             && mob.final_dame > 0) {
                         dame = mob.final_dame;
                     } else if (mob.boss_info != null) {
-                        if (mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4 || Boss.isEventBoss(mob.boss_info)) {
-                            // Boss sự kiện (Lân Sư Tử...): Sát thương thân thiện theo % máu người chơi (5% - 10%), không oneshot người chơi cấp thấp
+                        if (mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4
+                                || Boss.isEventBoss(mob.boss_info)) {
+                            // Boss sự kiện (Lân Sư Tử...): Sát thương thân thiện theo % máu người chơi (5%
+                            // - 10%), không oneshot người chơi cấp thấp
                             int maxHpP = (p0 != null && p0.body != null) ? p0.body.get_hp_max(true) : 1000;
                             dame = Math.max(50, (maxHpP * Util.random(5, 11)) / 100);
                         } else if (mob.boss_info.thegioi == 1) {
@@ -2432,7 +2472,8 @@ public class Map implements Runnable {
                             long effectiveDef = Math.min(def, (long) (dame * 0.7));
                             dame = Math.max(25000, (int) (dame - effectiveDef));
                         } else if (isRauTrang) {
-                            // Râu Trắng có khả năng chấn động xuyên 40% giáp và gây sát thương tối thiểu 30,000
+                            // Râu Trắng có khả năng chấn động xuyên 40% giáp và gây sát thương tối thiểu
+                            // 30,000
                             long effectiveDef = Math.min(def, (long) (dame * 0.6));
                             dame = Math.max(30000, (int) (dame - effectiveDef));
                         } else if (isBossDaoRuby) {
@@ -2454,7 +2495,8 @@ public class Map implements Runnable {
                         int mienThuong = p0.body.get_dame_skip(true);
                         if (mienThuong > 0) {
                             // Áp dụng giảm miễn thương của Boss Đảo Ruby / Mob / Râu Trắng / Boss Thế Giới
-                            int reduceMT = mob.giam_mien_thuong > 0 ? mob.giam_mien_thuong : (isBossDaoRuby ? 400 : (isRauTrang ? 400 : (isBossTheGioi1 ? 300 : 0)));
+                            int reduceMT = mob.giam_mien_thuong > 0 ? mob.giam_mien_thuong
+                                    : (isBossDaoRuby ? 400 : (isRauTrang ? 400 : (isBossTheGioi1 ? 300 : 0)));
                             if (reduceMT > 0) {
                                 mienThuong = Math.max(0, mienThuong - reduceMT);
                             }
@@ -2485,10 +2527,12 @@ public class Map implements Runnable {
                         dame_mine = dame;
                     }
                     if (dame_mine > 0) {
-                        boolean isLanMob = (mob.mob_template != null && (mob.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
-                                || mob.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
-                                || mob.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
-                                || (mob.boss_info != null && (mob.boss_info.id == 9999 || mob.boss_info.thegioi == 10 || mob.boss_info.thegioi == 4));
+                        boolean isLanMob = (mob.mob_template != null
+                                && (mob.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
+                                        || mob.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                                        || mob.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
+                                || (mob.boss_info != null && (mob.boss_info.id == 9999 || mob.boss_info.thegioi == 10
+                                        || mob.boss_info.thegioi == 4));
                         if (isLanMob) {
                             dame_mine = 1;
                         }
@@ -2509,7 +2553,8 @@ public class Map implements Runnable {
                         skillId = rauTrangSkills[Util.random(rauTrangSkills.length)];
                     } else if (mob.boss_info != null && mob.boss_info.skill != null && mob.boss_info.skill.length > 0) {
                         skillId = mob.boss_info.skill[Util.random(mob.boss_info.skill.length)];
-                    } else if (mob.mob_template != null && mob.mob_template.skill != null && mob.mob_template.skill.length > 0) {
+                    } else if (mob.mob_template != null && mob.mob_template.skill != null
+                            && mob.mob_template.skill.length > 0) {
                         skillId = mob.mob_template.skill[Util.random(mob.mob_template.skill.length)];
                     } else {
                         skillId = 0;
@@ -2780,8 +2825,10 @@ public class Map implements Runnable {
         if (p0.item.total_item_bag_by_id(4, 89) > 0) {
             p0.time_auto_revive_ticket = System.currentTimeMillis() + 4_000L;
         }
-        // PVP Băng (Map 123) / Đảo Đào Hoa (Map 2027): Đảm bảo mọi trường hợp tử trận (kể cả phản sát thương, quái đánh...) đều được tính điểm và hẹn giờ hồi sinh
-        if (this.map_pvp_clan != null && !this.map_pvp_clan.is_finish) {
+        // Phó bản 5vs5 Phá Trụ
+        if (this.map_battleground5v5 != null) {
+            this.map_battleground5v5.onPlayerDie(p0);
+        } else if (this.map_pvp_clan != null && !this.map_pvp_clan.is_finish) {
             if (p0.time_revive_pvp_clan <= 0) {
                 if (p0.type_pk == 4) {
                     this.map_pvp_clan.score_clan2++;
@@ -3081,8 +3128,10 @@ public class Map implements Runnable {
             // boss
             for (int i = 0; i < Boss.ENTRYS.size(); i++) {
                 Boss temp = Boss.ENTRYS.get(i);
-                if (temp != null && temp.mob != null && !temp.mob.isdie && temp.mob.map != null && temp.mob.map.equals(this)) {
-                    int aggroDist = (temp.mob.isRauTrang() || temp.id == 28 || (temp.mob.mob_template != null && temp.mob.mob_template.mob_id == 174)) ? 250 : 70;
+                if (temp != null && temp.mob != null && !temp.mob.isdie && temp.mob.map != null
+                        && temp.mob.map.equals(this)) {
+                    int aggroDist = (temp.mob.isRauTrang() || temp.id == 28
+                            || (temp.mob.mob_template != null && temp.mob.mob_template.mob_id == 174)) ? 250 : 70;
                     if (Math.abs(temp.mob.x - p.x) < aggroDist
                             && Math.abs(temp.mob.y - p.y) < aggroDist && temp.mob.id_target == -1) {
                         temp.mob.id_target = p.index_map;
@@ -3094,7 +3143,8 @@ public class Map implements Runnable {
                     int num_mob = 0;
                     for (int i = 0; i < p.dungeon.mobs.size(); i++) {
                         Mob mob_dungeon = p.dungeon.mobs.get(i);
-                        if (mob_dungeon != null && !mob_dungeon.isdie && mob_dungeon.hp > 0 && mob_dungeon.map.equals(this)) {
+                        if (mob_dungeon != null && !mob_dungeon.isdie && mob_dungeon.hp > 0
+                                && mob_dungeon.map.equals(this)) {
                             num_mob++;
                             break;
                         }
@@ -3259,6 +3309,9 @@ public class Map implements Runnable {
                                         + " attacking BossHunt mob index=" + id_target
                                         + " floor=" + (p.bossHunt.currentFloor + 1));
                             }
+                        }
+                        if (mob_target[i] == null && this.map_battleground5v5 != null && p.battleground5v5 != null) {
+                            mob_target[i] = p.battleground5v5.get_mob(p, id_target);
                         }
                         if (mob_target[i] == null && Map.is_map_dungeon(this.template.id)
                                 && p.dungeon != null && this.map_dungeon != null) {
@@ -4143,14 +4196,21 @@ public class Map implements Runnable {
         for (int i = 0; i < list_target.length; i++) {
             Mob mob_target = list_target[i];
             if (mob_target != null && !mob_target.isdie && !p.isdie) {
+                if (this.map_battleground5v5 != null && !this.map_battleground5v5.canAttackTower(p, mob_target)) {
+                    continue;
+                }
                 boolean isBossDaoRuby = (this.template.id == 1001)
-                        || (mob_target.map != null && mob_target.map.template != null && mob_target.map.template.id == 1001);
-                boolean isBossLan = (mob_target.mob_template != null && (mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
-                        || mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
-                        || mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
-                        || (mob_target.boss_info != null && (mob_target.boss_info.id == 9999 || mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4));
+                        || (mob_target.map != null && mob_target.map.template != null
+                                && mob_target.map.template.id == 1001);
+                boolean isBossLan = (mob_target.mob_template != null
+                        && (mob_target.mob_template.mob_id == EventTrungThu.MOB_BOSS_LAN
+                                || mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                                || mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU))
+                        || (mob_target.boss_info != null && (mob_target.boss_info.id == 9999
+                                || mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4));
                 boolean isEventBoss1Hp = !isBossDaoRuby && (isBossLan
-                        || (event.EventNoel.isEvent() && mob_target.boss_info != null && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET));
+                        || (event.EventNoel.isEvent() && mob_target.boss_info != null && mob_target.mob_template != null
+                                && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET));
 
                 if (isEventBoss1Hp) {
                     if (damagedEventBosses.contains(mob_target)) {
@@ -4227,11 +4287,13 @@ public class Map implements Runnable {
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
                     dame2 = 1;
-                    if (EventTrungThu.isEvent() || (mob_target.boss_info != null && (mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4))) {
+                    if (EventTrungThu.isEvent() || (mob_target.boss_info != null
+                            && (mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4))) {
                         EventTrungThu.getInstance().onBossDamaged(p, 1);
                     }
                 }
-                if (event.EventTet.isEvent() && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
+                if (event.EventTet.isEvent() && mob_target.mob_template != null
+                        && mob_target.mob_template.mob_id == event.EventTet.MOB_BOSS_LAN_SU_TU
                         && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
@@ -4239,7 +4301,8 @@ public class Map implements Runnable {
                     dame2 = 1;
                     event.EventTet.getInstance().onBossDamaged(p, 1);
                 }
-                if (event.Event2011.isEvent() && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU
+                if (event.Event2011.isEvent() && mob_target.mob_template != null
+                        && mob_target.mob_template.mob_id == event.Event2011.MOB_BOSS_LAN_SU_TU
                         && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
@@ -4247,7 +4310,9 @@ public class Map implements Runnable {
                     dame2 = 1;
                     event.Event2011.getInstance().onBossDamaged(p, 1);
                 }
-                if (!isBossDaoRuby && event.EventNoel.isEvent() && mob_target.boss_info != null && mob_target.mob_template != null && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET
+                if (!isBossDaoRuby && event.EventNoel.isEvent() && mob_target.boss_info != null
+                        && mob_target.mob_template != null
+                        && mob_target.mob_template.mob_id == event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET
                         && dame_to_target > 0) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
@@ -4320,7 +4385,8 @@ public class Map implements Runnable {
                             && mob_target.mob_template.mob_id != event.EventTet.MOB_BOSS_LAN_SU_TU
                             && mob_target.mob_template.mob_id != event.Event2011.MOB_BOSS_LAN_SU_TU
                             && mob_target.mob_template.mob_id != event.EventNoel.MOB_BOSS_QUAI_VAT_TUYET) {
-                        // Quà theo máu chỉ áp dụng boss thế giới (thegioi=1); boss làng (thegioi=2), boss 24/7 Râu Trắng (thegioi=3) chỉ
+                        // Quà theo máu chỉ áp dụng boss thế giới (thegioi=1); boss làng (thegioi=2),
+                        // boss 24/7 Râu Trắng (thegioi=3) chỉ
                         // nhận quà khi giết
                         int max_hp = mob_target.hp_max;
                         percent = max_hp / 10;
@@ -4348,7 +4414,8 @@ public class Map implements Runnable {
                     }
 
                     if (isQuaiMap1001 && percent > 0 && value1 > value2) {
-                        // Quái vật tuyết map 1001: mỗi mốc 10% máu, TẤT CẢ người đã gây sát thương đều nhận ruby
+                        // Quái vật tuyết map 1001: mỗi mốc 10% máu, TẤT CẢ người đã gây sát thương đều
+                        // nhận ruby
                         for (int j = value1 - 1; j >= value2; j--) {
                             int hpPercent = (9 - j) * 10;
                             for (String dealerName : mob_target.damageDealers) {
@@ -4365,7 +4432,8 @@ public class Map implements Runnable {
                                     dealer.update_money();
                                     try {
                                         Service.send_box_ThongBao_OK(dealer,
-                                                mob_target.mob_template.name + " mất " + hpPercent + "% máu! Nhận " + ruby + " ruby");
+                                                mob_target.mob_template.name + " mất " + hpPercent + "% máu! Nhận "
+                                                        + ruby + " ruby");
                                     } catch (Exception e) {
                                     }
                                 }
@@ -4687,9 +4755,11 @@ public class Map implements Runnable {
                     mob_target.hp = 0;
                     mob_target.isdie = true;
                     if (isBossDaoRuby && mob_target.boss_info == null && mob_target.mob_template != null) {
-                        Manager.gI().chatKTG(0, p.name + " đã tiêu diệt Boss Đảo Ruby (" + mob_target.mob_template.name + ")!", 5);
+                        Manager.gI().chatKTG(0,
+                                p.name + " đã tiêu diệt Boss Đảo Ruby (" + mob_target.mob_template.name + ")!", 5);
                     }
-                    if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174 && mob_target.boss_info == null) {
+                    if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174
+                            && mob_target.boss_info == null) {
                         mob_target.time_refresh = Long.MAX_VALUE; // Khu hiện tại không tự hồi sinh nữa
                         // Chọn ngẫu nhiên 1 khu khác (hoặc chính nó) để hồi sinh sau 30 phút
                         Map[] all_zones = Map.get_map_by_id(this.template.id);
@@ -4712,6 +4782,10 @@ public class Map implements Runnable {
                         mob_target.time_refresh = System.currentTimeMillis() + Mob.TIME_RESPAWN * 500;
                     }
                     exp_up[1] += mob_target.level * 10;
+                    // 5vs5 Battleground
+                    if (this.map_battleground5v5 != null) {
+                        this.map_battleground5v5.onTowerDestroyed(p, mob_target);
+                    }
                     // dungeon
                     if ((Map.is_map_dungeon(this.template.id) || this.template.id == 999) && p.dungeon != null) {
                         if (p.dungeon instanceof activities.NamieTreasureDefense) {
@@ -4750,7 +4824,8 @@ public class Map implements Runnable {
                         }
                     }
                     if (isBossLan) {
-                        if (EventTrungThu.isEvent() || (mob_target.boss_info != null && (mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4))) {
+                        if (EventTrungThu.isEvent() || (mob_target.boss_info != null
+                                && (mob_target.boss_info.thegioi == 10 || mob_target.boss_info.thegioi == 4))) {
                             EventTrungThu.getInstance().onBossKilled(p);
                         }
                     }
@@ -4775,9 +4850,10 @@ public class Map implements Runnable {
                         event.EventNoel.getInstance().onBossKilled(p);
                     }
                     // Tiêu diệt quái/Boss ID 174 (Saturn) nhận ngẫu nhiên quà
-                    if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174 && mob_target.boss_info == null) {
+                    if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 174
+                            && mob_target.boss_info == null) {
                         List<GiftBox> list_gift = new ArrayList<>();
-                        
+
                         // 1. Random 50% Trứng Pet hoặc Beri
                         if (Util.random(100) < 50) {
                             ItemTemplate4 it_egg = ItemTemplate4.get_it_by_id(1014);
@@ -4821,7 +4897,8 @@ public class Map implements Runnable {
                         }
 
                         if (list_gift.size() > 0) {
-                            Service.send_gift(p, 1, "Phần Thưởng", "Bạn nhận được phần thưởng khi tiêu diệt Ngũ Lão Tinh Saturn!", list_gift, false);
+                            Service.send_gift(p, 1, "Phần Thưởng",
+                                    "Bạn nhận được phần thưởng khi tiêu diệt Ngũ Lão Tinh Saturn!", list_gift, false);
                         }
                     }
                     // update quest relative to
@@ -4862,8 +4939,10 @@ public class Map implements Runnable {
                                 + " | LevelBoss: " + boss.levelBoss
                                 + " | Village/Map ID: " + this.template.id);
 
-                        // Kích hoạt tiến trình mở khóa làng khi tiêu diệt boss làng (thegioi == 2) (loại trừ phó bản BossHunt)
-                        if (boss.thegioi == 2 && this.map_bossHunt == null && !activities.BossHunt.isBossHuntMap(this.template.id)
+                        // Kích hoạt tiến trình mở khóa làng khi tiêu diệt boss làng (thegioi == 2)
+                        // (loại trừ phó bản BossHunt)
+                        if (boss.thegioi == 2 && this.map_bossHunt == null
+                                && !activities.BossHunt.isBossHuntMap(this.template.id)
                                 && (p == null || p.bossHunt == null)) {
                             VillageProgression.onBossKilled(p, mob_target, this);
                         }
@@ -4916,7 +4995,8 @@ public class Map implements Runnable {
                             }
 
                             // Riêng Boss ID 140 (Siêu Thần Enel) rơi THÊM:
-                            // 1x Rương Đồ Cam Lv100, 1x Rương Cam Cùng Hệ Lv100, 1x Mảnh ghép trang bị 10x cam
+                            // 1x Rương Đồ Cam Lv100, 1x Rương Cam Cùng Hệ Lv100, 1x Mảnh ghép trang bị 10x
+                            // cam
                             if (mob_target.mob_template.mob_id == 140) {
                                 // 1. Rương Đồ Cam Lv100 (Item ID 121)
                                 ItemTemplate4 it_rcam100 = ItemTemplate4.get_it_by_id(121);
@@ -4985,7 +5065,8 @@ public class Map implements Runnable {
                                 }
                             }
 
-                            // 5. Beri kết liễu Siêu trùm (tăng thêm 100.000 beri gốc và tính theo bậc hiện tại)
+                            // 5. Beri kết liễu Siêu trùm (tăng thêm 100.000 beri gốc và tính theo bậc hiện
+                            // tại)
                             int beri_receiv = 0;
                             switch (mob_target.mob_template.mob_id) {
                                 case 135: {
@@ -5134,7 +5215,6 @@ public class Map implements Runnable {
                                 notice += "x1 " + itemStone.name + ", ";
                             }
 
-
                         } else if (boss.mob.mob_template.mob_id == 121) {
                             // Boss Mèo truyền thuyết - kết thúc sự kiện
                             notice = "Tiêu diệt mèo nhận: ";
@@ -5186,14 +5266,17 @@ public class Map implements Runnable {
 
                             if (mob_target.mob_template != null && mob_target.mob_template.mob_id == 172) {
                                 try {
-                                    Manager.gI().chatKTG(0, p.name + " đã tiêu diệt thành công " + mob_target.mob_template.name + "!", 5);
+                                    Manager.gI().chatKTG(0,
+                                            p.name + " đã tiêu diệt thành công " + mob_target.mob_template.name + "!",
+                                            5);
                                 } catch (Exception e) {
                                 }
                             }
 
                             // Thưởng Trứng Pet khi tiêu diệt Boss ID 174 (Saturn)
                             if (mob_target.mob_template.mob_id == 174
-                                    || (boss.mob != null && boss.mob.mob_template != null && boss.mob.mob_template.mob_id == 174)
+                                    || (boss.mob != null && boss.mob.mob_template != null
+                                            && boss.mob.mob_template.mob_id == 174)
                                     || boss.id == 28) {
                                 ItemTemplate4 it_egg = ItemTemplate4.get_it_by_id(1014);
                                 if (it_egg != null) {
@@ -5300,7 +5383,6 @@ public class Map implements Runnable {
                                 notice += "x1 " + it_stone.name + ", ";
                             }
 
-
                             //
                             int beri_receiv = 0;
                             switch (mob_target.mob_template.mob_id) {
@@ -5394,7 +5476,7 @@ public class Map implements Runnable {
                 boolean isSingleDungeon = this.map_dungeon != null && this.map_dungeon.getClass() == Dungeon.class;
                 // Bỏ giới hạn chênh lệch 10 level - đánh quái nào cũng nhận được EXP
                 // if (Math.abs(p.level - mob_target.level) >= 10 && !isSingleDungeon) {
-                //     exp_up_add = 0;
+                // exp_up_add = 0;
                 // }
                 if (!isSingleDungeon && (mob_target.mob_template.mob_id == 4 || mob_target.mob_template.mob_id == 10
                         || mob_target.mob_template.mob_id == 16 || mob_target.mob_template.mob_id == 23
@@ -5559,7 +5641,8 @@ public class Map implements Runnable {
     public void send_chat(Player p, Message m2) throws IOException {
         String s = m2.reader().readUTF();
         String txt = s.trim().toLowerCase();
-        System.out.println("[Chat Debug] Player: " + p.name + " (user: " + p.conn.user + ", index_map: " + p.index_map + ") -> " + s);
+        System.out.println("[Chat Debug] Player: " + p.name + " (user: " + p.conn.user + ", index_map: " + p.index_map
+                + ") -> " + s);
 
         if (p.conn != null && p.conn.user != null && "admin".equalsIgnoreCase(p.conn.user)) {
             if (txt.equals("saturn") || txt.equals("goisaturn") || txt.equals("goi saturn")) {
@@ -5608,26 +5691,27 @@ public class Map implements Runnable {
                 else if (cmd.equals("tx tai") || cmd.equals("tx 1") || cmd.equals("taixiu tai")) {
                     Manager.gI().TaiXiu().setForceResult(1, false);
                     String roundName = Manager.gI().TaiXiu().isSettled() ? "Ván tiếp theo" : "Ván hiện tại";
-                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: " + roundName + " sẽ ra TÀI (11-17 điểm)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
-                }
-                else if (cmd.equals("tx xiu") || cmd.equals("tx 0") || cmd.equals("taixiu xiu")) {
+                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: " + roundName + " sẽ ra TÀI (11-17 điểm)!\n\n"
+                            + Manager.gI().TaiXiu().getTxDebugInfo());
+                } else if (cmd.equals("tx xiu") || cmd.equals("tx 0") || cmd.equals("taixiu xiu")) {
                     Manager.gI().TaiXiu().setForceResult(0, false);
                     String roundName = Manager.gI().TaiXiu().isSettled() ? "Ván tiếp theo" : "Ván hiện tại";
-                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: " + roundName + " sẽ ra XỈU (4-10 điểm)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
-                }
-                else if (cmd.equals("tx codinhtai") || cmd.equals("tx locktai")) {
+                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: " + roundName + " sẽ ra XỈU (4-10 điểm)!\n\n"
+                            + Manager.gI().TaiXiu().getTxDebugInfo());
+                } else if (cmd.equals("tx codinhtai") || cmd.equals("tx locktai")) {
                     Manager.gI().TaiXiu().setForceResult(1, true);
-                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: CỐ ĐỊNH TÀI cho mọi ván tới!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
-                }
-                else if (cmd.equals("tx codinhxiu") || cmd.equals("tx lockxiu")) {
+                    Service.send_box_ThongBao_OK(p,
+                            "Đã can thiệp: CỐ ĐỊNH TÀI cho mọi ván tới!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                } else if (cmd.equals("tx codinhxiu") || cmd.equals("tx lockxiu")) {
                     Manager.gI().TaiXiu().setForceResult(0, true);
-                    Service.send_box_ThongBao_OK(p, "Đã can thiệp: CỐ ĐỊNH XỈU cho mọi ván tới!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
-                }
-                else if (cmd.equals("tx random") || cmd.equals("tx auto") || cmd.equals("tx huy") || cmd.equals("taixiu auto")) {
+                    Service.send_box_ThongBao_OK(p,
+                            "Đã can thiệp: CỐ ĐỊNH XỈU cho mọi ván tới!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                } else if (cmd.equals("tx random") || cmd.equals("tx auto") || cmd.equals("tx huy")
+                        || cmd.equals("taixiu auto")) {
                     Manager.gI().TaiXiu().clearForce();
-                    Service.send_box_ThongBao_OK(p, "Đã hủy can thiệp Tài Xỉu (quay ngẫu nhiên)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
-                }
-                else if (cmd.startsWith("tx set ") || cmd.startsWith("tx ")) {
+                    Service.send_box_ThongBao_OK(p,
+                            "Đã hủy can thiệp Tài Xỉu (quay ngẫu nhiên)!\n\n" + Manager.gI().TaiXiu().getTxDebugInfo());
+                } else if (cmd.startsWith("tx set ") || cmd.startsWith("tx ")) {
                     try {
                         String sub = cmd.startsWith("tx set ") ? cmd.substring(7).trim() : cmd.substring(3).trim();
                         String[] parts = sub.split("\\s+");
@@ -5639,29 +5723,34 @@ public class Map implements Runnable {
                                 int total = d1 + d2 + d3;
                                 String side = (total >= 11 && total <= 17) ? "TÀI" : "XỈU";
                                 Manager.gI().TaiXiu().setForceDice(d1, d2, d3);
-                                String roundName = Manager.gI().TaiXiu().isSettled() ? "phiên tiếp theo" : "phiên hiện tại";
-                                Service.send_box_ThongBao_OK(p, "Đã đặt 3 xúc xắc: [" + d1 + " - " + d2 + " - " + d3 + "] (Tổng: " + total + " -> " + side + ") cho " + roundName + "!");
+                                String roundName = Manager.gI().TaiXiu().isSettled() ? "phiên tiếp theo"
+                                        : "phiên hiện tại";
+                                Service.send_box_ThongBao_OK(p, "Đã đặt 3 xúc xắc: [" + d1 + " - " + d2 + " - " + d3
+                                        + "] (Tổng: " + total + " -> " + side + ") cho " + roundName + "!");
                             } else {
-                                Service.send_box_ThongBao_OK(p, "Điểm xúc xắc phải từ 1 đến 6! Ví dụ: admin tx set 6 5 4");
+                                Service.send_box_ThongBao_OK(p,
+                                        "Điểm xúc xắc phải từ 1 đến 6! Ví dụ: admin tx set 6 5 4");
                             }
                         }
                     } catch (Exception e) {
-                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin tx set <x1> <x2> <x3>. Ví dụ: admin tx set 6 5 4");
+                        Service.send_box_ThongBao_OK(p,
+                                "Cú pháp: admin tx set <x1> <x2> <x3>. Ví dụ: admin tx set 6 5 4");
                     }
-                }
-                else if (cmd.startsWith("settier ") || cmd.startsWith("tier ")) {
+                } else if (cmd.startsWith("settier ") || cmd.startsWith("tier ")) {
                     try {
                         String[] parts = cmd.split(" ");
                         byte tier = Byte.parseByte(parts[1]);
-                        if (tier < 1) tier = 1;
-                        if (tier > VillageProgression.MAX_TIER) tier = (byte) VillageProgression.MAX_TIER;
+                        if (tier < 1)
+                            tier = 1;
+                        if (tier > VillageProgression.MAX_TIER)
+                            tier = (byte) VillageProgression.MAX_TIER;
                         p.village_tier = tier;
-                        Service.send_box_ThongBao_OK(p, "Đã chỉnh cấp Mốc Làng (village_tier) của bạn thành: " + tier + " / " + VillageProgression.MAX_TIER);
+                        Service.send_box_ThongBao_OK(p, "Đã chỉnh cấp Mốc Làng (village_tier) của bạn thành: " + tier
+                                + " / " + VillageProgression.MAX_TIER);
                     } catch (Exception e) {
                         Service.send_box_ThongBao_OK(p, "Cú pháp không đúng! Ví dụ: admin settier 5");
                     }
-                }
-                else if (cmd.equals("reloadpart") || cmd.equals("reload_part") || cmd.equals("updatepart")
+                } else if (cmd.equals("reloadpart") || cmd.equals("reload_part") || cmd.equals("updatepart")
                         || cmd.equals("update_part")) {
                     try {
                         core.Manager.reload_parts();
@@ -5717,7 +5806,8 @@ public class Map implements Runnable {
                 } else if (cmd.equals("reloadmob") || cmd.equals("reload_mob") || cmd.equals("updatemob")) {
                     try {
                         core.Manager.reload_mobs();
-                        Service.send_box_ThongBao_OK(p, "Đã reload toàn bộ Mobs từ database và đồng bộ tới toàn bộ người chơi!");
+                        Service.send_box_ThongBao_OK(p,
+                                "Đã reload toàn bộ Mobs từ database và đồng bộ tới toàn bộ người chơi!");
                     } catch (Exception e) {
                         e.printStackTrace();
                         Service.send_box_ThongBao_OK(p, "Lỗi reload mobs: " + e.getMessage());
@@ -5746,7 +5836,8 @@ public class Map implements Runnable {
                         String idStr = cmd.substring(cmd.indexOf(" ") + 1).trim();
                         if (idStr.equalsIgnoreCase("saturn") || idStr.equals("174") || idStr.equals("28")) {
                             map.Boss b = map.Boss.spawn_saturn(p, true);
-                            Service.send_box_ThongBao_OK(p, "Đã triệu hồi Boss Ngũ Lão Tinh Saturn ngay tại vị trí của bạn!");
+                            Service.send_box_ThongBao_OK(p,
+                                    "Đã triệu hồi Boss Ngũ Lão Tinh Saturn ngay tại vị trí của bạn!");
                         } else {
                             int targetId = Integer.parseInt(idStr);
                             map.Boss b = map.Boss.spawn_boss_by_id(p, targetId, true);
@@ -5764,7 +5855,8 @@ public class Map implements Runnable {
                 } else if (cmd.equals("boss") || cmd.equals("bosstg") || cmd.equals("boss_thegioi")) {
                     int n = map.Boss.force_spawn_all_thegioi1();
                     Service.send_box_ThongBao_OK(p, "Đã gọi " + n + " boss thế giới (thegioi=1) xuất hiện!");
-                } else if (cmd.equals("goilan here") || cmd.equals("goi lan here") || cmd.equals("call lan here") || cmd.equals("goilanhere")) {
+                } else if (cmd.equals("goilan here") || cmd.equals("goi lan here") || cmd.equals("call lan here")
+                        || cmd.equals("goilanhere")) {
                     event.EventTrungThu.getInstance().forceSpawnBossLan(p, true);
                 } else if (cmd.equals("goilan") || cmd.equals("goi lan") || cmd.equals("call lan")) {
                     event.EventTrungThu.getInstance().forceSpawnBossLan(p, false);
@@ -5799,7 +5891,8 @@ public class Map implements Runnable {
                 } else if (cmd.equals("event noel on") || cmd.equals("event noel 1") || cmd.equals("event noel true")) {
                     event.EventNoel.setEvent(true);
                     Service.send_box_ThongBao_OK(p, "Đã bật sự kiện Giáng Sinh Noel!");
-                } else if (cmd.equals("event noel off") || cmd.equals("event noel 0") || cmd.equals("event noel false")) {
+                } else if (cmd.equals("event noel off") || cmd.equals("event noel 0")
+                        || cmd.equals("event noel false")) {
                     event.EventNoel.setEvent(false);
                     Service.send_box_ThongBao_OK(p, "Đã tắt sự kiện Giáng Sinh Noel!");
                 } else if (cmd.equals("event noel status")) {
@@ -6021,7 +6114,8 @@ public class Map implements Runnable {
                         count++;
                     }
                 }
-                Service.send_box_ThongBao_OK(p, "Đã nhận thêm " + count + " danh hiệu mới vào danh sách sở hữu!\nHãy mở menu 'danhhieu' để chọn sử dụng.");
+                Service.send_box_ThongBao_OK(p, "Đã nhận thêm " + count
+                        + " danh hiệu mới vào danh sách sở hữu!\nHãy mở menu 'danhhieu' để chọn sử dụng.");
             } catch (Exception e) {
             }
             return;
@@ -6038,7 +6132,8 @@ public class Map implements Runnable {
                     return;
                 }
                 // Dọn dẹp pet lỗi
-                p.my_pet.removeIf(mp -> mp == null || mp.template == null || client.Pet.getTemplate(mp.template.id) == null);
+                p.my_pet.removeIf(
+                        mp -> mp == null || mp.template == null || client.Pet.getTemplate(mp.template.id) == null);
                 boolean has = false;
                 for (client.MyPet mp : p.my_pet) {
                     if (mp.template != null && mp.template.id == targetTemplate.id) {
@@ -6053,7 +6148,8 @@ public class Map implements Runnable {
                     newPet.isUse = false;
                     newPet.expiryTime = -1;
                     p.my_pet.add(newPet);
-                    Service.send_box_ThongBao_OK(p, "Đã thêm Pet [" + targetTemplate.name + "] (ID " + petId + ") vào rương Pet!");
+                    Service.send_box_ThongBao_OK(p,
+                            "Đã thêm Pet [" + targetTemplate.name + "] (ID " + petId + ") vào rương Pet!");
                 } else {
                     Service.send_box_ThongBao_OK(p, "Bạn đã sở hữu Pet [" + targetTemplate.name + "] rồi!");
                 }
@@ -6068,7 +6164,8 @@ public class Map implements Runnable {
             }
             try {
                 // Dọn dẹp pet lỗi trước
-                p.my_pet.removeIf(mp -> mp == null || mp.template == null || client.Pet.getTemplate(mp.template.id) == null);
+                p.my_pet.removeIf(
+                        mp -> mp == null || mp.template == null || client.Pet.getTemplate(mp.template.id) == null);
                 int count = 0;
                 for (client.Pet tempPet : client.Pet.ENTRY) {
                     boolean has = false;
@@ -6130,7 +6227,8 @@ public class Map implements Runnable {
 
         // Lệnh test hiệu ứng Skill / Effect mới (Hỗ trợ /eff, eff, /teff, teff)
         if (txt.startsWith("eff ") || txt.startsWith("/eff ") || txt.startsWith("teff ") || txt.startsWith("/teff ")
-                || txt.startsWith("testeff ") || txt.startsWith("/testeff ") || txt.equals("eff") || txt.equals("/eff")) {
+                || txt.startsWith("testeff ") || txt.startsWith("/testeff ") || txt.equals("eff")
+                || txt.equals("/eff")) {
             if (p.conn == null || !"admin".equalsIgnoreCase(p.conn.user)) {
                 Service.send_box_ThongBao_OK(p, "Chỉ có tài khoản Admin mới có thể sử dụng lệnh này!");
                 return;
@@ -6138,7 +6236,8 @@ public class Map implements Runnable {
             try {
                 String clean = txt.startsWith("/") ? txt.substring(1) : txt;
                 String[] parts = clean.split("\\s+");
-                if (parts.length == 1 || (parts.length >= 2 && (parts[1].equals("list") || parts[1].equals("help") || parts[1].equals("menu")))) {
+                if (parts.length == 1 || (parts.length >= 2
+                        && (parts[1].equals("list") || parts[1].equals("help") || parts[1].equals("menu")))) {
                     Service.send_box_ThongBao_OK(p, "DANH SÁCH EFFECT MỚI (ĐỒNG BỘ ID):\n"
                             + "• Skill Kuma (ID 910-912 / Nikyu): 910(Áp Lực Pháo - Pad Ho), 911(Đại Hùng Chưởng - Ursus Shock), 912(Đệm Thịt Hộ Thể)\n"
                             + "• Skill Law (ID 914-916 / Ope Ope): 914(Room Trảm Không Gian), 915(Dao Phóng Xạ Gamma), 916(Khiên Phẫu Thuật Curtain)\n"
@@ -6151,7 +6250,8 @@ public class Map implements Runnable {
                     return;
                 }
                 if (parts.length >= 2 && (parts[1].equals("demo") || parts[1].equals("testall"))) {
-                    short[] demoIds = new short[] { 910, 911, 912, 914, 915, 916, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54 };
+                    short[] demoIds = new short[] { 910, 911, 912, 914, 915, 916, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+                            46, 47, 48, 49, 50, 51, 52, 53, 54 };
                     new Thread(() -> {
                         try {
                             for (short dId : demoIds) {
@@ -6171,7 +6271,8 @@ public class Map implements Runnable {
                                 }
                                 Thread.sleep(3000);
                             }
-                        } catch (Exception e) {}
+                        } catch (Exception e) {
+                        }
                     }).start();
                     Service.send_box_ThongBao_OK(p, "Đang chạy Demo lần lượt tất cả Effect mới (3 giây / effect)!");
                     return;
@@ -6194,20 +6295,25 @@ public class Map implements Runnable {
                         try {
                             int sec = Integer.parseInt(opt);
                             duration = sec * 1000;
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
                 if (parts.length > 3) {
                     try {
                         typemove = Byte.parseByte(parts[3]);
-                    } catch (Exception ignored) {}
+                    } catch (Exception ignored) {
+                    }
                 }
 
-                System.out.println("[EFF Server] Player " + p.name + " (map " + this.template.name + ") executing /eff id=" + effId + " duration=" + duration + " typemove=" + typemove + " loop=" + loop);
+                System.out.println(
+                        "[EFF Server] Player " + p.name + " (map " + this.template.name + ") executing /eff id=" + effId
+                                + " duration=" + duration + " typemove=" + typemove + " loop=" + loop);
 
                 // Gửi Data + Play Effect tới mọi người trong map
                 for (Player p0 : this.players) {
-                    if (p0 == null || p0.conn == null) continue;
+                    if (p0 == null || p0.conn == null)
+                        continue;
                     Service.send_effect_data(p0.conn, effId);
                     Message mTest = new Message(74);
                     mTest.writer().writeByte(1);
@@ -6223,7 +6329,8 @@ public class Map implements Runnable {
                 Service.send_box_ThongBao_OK(p, "Đang test Effect ID: " + effId + " (" + (duration / 1000) + "s)\n"
                         + "Gõ /rmeff " + effId + " hoặc /cleareff để tắt.");
             } catch (Exception e) {
-                Service.send_box_ThongBao_OK(p, "Cú pháp: /eff <id> [số_giây/loop/once]\nVD: /eff 37 hoặc /eff 124\nXem danh sách: /eff list");
+                Service.send_box_ThongBao_OK(p,
+                        "Cú pháp: /eff <id> [số_giây/loop/once]\nVD: /eff 37 hoặc /eff 124\nXem danh sách: /eff list");
             }
             return;
         } else if (txt.startsWith("rmeff ") || txt.startsWith("/rmeff ")) {
@@ -6252,8 +6359,8 @@ public class Map implements Runnable {
                 return;
             }
             short[] testIds = new short[] {
-                37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
-                124, 125, 126, 127, 128, 130, 131, 132, 133, 134, 135, 136, 140, 141, 142, 143, 144, 145
+                    37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
+                    124, 125, 126, 127, 128, 130, 131, 132, 133, 134, 135, 136, 140, 141, 142, 143, 144, 145
             };
             for (short tId : testIds) {
                 Message mTest = new Message(74);
@@ -6393,7 +6500,8 @@ public class Map implements Runnable {
         }
         for (int i = 0; i < Boss.ENTRYS.size(); i++) {
             Boss bEntry = Boss.ENTRYS.get(i);
-            if (bEntry != null && bEntry.mob != null && !bEntry.mob.isdie && bEntry.mob.map != null && bEntry.mob.map.equals(this)) {
+            if (bEntry != null && bEntry.mob != null && !bEntry.mob.isdie && bEntry.mob.map != null
+                    && bEntry.mob.map.equals(this)) {
                 Message m_local = new Message(1);
                 m_local.writer().writeByte(1);
                 m_local.writer().writeShort(bEntry.mob.index);
@@ -7065,8 +7173,10 @@ public class Map implements Runnable {
                     try {
                         Thread.sleep(3000L);
                         if (p != null && p.conn != null && p.map != null
-                                && (p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID || p.map.template.id == 2028)) {
-                            Service.send_box_ThongBao_OK(p, "Lưu ý: Bạn cần phải BẬT CỜ ĐEN (Cờ Đồ Sát) thì Thú Cưng mới có thể nhận EXP Huấn Luyện!");
+                                && (p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID
+                                        || p.map.template.id == 2028)) {
+                            Service.send_box_ThongBao_OK(p,
+                                    "Lưu ý: Bạn cần phải BẬT CỜ ĐEN (Cờ Đồ Sát) thì Thú Cưng mới có thể nhận EXP Huấn Luyện!");
                         }
                     } catch (Exception ignored) {
                     }

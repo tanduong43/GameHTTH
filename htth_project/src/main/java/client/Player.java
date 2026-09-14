@@ -103,6 +103,7 @@ public class Player {
     public Dungeon dungeon;
     public int id_menu_tichtieu;
     public activities.BossHunt bossHunt;
+    public activities.Battleground5v5 battleground5v5;
     public int tempMobIdBoss = -1;
     public short tempIdNpc = -1;
     public int win_dungeon_1 = 0;
@@ -1051,6 +1052,11 @@ public class Player {
                         skill_add.lvdevil = Byte.parseByte(js2.get(2).toString());
                         skill_add.devilpercent = Byte.parseByte(js2.get(3).toString());
                         if (skill_add.temp != null) {
+                            if (skill_add.temp.Lv_RQ >= 30) {
+                                skill_add.exp = 0;
+                            } else if (skill_add.temp.Lv_RQ == -1) {
+                                skill_add.exp = -1;
+                            }
                             skill_point.add(skill_add);
                         }
                     }
@@ -1926,7 +1932,12 @@ public class Player {
             }
         }
 
-        if (Map.is_map_dungeon(map_go[0].template.id) && this.dungeon != null) {
+        if (this.battleground5v5 != null && this.battleground5v5.isBattleMap(map_go[0].template.id)) {
+            Map instance = this.battleground5v5.getMapInstance(map_go[0].template.id);
+            if (instance != null) {
+                map_go = new Map[] { instance };
+            }
+        } else if (Map.is_map_dungeon(map_go[0].template.id) && this.dungeon != null) {
             int id_map = map_go[0].template.id;
             Map originalMap = map_go[0];
             map_go = new Map[1];
@@ -2830,7 +2841,13 @@ public class Player {
             if (sk == null || sk.temp == null) {
                 continue;
             }
-            if (sk.temp.Lv_RQ >= 30) {
+            if (sk.temp.Lv_RQ > 30) {
+                Skill_Template maxTemp = Skill_Template.getClassSkillTemplate(this.clazz, sk.temp.ID, (sk.temp.ID == 3 ? 20 : 30));
+                if (maxTemp != null) {
+                    sk.temp = maxTemp;
+                }
+                sk.exp = 0;
+            } else if (sk.temp.Lv_RQ == 30) {
                 sk.exp = 0;
             } else if (sk.temp.Lv_RQ == -1) {
                 sk.exp = -1;
@@ -2839,6 +2856,16 @@ public class Player {
             if (sk.temp.ID >= 0 && sk.temp.ID <= 3 && (sk.temp.typeSkill == 1 || sk.temp.typeSkill == 4)) {
                 if (Skill_Template.isClassSkill(sk.temp.indexSkillInServer, this.clazz)) {
                     classSkills.add(sk);
+                } else {
+                    int targetLv = Math.min((int) sk.temp.Lv_RQ, (sk.temp.ID == 3 ? 20 : 30));
+                    Skill_Template rescued = Skill_Template.getClassSkillTemplate(this.clazz, sk.temp.ID, targetLv);
+                    if (rescued != null) {
+                        sk.temp = rescued;
+                        if (sk.temp.Lv_RQ >= 30) {
+                            sk.exp = 0;
+                        }
+                        classSkills.add(sk);
+                    }
                 }
             } else if (sk.temp.ID >= 1010 && sk.temp.ID <= 1014) {
                 int expectedBuffId = 1009 + this.clazz;

@@ -1880,12 +1880,12 @@ public class UseItem {
                             break;
                         }
 
-                        // Upgrade all default skills that are < 31 by 1 level
+                        // Upgrade all default skills that are < 30 by 1 level
                         boolean upgradedAny = false;
                         for (int i = 0; i < p.skill_point.size(); i++) {
                             Skill_info sk = p.skill_point.get(i);
                             if (sk.temp.typeSkill == 1 && sk.temp.typeDevil == 0 && sk.temp.ID < 2000) {
-                                if (sk.temp.Lv_RQ < 31) {
+                                if (sk.temp.Lv_RQ < 30) {
                                     if (Skill_Template.upgrade_skill(sk, p.clazz)) {
                                         sk.exp = 0; // reset exp to 0 for the new level
                                         upgradedAny = true;

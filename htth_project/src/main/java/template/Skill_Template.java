@@ -168,6 +168,7 @@ public class Skill_Template {
     }
 
     public static Skill_Template get_temp(int index, long exp) {
+        Skill_Template fallback = null;
         for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
             Skill_Template temp = Skill_Template.ENTRYS.get(i);
             if (temp.indexSkillInServer == index) {
@@ -176,23 +177,26 @@ public class Skill_Template {
                 } else if (exp > -1 && temp.Lv_RQ > -1) {
                     return temp;
                 }
+                if (fallback == null) {
+                    fallback = temp;
+                }
             }
         }
-        return null;
+        return fallback;
     }
 
     public static boolean isClassSkill(int idx, byte clazz) {
         switch (clazz) {
             case 1:
-                return (idx >= 0 && idx < 60) || (idx >= 375 && idx < 395) || (idx >= 566 && idx <= 583) || (idx >= 667 && idx <= 678);
+                return (idx >= 0 && idx < 60) || (idx >= 375 && idx < 395) || (idx >= 566 && idx <= 583) || (idx >= 667 && idx <= 678) || (idx >= 727 && idx <= 729);
             case 2:
-                return (idx >= 60 && idx < 120) || (idx >= 395 && idx < 415) || (idx >= 584 && idx <= 601) || (idx >= 679 && idx <= 690);
+                return (idx >= 60 && idx < 120) || (idx >= 395 && idx < 415) || (idx >= 584 && idx <= 601) || (idx >= 679 && idx <= 690) || (idx >= 730 && idx <= 732);
             case 3:
-                return (idx >= 120 && idx < 180) || (idx >= 415 && idx < 435) || (idx >= 602 && idx <= 619) || (idx >= 691 && idx <= 702);
+                return (idx >= 120 && idx < 180) || (idx >= 415 && idx < 435) || (idx >= 602 && idx <= 619) || (idx >= 691 && idx <= 702) || (idx >= 733 && idx <= 735);
             case 4:
-                return (idx >= 180 && idx < 240) || (idx >= 435 && idx < 455) || (idx >= 620 && idx <= 637) || (idx >= 703 && idx <= 714);
+                return (idx >= 180 && idx < 240) || (idx >= 435 && idx < 455) || (idx >= 620 && idx <= 637) || (idx >= 703 && idx <= 714) || (idx >= 736 && idx <= 738);
             case 5:
-                return (idx >= 240 && idx < 300) || (idx >= 455 && idx < 475) || (idx >= 638 && idx <= 655) || (idx >= 715 && idx <= 726);
+                return (idx >= 240 && idx < 300) || (idx >= 455 && idx < 475) || (idx >= 638 && idx <= 655) || (idx >= 715 && idx <= 726) || (idx >= 739 && idx <= 741);
             default:
                 return false;
         }
