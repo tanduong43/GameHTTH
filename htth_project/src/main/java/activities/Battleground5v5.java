@@ -63,6 +63,102 @@ public class Battleground5v5 {
     public Mob mainTowerA; // Trụ chính Phe Đỏ
     public Mob mainTowerB; // Trụ chính Phe Xanh
 
+    public static final java.util.Map<Integer, int[][]> DEFAULT_TOWERS = new java.util.HashMap<>();
+    static {
+        // Map 129 (Làng đỏ - Phe Đỏ): Trụ Chính A (123)
+        DEFAULT_TOWERS.put(MAP_RED_BASE, new int[][] { { MOB_TRU_CHINH_A, 250, 288 } });
+        // Map 130 (Làng xanh - Phe Xanh): Trụ Chính B (125)
+        DEFAULT_TOWERS.put(MAP_BLUE_BASE, new int[][] { { MOB_TRU_CHINH_B, 806, 288 } });
+        // Map 131 (Đường trên): Trụ Thường A (122) và Trụ Thường B (124)
+        DEFAULT_TOWERS.put(MAP_TOP, new int[][] { { MOB_TRU_THUONG_A, 350, 288 }, { MOB_TRU_THUONG_B, 706, 288 } });
+        // Map 132 (Đường giữa): Trụ Thường A (122) và Trụ Thường B (124)
+        DEFAULT_TOWERS.put(MAP_MID, new int[][] { { MOB_TRU_THUONG_A, 350, 288 }, { MOB_TRU_THUONG_B, 706, 288 } });
+        // Map 133 (Đường dưới): Trụ Thường A (122) và Trụ Thường B (124)
+        DEFAULT_TOWERS.put(MAP_BOT, new int[][] { { MOB_TRU_THUONG_A, 350, 288 }, { MOB_TRU_THUONG_B, 706, 288 } });
+    }
+
+    public static template.MobTemplate getMobTemplate(int mobId) {
+        for (template.MobTemplate mt : template.MobTemplate.ENTRYS) {
+            if (mt != null && mt.mob_id == mobId) {
+                return mt;
+            }
+        }
+        if (mobId >= 0 && mobId < template.MobTemplate.ENTRYS.size()) {
+            return template.MobTemplate.ENTRYS.get(mobId);
+        }
+        return null;
+    }
+
+    /**
+     * Khởi tạo trụ cho một map instance trong chiến trường, ưu tiên đọc từ mapTemplate,
+     * nếu mapTemplate rỗng thì nạp từ DEFAULT_TOWERS để đảm bảo luôn luôn có trụ.
+     */
+    public int initTowersForMap(Map instance, Map mapTemplate, int mid, int mobIndexCounter) {
+        boolean hasTowers = false;
+        if (mapTemplate != null && mapTemplate.list_mob != null && mapTemplate.list_mob.length > 0) {
+            for (int mobIdRef : mapTemplate.list_mob) {
+                Mob tplMob = Mob.ENTRYS.get(mobIdRef);
+                if (tplMob != null && tplMob.mob_template != null) {
+                    Mob tower = new Mob();
+                    tower.mob_template = tplMob.mob_template;
+                    tower.x = tplMob.x;
+                    tower.y = tplMob.y;
+                    tower.hp_max = tplMob.hp_max > 0 ? tplMob.hp_max : 5000;
+                    tower.hp = tower.hp_max;
+                    tower.level = tplMob.level;
+                    tower.isdie = false;
+                    tower.id_target = -1;
+                    tower.index = mobIndexCounter--;
+                    tower.map = instance;
+                    tower.boss_info = null;
+
+                    this.towers.add(tower);
+                    hasTowers = true;
+
+                    if (tower.mob_template.mob_id == MOB_TRU_CHINH_A) {
+                        this.mainTowerA = tower;
+                    } else if (tower.mob_template.mob_id == MOB_TRU_CHINH_B) {
+                        this.mainTowerB = tower;
+                    }
+                }
+            }
+        }
+
+        // Tự động nạp trụ mặc định nếu map chưa có mob trong DB (Map 129 Làng đỏ, Map 130 Làng xanh...)
+        if (!hasTowers && DEFAULT_TOWERS.containsKey(mid)) {
+            int[][] defs = DEFAULT_TOWERS.get(mid);
+            for (int[] def : defs) {
+                int mobId = def[0];
+                short tx = (short) def[1];
+                short ty = (short) def[2];
+                template.MobTemplate mt = getMobTemplate(mobId);
+                if (mt != null) {
+                    Mob tower = new Mob();
+                    tower.mob_template = mt;
+                    tower.x = tx;
+                    tower.y = ty;
+                    tower.hp_max = mt.hp_max > 0 ? mt.hp_max : (mobId == MOB_TRU_CHINH_A || mobId == MOB_TRU_CHINH_B ? 5000 : 2000);
+                    tower.hp = tower.hp_max;
+                    tower.level = mt.level;
+                    tower.isdie = false;
+                    tower.id_target = -1;
+                    tower.index = mobIndexCounter--;
+                    tower.map = instance;
+                    tower.boss_info = null;
+
+                    this.towers.add(tower);
+
+                    if (mobId == MOB_TRU_CHINH_A) {
+                        this.mainTowerA = tower;
+                    } else if (mobId == MOB_TRU_CHINH_B) {
+                        this.mainTowerB = tower;
+                    }
+                }
+            }
+        }
+        return mobIndexCounter;
+    }
+
     public List<Player> teamA = new CopyOnWriteArrayList<>(); // Phe Đỏ (type_pk = 4)
     public List<Player> teamB = new CopyOnWriteArrayList<>(); // Phe Xanh (type_pk = 5)
 
@@ -133,7 +229,7 @@ public class Battleground5v5 {
                 + "--- CHẾ ĐỘ 5VS5 ---\n"
                 + "- Đội hình: 5 người mỗi bên (Phe Đỏ vs Phe Xanh).\n"
                 + "- Nhiệm vụ: Phá hủy Trụ Chính của đối phương để giành chiến thắng.\n"
-                + "- Trụ phòng thủ: Gây sát thương cực lớn cho kẻ địch đứng trong phạm vi 30.\n"
+                + "- Đánh trụ mỗi lần trừ 1 HP. Trụ vỡ sẽ giữ nguyên trạng thái.\n"
                 + "- Hồi sinh: Khi chết quay về Trụ Chính phe mình. Thời gian ban đầu 5 giây, mỗi lần chết +1 giây.\n"
                 + "--- CHẾ ĐỘ 1VS1 ---\n"
                 + "- Không cần nhóm, chỉ 2 người chơi vào hàng chờ.\n"
@@ -232,34 +328,8 @@ public class Battleground5v5 {
             instance.list_mob = new int[0];
             instance.map_battleground5v5 = battle;
 
-            // Khởi tạo mob trụ (chỉ Trụ Chính)
-            if (mapTemplate.list_mob != null) {
-                for (int mobIdRef : mapTemplate.list_mob) {
-                    Mob tplMob = Mob.ENTRYS.get(mobIdRef);
-                    if (tplMob != null && tplMob.mob_template != null) {
-                        Mob tower = new Mob();
-                        tower.mob_template = tplMob.mob_template;
-                        tower.x = tplMob.x;
-                        tower.y = tplMob.y;
-                        tower.hp_max = tplMob.hp_max > 0 ? tplMob.hp_max : 5000;
-                        tower.hp = tower.hp_max;
-                        tower.level = tplMob.level;
-                        tower.isdie = false;
-                        tower.id_target = -1;
-                        tower.index = mobIndexCounter--;
-                        tower.map = instance;
-                        tower.boss_info = null;
-
-                        battle.towers.add(tower);
-
-                        if (tower.mob_template.mob_id == MOB_TRU_CHINH_A) {
-                            battle.mainTowerA = tower;
-                        } else if (tower.mob_template.mob_id == MOB_TRU_CHINH_B) {
-                            battle.mainTowerB = tower;
-                        }
-                    }
-                }
-            }
+            // Khởi tạo mob trụ (chỉ Trụ Chính cho 1v1)
+            mobIndexCounter = battle.initTowersForMap(instance, mapTemplate, mid, mobIndexCounter);
 
             instance.start_map();
             Map.add_map_plus(instance);
@@ -434,35 +504,8 @@ public class Battleground5v5 {
             instance.list_mob = new int[0];
             instance.map_battleground5v5 = battle;
 
-            // Khởi tạo mob trụ cho map này
-            if (mapTemplate.list_mob != null) {
-                for (int mobIdRef : mapTemplate.list_mob) {
-                    Mob tplMob = Mob.ENTRYS.get(mobIdRef);
-                    if (tplMob != null && tplMob.mob_template != null) {
-                        Mob tower = new Mob();
-                        tower.mob_template = tplMob.mob_template;
-                        tower.x = tplMob.x;
-                        tower.y = tplMob.y;
-                        tower.hp_max = tplMob.hp_max > 0 ? tplMob.hp_max : 5000;
-                        tower.hp = tower.hp_max;
-                        tower.level = tplMob.level;
-                        tower.isdie = false;
-                        tower.id_target = -1;
-                        tower.index = mobIndexCounter--;
-                        tower.map = instance;
-                        tower.boss_info = null;
-
-                        battle.towers.add(tower);
-
-                        // Đánh dấu Trụ Chính
-                        if (tower.mob_template.mob_id == MOB_TRU_CHINH_A) {
-                            battle.mainTowerA = tower;
-                        } else if (tower.mob_template.mob_id == MOB_TRU_CHINH_B) {
-                            battle.mainTowerB = tower;
-                        }
-                    }
-                }
-            }
+            // Khởi tạo mob trụ cho map này (tự động nạp trụ theo template hoặc mặc định)
+            mobIndexCounter = battle.initTowersForMap(instance, mapTemplate, mid, mobIndexCounter);
 
             instance.start_map();
             Map.add_map_plus(instance);
@@ -557,11 +600,11 @@ public class Battleground5v5 {
             return;
         }
 
-        // 2. Trụ quét và gây sát thương người chơi địch trong phạm vi 30
-        if (now - lastTowerCheck >= 1000L) {
-            lastTowerCheck = now;
-            updateTowerDamage();
-        }
+        // 2. Trụ KHÔNG gây sát thương người chơi (đã tắt)
+        // if (now - lastTowerCheck >= 1000L) {
+        //     lastTowerCheck = now;
+        //     updateTowerDamage();
+        // }
 
         // 3. Cập nhật hồi sinh cho các người chơi tử trận
         updateRespawn();

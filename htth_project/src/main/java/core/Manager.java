@@ -193,6 +193,12 @@ public class Manager {
                 ps.executeUpdate("UPDATE `parts` SET `data` = '[[8328,-2,-5],[8329,-2,-5],[8330,-2,-5],[8331,-2,-5],[8332,-1,-5]]' WHERE `id` = 729;");
                 // Tự động sửa lỗi thiếu ngoặc đóng ] trong npcs map 62 (Vườn Cam Namie)
                 ps.executeUpdate("UPDATE `maps` SET `npcs` = CONCAT(`npcs`, ']') WHERE `id` = 62 AND `npcs` LIKE '%[]]';");
+                // Tự động đồng bộ cấu hình quái/trụ cho 5 map Chiến Trường 5vs5 (129 -> 133)
+                ps.executeUpdate("UPDATE `maps` SET `mobs` = '[[123,250,288]]' WHERE `id` = 129 AND (`mobs` IS NULL OR `mobs` = '[]' OR `mobs` = '');");
+                ps.executeUpdate("UPDATE `maps` SET `mobs` = '[[125,806,288]]' WHERE `id` = 130 AND (`mobs` IS NULL OR `mobs` = '[]' OR `mobs` = '');");
+                ps.executeUpdate("UPDATE `maps` SET `mobs` = '[[122,350,288],[124,706,288]]' WHERE `id` = 131 AND (`mobs` IS NULL OR `mobs` = '[]' OR `mobs` = '');");
+                ps.executeUpdate("UPDATE `maps` SET `mobs` = '[[122,350,288],[124,706,288]]' WHERE `id` = 132 AND (`mobs` IS NULL OR `mobs` = '[]' OR `mobs` = '');");
+                ps.executeUpdate("UPDATE `maps` SET `mobs` = '[[122,350,288],[124,706,288]]' WHERE `id` = 133 AND (`mobs` IS NULL OR `mobs` = '[]' OR `mobs` = '');");
             } catch (Exception ignored) {
             }
             // load mobs

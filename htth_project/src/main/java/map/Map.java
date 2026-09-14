@@ -3310,8 +3310,10 @@ public class Map implements Runnable {
                                         + " floor=" + (p.bossHunt.currentFloor + 1));
                             }
                         }
-                        if (mob_target[i] == null && this.map_battleground5v5 != null && p.battleground5v5 != null) {
-                            mob_target[i] = p.battleground5v5.get_mob(p, id_target);
+                        if (mob_target[i] == null && this.map_battleground5v5 != null) {
+                            mob_target[i] = (p.battleground5v5 != null)
+                                    ? p.battleground5v5.get_mob(p, id_target)
+                                    : this.map_battleground5v5.get_mob(p, id_target);
                         }
                         if (mob_target[i] == null && Map.is_map_dungeon(this.template.id)
                                 && p.dungeon != null && this.map_dungeon != null) {
@@ -4266,6 +4268,15 @@ public class Map implements Runnable {
                         }
                     }
                 }
+                // === Trụ chiến trường 5v5: chỉ gây đúng 1 HP sát thương ===
+                boolean isTower5v5 = (mob_target.mob_template != null
+                        && mob_target.mob_template.typemove == 19
+                        && this.map_battleground5v5 != null);
+                if (isTower5v5) {
+                    dame2 = 1;
+                    dame_inf.dameP = 1;
+                    dame_inf.dameM = 0;
+                }
                 boolean miss = (5 + mob_target.level / 10) > Util.random(1000);
                 if (!miss && mob_target.ne_don > 0 && Util.random(100) < mob_target.ne_don) {
                     miss = true;
@@ -4274,14 +4285,25 @@ public class Map implements Runnable {
                 if (isEventBoss1Hp) {
                     miss = false;
                 }
+                // Trụ 5v5 không bao giờ miss
+                if (isTower5v5) {
+                    miss = false;
+                }
                 if (miss) { // miss
                     dame2 = 0;
                     dame_inf.dameM = 0;
                 }
-                if (dame2 > 0) {
+                if (dame2 > 0 && !isTower5v5) {
                     dame2 -= (dame2 * Util.random(10)) / 100;
                 }
                 long dame_to_target = dame2 + dame_inf.dameM;
+                // Trụ 5v5: cố định dame = 1
+                if (isTower5v5) {
+                    dame_to_target = 1;
+                    dame_inf.dameP = 1;
+                    dame_inf.dameM = 0;
+                    dame2 = 1;
+                }
                 if (isBossLan) {
                     dame_to_target = 1;
                     dame_inf.dameP = 1;
@@ -4321,7 +4343,7 @@ public class Map implements Runnable {
                     event.EventNoel.getInstance().onBossDamaged(p, 1);
                 }
                 if (dame_to_target > 0) {
-                    if (!isEventBoss1Hp) {
+                    if (!isEventBoss1Hp && !isTower5v5) {
                         long raw_total = dame2 + dame_inf.dameM;
                         dame_to_target = mob_target.calculate_damage_taken(dame_to_target);
                         if (raw_total > 0 && dame_inf.dameM > 0) {
@@ -4403,7 +4425,7 @@ public class Map implements Runnable {
                     if (this.clan_resource != null) {
                         this.clan_resource.dame += dame_to_target;
                     } else {
-                        if (isEventBoss1Hp) {
+                        if (isEventBoss1Hp || isTower5v5) {
                             dame_to_target = 1;
                         }
                         mob_target.hp -= dame_to_target;
@@ -4744,7 +4766,7 @@ public class Map implements Runnable {
                     p.item.update_Inventory(-1, false);
                     p.update_money();
                 }
-                if (isEventBoss1Hp) {
+                if (isEventBoss1Hp || isTower5v5) {
                     dame_inf.dameP = 1;
                     dame_inf.dameM = 0;
                 } else {
@@ -4778,6 +4800,10 @@ public class Map implements Runnable {
                                 }
                             }
                         }
+                    } else if (mob_target.mob_template != null && mob_target.mob_template.typemove == 19
+                            && this.map_battleground5v5 != null) {
+                        // Trụ chiến trường 5v5: vỡ vĩnh viễn, không hồi sinh
+                        mob_target.time_refresh = Long.MAX_VALUE;
                     } else {
                         mob_target.time_refresh = System.currentTimeMillis() + Mob.TIME_RESPAWN * 500;
                     }
@@ -6525,6 +6551,35 @@ public class Map implements Runnable {
                     p.conn.addmsg(m_local);
                     m_local.cleanup();
                 }
+            }
+        }
+        // send battleground 5v5 towers (including dead towers so client shows broken state)
+        if (this.map_battleground5v5 != null) {
+            java.util.List<Mob> towersInMap = new java.util.ArrayList<>();
+            for (Mob tower : this.map_battleground5v5.towers) {
+                if (tower != null && tower.map != null && tower.map.equals(this)) {
+                    Message m_local = new Message(1);
+                    m_local.writer().writeByte(1);
+                    m_local.writer().writeShort(tower.index);
+                    m_local.writer().writeShort(tower.x);
+                    m_local.writer().writeShort(tower.y);
+                    p.conn.addmsg(m_local);
+                    m_local.cleanup();
+                    towersInMap.add(tower);
+                }
+            }
+            // Gửi message 51 (UpdateLoL) để set typePK cho trụ (Phe Đỏ typePK=4, Phe Xanh typePK=5)
+            if (!towersInMap.isEmpty()) {
+                Message mLoL = new Message(51);
+                mLoL.writer().writeByte(1); // sub-action 1: update typePK
+                mLoL.writer().writeByte(towersInMap.size());
+                for (Mob t : towersInMap) {
+                    mLoL.writer().writeShort(t.index);
+                    byte tPK = (t.mob_template != null && (t.mob_template.mob_id == activities.Battleground5v5.MOB_TRU_THUONG_A || t.mob_template.mob_id == activities.Battleground5v5.MOB_TRU_CHINH_A)) ? (byte) 4 : (byte) 5;
+                    mLoL.writer().writeByte(tPK);
+                }
+                p.conn.addmsg(mLoL);
+                mLoL.cleanup();
             }
         }
         //

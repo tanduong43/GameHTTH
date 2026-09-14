@@ -642,8 +642,14 @@ public class Service {
         if (temp == null && p.battleground5v5 != null) {
             temp = p.battleground5v5.get_mob(p, id);
         }
-        if (temp != null && !temp.isdie && temp.map.equals(p.map)) {
-            send_mob_info(p, temp);
+        if (temp == null && p.map != null && p.map.map_battleground5v5 != null) {
+            temp = p.map.map_battleground5v5.get_mob(p, id);
+        }
+        if (temp != null && temp.map.equals(p.map)) {
+            // Cho phép gửi info trụ đã chết (typemove == 19) để client hiển thị trạng thái vỡ
+            if (!temp.isdie || (temp.mob_template != null && temp.mob_template.typemove == 19)) {
+                send_mob_info(p, temp);
+            }
         }
     }
 
@@ -660,7 +666,12 @@ public class Service {
                 ? temp.boss_info.skill[0]
                 : temp.mob_template.skill[0];
         m.writer().writeShort(skillId);
-        m.writer().writeShort(Mob.TIME_RESPAWN); // tgian hs
+        // Trụ chiến trường (typemove == 19): gửi timeRevice = -2 để client không bao giờ hồi sinh/xóa trụ
+        if (temp.mob_template != null && temp.mob_template.typemove == 19) {
+            m.writer().writeShort(-2); // timeRevice = -2: client giữ nguyên trạng thái vỡ
+        } else {
+            m.writer().writeShort(Mob.TIME_RESPAWN); // tgian hs
+        }
         m.writer().writeByte(temp.mob_template.typemonster); // type mons
         //
         if (temp.boss_info != null && temp.boss_info.thegioi == 1) {
