@@ -473,7 +473,7 @@ public class MenuController {
         case -201: {
           send_dynamic_menu(p, type, get_name_npc(type),
               new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn", "Hang động",
-                  "Đến đảo huấn luyện pet", "Chiến Trường 5vs5" },
+                  "Đến đảo huấn luyện pet", "Chiến Trường 5vs5 (Bảo trì)" },
               null);
           break;
         }
@@ -1895,12 +1895,14 @@ public class MenuController {
           } else if (index == 4) {
             activities.PetTraining.teleportToMap(p, activities.PetTraining.MAP_TRAIN_PET_ID, 200, 200);
           } else if (index == 5) {
-            activities.Battleground5v5.showMenu(p);
+            Service.send_box_ThongBao_OK(p, "Chức năng Chiến Trường 5vs5 đang bảo trì!");
+            // activities.Battleground5v5.showMenu(p);
           }
           break;
         }
         case 9955: { // Menu Chiến Trường 5vs5 Phá Trụ
-          activities.Battleground5v5.handleMenu(p, index);
+          Service.send_box_ThongBao_OK(p, "Chức năng Chiến Trường 5vs5 đang bảo trì!");
+          // activities.Battleground5v5.handleMenu(p, index);
           break;
         }
         case 9899: {

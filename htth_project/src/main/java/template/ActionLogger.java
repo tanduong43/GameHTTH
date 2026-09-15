@@ -69,6 +69,8 @@ public class ActionLogger {
     }
 
     public static void insertLogDatabase(String playerName, String type, String actionDetail) {
+        // Tạm thời tắt lưu log player_logs theo yêu cầu, không lưu thao tác player nữa
+        /*
         new Thread(() -> {
             Connection conn = null;
             PreparedStatement ps = null;
@@ -91,5 +93,6 @@ public class ActionLogger {
                 } catch (Exception e) {}
             }
         }).start();
+        */
     }
 }

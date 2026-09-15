@@ -190,6 +190,8 @@ public class Battleground5v5 {
     public static void showMenu(Player p) {
         if (p == null || p.conn == null) return;
         try {
+            sendThongBao(p, "Chức năng Chiến Trường 5vs5 đang bảo trì!");
+            /*
             core.MenuController.send_dynamic_menu(p, 9955, "Chiến Trường Phá Trụ",
                     new String[] {
                         "Vào Chiến Trường 5vs5 (5 người)",
@@ -197,6 +199,7 @@ public class Battleground5v5 {
                         "Đăng ký 1 vs 1",
                         "Luật chiến trường"
                     }, null);
+            */
         } catch (Exception ignored) {}
     }
 
@@ -205,6 +208,8 @@ public class Battleground5v5 {
      */
     public static void handleMenu(Player p, int index) {
         if (p == null) return;
+        sendThongBao(p, "Chức năng Chiến Trường 5vs5 đang bảo trì!");
+        /*
         switch (index) {
             case 0: // Vào Chiến Trường 5v5
                 registerQueue(p);
@@ -219,6 +224,7 @@ public class Battleground5v5 {
                 showRules(p);
                 break;
         }
+        */
     }
 
     /**
