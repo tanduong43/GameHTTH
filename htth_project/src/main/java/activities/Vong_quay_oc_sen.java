@@ -20,43 +20,49 @@ public class Vong_quay_oc_sen {
         public int id;
         public int category; // 4: item4/potion, 7: item7/material
         public int quant;
+        public int weight;   // Trọng số tỉ lệ (tổng 10,000 = 100%, 100 = 1%)
 
-        public RewardSlot(int id, int category, int quant) {
+        public RewardSlot(int id, int category, int quant, int weight) {
             this.id = id;
             this.category = category;
             this.quant = quant;
+            this.weight = weight;
+        }
+
+        public RewardSlot(int id, int category, int quant) {
+            this(id, category, quant, 100);
         }
     }
 
-    // 22 Reward slots on the wheel:
-    // Slots 0-15: 16 outer slots
-    // Slots 16-21: 6 inner slots (rare/special rewards)
+    // 22 Reward slots on the wheel (Tổng weight = 10,000 = 100%):
+    // Slots 0-15: 16 outer slots (Tổng = 9,050 = 90.5%)
+    // Slots 16-21: 6 inner slots (Tổng = 950 = 9.5%, trong đó 2 Trái Ác Quỷ mỗi trái 1% = 100)
     public static final RewardSlot[] DEFAULT_SLOTS = new RewardSlot[] {
         // --- 16 Outer Slots (0 - 15) ---
-        new RewardSlot(29, 4, 1),   // 0: Rương ác quỷ x1
-        new RewardSlot(441, 4, 2),  // 1: Ốc Sên x2
-        new RewardSlot(4, 7, 10),   // 2: Bột vàng x10
-        new RewardSlot(223, 4, 2),  // 3: Đá hải thạch cấp 3 x2
-        new RewardSlot(80, 4, 2),   // 4: Kinh nghiệm X2 x2
-        new RewardSlot(48, 4, 1),   // 5: Cẩm thạch cấp 5 x1
-        new RewardSlot(10, 7, 2),   // 6: Khiên x2
-        new RewardSlot(40, 4, 3),   // 7: Chìa khóa Phó Bản x3
-        new RewardSlot(222, 4, 3),  // 8: Đá hải thạch cấp 2 x3
-        new RewardSlot(9, 7, 5),    // 9: Đá ác quỷ x5
-        new RewardSlot(89, 4, 3),   // 10: Vé Hồi Sinh x3
-        new RewardSlot(54, 4, 1),   // 11: Đá Topaz cấp 5 x1
-        new RewardSlot(72, 4, 1),   // 12: Đá Saphia cấp 5 x1
-        new RewardSlot(1, 7, 20),   // 13: Bột cường hóa x20
-        new RewardSlot(78, 4, 1),   // 14: Thạch anh tím cấp 5 x1
-        new RewardSlot(441, 4, 1),  // 15: Ốc Sên x1
+        new RewardSlot(29, 4, 1, 300),    // 0: Rương ác quỷ x1 (3.0%)
+        new RewardSlot(441, 4, 2, 500),   // 1: Ốc Sên x2 (5.0%)
+        new RewardSlot(4, 7, 10, 700),    // 2: Bột vàng x10 (7.0%)
+        new RewardSlot(223, 4, 2, 600),   // 3: Đá hải thạch cấp 3 x2 (6.0%)
+        new RewardSlot(80, 4, 2, 750),    // 4: Kinh nghiệm X2 x2 (7.5%)
+        new RewardSlot(48, 4, 1, 400),    // 5: Cẩm thạch cấp 5 x1 (4.0%)
+        new RewardSlot(10, 7, 2, 700),    // 6: Khiên x2 (7.0%)
+        new RewardSlot(40, 4, 3, 700),    // 7: Chìa khóa Phó Bản x3 (7.0%)
+        new RewardSlot(222, 4, 3, 700),   // 8: Đá hải thạch cấp 2 x3 (7.0%)
+        new RewardSlot(9, 7, 5, 600),     // 9: Đá ác quỷ x5 (6.0%)
+        new RewardSlot(89, 4, 3, 700),    // 10: Vé Hồi Sinh x3 (7.0%)
+        new RewardSlot(54, 4, 1, 400),    // 11: Đá Topaz cấp 5 x1 (4.0%)
+        new RewardSlot(72, 4, 1, 400),    // 12: Đá Saphia cấp 5 x1 (4.0%)
+        new RewardSlot(1, 7, 20, 800),    // 13: Bột cường hóa x20 (8.0%)
+        new RewardSlot(78, 4, 1, 400),    // 14: Thạch anh tím cấp 5 x1 (4.0%)
+        new RewardSlot(441, 4, 1, 400),   // 15: Ốc Sên x1 (4.0%)
 
         // --- 6 Inner Slots (16 - 21) ---
-        new RewardSlot(158, 4, 1),  // 16: Rương ác quỷ đặc biệt x1
-        new RewardSlot(225, 4, 1),  // 17: Đá hải thạch cấp 5 x1
-        new RewardSlot(60, 4, 1),   // 18: Tinh thể ruby cấp 5 x1
-        new RewardSlot(83, 4, 5),   // 19: Lọ hồi sức 100% x5
-        new RewardSlot(66, 4, 1),   // 20: Ngọc lục bảo cấp 5 x1
-        new RewardSlot(224, 4, 2)   // 21: Đá hải thạch cấp 4 x2
+        new RewardSlot(158, 4, 1, 150),   // 16: Rương ác quỷ đặc biệt x1 (1.5%)
+        new RewardSlot(225, 4, 1, 200),   // 17: Đá hải thạch cấp 5 x1 (2.0%)
+        new RewardSlot(1015, 4, 1, 100),  // 18: Trái Nikyu Nikyu x1 (1.0% - Chuẩn hiếm)
+        new RewardSlot(60, 4, 1, 200),    // 19: Tinh thể ruby cấp 5 x1 (2.0%)
+        new RewardSlot(1016, 4, 1, 100),  // 20: Trái Ope Ope x1 (1.0% - Chuẩn hiếm)
+        new RewardSlot(66, 4, 1, 200)     // 21: Ngọc lục bảo cấp 5 x1 (2.0%)
     };
 
     /**
@@ -64,6 +70,8 @@ public class Vong_quay_oc_sen {
      */
     public static short getIcon(int category, int id) {
         if (category == 4) {
+            if (id == 1015) return 190;
+            if (id == 1016) return 191;
             ItemTemplate4 it = ItemTemplate4.get_it_by_id(id);
             return it != null ? it.icon : 0;
         } else if (category == 7) {
@@ -78,6 +86,8 @@ public class Vong_quay_oc_sen {
      */
     public static String getName(int category, int id) {
         if (category == 4) {
+            if (id == 1015) return "Trái Nikyu Nikyu";
+            if (id == 1016) return "Trái Ope Ope";
             ItemTemplate4 it = ItemTemplate4.get_it_by_id(id);
             return it != null ? it.name : ("Vật phẩm " + id);
         } else if (category == 7) {
@@ -121,6 +131,28 @@ public class Vong_quay_oc_sen {
     }
 
     /**
+     * Quay ngẫu nhiên theo tỉ lệ trọng số (Weighted Random)
+     */
+    public static int getRandomSlotIndex() {
+        int totalWeight = 0;
+        for (RewardSlot slot : DEFAULT_SLOTS) {
+            totalWeight += slot.weight;
+        }
+        if (totalWeight <= 0) {
+            return Util.random(DEFAULT_SLOTS.length);
+        }
+        int roll = Util.random(totalWeight);
+        int accumulated = 0;
+        for (int i = 0; i < DEFAULT_SLOTS.length; i++) {
+            accumulated += DEFAULT_SLOTS[i].weight;
+            if (roll < accumulated) {
+                return i;
+            }
+        }
+        return DEFAULT_SLOTS.length - 1;
+    }
+
+    /**
      * Handle Spin (action 3 = Ruby 500, action 4 = Ốc Sên item 441)
      */
     private static void spin(Player p, byte action) throws IOException {
@@ -146,14 +178,22 @@ public class Vong_quay_oc_sen {
             p.update_money();
         }
 
-        // Pick random slot from all 22 slots (vẫn giữ nguyên tất cả các ô)
-        int indexWon = Util.random(22);
+        // Pick random slot theo trọng số tỉ lệ (Weighted Random)
+        int indexWon = getRandomSlotIndex();
 
         // Reward player
         RewardSlot reward = DEFAULT_SLOTS[indexWon];
         p.item.add_item_bag47(reward.category, reward.id, reward.quant);
         p.item.update_Inventory(-1, false);
         p.update_money();
+
+        // Broadcast if winning rare fruit or chest
+        if (reward.id == 1015 || reward.id == 1016 || reward.id == 158) {
+            try {
+                core.Manager.gI().chatKTG(0, "Chúc mừng " + p.name + " vừa quay trúng " + getName(reward.category, reward.id) + " từ Vòng Quay Ốc Sên!", 5);
+            } catch (Exception e) {
+            }
+        }
 
         // 1. Reset client item list state (đảm bảo tất cả 22 ô luôn giữ nguyên)
         Message mList = new Message(77);

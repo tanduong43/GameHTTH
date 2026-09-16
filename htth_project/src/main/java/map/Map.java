@@ -124,6 +124,63 @@ public class Map implements Runnable {
         return false;
     }
 
+    public static void teleportPlayerOutOfDungeon(Player p) {
+        if (p == null || p.conn == null) {
+            return;
+        }
+        try {
+            if (p.isdie) {
+                p.isdie = false;
+                p.hp = p.body.get_hp_max(true);
+                p.mp = p.body.get_mp_max(true);
+            }
+            p.dungeon = null;
+            Service.send_time_cool_down(p, 0, "", 0);
+
+            int targetMapId = -1;
+            short targetX = -1;
+            short targetY = -1;
+
+            if (p.originalMapId > 0 && p.originalMapId != 119 && (p.originalMapId < 167 || p.originalMapId > 176)) {
+                if (VillageProgression.canAccessMap(p, p.originalMapId)) {
+                    targetMapId = p.originalMapId;
+                    targetX = p.originalX;
+                    targetY = p.originalY;
+                }
+            }
+            if (targetMapId <= 0 || Map.get_map_by_id(targetMapId) == null) {
+                if (p.id_map_save > 0 && VillageProgression.canAccessMap(p, p.id_map_save)) {
+                    targetMapId = p.id_map_save;
+                }
+            }
+            if (targetMapId <= 0 || Map.get_map_by_id(targetMapId) == null) {
+                targetMapId = 1;
+            }
+
+            Map[] mapGo = Map.get_map_by_id(targetMapId);
+            if (mapGo != null && mapGo.length > 0) {
+                Vgo vgo = new Vgo();
+                vgo.map_go = mapGo;
+                if (targetX > 0 && targetY > 0) {
+                    vgo.xnew = targetX;
+                    vgo.ynew = targetY;
+                } else {
+                    short maxW = mapGo[0].template.maxW;
+                    short maxH = mapGo[0].template.maxH;
+                    vgo.xnew = (short) (maxW > 0 ? maxW / 2 : 300);
+                    vgo.ynew = (short) (maxH > 0 ? maxH / 2 : 250);
+                }
+                p.originalMapId = -1;
+                p.originalX = -1;
+                p.originalY = -1;
+                p.goto_map(vgo);
+                System.out.println("[Dungeon] teleportPlayerOutOfDungeon cho " + p.name + " -> Map " + targetMapId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void start_map() {
         this.mythread.start();
     }
@@ -513,124 +570,254 @@ public class Map implements Runnable {
 
     private void update_map_little_garden() {
         if (this.map_little_garden != null) {
-            for (int i = 0; i < this.map_little_garden.mobs.size(); i++) {
-                Mob mob = this.map_little_garden.mobs.get(i);
-                if (mob != null) {
-                    if (mob.isdie) {
-                        if (mob.time_refresh < System.currentTimeMillis()) {
-                            mob.isdie = false;
-                            mob.hp = mob.hp_max;
-                            mob.id_target = -1;
-                            //
-                            try {
-                                Message m_local = new Message(1);
-                                m_local.writer().writeByte(1);
-                                m_local.writer().writeShort(mob.index);
-                                m_local.writer().writeShort(mob.x);
-                                m_local.writer().writeShort(mob.y);
-                                this.send_msg_all_p(m_local, null, true);
-                                m_local.cleanup();
-                            } catch (IOException e) {
-                                e.printStackTrace();
+            long now = System.currentTimeMillis();
+
+            // Chỉ cập nhật quái khi trận đấu chưa kết thúc thông báo
+            if (!this.map_little_garden.is_notified) {
+                for (int i = 0; i < this.map_little_garden.mobs.size(); i++) {
+                    Mob mob = this.map_little_garden.mobs.get(i);
+                    if (mob != null) {
+                        if (mob.isdie) {
+                            if (mob.time_refresh < now) {
+                                mob.isdie = false;
+                                mob.hp = mob.hp_max;
+                                mob.id_target = -1;
+                                //
+                                try {
+                                    Message m_local = new Message(1);
+                                    m_local.writer().writeByte(1);
+                                    m_local.writer().writeShort(mob.index);
+                                    m_local.writer().writeShort(mob.x);
+                                    m_local.writer().writeShort(mob.y);
+                                    this.send_msg_all_p(m_local, null, true);
+                                    m_local.cleanup();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }
                 }
             }
-            //
-            if (this.map_little_garden.is_finish
-                    || this.map_little_garden.time < System.currentTimeMillis()) {
-                // tong ket
-                int xp_receiv1 = 1500;
-                int xp_receiv2 = 1500;
-                int rb_receiv1 = 250;
-                int rb_receiv2 = 250;
-                if (this.map_little_garden.hp_1 <= 0) {
-                    xp_receiv2 = 2000;
-                    xp_receiv1 = 1000;
-                    rb_receiv2 = 500;
-                    rb_receiv1 = 200;
-                } else if (this.map_little_garden.hp_2 <= 0) {
-                    xp_receiv1 = 2000;
-                    xp_receiv2 = 1000;
-                    rb_receiv1 = 500;
-                    rb_receiv2 = 200;
-                }
-                //
-                this.map_little_garden.clan1.update_xp(xp_receiv1);
-                this.map_little_garden.clan1.update_ruby(rb_receiv1);
-                for (int i1 = 0; i1 < this.map_little_garden.clan1.members.size(); i1++) {
-                    Player p0 = Map.get_player_by_name_allmap(
-                            this.map_little_garden.clan1.members.get(i1).name);
-                    if (p0 != null) {
+
+            // GIAI ĐOẠN 1: KẾT THÚC TRẬN ĐẤU -> Trao thưởng, hiển thị quà và đếm ngược 5 giây về làng
+            if (this.map_little_garden.is_finish || this.map_little_garden.time < now) {
+                if (!this.map_little_garden.is_notified) {
+                    this.map_little_garden.is_notified = true;
+                    this.map_little_garden.time_return_village = now + 5000L; // 5 giây đếm ngược theo yêu cầu
+                    this.can_PK = false; // Ngừng PK trong map
+
+                    // Xóa target quái để không tấn công người chơi khi đang xem quà
+                    for (int i = 0; i < this.map_little_garden.mobs.size(); i++) {
+                        Mob mob = this.map_little_garden.mobs.get(i);
+                        if (mob != null) {
+                            mob.id_target = -1;
+                        }
+                    }
+
+                    // 1. Tính toán điểm số / kết quả
+                    int xp_receiv1 = 1500;
+                    int xp_receiv2 = 1500;
+                    int rb_receiv1 = 250;
+                    int rb_receiv2 = 250;
+                    int winner = 0; // 0: Hòa, 1: Clan 1 thắng (Dorry), 2: Clan 2 thắng (Brogy)
+                    if (this.map_little_garden.hp_1 <= 0) {
+                        // Dorry (Clan 1) thua -> Clan 2 thắng
+                        xp_receiv2 = 2000;
+                        xp_receiv1 = 1000;
+                        rb_receiv2 = 500;
+                        rb_receiv1 = 200;
+                        winner = 2;
+                    } else if (this.map_little_garden.hp_2 <= 0) {
+                        // Brogy (Clan 2) thua -> Clan 1 thắng
+                        xp_receiv1 = 2000;
+                        xp_receiv2 = 1000;
+                        rb_receiv1 = 500;
+                        rb_receiv2 = 200;
+                        winner = 1;
+                    }
+
+                    // 2. Cập nhật XP và Ruby cho Clan 1 & Clan 2
+                    if (this.map_little_garden.clan1 != null) {
+                        this.map_little_garden.clan1.update_xp(xp_receiv1);
+                        this.map_little_garden.clan1.update_ruby(rb_receiv1);
+                        for (int i1 = 0; i1 < this.map_little_garden.clan1.members.size(); i1++) {
+                            Player p0 = Map.get_player_by_name_allmap(
+                                    this.map_little_garden.clan1.members.get(i1).name);
+                            if (p0 != null) {
+                                try {
+                                    Clan.set_data(p0, false);
+                                    Clan.send_money(p0, false);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
                         try {
-                            Clan.set_data(p0, false);
-                            Clan.send_money(p0, false);
+                            String clan2Name = (this.map_little_garden.clan2 != null)
+                                    ? this.map_little_garden.clan2.name : "Đối thủ";
+                            if (this.map_little_garden.clan1.members.size() > 0) {
+                                this.map_little_garden.clan1.chat_on_board(
+                                        this.map_little_garden.clan1.members.get(0).id,
+                                        this.map_little_garden.clan1.members.get(0).name,
+                                        ("Phó bản khổng lồ với: " + clan2Name
+                                                + ": nhận được " + xp_receiv1 + " xp băng và " + rb_receiv1
+                                                + " ruby băng"),
+                                        -3);
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
-                }
-                try {
-                    this.map_little_garden.clan1.chat_on_board(
-                            this.map_little_garden.clan1.members.get(0).id,
-                            this.map_little_garden.clan1.members.get(0).name,
-                            ("Phó bản khổng lồ với: " + this.map_little_garden.clan2.name
-                                    + ": nhận được " + xp_receiv1 + " xp băng và " + rb_receiv1
-                                    + " ruby băng"),
-                            -3);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                //
-                this.map_little_garden.clan2.update_xp(xp_receiv2);
-                this.map_little_garden.clan2.update_ruby(rb_receiv2);
-                for (int i1 = 0; i1 < this.map_little_garden.clan2.members.size(); i1++) {
-                    Player p0 = Map.get_player_by_name_allmap(
-                            this.map_little_garden.clan2.members.get(i1).name);
-                    if (p0 != null) {
+
+                    if (this.map_little_garden.clan2 != null) {
+                        this.map_little_garden.clan2.update_xp(xp_receiv2);
+                        this.map_little_garden.clan2.update_ruby(rb_receiv2);
+                        for (int i1 = 0; i1 < this.map_little_garden.clan2.members.size(); i1++) {
+                            Player p0 = Map.get_player_by_name_allmap(
+                                    this.map_little_garden.clan2.members.get(i1).name);
+                            if (p0 != null) {
+                                try {
+                                    Clan.set_data(p0, false);
+                                    Clan.send_money(p0, false);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
                         try {
-                            Clan.set_data(p0, false);
-                            Clan.send_money(p0, false);
+                            String clan1Name = (this.map_little_garden.clan1 != null)
+                                    ? this.map_little_garden.clan1.name : "Đối thủ";
+                            if (this.map_little_garden.clan2.members.size() > 0) {
+                                this.map_little_garden.clan2.chat_on_board(
+                                        this.map_little_garden.clan2.members.get(0).id,
+                                        this.map_little_garden.clan2.members.get(0).name,
+                                        ("Phó bản khổng lồ với: " + clan1Name
+                                                + ": nhận được " + xp_receiv2 + " xp băng và " + rb_receiv2
+                                                + " ruby băng"),
+                                        -3);
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
-                }
-                try {
-                    this.map_little_garden.clan2.chat_on_board(
-                            this.map_little_garden.clan2.members.get(0).id,
-                            this.map_little_garden.clan2.members.get(0).name,
-                            ("Phó bản khổng lồ với: " + this.map_little_garden.clan1.name
-                                    + ": nhận được " + xp_receiv2 + " xp băng và " + rb_receiv2
-                                    + " ruby băng"),
-                            -3);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                this.map_little_garden.clan1.map_create = null;
-                this.map_little_garden.clan2.map_create = null;
-                //
-                // try {
-                Vgo vgo = new Vgo();
-                vgo.map_go = Map.get_map_by_id(33);
-                vgo.xnew = 710;
-                vgo.ynew = 320;
-                List<Player> playerList = new ArrayList<>();
-                for (int i = 0; i < players.size(); i++) {
-                    playerList.add(players.get(i));
-                }
-                playerList.forEach(l -> {
-                    try {
-                        l.goto_map(vgo);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+
+                    if (this.map_little_garden.clan1 != null) {
+                        this.map_little_garden.clan1.map_create = null;
                     }
-                });
-                // } catch (IOException e) {
-                // e.printStackTrace();
-                // }
-                this.running = false;
+                    if (this.map_little_garden.clan2 != null) {
+                        this.map_little_garden.clan2.map_create = null;
+                    }
+
+                    // 3. HIỂN THỊ BẢNG NHẬN QUÀ CHO TỪNG PLAYER VÀ ĐẾM NGƯỢC 5 GIÂY VỀ LÀNG
+                    for (int i = 0; i < players.size(); i++) {
+                        Player pl = players.get(i);
+                        if (pl != null && pl.conn != null) {
+                            try {
+                                // Hồi sinh người chơi nếu đã chết
+                                if (pl.isdie) {
+                                    pl.isdie = false;
+                                    pl.hp = pl.body.get_hp_max(true);
+                                    pl.mp = pl.body.get_mp_max(true);
+                                    Service.use_potion(pl, 0, pl.body.get_hp_max(true));
+                                    Service.use_potion(pl, 1, pl.body.get_mp_max(true));
+                                }
+                                pl.time_hs_little_garden = 0;
+
+                                // Xác định kết quả của player: type_pk 4 là Clan 1, type_pk 5 là Clan 2
+                                int res = 0; // 0: Hòa, 1: Thắng, -1: Thua
+                                if (winner == 1) {
+                                    res = (pl.type_pk == 4) ? 1 : -1;
+                                } else if (winner == 2) {
+                                    res = (pl.type_pk == 5) ? 1 : -1;
+                                }
+
+                                int playerClanXp = (pl.type_pk == 4) ? xp_receiv1 : xp_receiv2;
+                                int playerClanRuby = (pl.type_pk == 4) ? rb_receiv1 : rb_receiv2;
+                                int playerBeri = (res == 1) ? 100_000 : ((res == 0) ? 75_000 : 50_000);
+
+                                String resTitle = (res == 1) ? "Chiến Thắng" : ((res == -1) ? "Thất Bại" : "Hòa");
+                                String title = "Phó Bản Khổng Lồ [" + resTitle + "]";
+                                String notice = "Dorry: " + this.map_little_garden.hp_1 + " HP - Brogy: "
+                                        + this.map_little_garden.hp_2 + " HP";
+
+                                // Tạo danh sách quà hiển thị lên bảng nhận quà
+                                List<GiftBox> list_gift = new ArrayList<>();
+
+                                // 1. XP Băng
+                                GiftBox gbExp = new GiftBox();
+                                gbExp.id = -1;
+                                gbExp.type = 99; // Client hiển thị icon EXP & cộng exp nhân vật
+                                gbExp.name = "XP Băng";
+                                gbExp.icon = 669;
+                                gbExp.num = playerClanXp;
+                                gbExp.color = 0;
+                                list_gift.add(gbExp);
+
+                                // 2. Ruby Băng
+                                GiftBox gbRuby = new GiftBox();
+                                gbRuby.id = -1;
+                                gbRuby.type = 4;
+                                gbRuby.name = "Ruby Băng";
+                                gbRuby.icon = 385;
+                                gbRuby.num = playerClanRuby;
+                                gbRuby.color = 0;
+                                list_gift.add(gbRuby);
+
+                                // 3. Beri thưởng thêm cho cá nhân
+                                ItemTemplate4 it_beri = ItemTemplate4.get_it_by_id(0);
+                                if (it_beri != null) {
+                                    GiftBox gbBeri = new GiftBox();
+                                    gbBeri.id = it_beri.id;
+                                    gbBeri.type = 4;
+                                    gbBeri.name = it_beri.name;
+                                    gbBeri.icon = it_beri.icon;
+                                    gbBeri.num = playerBeri;
+                                    gbBeri.color = 0;
+                                    list_gift.add(gbBeri);
+                                }
+
+                                // Hiển thị popup quà (opcode -34)
+                                Service.send_gift(pl, 1, title, notice, list_gift, true);
+
+                                // Gửi thanh đếm ngược 5 giây về làng
+                                Service.send_time_cool_down(pl, this.map_little_garden.time_return_village,
+                                        "Về Làng", 2);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+
+                // GIAI ĐOẠN 2: HẾT 5 GIÂY ĐẾM NGƯỢC -> Đưa tất cả người chơi trong map về làng
+                if (this.map_little_garden.is_notified && now >= this.map_little_garden.time_return_village) {
+                    Vgo vgo = new Vgo();
+                    vgo.map_go = Map.get_map_by_id(33);
+                    vgo.xnew = 710;
+                    vgo.ynew = 320;
+                    List<Player> playerList = new ArrayList<>();
+                    for (int i = 0; i < players.size(); i++) {
+                        playerList.add(players.get(i));
+                    }
+                    playerList.forEach(l -> {
+                        try {
+                            if (l.isdie) {
+                                l.isdie = false;
+                                l.hp = l.body.get_hp_max(true);
+                                l.mp = l.body.get_mp_max(true);
+                            }
+                            l.time_hs_little_garden = 0;
+                            l.type_pk = -1;
+                            Service.send_time_cool_down(l, 0, "", 0);
+                            l.goto_map(vgo);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    this.running = false;
+                    this.map_little_garden = null;
+                }
             }
         }
     }
@@ -1722,13 +1909,17 @@ public class Map implements Runnable {
                 if (p0.dungeon == null)
                     return; // guard an toàn
                 int num_mob = 0;
+                int total_mob = 0;
                 for (int i = 0; i < p0.dungeon.mobs.size(); i++) {
                     Mob mob = p0.dungeon.mobs.get(i);
-                    if (mob.map.equals(this) && !mob.isdie) {
-                        num_mob++;
+                    if (mob != null && mob.map.equals(this)) {
+                        total_mob++;
+                        if (!mob.isdie && mob.hp > 0) {
+                            num_mob++;
+                        }
                     }
                 }
-                if (num_mob == 0 && p0.dungeon.time > System.currentTimeMillis()) {
+                if (this.template.id != 167 && total_mob > 0 && num_mob == 0 && p0.dungeon.time > System.currentTimeMillis()) {
                     if (!this.map_dungeon.checkG.contains(this.template.id)) {
                         this.map_dungeon.checkG.add(this.template.id);
                         //
@@ -1876,38 +2067,14 @@ public class Map implements Runnable {
                                 System.out.println("[Dungeon] FIX KẸT MAP: Teleport player "
                                         + stuckPlayer.name
                                         + " khỏi dungeon (timeout hết mà không được gọi teleport bình thường).");
-                                try {
-                                    if (stuckPlayer.isdie) {
-                                        stuckPlayer.isdie = false;
-                                        stuckPlayer.hp = stuckPlayer.body.get_hp_max(true);
-                                        stuckPlayer.mp = stuckPlayer.body.get_mp_max(true);
-                                    }
-                                    Vgo vgoBack = new Vgo();
-                                    vgoBack.map_go = Map.get_map_by_id(25);
-                                    vgoBack.xnew = 390;
-                                    vgoBack.ynew = 240;
-                                    stuckPlayer.goto_map(vgoBack);
-                                    stuckPlayer.dungeon = null;
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                                Map.teleportPlayerOutOfDungeon(stuckPlayer);
                             }
                         }
                     }
                 }
             }
             if (ok_out_map && p_select != null && p_select.conn != null) {
-                if (p_select.isdie) {
-                    p_select.isdie = false;
-                    p_select.hp = p_select.body.get_hp_max(true);
-                    p_select.mp = p_select.body.get_mp_max(true);
-                }
-                Vgo vgo = new Vgo();
-                vgo.map_go = Map.get_map_by_id(25);
-                vgo.xnew = 390;
-                vgo.ynew = 240;
-                p_select.goto_map(vgo);
-                p_select.dungeon = null;
+                Map.teleportPlayerOutOfDungeon(p_select);
             }
             if (this.map_dungeon == null
                     || players.size() == 0 && this.map_dungeon.time < System.currentTimeMillis()) {
@@ -3139,20 +3306,6 @@ public class Map implements Runnable {
                 }
             }
             if (p.ischangemap) {
-                if (Map.is_map_dungeon(this.template.id) && p.dungeon != null) {
-                    int num_mob = 0;
-                    for (int i = 0; i < p.dungeon.mobs.size(); i++) {
-                        Mob mob_dungeon = p.dungeon.mobs.get(i);
-                        if (mob_dungeon != null && !mob_dungeon.isdie && mob_dungeon.hp > 0
-                                && mob_dungeon.map.equals(this)) {
-                            num_mob++;
-                            break;
-                        }
-                    }
-                    if (num_mob > 0) {
-                        return;
-                    }
-                }
                 // BossHunt: không cho chuyển map qua vgo khi boss còn sống
                 if (this.map_bossHunt != null && this.map_bossHunt.active && p.bossHunt != null) {
                     int num_boss = 0;
@@ -3168,6 +3321,29 @@ public class Map implements Runnable {
                 }
                 for (Vgo vgo : this.template.vgos) {
                     if (Math.abs(vgo.xold - p.x) < 60 && Math.abs(vgo.yold - p.y) < 60) {
+                        if (Map.is_map_dungeon(this.template.id) && p.dungeon != null) {
+                            int num_mob = 0;
+                            for (int i = 0; i < p.dungeon.mobs.size(); i++) {
+                                Mob mob_dungeon = p.dungeon.mobs.get(i);
+                                if (mob_dungeon != null && !mob_dungeon.isdie && mob_dungeon.hp > 0
+                                        && mob_dungeon.map.equals(this)) {
+                                    num_mob++;
+                                    break;
+                                }
+                            }
+                            if (num_mob > 0) {
+                                // Cho phép lùi về map đã hoàn thành hoặc map bắt đầu (167)
+                                boolean canRetreat = (p.dungeon.checkG != null
+                                        && (p.dungeon.checkG.contains((int) vgo.id_map_go) || vgo.id_map_go == 167));
+                                if (!canRetreat) {
+                                    if (System.currentTimeMillis() - p.time_last_notice_dungeon > 3000L) {
+                                        p.time_last_notice_dungeon = System.currentTimeMillis();
+                                        Service.send_box_ThongBao_OK(p, "Hãy tiêu diệt hết quái trong khu vực để mở cổng!");
+                                    }
+                                    return;
+                                }
+                            }
+                        }
                         p.time_change_map = System.currentTimeMillis() + 5000L;
                         try {
                             Thread.sleep(250L);

@@ -18,4 +18,6 @@ public class Map_Little_Garden {
     public long time;
     public Clan clan1;
     public Clan clan2;
+    public boolean is_notified = false;
+    public long time_return_village = 0;
 }

@@ -74,9 +74,9 @@ public class Ship {
                 case 1: {
                     if (p.id_ship_packet != -1) {
                         Service.send_box_yesno(p, 50, "Thông báo",
-                                "Để tham gia lái buôn, bạn phải mất 10.000 beri, bạn có "
+                                "Để tham gia lái buôn, bạn phải mất 100.000 beri, bạn có "
                                         + "muốn tham gia?",
-                                new String[] {"10.000", "Hủy"}, new byte[] {6, -1});
+                                new String[] {"100.000", "Hủy"}, new byte[] {6, -1});
                     }
                     break;
                 }

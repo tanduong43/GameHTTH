@@ -1001,20 +1001,30 @@ public class MessageHandler {
             if (conn.p.map != null && conn.p.map.template.id >= 167 && conn.p.map.template.id <= 176
                     && conn.p.dungeon == null) {
                 int targetMapId = conn.p.originalMapId;
-                if (targetMapId <= 0) {
+                if (targetMapId <= 0 || (targetMapId >= 167 && targetMapId <= 176)) {
                     targetMapId = conn.p.id_map_save;
                 }
-                if (targetMapId <= 0) {
+                if (targetMapId <= 0 || (targetMapId >= 167 && targetMapId <= 176)) {
                     targetMapId = 25; // Default fallback to Syrup Village for Single Dungeon
+                }
+                map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
+                if (villageMap == null || villageMap.length == 0 || !map.VillageProgression.canAccessMap(conn.p, targetMapId)) {
+                    targetMapId = 1;
+                    villageMap = map.Map.get_map_by_id(1);
                 }
                 System.out.println("[HangDong/Dungeon] Login safety: player " + conn.p.name
                         + " still in HangDong/Dungeon map (" + conn.p.map.template.id
                         + ") but no active dungeon, redirecting to map " + targetMapId);
-                map.Map[] villageMap = map.Map.get_map_by_id(targetMapId);
                 if (villageMap != null && villageMap.length > 0) {
                     conn.p.map = villageMap[0];
                     conn.p.x = 300;
                     conn.p.y = 250;
+                }
+                conn.p.type_pk = -1;
+                if (conn.p.isdie) {
+                    conn.p.isdie = false;
+                    conn.p.hp = conn.p.body.get_hp_max(true);
+                    conn.p.mp = conn.p.body.get_mp_max(true);
                 }
             }
             // Reconnect Namie check

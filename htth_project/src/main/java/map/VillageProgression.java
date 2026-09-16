@@ -97,6 +97,12 @@ public class VillageProgression {
      */
     public static boolean canAccessMap(Player p, int targetMapId) {
         if (p == null) return false;
+        // Nếu player đang ở trong map phó bản/dungeon và đang thoát ra về làng, luôn cho phép
+        if (p.map != null && (Map.is_map_dungeon(p.map.template.id)
+                || (p.map.template.id >= 167 && p.map.template.id <= 176)
+                || p.map.map_little_garden != null || p.map.map_pvp_clan != null)) {
+            return true;
+        }
         int reqTier = getRequiredTierForMap(targetMapId);
         if (reqTier <= 1) {
             return true;

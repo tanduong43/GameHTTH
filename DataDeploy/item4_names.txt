@@ -1,4 +1,4 @@
-﻿
+
 id  name                            
 --  ----                            
 0   beri                            
@@ -680,5 +680,7 @@ id  name
 681 Hổ phách - Saphia thần thoại    
 682 Hổ phách - Thạch anh thần thoại 
 683 Đá Vô Cực Truyền Thuyết         
+1015 Trái Nikyu Nikyu
+1016 Trái Ope Ope
 
 

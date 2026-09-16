@@ -27,51 +27,60 @@ public class Dungeon {
         // Trước đây checkG bị reset mỗi iteration và pre-add 167
         // khiến phòng 1 (map 167) không bao giờ nhận được quà.
         this.checkG = new HashSet<>();
-        for (int j = 167; j < 176; j++) {
+        // Map 167 là sảnh chờ mặc định (không có quái), đánh dấu sẵn để không bao giờ nhận quà
+        this.checkG.add(167);
+        for (int j = 167; j <= 176; j++) {
             // create map
-            Map mapTemplate = Map.get_map_by_id(j)[0];
+            Map[] mTemplates = Map.get_map_by_id(j);
+            if (mTemplates == null || mTemplates.length == 0 || mTemplates[0] == null) {
+                continue;
+            }
+            Map mapTemplate = mTemplates[0];
             Map map_dungeon = new Map();
             map_dungeon.template = mapTemplate.template;
             map_dungeon.zone_id = (byte) 0;
             map_dungeon.list_mob = new int[0];
-            for (int i = 0; i < mapTemplate.list_mob.length; i++) {
-                Mob temp = Mob.ENTRYS.get(mapTemplate.list_mob[i]);
-                boolean isBoss = temp.mob_template.mob_id >= 100 || temp.mob_template.hp_max >= 500000 || temp.mob_template.name.toLowerCase().contains("boss") || temp.mob_template.name.toLowerCase().contains("trùm");
-                int spawnCount = isBoss ? 1 : 4;
-                if (mapTemplate.list_mob.length <= 2) spawnCount = 1; // boss room
-                for (int m = 0; m < spawnCount; m++) {
-                    Mob mob_add = new Mob();
-                    mob_add.mob_template = temp.mob_template;
-                    mob_add.x = (short) (temp.x + (m * 30));
-                    mob_add.y = temp.y;
-                    mob_add.hp_max = temp.mob_template.hp_max;
-                    mob_add.hp = 9978;
-                    if (this.mode < 7) {
-                        mob_add.hp = mob_add.hp + this.mode * 5000;
-                    } else {
-                        mob_add.hp = mob_add.hp + this.mode * 50000;
+            if (mapTemplate.list_mob != null) {
+                for (int i = 0; i < mapTemplate.list_mob.length; i++) {
+                    Mob temp = Mob.ENTRYS.get(mapTemplate.list_mob[i]);
+                    if (temp == null || temp.mob_template == null) {
+                        continue;
                     }
-                    if (isBoss) {
-                        mob_add.hp *= 5; // Boss should be stronger
+                    boolean isBoss = temp.mob_template.mob_id >= 100 || temp.mob_template.hp_max >= 500000 || temp.mob_template.name.toLowerCase().contains("boss") || temp.mob_template.name.toLowerCase().contains("trùm");
+                    int spawnCount = isBoss ? 1 : 4;
+                    if (mapTemplate.list_mob.length <= 2) spawnCount = 1; // boss room
+                    for (int m = 0; m < spawnCount; m++) {
+                        Mob mob_add = new Mob();
+                        mob_add.mob_template = temp.mob_template;
+                        mob_add.x = (short) (temp.x + (m * 30));
+                        mob_add.y = temp.y;
+                        mob_add.hp_max = temp.mob_template.hp_max;
+                        mob_add.hp = 9978;
+                        if (this.mode < 7) {
+                            mob_add.hp = mob_add.hp + this.mode * 5000;
+                        } else {
+                            mob_add.hp = mob_add.hp + this.mode * 50000;
+                        }
+                        if (isBoss) {
+                            mob_add.hp *= 5; // Boss should be stronger
+                        }
+                        mob_add.hp_max = mob_add.hp;
+                        mob_add.level = 35 + this.mode * 10;
+                        if (mob_add.level > 100) {
+                            mob_add.level = 100;
+                        }
+                        //
+                        mob_add.isdie = false;
+                        mob_add.id_target = -1;
+                        mob_add.index = index--;
+                        mob_add.map = map_dungeon;
+                        mob_add.boss_info = null;
+                        mobs.add(mob_add);
                     }
-                    mob_add.hp_max = mob_add.hp;
-                    mob_add.level = 35 + this.mode * 10;
-                    if (mob_add.level > 100) {
-                        mob_add.level = 100;
-                    }
-                    //
-                    mob_add.isdie = false;
-                    mob_add.id_target = -1;
-                    mob_add.index = index--;
-                    mob_add.map = map_dungeon;
-                    mob_add.boss_info = null;
-                    mobs.add(mob_add);
                 }
             }
             map_dungeon.start_map();
             map_dungeon.map_dungeon = this;
-            // FIX: Không reset checkG và không pre-add bất kỳ ID nào ở đây.
-            // checkG đã được khởi tạo 1 lần trước vòng lặp.
             Map.add_map_plus(map_dungeon);
             maps.add(map_dungeon);
         }

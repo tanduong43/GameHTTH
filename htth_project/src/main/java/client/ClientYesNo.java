@@ -685,7 +685,7 @@ public class ClientYesNo {
                 }
                 case 61: {
                     if (p.data_yesno != null && p.data_yesno.length == 1) {
-                        int coin = p.data_yesno[0] / 5000;
+                        int coin = p.data_yesno[0];
                         if (p.conn.coin < coin) {
                             Service.send_box_ThongBao_OK(p,
                                     "Bạn không đủ " + Util.number_format(coin) + " coin");
@@ -695,11 +695,13 @@ public class ClientYesNo {
                             return;
                         }
                         if (p.update_coin(-coin)) {
-                            p.update_vang(p.data_yesno[0]);
+                            long beri = (long) coin * 5_000_000L;
+                            p.update_vang(beri);
                             p.update_money();
+                            ActionLogger.logBeri(p.name, "Đổi Coin nhận Beri", beri, p.get_vang());
                             Service.send_box_ThongBao_OK(p,
                                     "Bạn đã đổi thành công " + Util.number_format(coin) + " coin ra "
-                                            + Util.number_format(p.data_yesno[0]) + " Beri.");
+                                            + Util.number_format(beri) + " Beri.");
                         }
 
                     }
@@ -1123,7 +1125,9 @@ public class ClientYesNo {
                             p.dungeon = new Dungeon();
                             p.dungeon.mode = mode;
                             p.dungeon.create();
-                            p.originalMapId = p.map.template.id; // Lưu Làng Syrup (Map 25) làm bản đồ gốc
+                            p.originalMapId = p.map.template.id; // Lưu bản đồ gốc
+                            p.originalX = p.x;
+                            p.originalY = p.y;
                             Vgo vgo = new Vgo();
                             vgo.map_go = new Map[1];
                             vgo.map_go[0] = p.dungeon.maps.get(0);
@@ -1334,8 +1338,8 @@ public class ClientYesNo {
                 }
                 case 50: {
                     if (p.map.template.id == 1 && p.typePirate == 0 && p.id_ship_packet != -1) {
-                        if (p.get_vang() < 10_000) {
-                            Service.send_box_ThongBao_OK(p, "Không đủ 10.000 beri");
+                        if (p.get_vang() < 100_000) {
+                            Service.send_box_ThongBao_OK(p, "Không đủ 100.000 beri");
                             p.data_yesno = null;
                             p.map_tele = null;
                             return;
@@ -1346,7 +1350,7 @@ public class ClientYesNo {
                             p.map_tele = null;
                             return;
                         }
-                        p.update_vang(-10_000);
+                        p.update_vang(-100_000);
                         p.update_money();
                         //
                         Ship.notice_start_shipping(p);

@@ -1637,7 +1637,7 @@ public class MenuController {
             // break;
             // }
             case 2: { // Đổi Beri (cũ: index 5)
-              Service.input_text(p, 9, "Đổi Coin Sang Beri", new String[] { "1 coin = 5000 beri" });
+              Service.input_text(p, 9, "Đổi Coin Sang Beri", new String[] { "Nhập số coin (1 coin = 5.000.000 beri)" });
               break;
             }
             case 3: { // Xem Coin (cũ: index 6)
@@ -2327,19 +2327,19 @@ public class MenuController {
             int beri_total = 0;
             switch (p.id_ship_packet) {
               case 36: {
-                beri_total = 30_000;
+                beri_total = 300_000;
                 break;
               }
               case 37: {
-                beri_total = 100_000;
+                beri_total = 400_000;
                 break;
               }
               case 38: {
-                beri_total = 200_000;
+                beri_total = 500_000;
                 break;
               }
               case 39: {
-                beri_total = 400_000;
+                beri_total = 600_000;
                 break;
               }
             }
@@ -2524,6 +2524,16 @@ public class MenuController {
       }
       case 8: {
         Service.send_box_ThongBao_OK(p, "Hôm nay đã hoàn thành " + p.time_ship + " chuyến");
+        break;
+      }
+      case 9: {
+        Service.send_box_ThongBao_OK(p,
+            "HƯỚNG DẪN VẬN CHUYỂN HÀNG:\n"
+                + "1. Nhận hàng tại Làng Cối Xay Gió (Map 1), cọc 100.000 Beri.\n"
+                + "2. Dùng Vé đổi hàng để đổi phẩm cấp gói hàng (Gói 1-4: 300k - 600k Beri).\n"
+                + "3. Trả hàng tại: Làng Vỏ Sò (x1), TT Orange (x1.5), Làng Syrup (x2).\n"
+                + "4. Thuê Thợ săn bảo vệ nhận 1/3 thưởng, Hải tặc cướp tiêu nhận 30% giá trị.\n"
+                + "5. Tối đa 5 chuyến/ngày, tự động làm mới vào 0h mỗi ngày.");
         break;
       }
     }

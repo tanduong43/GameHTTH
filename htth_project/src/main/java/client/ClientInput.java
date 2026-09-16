@@ -583,20 +583,30 @@ public class ClientInput {
                         Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
                         return;
                     }
-                    long value = Long.parseLong(name[0]) / 5000;
-                    if (value <= 0) {
+                    long raw = Long.parseLong(name[0]);
+                    if (raw <= 0) {
                         Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
                         return;
                     }
-                    if (p.conn.coin < value) {
-                        Service.send_box_ThongBao_OK(p,
-                                "Bạn không đủ " + Util.number_format(value) + " coin");
+                    // Hỗ trợ cả 2 cách: nhập số Coin muốn đổi HOẶC nhập số Beri muốn nhận (chia hết cho 5.000.000)
+                    long coinNeeded = raw;
+                    if (raw >= 5_000_000L && raw % 5_000_000L == 0) {
+                        coinNeeded = raw / 5_000_000L;
+                    }
+                    if (coinNeeded > Integer.MAX_VALUE) {
+                        Service.send_box_ThongBao_OK(p, "Số lượng quá lớn!");
                         return;
                     }
-                    int beri = (int) ((long) value * 5000);
-                    p.data_yesno = new int[] { beri };
+                    int coin = (int) coinNeeded;
+                    if (p.conn.coin < coin) {
+                        Service.send_box_ThongBao_OK(p,
+                                "Bạn không đủ " + Util.number_format(coin) + " coin");
+                        return;
+                    }
+                    long beri = (long) coin * 5_000_000L;
+                    p.data_yesno = new int[] { coin };
                     Service.send_box_yesno(p, 61, "Thông báo",
-                            "Bạn có thật sự muốn đổi " + Util.number_format(value) + " Coin để"
+                            "Bạn có thật sự muốn đổi " + Util.number_format(coin) + " Coin để"
                                     + " đổi lấy " + Util.number_format(beri) + " Beri không?",
                             new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                     break;

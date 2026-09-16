@@ -190,7 +190,7 @@ public class Manager {
             try {
                 ps.executeUpdate("UPDATE `mobs` SET `hOne` = 120, `hp` = 2000000000, `skill` = '[210,211,243,244]' WHERE `id` = 172;");
                 ps.executeUpdate("UPDATE `boss` SET `hp` = 2000000000, `skill` = '[210,211,243,244]' WHERE `id` = 11 OR `mob_id` = 172;");
-                ps.executeUpdate("UPDATE `parts` SET `data` = '[[8328,-2,-5],[8329,-2,-5],[8330,-2,-5],[8331,-2,-5],[8332,-1,-5]]' WHERE `id` = 729;");
+                ps.executeUpdate("UPDATE `parts` SET `data` = '[[8328,-2,-2],[8329,-2,-2],[8330,-2,-2],[8331,-2,-2],[8332,-1,-2]]' WHERE `id` = 729;");
                 // Tự động sửa lỗi thiếu ngoặc đóng ] trong npcs map 62 (Vườn Cam Namie)
                 ps.executeUpdate("UPDATE `maps` SET `npcs` = CONCAT(`npcs`, ']') WHERE `id` = 62 AND `npcs` LIKE '%[]]';");
                 // Tự động đồng bộ cấu hình quái/trụ cho 5 map Chiến Trường 5vs5 (129 -> 133)
@@ -429,6 +429,41 @@ public class Manager {
                     vgo_temp.xnew = Short.parseShort(js_0.get(3).toString());
                     vgo_temp.ynew = Short.parseShort(js_0.get(4).toString());
                     if (vgo_temp.id_map_go != -1) {
+                        // FIX: Điều chỉnh tọa độ yold/ynew cho các map Phó bản Vượt ải đơn (167-176)
+                        // Trong dữ liệu gốc, các cổng quay lại bị đặt yold=12 khiến Client ẩn waypoint (point.y <= 72)
+                        // và Server không nhận va chạm (|12 - yGround| > 60).
+                        if (id_map >= 167 && id_map <= 176 && vgo_temp.yold <= 72) {
+                            short groundY = 250;
+                            switch (id_map) {
+                                case 167: groundY = 240; break;
+                                case 168: groundY = 260; break;
+                                case 169: groundY = 240; break;
+                                case 170: groundY = 245; break;
+                                case 171: groundY = 270; break;
+                                case 172: groundY = 240; break;
+                                case 173: groundY = 255; break;
+                                case 174: groundY = 225; break;
+                                case 175: groundY = 255; break;
+                                case 176: groundY = 245; break;
+                            }
+                            vgo_temp.yold = groundY;
+                        }
+                        if (vgo_temp.id_map_go >= 167 && vgo_temp.id_map_go <= 176 && vgo_temp.ynew <= 72) {
+                            short destGroundY = 250;
+                            switch (vgo_temp.id_map_go) {
+                                case 167: destGroundY = 240; break;
+                                case 168: destGroundY = 260; break;
+                                case 169: destGroundY = 240; break;
+                                case 170: destGroundY = 245; break;
+                                case 171: destGroundY = 270; break;
+                                case 172: destGroundY = 240; break;
+                                case 173: destGroundY = 255; break;
+                                case 174: destGroundY = 225; break;
+                                case 175: destGroundY = 255; break;
+                                case 176: destGroundY = 245; break;
+                            }
+                            vgo_temp.ynew = destGroundY;
+                        }
                         map_temp.vgos.add(vgo_temp);
                     }
                 }
@@ -696,7 +731,7 @@ public class Manager {
                 }
                 if (part.id == 729) {
                     for (int i = 0; i < part.pi.length; i++) {
-                        part.pi[i].dy = -5;
+                        part.pi[i].dy = -2;
                     }
                 }
                 Part.ENTRY.add(part);
@@ -1638,7 +1673,7 @@ public class Manager {
             }
             if (part.id == 729) {
                 for (int i = 0; i < part.pi.length; i++) {
-                    part.pi[i].dy = -5;
+                    part.pi[i].dy = -2;
                 }
             }
             list.add(part);

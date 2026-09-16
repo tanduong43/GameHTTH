@@ -273,7 +273,7 @@ public class Boss {
             case 92:
                 return List.of(92, 94, 95, 96, 97, 98, 99, 100, 101);
             case 112:
-                return List.of(112, 114, 115, 116, 117, 118, 124, 125, 126);
+                return List.of(112, 115, 116, 117, 118, 124, 125, 126);
             case 121:
                 return List.of(32, 34, 35, 36);
             case 163:

@@ -101,6 +101,7 @@ public class Player {
     public byte giaiPhongNangLuong;
     public Clan clan;
     public Dungeon dungeon;
+    public long time_last_notice_dungeon = 0;
     public int id_menu_tichtieu;
     public activities.BossHunt bossHunt;
     public activities.Battleground5v5 battleground5v5;
@@ -2003,8 +2004,7 @@ public class Player {
                 }
             }
         } else {
-            if (this.dungeon instanceof activities.TowerChallenge
-                    || this.dungeon instanceof activities.NamieTreasureDefense) {
+            if (this.dungeon != null) {
                 Service.send_time_cool_down(this, 0, "", 0);
                 this.dungeon = null;
             }
@@ -2298,7 +2298,11 @@ public class Player {
                         boolean isSingle = this.dungeon.getClass() == Dungeon.class;
                         boolean isTower = this.dungeon instanceof activities.TowerChallenge;
                         boolean isNamie = this.dungeon instanceof activities.NamieTreasureDefense;
-                        if (isSingle || isTower || isNamie) {
+                        if (isSingle) {
+                            Map.teleportPlayerOutOfDungeon(this);
+                            return;
+                        }
+                        if (isTower || isNamie) {
                             Service.send_box_ThongBao_OK(this, "Vui lòng đợi phó bản tự động rời sau 10 giây!");
                             return;
                         }

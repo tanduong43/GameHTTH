@@ -57,6 +57,10 @@ public class LittleGarden {
     }
 
     public static void update_mp(Map map, int type, int quant) throws IOException {
+        if (map == null || map.map_little_garden == null || map.map_little_garden.is_finish
+                || map.map_little_garden.is_notified) {
+            return;
+        }
         if (type == 4) {
             Message m = new Message(-79);
             m.writer().writeByte(1);
@@ -113,6 +117,10 @@ public class LittleGarden {
     }
 
     public static void update_hp(Map map, int type, int quant) throws IOException {
+        if (map == null || map.map_little_garden == null || map.map_little_garden.is_finish
+                || map.map_little_garden.is_notified) {
+            return;
+        }
         if (type == 4) {
             Message m = new Message(-79);
             m.writer().writeByte(1);

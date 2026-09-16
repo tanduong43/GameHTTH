@@ -24,6 +24,34 @@ public class ItemTemplate4 {
 				return ItemTemplate4.ENTRYS.get(i);
 			}
 		}
+		if (id == 1015) {
+			ItemTemplate4 it = new ItemTemplate4();
+			it.id = 1015;
+			it.name = "Trái Nikyu Nikyu";
+			it.icon = 190;
+			it.indexInfoPotion = 457;
+			it.beri = 10;
+			it.ruby = 0;
+			it.istrade = 1;
+			it.type = 7;
+			it.nameuse = "Ăn";
+			ItemTemplate4.ENTRYS.add(it);
+			return it;
+		}
+		if (id == 1016) {
+			ItemTemplate4 it = new ItemTemplate4();
+			it.id = 1016;
+			it.name = "Trái Ope Ope";
+			it.icon = 191;
+			it.indexInfoPotion = 458;
+			it.beri = 10;
+			it.ruby = 0;
+			it.istrade = 1;
+			it.type = 7;
+			it.nameuse = "Ăn";
+			ItemTemplate4.ENTRYS.add(it);
+			return it;
+		}
 		return null;
 	}
 
@@ -37,6 +65,8 @@ public class ItemTemplate4 {
 	}
 
 	public static String get_item_name(int id) {
+		if (id == 1015) return "Trái Nikyu Nikyu";
+		if (id == 1016) return "Trái Ope Ope";
 		String s = "";
 		for (int i = 0; i < ItemTemplate4.ENTRYS.size(); i++) {
 			if (ItemTemplate4.ENTRYS.get(i).id == id) {
