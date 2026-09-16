@@ -33,6 +33,7 @@ public class Mob {
 	public int ne_don = 0;           // % Tỷ lệ né đòn (0 - 100%)
 	public int phan_dame = 0;        // % Phản sát thương lại cho người chơi đánh
 	public int giam_mien_thuong = 0; // Điểm giảm miễn thương của mục tiêu khi tấn công (thang 1000, vd 400 = giảm 40%)
+	public long time_giam_dame_uta = 0; // Thời gian hết hạn giảm 50% sát thương khi dính Uta Uta No Mi (ms)
 
 	// Danh sách tên người chơi đã gây sát thương (dùng cho Đảo Ruby map 1001 - thưởng Ruby cho tất cả người tham gia)
 	public java.util.Set<String> damageDealers = java.util.concurrent.ConcurrentHashMap.newKeySet();

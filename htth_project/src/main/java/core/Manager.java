@@ -205,6 +205,9 @@ public class Manager {
                 // Tự động đồng bộ Part 1118 và Tóc Hồng (Rose) vào bảng parts và itemhair
                 ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1118, 5, '[[12978,1,-8],[12979,2,-8]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
                 ps.executeUpdate("INSERT INTO `itemhair` (`id`, `name`, `icon`, `beri`, `ruby`) VALUES (68, 'Tóc Hồng (Rose)', 1118, 0, 500) ON DUPLICATE KEY UPDATE `icon`=1118, `ruby`=500;");
+                // Tự động đồng bộ Part 1122 và Tóc Đen (Black) vào bảng parts và itemhair
+                ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1122, 5, '[[12980,1,-8],[12981,2,-8]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
+                ps.executeUpdate("INSERT INTO `itemhair` (`id`, `name`, `icon`, `beri`, `ruby`) VALUES (69, 'Tóc Đen (Black)', 1122, 0, 500) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `icon`=1122, `ruby`=500;");
                 // Tự động đồng bộ Thời trang Nezuko (Fashion 249 & Parts 1119, 1120, 1121)
                 ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1119, 0, '[[12939,5,4],[12940,5,4],[12940,5,4],[12941,5,4],[12942,5,3]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
                 ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1120, 1, '[[12943,0,0],[12944,0,0],[12945,0,0],[12946,0,0],[12947,0,0],[12948,0,0],[12949,0,0],[12950,0,0],[12951,0,0],[12952,0,0],[12953,0,0],[12954,0,0],[12955,0,0],[12956,0,0],[12957,0,0],[12958,0,0],[12959,0,0],[12960,0,0],[12961,0,0],[12962,0,0]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");

@@ -27,6 +27,11 @@ public class EffTemplate {
     // 20 thu thach ve than
     // 21 bien thanh zoombie
     // 22 x2 tai nguyen
+    // 23 Uta Uta No Mi - Tang 50% tan cong ban than
+    // 24 Uta Uta No Mi - Giam 50% tan cong doi thu
+    //
+    public final static int EFF_UTA_BUFF_DAME = 23;
+    public final static int EFF_UTA_DEBUFF_DAME = 24;
     //
     // 100 + option item (100- 127) eff skill buff
     // 200 + option skill: choang, chay mau,....
@@ -47,6 +52,6 @@ public class EffTemplate {
     }
 
     public static boolean check_eff_remove_when_die(int id) {
-        return id == 0 || id == 1 || (id >= 100 && id <= 127) || id == 6 || (id >= 11 && id <= 14) || id == 18 || (id >= 201 && id <= 216);
+        return id == 0 || id == 1 || (id >= 100 && id <= 127) || id == 6 || (id >= 11 && id <= 14) || id == 18 || (id >= 201 && id <= 216) || id == 23 || id == 24;
     }
 }
