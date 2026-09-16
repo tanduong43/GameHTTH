@@ -35,12 +35,12 @@ public class Vong_quay_oc_sen {
     }
 
     // 22 Reward slots on the wheel (Tổng weight = 10,000 = 100%):
-    // Slots 0-15: 16 outer slots (Tổng = 9,050 = 90.5%)
-    // Slots 16-21: 6 inner slots (Tổng = 950 = 9.5%, trong đó 2 Trái Ác Quỷ mỗi trái 1% = 100)
+    // Slots 0-15: 16 outer slots (Tổng = 9,248 = 92.48%)
+    // Slots 16-21: 6 inner slots (Tổng = 752 = 7.52%, trong đó 2 Trái Ác Quỷ mỗi trái 0.01% = 1)
     public static final RewardSlot[] DEFAULT_SLOTS = new RewardSlot[] {
         // --- 16 Outer Slots (0 - 15) ---
         new RewardSlot(29, 4, 1, 300),    // 0: Rương ác quỷ x1 (3.0%)
-        new RewardSlot(441, 4, 2, 500),   // 1: Ốc Sên x2 (5.0%)
+        new RewardSlot(441, 4, 2, 599),   // 1: Ốc Sên x2 (5.99%)
         new RewardSlot(4, 7, 10, 700),    // 2: Bột vàng x10 (7.0%)
         new RewardSlot(223, 4, 2, 600),   // 3: Đá hải thạch cấp 3 x2 (6.0%)
         new RewardSlot(80, 4, 2, 750),    // 4: Kinh nghiệm X2 x2 (7.5%)
@@ -54,14 +54,14 @@ public class Vong_quay_oc_sen {
         new RewardSlot(72, 4, 1, 400),    // 12: Đá Saphia cấp 5 x1 (4.0%)
         new RewardSlot(1, 7, 20, 800),    // 13: Bột cường hóa x20 (8.0%)
         new RewardSlot(78, 4, 1, 400),    // 14: Thạch anh tím cấp 5 x1 (4.0%)
-        new RewardSlot(441, 4, 1, 400),   // 15: Ốc Sên x1 (4.0%)
+        new RewardSlot(441, 4, 1, 499),   // 15: Ốc Sên x1 (4.99%)
 
         // --- 6 Inner Slots (16 - 21) ---
         new RewardSlot(158, 4, 1, 150),   // 16: Rương ác quỷ đặc biệt x1 (1.5%)
         new RewardSlot(225, 4, 1, 200),   // 17: Đá hải thạch cấp 5 x1 (2.0%)
-        new RewardSlot(1015, 4, 1, 100),  // 18: Trái Nikyu Nikyu x1 (1.0% - Chuẩn hiếm)
+        new RewardSlot(1015, 4, 1, 1),    // 18: Trái Nikyu Nikyu x1 (0.01% - Cực hiếm)
         new RewardSlot(60, 4, 1, 200),    // 19: Tinh thể ruby cấp 5 x1 (2.0%)
-        new RewardSlot(1016, 4, 1, 100),  // 20: Trái Ope Ope x1 (1.0% - Chuẩn hiếm)
+        new RewardSlot(1016, 4, 1, 1),    // 20: Trái Ope Ope x1 (0.01% - Cực hiếm)
         new RewardSlot(66, 4, 1, 200)     // 21: Ngọc lục bảo cấp 5 x1 (2.0%)
     };
 
