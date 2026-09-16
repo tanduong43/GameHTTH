@@ -175,6 +175,8 @@ public class Battleground5v5 {
     // Theo dõi số lần tử trận và thời điểm hồi sinh của từng người chơi
     public java.util.Map<Integer, Integer> deathCounts = new ConcurrentHashMap<>();
     public java.util.Map<Integer, Long> reviveTimes = new ConcurrentHashMap<>();
+    // Theo dõi thời gian gửi cảnh báo trụ chính đang có khiên bảo vệ (chống spam thông báo)
+    public java.util.Map<Integer, Long> lastProtectedWarning = new ConcurrentHashMap<>();
 
     public boolean isFinished = false;
     public boolean isNotifiedFinish = false;
@@ -246,15 +248,17 @@ public class Battleground5v5 {
         int remain = Math.max(0, MAX_DAILY_TURNS - p.time_5vs5);
         String msg = "=== CHIẾN TRƯỜNG PHÁ TRỤ ===\n"
                 + "- Giới hạn: Tối đa " + MAX_DAILY_TURNS + " lượt/ngày (Bạn còn: " + remain + "/" + MAX_DAILY_TURNS + " lượt).\n"
+                + "- Cơ chế bảo vệ: Trụ Chính có khiên bất tử, chỉ có thể tấn công khi toàn bộ Trụ Phụ đối phương đã bị phá hủy!\n"
                 + "--- CHẾ ĐỘ 5VS5 ---\n"
                 + "- Đội hình: 5 người mỗi bên (Phe Đỏ vs Phe Xanh).\n"
-                + "- Nhiệm vụ: Phá hủy Trụ Chính của đối phương để giành chiến thắng.\n"
+                + "- Nhiệm vụ: Phá hết Trụ Phụ rồi phá Trụ Chính đối phương để giành chiến thắng.\n"
                 + "- Đánh trụ mỗi lần trừ 1 HP. Trụ vỡ sẽ giữ nguyên trạng thái.\n"
                 + "- Hồi sinh: Khi chết quay về Trụ Chính phe mình. Thời gian ban đầu 5 giây, mỗi lần chết +1 giây.\n"
+                + "- Phần thưởng: Thắng nhận 500.000 Beri + 1.000 Ruby. Thua nhận 100.000 Beri + 200 Ruby.\n"
                 + "--- CHẾ ĐỘ 1VS1 ---\n"
                 + "- Không cần nhóm, chỉ 2 người chơi vào hàng chờ.\n"
                 + "- Mỗi người một căn cứ riêng (Map 129 và Map 130).\n"
-                + "- Phá hủy Trụ Chính đối phương trước là thắng!\n"
+                + "- Phá hủy Trụ Phụ rồi phá Trụ Chính đối phương trước là thắng!\n"
                 + "- Thời gian tối đa: 10 phút.";
         sendThongBao(p, msg);
     }
@@ -385,7 +389,7 @@ public class Battleground5v5 {
             vgo1.xnew = 100;
             vgo1.ynew = 288;
             p1.goto_map(vgo1);
-            sendThongBao(p1, "Trận 1vs1 bắt đầu! (Lượt " + p1.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nBạn là Phe Đỏ. Phá hủy Trụ Chính xanh của " + p2.name + " để chiến thắng!");
+            sendThongBao(p1, "Trận 1vs1 bắt đầu! (Lượt " + p1.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nBạn là Phe Đỏ. Phá hủy Trụ Phụ rồi tiêu diệt Trụ Chính xanh của " + p2.name + " để chiến thắng!");
         } catch (Exception e) { e.printStackTrace(); }
 
         try {
@@ -396,7 +400,7 @@ public class Battleground5v5 {
             vgo2.xnew = 956;
             vgo2.ynew = 288;
             p2.goto_map(vgo2);
-            sendThongBao(p2, "Trận 1vs1 bắt đầu! (Lượt " + p2.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nBạn là Phe Xanh. Phá hủy Trụ Chính đỏ của " + p1.name + " để chiến thắng!");
+            sendThongBao(p2, "Trận 1vs1 bắt đầu! (Lượt " + p2.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nBạn là Phe Xanh. Phá hủy Trụ Phụ rồi tiêu diệt Trụ Chính đỏ của " + p1.name + " để chiến thắng!");
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -614,7 +618,7 @@ public class Battleground5v5 {
                 vgo.xnew = 100;
                 vgo.ynew = 288;
                 p.goto_map(vgo);
-                sendThongBao(p, "Trận chiến 5vs5 bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Đỏ: Bảo vệ Trụ Chính A và phá hủy Trụ Chính B đối phương!");
+                sendThongBao(p, "Trận chiến 5vs5 bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Đỏ: Phá hủy toàn bộ Trụ Phụ rồi tiêu diệt Trụ Chính B đối phương để chiến thắng!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -632,7 +636,7 @@ public class Battleground5v5 {
                 vgo.xnew = 956;
                 vgo.ynew = 288;
                 p.goto_map(vgo);
-                sendThongBao(p, "Trận chiến 5vs5 bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Xanh: Bảo vệ Trụ Chính B và phá hủy Trụ Chính A đối phương!");
+                sendThongBao(p, "Trận chiến 5vs5 bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Xanh: Phá hủy toàn bộ Trụ Phụ rồi tiêu diệt Trụ Chính A đối phương để chiến thắng!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -859,9 +863,55 @@ public class Battleground5v5 {
     }
 
     /**
+     * Đếm số lượng Trụ Phụ (Trụ Thường) còn sống của một phe
+     * @param targetTeam 1: Phe Đỏ (Trụ Thường A - 122), 2: Phe Xanh (Trụ Thường B - 124)
+     */
+    public int countAliveSecondaryTowers(int targetTeam) {
+        int targetMobId = (targetTeam == 1) ? MOB_TRU_THUONG_A : MOB_TRU_THUONG_B;
+        int count = 0;
+        for (Mob tower : towers) {
+            if (tower != null && tower.mob_template != null && tower.mob_template.mob_id == targetMobId) {
+                if (!tower.isdie && tower.hp > 0) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Kiểm tra toàn bộ Trụ Phụ của phe chỉ định đã bị phá hủy hết chưa
+     * @param targetTeam 1: Phe Đỏ, 2: Phe Xanh
+     */
+    public boolean areAllSecondaryTowersDestroyed(int targetTeam) {
+        return countAliveSecondaryTowers(targetTeam) == 0;
+    }
+
+    /**
+     * Gửi cảnh báo và hiệu ứng bong bóng chat khi người chơi tấn công Trụ Chính còn khiên bảo vệ
+     */
+    private void notifyProtectedTower(Player p, Mob mob, int enemyTeam, int aliveCount) {
+        if (p == null || mob == null) return;
+        long now = System.currentTimeMillis();
+        Long lastTime = lastProtectedWarning.get(p.id);
+        if (lastTime == null || now - lastTime >= 3000L) {
+            lastProtectedWarning.put(p.id, now);
+            String enemyTeamName = (enemyTeam == 1) ? "Phe Đỏ" : "Phe Xanh";
+            String warningMsg = "Trụ Chính " + enemyTeamName + " đang có Khiên Bảo Vệ!\nBạn phải phá hủy hết " + aliveCount + " Trụ Phụ còn lại của " + enemyTeamName + " trước!";
+            sendThongBao(p, warningMsg);
+            if (p.map != null) {
+                try {
+                    p.map.send_chat_popup(1, mob.index, "Khiên chắn bảo vệ! Hãy phá Trụ Phụ trước!", true);
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    /**
      * Kiểm tra người chơi có quyền tấn công Trụ này không
      * - Phe Đỏ (type_pk = 4) chỉ được đánh Trụ Phe B (124, 125)
      * - Phe Xanh (type_pk = 5) chỉ được đánh Trụ Phe A (122, 123)
+     * - Trụ Chính chỉ có thể bị tấn công khi toàn bộ Trụ Phụ đối phương đã bị tiêu diệt
      */
     public boolean canAttackTower(Player p, Mob mob) {
         if (p == null || mob == null || mob.mob_template == null || isFinished) return false;
@@ -873,10 +923,31 @@ public class Battleground5v5 {
 
         if (!isTowerA && !isTowerB) return true; // Quái bình thường khác nếu có
 
-        if (p.type_pk == 4) { // Cờ Đỏ -> chỉ đánh Trụ B
-            return isTowerB;
-        } else if (p.type_pk == 5) { // Cờ Xanh -> chỉ đánh Trụ A
-            return isTowerA;
+        boolean isTeamA = (p.type_pk == 4 || teamA.contains(p));
+        boolean isTeamB = (p.type_pk == 5 || teamB.contains(p));
+
+        if (isTeamA) { // Phe Đỏ -> chỉ đánh Trụ B
+            if (!isTowerB) return false;
+            // Nếu là Trụ Chính B (125), chỉ được đánh khi toàn bộ Trụ Phụ B (124) đã bị phá hủy hết
+            if (mobId == MOB_TRU_CHINH_B) {
+                int aliveSecTowers = countAliveSecondaryTowers(2);
+                if (aliveSecTowers > 0) {
+                    notifyProtectedTower(p, mob, 2, aliveSecTowers);
+                    return false;
+                }
+            }
+            return true;
+        } else if (isTeamB) { // Phe Xanh -> chỉ đánh Trụ A
+            if (!isTowerA) return false;
+            // Nếu là Trụ Chính A (123), chỉ được đánh khi toàn bộ Trụ Phụ A (122) đã bị phá hủy hết
+            if (mobId == MOB_TRU_CHINH_A) {
+                int aliveSecTowers = countAliveSecondaryTowers(1);
+                if (aliveSecTowers > 0) {
+                    notifyProtectedTower(p, mob, 1, aliveSecTowers);
+                    return false;
+                }
+            }
+            return true;
         }
         return false;
     }
@@ -908,6 +979,23 @@ public class Battleground5v5 {
         // Phát thông báo trụ bị phá
         String announce = "Trụ [" + towerName + "] đã bị phá hủy bởi " + (killer != null ? killer.name : "kẻ địch") + "!";
         broadcastMessage(announce);
+
+        // Kiểm tra thông báo trạng thái Trụ Phụ và Khiên Trụ Chính
+        if (mobId == MOB_TRU_THUONG_A) {
+            int remaining = countAliveSecondaryTowers(1);
+            if (remaining == 0) {
+                broadcastMessage("⚠️ TOÀN BỘ TRỤ PHỤ PHE ĐỎ ĐÃ BỊ PHÁ HỦY!\nKhiên bảo vệ Trụ Chính Phe Đỏ đã biến mất, có thể tấn công Trụ Chính ngay bây giờ!");
+            } else {
+                broadcastMessage("Phe Đỏ chỉ còn lại " + remaining + " Trụ Phụ!");
+            }
+        } else if (mobId == MOB_TRU_THUONG_B) {
+            int remaining = countAliveSecondaryTowers(2);
+            if (remaining == 0) {
+                broadcastMessage("⚠️ TOÀN BỘ TRỤ PHỤ PHE XANH ĐÃ BỊ PHÁ HỦY!\nKhiên bảo vệ Trụ Chính Phe Xanh đã biến mất, có thể tấn công Trụ Chính ngay bây giờ!");
+            } else {
+                broadcastMessage("Phe Xanh chỉ còn lại " + remaining + " Trụ Phụ!");
+            }
+        }
 
         // Kiểm tra Trụ Chính A bị phá -> Phe Xanh thắng
         if (mobId == MOB_TRU_CHINH_A) {
@@ -957,10 +1045,11 @@ public class Battleground5v5 {
     private void rewardPlayer(Player p, boolean isWinner) {
         try {
             int beri = isWinner ? 500_000 : 100_000;
-            int ruby = isWinner ? 50 : 10;
+            int ruby = isWinner ? 1000 : 200;
             p.update_vang(beri);
-            p.update_ngoc(ruby); p.update_money();
-            sendThongBao(p, "Phần thưởng trận đấu:\n+ " + Util.number_format(beri) + " Beri\n+ " + ruby + " Ruby!");
+            p.update_ngoc(ruby);
+            p.update_money();
+            sendThongBao(p, "Phần thưởng trận đấu:\n+ " + Util.number_format(beri) + " Beri\n+ " + Util.number_format(ruby) + " Ruby!");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1030,6 +1119,7 @@ public class Battleground5v5 {
         teamB.clear();
         deathCounts.clear();
         reviveTimes.clear();
+        lastProtectedWarning.clear();
         towers.clear();
 
         ACTIVE_BATTLES.remove(this);

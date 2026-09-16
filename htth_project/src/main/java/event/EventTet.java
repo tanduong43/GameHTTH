@@ -397,7 +397,7 @@ public class EventTet implements Runnable {
 
         List<GiftBox> rewards = new ArrayList<>();
         if (rank == 1) {
-            rewards.add(createGiftBox(1, 1000)); // 1000 Ruby
+            rewards.add(createGiftBox(1, 5000)); // 5000 Ruby
             if (isEvent()) {
                 rewards.add(createGiftBox(ITEM_HOP_TRANG_PHUC, 1)); // 1 Hộp Thời Trang Tết Vĩnh Viễn (356)
             }
@@ -405,8 +405,14 @@ public class EventTet implements Runnable {
             p.danhhieu = DANH_HIEU_BAT_BAI;
             p.id_danh_hieu_su_dung = DANH_HIEU_BAT_BAI;
             p.time_danh_hieu_bat_bai = System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000L; // 7 Ngày
-        } else if (rank <= 3) {
-            rewards.add(createGiftBox(1, 500)); // 500 Ruby
+        } else if (rank == 2) {
+            rewards.add(createGiftBox(1, 3000)); // 3000 Ruby
+            if (isEvent()) {
+                rewards.add(createGiftBox(ITEM_HOP_TRANG_PHUC_1, 1)); // 1 Hộp Trang Phục Tết 1 (637) [30 Ngày]
+                rewards.add(createGiftBox(ITEM_BAO_LI_XI_TAN_NIEN, 10)); // 10 Bao Lì Xì Tân Niên (357)
+            }
+        } else if (rank == 3) {
+            rewards.add(createGiftBox(1, 1000)); // 1000 Ruby
             if (isEvent()) {
                 rewards.add(createGiftBox(ITEM_HOP_TRANG_PHUC_1, 1)); // 1 Hộp Trang Phục Tết 1 (637) [30 Ngày]
                 rewards.add(createGiftBox(ITEM_BAO_LI_XI_TAN_NIEN, 10)); // 10 Bao Lì Xì Tân Niên (357)

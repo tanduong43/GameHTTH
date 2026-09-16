@@ -225,6 +225,10 @@ public class BigBattle {
      * Người chơi đăng ký vào Sảnh Chờ từ NPC Zosaku
      */
     public static void joinWaitingRoom(Player p) throws IOException {
+        if (p.conn == null || (p.conn.status != 1 && !"admin".equalsIgnoreCase(p.conn.user))) {
+            Service.send_box_ThongBao_OK(p, "Chỉ tài khoản đã mở thành viên mới có thể tham gia Trận Chiến Lớn!");
+            return;
+        }
         if (p.level < 20) {
             Service.send_box_ThongBao_OK(p, "Bạn cần đạt cấp độ 20 trở lên để tham gia Trận Chiến Lớn!");
             return;
@@ -327,7 +331,9 @@ public class BigBattle {
      * Kiểm tra người chơi có sẵn sàng trong sảnh chờ để ghép trận hay không
      */
     public static boolean isPlayerReadyInWaiting(Player p, Map waitMap) {
-        return p != null && p.conn != null && p.conn.connected && !p.isdie && !p.isBot
+        return p != null && p.conn != null && p.conn.connected
+                && (p.conn.status == 1 || "admin".equalsIgnoreCase(p.conn.user))
+                && !p.isdie && !p.isBot
                 && p.targetFight == null && (p.map != null && p.map.equals(waitMap));
     }
 
@@ -800,11 +806,11 @@ public class BigBattle {
      */
     public static void showRewardMenu(Player p) throws IOException {
         String[] menuItems = new String[] {
-                "Mốc 3 trận thắng " + (p.big_battle_claimed_rewards.contains(3) ? "(Đã nhận)" : (p.big_battle_max_streak >= 3 ? "(Có thể nhận)" : "(Chưa đạt)")),
-                "Mốc 5 trận thắng " + (p.big_battle_claimed_rewards.contains(5) ? "(Đã nhận)" : (p.big_battle_max_streak >= 5 ? "(Có thể nhận)" : "(Chưa đạt)")),
-                "Mốc 10 trận thắng " + (p.big_battle_claimed_rewards.contains(10) ? "(Đã nhận)" : (p.big_battle_max_streak >= 10 ? "(Có thể nhận)" : "(Chưa đạt)")),
-                "Mốc 15 trận thắng " + (p.big_battle_claimed_rewards.contains(15) ? "(Đã nhận)" : (p.big_battle_max_streak >= 15 ? "(Có thể nhận)" : "(Chưa đạt)")),
-                "Mốc 20 trận thắng " + (p.big_battle_claimed_rewards.contains(20) ? "(Đã nhận)" : (p.big_battle_max_streak >= 20 ? "(Có thể nhận)" : "(Chưa đạt)"))
+                "Mốc 3 trận [200 Ruby] " + (p.big_battle_claimed_rewards.contains(3) ? "(Đã nhận)" : (p.big_battle_max_streak >= 3 ? "(Có thể nhận)" : "(Chưa đạt)")),
+                "Mốc 5 trận [300 Ruby] " + (p.big_battle_claimed_rewards.contains(5) ? "(Đã nhận)" : (p.big_battle_max_streak >= 5 ? "(Có thể nhận)" : "(Chưa đạt)")),
+                "Mốc 10 trận [1.000 Ruby] " + (p.big_battle_claimed_rewards.contains(10) ? "(Đã nhận)" : (p.big_battle_max_streak >= 10 ? "(Có thể nhận)" : "(Chưa đạt)")),
+                "Mốc 15 trận [1.500 Ruby] " + (p.big_battle_claimed_rewards.contains(15) ? "(Đã nhận)" : (p.big_battle_max_streak >= 15 ? "(Có thể nhận)" : "(Chưa đạt)")),
+                "Mốc 20 trận [2.000 Ruby] " + (p.big_battle_claimed_rewards.contains(20) ? "(Đã nhận)" : (p.big_battle_max_streak >= 20 ? "(Có thể nhận)" : "(Chưa đạt)"))
         };
 
         core.MenuController.send_dynamic_menu(p, -9970, "Nhận Thưởng Chuỗi Thắng", menuItems,
@@ -815,6 +821,11 @@ public class BigBattle {
      * Xử lý nhận quà từng mốc chuỗi thắng
      */
     public static void claimReward(Player p, byte index) throws IOException {
+        if (p.conn == null || (p.conn.status != 1 && !"admin".equalsIgnoreCase(p.conn.user))) {
+            Service.send_box_ThongBao_OK(p, "Chỉ tài khoản đã mở thành viên mới có thể nhận thưởng!");
+            return;
+        }
+
         int[] milestones = new int[] { 3, 5, 10, 15, 20 };
         if (index < 0 || index >= milestones.length) {
             return;
@@ -839,28 +850,28 @@ public class BigBattle {
         switch (milestone) {
             case 3:
                 beriReward = 100_000L;
-                rubyReward = 10;
-                rewardText = "100.000 Beri, 10 Ruby";
+                rubyReward = 200;
+                rewardText = "100.000 Beri, 200 Ruby";
                 break;
             case 5:
                 beriReward = 300_000L;
-                rubyReward = 30;
-                rewardText = "300.000 Beri, 30 Ruby";
+                rubyReward = 300;
+                rewardText = "300.000 Beri, 300 Ruby";
                 break;
             case 10:
                 beriReward = 1_000_000L;
-                rubyReward = 100;
-                rewardText = "1.000.000 Beri, 100 Ruby";
+                rubyReward = 1000;
+                rewardText = "1.000.000 Beri, 1.000 Ruby";
                 break;
             case 15:
                 beriReward = 3_000_000L;
-                rubyReward = 300;
-                rewardText = "3.000.000 Beri, 300 Ruby";
+                rubyReward = 1500;
+                rewardText = "3.000.000 Beri, 1.500 Ruby";
                 break;
             case 20:
                 beriReward = 10_000_000L;
-                rubyReward = 1000;
-                rewardText = "10.000.000 Beri, 1000 Ruby";
+                rubyReward = 2000;
+                rewardText = "10.000.000 Beri, 2.000 Ruby";
                 break;
         }
 
