@@ -45,6 +45,8 @@ public class Battleground5v5 {
 
     public static final int TOWER_ATTACK_RANGE = 30; // Phạm vi gây dame của trụ: 30 pixel
 
+    public static final int MAX_DAILY_TURNS = 5; // Giới hạn số lượt đi mỗi ngày
+
     // Mode trận đấu
     public static final int MODE_5V5 = 5;
     public static final int MODE_1V1 = 1;
@@ -199,7 +201,9 @@ public class Battleground5v5 {
     public static void showMenu(Player p) {
         if (p == null || p.conn == null) return;
         try {
-            core.MenuController.send_dynamic_menu(p, 9955, "Chiến Trường Phá Trụ",
+            p.change_new_date();
+            int remain = Math.max(0, MAX_DAILY_TURNS - p.time_5vs5);
+            core.MenuController.send_dynamic_menu(p, 9955, "Chiến Trường Phá Trụ (Còn " + remain + "/" + MAX_DAILY_TURNS + " lượt)",
                     new String[] {
                         "Đăng ký 5 vs 5 (Nhóm)",
                         "Hủy tìm trận 5 vs 5",
@@ -238,7 +242,10 @@ public class Battleground5v5 {
      * Hiển thị bảng luật chơi
      */
     public static void showRules(Player p) {
+        p.change_new_date();
+        int remain = Math.max(0, MAX_DAILY_TURNS - p.time_5vs5);
         String msg = "=== CHIẾN TRƯỜNG PHÁ TRỤ ===\n"
+                + "- Giới hạn: Tối đa " + MAX_DAILY_TURNS + " lượt/ngày (Bạn còn: " + remain + "/" + MAX_DAILY_TURNS + " lượt).\n"
                 + "--- CHẾ ĐỘ 5VS5 ---\n"
                 + "- Đội hình: 5 người mỗi bên (Phe Đỏ vs Phe Xanh).\n"
                 + "- Nhiệm vụ: Phá hủy Trụ Chính của đối phương để giành chiến thắng.\n"
@@ -259,6 +266,13 @@ public class Battleground5v5 {
      */
     public static synchronized void register1v1(Player p) {
         if (p == null) return;
+        p.change_new_date();
+
+        // Kiểm tra giới hạn lượt tham gia hôm nay
+        if (p.time_5vs5 >= MAX_DAILY_TURNS) {
+            sendThongBao(p, "Bạn đã tham gia đủ " + MAX_DAILY_TURNS + " lượt Chiến Trường hôm nay (tối đa " + MAX_DAILY_TURNS + " lần/ngày)!");
+            return;
+        }
 
         // Kiểm tra người chơi có đang trong trận khác không
         if (p.battleground5v5 != null) {
@@ -349,11 +363,13 @@ public class Battleground5v5 {
             battle.maps[idx] = instance;
         }
 
-        // 2. Phân phe: p1 = Team A (Đỏ), p2 = Team B (Xanh)
+        // 2. Phân phe: p1 = Team A (Đỏ), p2 = Team B (Xanh) và trừ lượt đi hôm nay
+        p1.time_5vs5++;
         battle.teamA.add(p1);
         p1.battleground5v5 = battle;
         battle.deathCounts.put(p1.id, 0);
 
+        p2.time_5vs5++;
         battle.teamB.add(p2);
         p2.battleground5v5 = battle;
         battle.deathCounts.put(p2.id, 0);
@@ -369,7 +385,7 @@ public class Battleground5v5 {
             vgo1.xnew = 100;
             vgo1.ynew = 288;
             p1.goto_map(vgo1);
-            sendThongBao(p1, "Trận 1vs1 bắt đầu! Bạn là Phe Đỏ.\nPhá hủy Trụ Chính xanh của " + p2.name + " để chiến thắng!");
+            sendThongBao(p1, "Trận 1vs1 bắt đầu! (Lượt " + p1.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nBạn là Phe Đỏ. Phá hủy Trụ Chính xanh của " + p2.name + " để chiến thắng!");
         } catch (Exception e) { e.printStackTrace(); }
 
         try {
@@ -380,7 +396,7 @@ public class Battleground5v5 {
             vgo2.xnew = 956;
             vgo2.ynew = 288;
             p2.goto_map(vgo2);
-            sendThongBao(p2, "Trận 1vs1 bắt đầu! Bạn là Phe Xanh.\nPhá hủy Trụ Chính đỏ của " + p1.name + " để chiến thắng!");
+            sendThongBao(p2, "Trận 1vs1 bắt đầu! (Lượt " + p2.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nBạn là Phe Xanh. Phá hủy Trụ Chính đỏ của " + p1.name + " để chiến thắng!");
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -390,6 +406,9 @@ public class Battleground5v5 {
      * Đăng ký hàng chờ ghép đội 5vs5
      */
     public static synchronized void registerQueue(Player p) {
+        if (p == null) return;
+        p.change_new_date();
+
         if (p.party == null) {
             sendThongBao(p, "Bạn cần phải tạo Nhóm và đủ đúng 5 thành viên mới có thể đăng ký!");
             return;
@@ -402,9 +421,20 @@ public class Battleground5v5 {
             sendThongBao(p, "Nhóm của bạn hiện có " + p.party.list.size() + "/5 thành viên. Cần đúng 5 người!");
             return;
         }
+
+        // Kiểm tra kết nối và lượt đi hôm nay của từng thành viên
         for (Player member : p.party.list) {
             if (member == null || member.conn == null || !member.conn.connected) {
                 sendThongBao(p, "Có thành viên trong nhóm đang mất kết nối!");
+                return;
+            }
+            member.change_new_date();
+            if (member.time_5vs5 >= MAX_DAILY_TURNS) {
+                if (member.equals(p)) {
+                    sendThongBao(p, "Bạn đã tham gia đủ " + MAX_DAILY_TURNS + " lượt Chiến Trường hôm nay (tối đa " + MAX_DAILY_TURNS + " lần/ngày)!");
+                } else {
+                    sendThongBao(p, "Thành viên " + member.name + " đã hết lượt tham gia Chiến Trường hôm nay (đã đi " + MAX_DAILY_TURNS + "/" + MAX_DAILY_TURNS + " lần)!");
+                }
                 return;
             }
             if (member.map == null || member.map.template.id != p.map.template.id) {
@@ -452,6 +482,11 @@ public class Battleground5v5 {
      */
     public static synchronized void startPracticeMatch(Player p) {
         if (p == null || p.conn == null || !p.conn.connected) return;
+        p.change_new_date();
+        if (p.time_5vs5 >= MAX_DAILY_TURNS) {
+            sendThongBao(p, "Bạn đã tham gia đủ " + MAX_DAILY_TURNS + " lượt Chiến Trường hôm nay (tối đa " + MAX_DAILY_TURNS + " lần/ngày)!");
+            return;
+        }
         if (p.battleground5v5 != null) {
             sendThongBao(p, "Bạn đang trong trận đấu! Hãy kết thúc trận hiện tại trước.");
             return;
@@ -464,6 +499,15 @@ public class Battleground5v5 {
             for (Player member : p.party.list) {
                 if (member == null || member.conn == null || !member.conn.connected) {
                     sendThongBao(p, "Có thành viên trong nhóm đang mất kết nối!");
+                    return;
+                }
+                member.change_new_date();
+                if (member.time_5vs5 >= MAX_DAILY_TURNS) {
+                    if (member.equals(p)) {
+                        sendThongBao(p, "Bạn đã tham gia đủ " + MAX_DAILY_TURNS + " lượt Chiến Trường hôm nay (tối đa " + MAX_DAILY_TURNS + " lần/ngày)!");
+                    } else {
+                        sendThongBao(p, "Thành viên " + member.name + " đã hết lượt tham gia Chiến Trường hôm nay!");
+                    }
                     return;
                 }
             }
@@ -532,10 +576,11 @@ public class Battleground5v5 {
             battle.maps[idx] = instance;
         }
 
-        // 2. Phân chia người chơi vào Team A (Cờ Đỏ) và Team B (Cờ Xanh)
+        // 2. Phân chia người chơi vào Team A (Cờ Đỏ) và Team B (Cờ Xanh) và trừ lượt đi hôm nay
         if (partyA != null) {
             for (Player p : partyA.list) {
                 if (p != null && p.conn != null && p.conn.connected) {
+                    p.time_5vs5++;
                     battle.teamA.add(p);
                     p.battleground5v5 = battle;
                     battle.deathCounts.put(p.id, 0);
@@ -546,6 +591,7 @@ public class Battleground5v5 {
         if (partyB != null) {
             for (Player p : partyB.list) {
                 if (p != null && p.conn != null && p.conn.connected) {
+                    p.time_5vs5++;
                     battle.teamB.add(p);
                     p.battleground5v5 = battle;
                     battle.deathCounts.put(p.id, 0);
@@ -568,7 +614,7 @@ public class Battleground5v5 {
                 vgo.xnew = 100;
                 vgo.ynew = 288;
                 p.goto_map(vgo);
-                sendThongBao(p, "Trận chiến 5vs5 bắt đầu!\nPhe Đỏ: Bảo vệ Trụ Chính A và phá hủy Trụ Chính B đối phương!");
+                sendThongBao(p, "Trận chiến 5vs5 bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Đỏ: Bảo vệ Trụ Chính A và phá hủy Trụ Chính B đối phương!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -586,7 +632,7 @@ public class Battleground5v5 {
                 vgo.xnew = 956;
                 vgo.ynew = 288;
                 p.goto_map(vgo);
-                sendThongBao(p, "Trận chiến 5vs5 bắt đầu!\nPhe Xanh: Bảo vệ Trụ Chính B và phá hủy Trụ Chính A đối phương!");
+                sendThongBao(p, "Trận chiến 5vs5 bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Xanh: Bảo vệ Trụ Chính B và phá hủy Trụ Chính A đối phương!");
             } catch (Exception e) {
                 e.printStackTrace();
             }

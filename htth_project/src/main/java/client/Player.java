@@ -130,6 +130,7 @@ public class Player {
     public byte time_fight_super; // Số lần tham gia thách đấu siêu hạng trong ngày (tối đa 5 lần)
     public byte time_single_dungeon;
     public byte time_hangdong;
+    public byte time_5vs5; // Số lượt tham gia Phó bản 5vs5 trong ngày (tối đa 5 lần)
     public byte village_tier = 1;
     public int[] daily_achievements = new int[8];
     public boolean[] daily_achievements_claimed = new boolean[8];
@@ -517,6 +518,11 @@ public class Player {
                 }
             } else {
                 village_tier = 1;
+            }
+            if (js.size() > 26 && js.get(26) != null) {
+                time_5vs5 = safeByteFromJson(js.get(26));
+            } else {
+                time_5vs5 = 0;
             }
             this.claimedMilestones = new ArrayList<>();
             this.tichTieuCheck = new byte[20];
@@ -1590,6 +1596,7 @@ public class Player {
             js.add(p.lanKills);
             js.add(p.haki_monster_killed);
             js.add(p.village_tier);
+            js.add(p.time_5vs5);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
@@ -3264,6 +3271,7 @@ public class Player {
             time_fight_super = 0;
             time_single_dungeon = 0;
             time_hangdong = 0;
+            time_5vs5 = 0;
             daily_achievements = new int[8];
             daily_achievements_claimed = new boolean[8];
             botMiReceivedToday = 0;
