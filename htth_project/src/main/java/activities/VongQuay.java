@@ -122,6 +122,7 @@ public class VongQuay {
         p.type_vongquay = 0;
         Message m = new Message(54);
         m.writer().writeByte(0);
+        m.writer().writeByte(0); // 0 = VongQuayMayMan
         m.writer().writeShort(p.item.total_item_bag_by_id(4, 232));
         p.conn.addmsg(m);
         m.cleanup();
@@ -129,6 +130,10 @@ public class VongQuay {
 
     public static void process(Player p, Message m2) throws IOException {
         byte action = m2.reader().readByte();
+        process(p, action);
+    }
+
+    public static void process(Player p, byte action) throws IOException {
         switch (action) {
             case 3: {
                 Message m = new Message(54);

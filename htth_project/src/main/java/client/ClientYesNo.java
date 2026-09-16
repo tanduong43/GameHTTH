@@ -3261,16 +3261,35 @@ public class ClientYesNo {
                     break;
                 }
                 case 10: {
-                    if (p.get_ngoc() < 1000) {
-                        Service.send_box_ThongBao_OK(p, "Bạn không đủ 1000 Ruby");
+                    int rubyCost = 10_000;
+                    int extol = 1_000;
+                    if (p.data_yesno != null && p.data_yesno.length >= 2) {
+                        rubyCost = p.data_yesno[0];
+                        extol = p.data_yesno[1];
+                    }
+                    if (rubyCost < 10_000 || extol <= 0) {
                         p.data_yesno = null;
                         p.map_tele = null;
                         return;
                     }
-                    p.update_ngoc(-1000);
-                    p.update_vnd(750_000);
+                    if (p.get_ngoc() < rubyCost) {
+                        Service.send_box_ThongBao_OK(p, "Bạn không đủ " + Util.number_format(rubyCost) + " Ruby");
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
+                    if (((long) p.get_vnd() + (long) extol) > 2_000_000_000L) {
+                        Service.send_box_ThongBao_OK(p, "Số Extol đã đạt mức tối đa!");
+                        p.data_yesno = null;
+                        p.map_tele = null;
+                        return;
+                    }
+                    p.update_ngoc(-rubyCost);
+                    p.update_vnd(extol);
                     p.update_money();
-                    Service.send_box_ThongBao_OK(p, "Bạn đã đổi thành công 750.000 Extol.");
+                    ActionLogger.logRuby(p.name, "Đổi Ruby sang Extol", rubyCost, p.get_ngoc());
+                    ActionLogger.logExtol(p.name, "Nhận Extol từ đổi Ruby", extol, p.get_vnd());
+                    Service.send_box_ThongBao_OK(p, "Bạn đã đổi thành công " + Util.number_format(rubyCost) + " Ruby sang " + Util.number_format(extol) + " Extol.");
                     break;
                 }
                 case 9: {

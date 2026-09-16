@@ -473,7 +473,7 @@ public class MenuController {
         case -201: {
           send_dynamic_menu(p, type, get_name_npc(type),
               new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn", "Hang động",
-                  "Đến đảo huấn luyện pet", "Chiến Trường 5vs5 (Bảo trì)" },
+                  "Đến đảo huấn luyện pet", "Chiến Trường 5vs5" },
               null);
           break;
         }
@@ -1051,10 +1051,15 @@ public class MenuController {
             m.cleanup();
           } else if (index == 1) {
             List<Short> listIcons = new ArrayList<>();
-            for (short i = 293; i < 370; i++) {
+            for (short i = 293; i <= 419; i++) {
               if (i == 303) {
                 continue;
               }
+              if (!Clan.is_icon_used(i, null)) {
+                listIcons.add(i);
+              }
+            }
+            for (short i = 500; i <= 552; i++) {
               if (!Clan.is_icon_used(i, null)) {
                 listIcons.add(i);
               }
@@ -1616,18 +1621,15 @@ public class MenuController {
               Service.input_text(p, 4, "Đổi Extol Sang Ruby", new String[] { "Ruby muốn đổi" });
               break;
             }
-            // case 1: { // Đổi extol
-            // Service.send_box_yesno(p, 10, "Thông báo",
-            // "Bạn muốn đổi 1000 ruby sang 750.000 extol?", new String[] { "Đồng ý", "Hủy"
-            // },
-            // new byte[] { 2, 1 });
-            // break;
-            // }
+            case 1: { // Đổi extol (Ruby sang Extol: 10.000 Ruby = 1.000 Extol)
+              Service.input_text(p, 13, "Đổi Ruby Sang Extol", new String[] { "Nhập số Ruby muốn đổi (tối thiểu 10.000 Ruby = 1.000 Extol)" });
+              break;
+            }
             // case 2: { // Nạp tiền
             // Service.send_box_ThongBao_OK(p, "Đang bảo trì, anh em lên web nạp nha");
             // break;
             // }
-            case 1: { // GiftCode (cũ: index 3)
+            case 2: { // GiftCode (cũ: index 3)
               Service.input_text(p, 1, "Quà tặng máy chủ", new String[] { "Nhập giftcode" });
               break;
             }
@@ -1636,15 +1638,15 @@ public class MenuController {
             // ruby" });
             // break;
             // }
-            case 2: { // Đổi Beri (cũ: index 5)
+            case 3: { // Đổi Beri (cũ: index 5)
               Service.input_text(p, 9, "Đổi Coin Sang Beri", new String[] { "Nhập số coin (1 coin = 5.000.000 beri)" });
               break;
             }
-            case 3: { // Xem Coin (cũ: index 6)
+            case 4: { // Xem Coin (cũ: index 6)
               Service.send_box_ThongBao_OK(p, "Bạn đang sở hữu " + Util.number_format(p.conn.coin) + " Coin.");
               break;
             }
-            case 4: { // Đổi Coin (cũ: index 7)
+            case 5: { // Đổi Coin (cũ: index 7)
               Service.input_text(p, 12, "Đổi Coin", new String[] { "Nhập số coin muốn đổi" });
               break;
             }
@@ -1875,7 +1877,7 @@ public class MenuController {
                 "Tôn Ngộ Không: Lão Tôn xin chào! Ngươi muốn vào Đảo Ruby, Đấu Trường Sinh Tồn, Hang Động hay Đảo Huấn Luyện Pet?");
           } else if (index == 1) {
             if (!map.Map.isRubyIslandOpen()) {
-              Service.send_box_ThongBao_OK(p, "Đảo Ruby chỉ mở cửa từ 7h-9h sáng và 17h-19h tối hàng ngày!");
+              Service.send_box_ThongBao_OK(p, "Đảo Ruby chỉ mở cửa từ 8h-9h sáng và 18h-19h30 tối hàng ngày!");
               break;
             }
             Vgo vgo = new Vgo();
@@ -1895,14 +1897,12 @@ public class MenuController {
           } else if (index == 4) {
             activities.PetTraining.teleportToMap(p, activities.PetTraining.MAP_TRAIN_PET_ID, 200, 200);
           } else if (index == 5) {
-            Service.send_box_ThongBao_OK(p, "Chức năng Chiến Trường 5vs5 đang bảo trì!");
-            // activities.Battleground5v5.showMenu(p);
+            activities.Battleground5v5.showMenu(p);
           }
           break;
         }
         case 9955: { // Menu Chiến Trường 5vs5 Phá Trụ
-          Service.send_box_ThongBao_OK(p, "Chức năng Chiến Trường 5vs5 đang bảo trì!");
-          // activities.Battleground5v5.handleMenu(p, index);
+          activities.Battleground5v5.handleMenu(p, index);
           break;
         }
         case 9899: {
@@ -2700,7 +2700,7 @@ public class MenuController {
           send_dynamic_menu(p, 993, "Nami",
               new String[] {
                   "Đổi Ruby",
-                  // "Đổi extol",
+                  "Đổi extol",
                   // "Nạp tiền",
                   "GiftCode",
                   // "Đổi Ruby",
@@ -2710,7 +2710,7 @@ public class MenuController {
               },
               new short[] {
                   128,
-                  // 128,
+                  128,
                   // 132,
                   161,
                   // 127,

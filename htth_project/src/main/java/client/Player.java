@@ -689,16 +689,22 @@ public class Player {
             boolean wasNamieMap = activities.NamieTreasureDefense.isDefenseMap(savedMapId);
             boolean wasBigBattleMap = (savedMapId >= 2030 && savedMapId <= 2032)
                     || savedMapId == 120 || savedMapId == 122 || savedMapId == 123;
+            boolean wasBattleground5v5 = (savedMapId >= 129 && savedMapId <= 133);
             boolean wasSpecialRedirectMap = (savedMapId == 2000 || savedMapId == 2028 
                     || savedMapId == activities.PetTraining.MAP_TRAIN_PET_ID 
                     || savedMapId == 2026 || savedMapId == 1001 || savedMapId == 58
                     || savedMapId == 119
-                    || wasBigBattleMap);
+                    || wasBigBattleMap
+                    || wasBattleground5v5);
             if (wasBossHuntMap || wasSpecialRedirectMap) {
                 System.out.println("[MapRedirect] Player " + this.name + " saved map was (" + savedMapId
                         + "). Redirecting to saved village.");
-                savedMapId = (this.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(this.id_map_save) && this.id_map_save != 119 && this.id_map_save != 120 && this.id_map_save != 122 && this.id_map_save != 123)
-                        ? this.id_map_save : 1;
+                if (wasBattleground5v5) {
+                    savedMapId = 1; // Thoát Chiến trường 5vs5 luôn quay về Làng Cối Xay Gió
+                } else {
+                    savedMapId = (this.id_map_save > 0 && !activities.BigBattle.isWaitingMapId(this.id_map_save) && this.id_map_save != 119 && this.id_map_save != 120 && this.id_map_save != 122 && this.id_map_save != 123)
+                            ? this.id_map_save : 1;
+                }
             }
             if (wasNamieMap) {
                 System.out.println("[NamieDefense] Player " + this.name + " saved map was Namie defense map (" + savedMapId
@@ -720,9 +726,14 @@ public class Player {
             this.map = (map != null && zone_goto < map.length) ? map[zone_goto] : Map.get_map_by_id(0)[0];
             this.hp = Integer.parseInt(js.get(2).toString());
             this.mp = Integer.parseInt(js.get(3).toString());
+            if (wasBattleground5v5 && (this.hp <= 0 || this.isdie)) {
+                this.isdie = false;
+                this.hp = this.body.get_hp_max(true);
+                this.mp = this.body.get_mp_max(true);
+            }
             if (wasBossHuntMap || wasNamieMap || wasSpecialRedirectMap) {
-                x = 611;
-                y = 250;
+                x = (short) (wasBattleground5v5 ? 420 : 611);
+                y = (short) (wasBattleground5v5 ? 280 : 250);
             } else {
                 x = Short.parseShort(js.get(4).toString());
                 y = Short.parseShort(js.get(5).toString());
@@ -1453,7 +1464,16 @@ public class Player {
             js.clear();
             ps.setNString(2, p.date.toString());
             js = new JSONArray();
-            if (p.map.template.id == 2000 || p.map.template.id == 2028
+            if ((p.map != null && (p.map.template.id >= 129 && p.map.template.id <= 133))
+                    || p.battleground5v5 != null) {
+                // Thoát game khi đang trong Chiến Trường 5vs5: quay về Làng Cối Xay Gió (Map 1)
+                js.add(1);
+                js.add(0);
+                js.add(p.hp <= 0 ? p.body.get_hp_max(true) : p.hp);
+                js.add(p.mp <= 0 ? p.body.get_mp_max(true) : p.mp);
+                js.add(420);
+                js.add(280);
+            } else if (p.map.template.id == 2000 || p.map.template.id == 2028
                     || p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID
                     || p.map.template.id == 2026 || p.map.template.id == 1001
                     || (p.map.template.id >= 2030 && p.map.template.id <= 2032)
@@ -2080,6 +2100,7 @@ public class Player {
         this.ischangemap = false;
         this.xold = this.x;
         this.yold = this.y;
+        this.type_vongquay = 0;
         Map[] map_go = vgo.map_go;
         if (map_go == null) {
             Service.send_box_ThongBao_OK(this, "Chưa thể đi đến map này!");

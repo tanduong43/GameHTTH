@@ -186,7 +186,7 @@ public class ServerEventManager {
                                                 try {
                                                     p0.goto_map(vgo);
                                                     Service.send_box_ThongBao_OK(p0,
-                                                            "Đảo Ruby đã hết thời gian mở cửa! Hẹn gặp lại bạn từ 7h-9h sáng và 17h-19h tối.");
+                                                            "Đảo Ruby đã hết thời gian mở cửa! Hẹn gặp lại bạn từ 8h-9h sáng và 18h-19h30 tối.");
                                                 } catch (Exception e) {
                                                     e.printStackTrace();
                                                 }

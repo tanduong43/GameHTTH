@@ -29,7 +29,10 @@ public class SessionManager {
             try {
                 if (ss.p != null) {
                     activities.BigBattle.handlePlayerExit(ss.p);
-                    if (!ss.p.isdie || ss.p.dungeon != null || ss.p.bossHunt != null) {
+                    activities.Battleground5v5.handlePlayerExit(ss.p);
+                    if ((!ss.p.isdie || ss.p.dungeon != null || ss.p.bossHunt != null)
+                            && ss.p.battleground5v5 == null
+                            && !(ss.p.map != null && activities.Battleground5v5.isBattleMapStatic(ss.p.map))) {
                         client.ReconnectSession.create(ss.p);
                     } else if (ss.p.party != null) {
                         try {

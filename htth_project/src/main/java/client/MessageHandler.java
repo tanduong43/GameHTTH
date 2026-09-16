@@ -388,10 +388,18 @@ public class MessageHandler {
             }
             case 54: {
                 if (conn.p != null) {
+                    byte action = m.reader().readByte();
+                    if (m.reader().available() > 0) {
+                        conn.p.type_vongquay = m.reader().readByte();
+                    }
+                    if (action == 5) { // Thoát / Đóng bảng vòng quay -> reset về Vòng Quay May Mắn
+                        conn.p.type_vongquay = 0;
+                        break;
+                    }
                     if (conn.p.type_vongquay == 1) {
-                        activities.VongQuayPet.process(conn.p, m);
+                        activities.VongQuayPet.process(conn.p, action);
                     } else {
-                        VongQuay.process(conn.p, m);
+                        VongQuay.process(conn.p, action);
                     }
                 }
                 break;

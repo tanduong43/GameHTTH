@@ -10,7 +10,7 @@ import java.util.List;
 
 public class PvpClan {
     public static final int MAP_PVP_CLAN = 123;
-    public static final long TIME_PVP_CLAN = 5 * 60 * 1000L; // 5 phút (300 giây)
+    public static final long TIME_PVP_CLAN = 3 * 60 * 1000L; // 3 phút (180 giây)
 
     public static List<Clan> LIST = new ArrayList<>();
 

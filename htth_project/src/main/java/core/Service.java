@@ -1249,8 +1249,7 @@ public class Service {
             } else {
                 Service.send_box_ThongBao_OK(p, "Mua thất bại, hãy thử lại!");
             }
-        } else if (p.clan != null && TypeShop == 98 && value == 1 && cat == -1 && id >= 0
-                && id < 402) {
+        } else if (p.clan != null && TypeShop == 98 && value == 1 && cat == -1 && Clan.is_valid_icon(id)) {
             if (Clan.is_icon_used(id, p.clan)) {
                 Service.send_box_ThongBao_OK(p, "Biểu tượng này đã được clan khác sử dụng!");
                 return;
@@ -1269,7 +1268,7 @@ public class Service {
             p.conn.addmsg(m);
             m.cleanup();
         } else if (p.clan != null && p.clan.members.get(0).name.equals(p.name) && TypeShop == 97
-                && value == 1 && cat == -1 && id >= 0 && id < 402) {
+                && value == 1 && cat == -1 && Clan.is_valid_icon(id)) {
             if (Clan.is_icon_used(id, p.clan)) {
                 Service.send_box_ThongBao_OK(p, "Biểu tượng này đã được clan khác sử dụng!");
                 return;

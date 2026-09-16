@@ -640,6 +640,37 @@ public class ClientInput {
                 }
                 break;
             }
+            case 13: {
+                if (name.length == 1 && p.data_yesno == null) {
+                    if (!Util.isnumber(name[0])) {
+                        Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
+                        return;
+                    }
+                    long rawRuby = Long.parseLong(name[0]);
+                    if (rawRuby < 10_000) {
+                        Service.send_box_ThongBao_OK(p, "Chỉ cho phép đổi từ 10.000 Ruby trở lên (10.000 Ruby = 1.000 Extol)!");
+                        return;
+                    }
+                    int extol = (int) (rawRuby / 10L);
+                    int rubyCost = extol * 10;
+                    if (p.get_ngoc() < rubyCost) {
+                        Service.send_box_ThongBao_OK(p,
+                                "Bạn không đủ " + Util.number_format(rubyCost) + " Ruby (hiện có " + Util.number_format(p.get_ngoc()) + " Ruby)");
+                        return;
+                    }
+                    if (((long) p.get_vnd() + (long) extol) > 2_000_000_000L) {
+                        Service.send_box_ThongBao_OK(p, "Số Extol sau khi đổi vượt quá giới hạn tối đa!");
+                        return;
+                    }
+                    p.data_yesno = new int[] { rubyCost, extol };
+                    Service.send_box_yesno(p, 10, "Thông báo",
+                            "Bạn có thật sự muốn đổi " + Util.number_format(rubyCost) + " Ruby để"
+                                    + " đổi lấy " + Util.number_format(extol) + " Extol không?",
+                            new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
+                    break;
+                }
+                break;
+            }
             case 2: {
                 if (name.length == 2) {
                     name[0] = name[0].replace(" ", "");

@@ -897,7 +897,7 @@ public class Map implements Runnable {
                 }
             }
 
-            // 2. GIAI ĐOẠN 1: HẾT GIỜ 5 PHÚT -> Tính điểm, thưởng XP/Ruby Băng, hiện BẢNG
+            // 2. GIAI ĐOẠN 1: HẾT GIỜ 3 PHÚT -> Tính điểm, thưởng XP/Ruby Băng, hiện BẢNG
             // NHẬN QUÀ, đếm ngược 8 giây về làng
             if (!this.map_pvp_clan.is_notified && now >= this.map_pvp_clan.time_end) {
                 this.map_pvp_clan.is_notified = true;
@@ -3193,7 +3193,12 @@ public class Map implements Runnable {
     public static boolean isRubyIslandOpen() {
         java.util.Calendar cal = java.util.Calendar.getInstance();
         int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
-        return (hour >= 7 && hour < 9) || (hour >= 17 && hour < 19);
+        int minute = cal.get(java.util.Calendar.MINUTE);
+        // Sáng: 8h đến 9h (08:00 - 08:59)
+        boolean isMorning = (hour == 8);
+        // Tối: 18h đến 19h30 (18:00 - 19:29)
+        boolean isEvening = (hour == 18) || (hour == 19 && minute < 30);
+        return isMorning || isEvening;
     }
 
     public static Player get_player_by_name_allmap(String name) {
@@ -4612,10 +4617,12 @@ public class Map implements Runnable {
                     }
 
                     if (isQuaiMap1001 && percent > 0 && value1 > value2) {
-                        // Quái vật tuyết map 1001: mỗi mốc 10% máu, TẤT CẢ người đã gây sát thương đều
-                        // nhận ruby
+                        // Quái vật tuyết map 1001: chỉ nhận ruby tại các mốc mất 10%, 50% và 100% máu
                         for (int j = value1 - 1; j >= value2; j--) {
                             int hpPercent = (9 - j) * 10;
+                            if (hpPercent != 10 && hpPercent != 50 && hpPercent != 100) {
+                                continue;
+                            }
                             for (String dealerName : mob_target.damageDealers) {
                                 Player dealer = null;
                                 for (int pi = 0; pi < this.players.size(); pi++) {
@@ -4629,9 +4636,12 @@ public class Map implements Runnable {
                                     dealer.update_ngoc(ruby);
                                     dealer.update_money();
                                     try {
-                                        Service.send_box_ThongBao_OK(dealer,
-                                                mob_target.mob_template.name + " mất " + hpPercent + "% máu! Nhận "
+                                        String msg = (hpPercent == 100)
+                                                ? (mob_target.mob_template.name + " bị tiêu diệt (100% máu)! Nhận "
+                                                        + ruby + " ruby")
+                                                : (mob_target.mob_template.name + " mất " + hpPercent + "% máu! Nhận "
                                                         + ruby + " ruby");
+                                        Service.send_box_ThongBao_OK(dealer, msg);
                                     } catch (Exception e) {
                                     }
                                 }
@@ -5755,6 +5765,16 @@ public class Map implements Runnable {
         m.writer().writeShort(0); // point pk
         send_msg_all_p(m, null, true);
         m.cleanup();
+        if (targetM.mob_template != null && targetM.mob_template.typemove == 19 && this.map_battleground5v5 != null) {
+            for (Player p0 : this.players) {
+                if (p0 != null && p0.conn != null && p0.conn.connected) {
+                    try {
+                        Service.send_mob_info(p0, targetM);
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        }
     }
 
     private void send_dame_msg(Player p, short typeEffSkill, List<Dame_Msg> list)
@@ -5951,6 +5971,16 @@ public class Map implements Runnable {
                                 + " / " + VillageProgression.MAX_TIER);
                     } catch (Exception e) {
                         Service.send_box_ThongBao_OK(p, "Cú pháp không đúng! Ví dụ: admin settier 5");
+                    }
+                } else if (cmd.equals("reloadhair") || cmd.equals("reload_hair") || cmd.equals("updatehair")
+                        || cmd.equals("update_hair")) {
+                    try {
+                        int count = core.Manager.reload_hair();
+                        Service.send_box_ThongBao_OK(p,
+                                "Đã reload danh sách tóc từ database thành công! (Tổng: " + count + ")");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Service.send_box_ThongBao_OK(p, "Lỗi reload tóc: " + e.getMessage());
                     }
                 } else if (cmd.equals("reloadpart") || cmd.equals("reload_part") || cmd.equals("updatepart")
                         || cmd.equals("update_part")) {
@@ -6742,6 +6772,10 @@ public class Map implements Runnable {
                     p.conn.addmsg(m_local);
                     m_local.cleanup();
                     towersInMap.add(tower);
+                    try {
+                        Service.send_mob_info(p, tower);
+                    } catch (Exception ignored) {
+                    }
                 }
             }
             // Gửi message 51 (UpdateLoL) để set typePK cho trụ (Phe Đỏ typePK=4, Phe Xanh typePK=5)
@@ -6996,7 +7030,8 @@ public class Map implements Runnable {
                 || id == 2000 || id == 2028 || id == 2026 || id == 1001
                 || id == 2030 || id == 2031 || id == 2032
                 || Map.is_map_boss(id) || Map.is_map_dungeon(id)
-                || activities.BossHunt.isBossHuntMap(id);
+                || activities.BossHunt.isBossHuntMap(id)
+                || (id >= 129 && id <= 133);
     }
 
     public static boolean is_map_sea(int id) {

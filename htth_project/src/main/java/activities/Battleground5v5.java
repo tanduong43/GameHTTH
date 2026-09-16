@@ -103,7 +103,11 @@ public class Battleground5v5 {
                     tower.mob_template = tplMob.mob_template;
                     tower.x = tplMob.x;
                     tower.y = tplMob.y;
-                    tower.hp_max = tplMob.hp_max > 0 ? tplMob.hp_max : 5000;
+                    if (tower.mob_template.mob_id == MOB_TRU_CHINH_A || tower.mob_template.mob_id == MOB_TRU_CHINH_B) {
+                        tower.hp_max = 200;
+                    } else {
+                        tower.hp_max = 100;
+                    }
                     tower.hp = tower.hp_max;
                     tower.level = tplMob.level;
                     tower.isdie = false;
@@ -137,7 +141,11 @@ public class Battleground5v5 {
                     tower.mob_template = mt;
                     tower.x = tx;
                     tower.y = ty;
-                    tower.hp_max = mt.hp_max > 0 ? mt.hp_max : (mobId == MOB_TRU_CHINH_A || mobId == MOB_TRU_CHINH_B ? 5000 : 2000);
+                    if (mobId == MOB_TRU_CHINH_A || mobId == MOB_TRU_CHINH_B) {
+                        tower.hp_max = 200;
+                    } else {
+                        tower.hp_max = 100;
+                    }
                     tower.hp = tower.hp_max;
                     tower.level = mt.level;
                     tower.isdie = false;
@@ -168,6 +176,7 @@ public class Battleground5v5 {
 
     public boolean isFinished = false;
     public boolean isNotifiedFinish = false;
+    public volatile boolean isClosed = false;
     public long timeEnd = 0L;
     public long timeReturnVillage = 0L;
     public int winningTeam = 0; // 1: Phe Đỏ thắng, 2: Phe Xanh thắng
@@ -190,16 +199,14 @@ public class Battleground5v5 {
     public static void showMenu(Player p) {
         if (p == null || p.conn == null) return;
         try {
-            sendThongBao(p, "Chức năng Chiến Trường 5vs5 đang bảo trì!");
-            /*
             core.MenuController.send_dynamic_menu(p, 9955, "Chiến Trường Phá Trụ",
                     new String[] {
-                        "Vào Chiến Trường 5vs5 (5 người)",
-                        "Hủy tìm trận 5vs5",
+                        "Đăng ký 5 vs 5 (Nhóm)",
+                        "Hủy tìm trận 5 vs 5",
                         "Đăng ký 1 vs 1",
+                        "Hủy đăng ký 1 vs 1",
                         "Luật chiến trường"
                     }, null);
-            */
         } catch (Exception ignored) {}
     }
 
@@ -208,23 +215,23 @@ public class Battleground5v5 {
      */
     public static void handleMenu(Player p, int index) {
         if (p == null) return;
-        sendThongBao(p, "Chức năng Chiến Trường 5vs5 đang bảo trì!");
-        /*
         switch (index) {
-            case 0: // Vào Chiến Trường 5v5
+            case 0: // Đăng ký 5vs5
                 registerQueue(p);
                 break;
-            case 1: // Hủy tìm trận 5v5
+            case 1: // Hủy tìm trận 5vs5
                 cancelQueue(p);
                 break;
             case 2: // Đăng ký 1v1
                 register1v1(p);
                 break;
-            case 3: // Luật chiến trường
+            case 3: // Hủy đăng ký 1v1
+                cancel1v1(p);
+                break;
+            case 4: // Luật chiến trường
                 showRules(p);
                 break;
         }
-        */
     }
 
     /**
@@ -315,9 +322,9 @@ public class Battleground5v5 {
         battle.mode = MODE_1V1;
         battle.timeEnd = System.currentTimeMillis() + 10 * 60 * 1000L; // Tối đa 10 phút
 
-        // 1. Tạo 2 map instance: 129 (Làng Đỏ) và 130 (Làng Xanh)
-        int[] mapIds1v1 = { MAP_RED_BASE, MAP_BLUE_BASE };
-        battle.maps = new Map[5]; // Giữ nguyên array 5 để tương thích, chỉ dùng index 0 và 1
+        // 1. Tạo đầy đủ 5 map instance để người chơi di chuyển qua các đường và phá Trụ Thường / Trụ Chính
+        int[] mapIds1v1 = { MAP_RED_BASE, MAP_BLUE_BASE, MAP_TOP, MAP_MID, MAP_BOT };
+        battle.maps = new Map[5];
         int mobIndexCounter = -6000;
 
         for (int idx = 0; idx < mapIds1v1.length; idx++) {
@@ -401,7 +408,7 @@ public class Battleground5v5 {
                 return;
             }
             if (member.map == null || member.map.template.id != p.map.template.id) {
-                sendThongBao(p, "Tất cả 5 thành viên phải có mặt tại Làng Cối Xay Gió!");
+                sendThongBao(p, "Tất cả 5 thành viên phải có mặt cùng map với Trưởng nhóm!");
                 return;
             }
         }
@@ -441,37 +448,44 @@ public class Battleground5v5 {
     }
 
     /**
-     * Bắt đầu trận đấu tập (Cho phép 1 nhóm 5 người vào luyện tập phá trụ hoặc chia đội nếu có 2 nhóm)
+     * Bắt đầu trận đấu tập (Cho phép solo hoặc theo nhóm vào luyện tập phá trụ)
      */
     public static synchronized void startPracticeMatch(Player p) {
-        if (p.party == null || p.party.list.size() != 5) {
-            sendThongBao(p, "Quy trình yêu cầu nhóm phải đủ đúng 5 người mới được vào phó bản!");
+        if (p == null || p.conn == null || !p.conn.connected) return;
+        if (p.battleground5v5 != null) {
+            sendThongBao(p, "Bạn đang trong trận đấu! Hãy kết thúc trận hiện tại trước.");
             return;
         }
-        if (!p.party.list.get(0).equals(p)) {
-            sendThongBao(p, "Chỉ có Trưởng nhóm mới có thể bắt đầu trận đấu!");
-            return;
-        }
-        for (Player member : p.party.list) {
-            if (member == null || member.conn == null || !member.conn.connected) {
-                sendThongBao(p, "Có thành viên trong nhóm đang mất kết nối!");
+        if (p.party != null) {
+            if (!p.party.list.get(0).equals(p)) {
+                sendThongBao(p, "Chỉ có Trưởng nhóm mới có thể bắt đầu trận đấu!");
                 return;
             }
-        }
-
-        // Nếu có nhóm khác trong hàng chờ thì ghép đối đầu, ngược lại cho nhóm vào Phe Đỏ (Team A) để thử sức
-        Party teamBParty = null;
-        if (!WAITING_QUEUE.isEmpty()) {
-            for (Party other : WAITING_QUEUE) {
-                if (!other.equals(p.party)) {
-                    teamBParty = other;
-                    WAITING_QUEUE.remove(other);
-                    break;
+            for (Player member : p.party.list) {
+                if (member == null || member.conn == null || !member.conn.connected) {
+                    sendThongBao(p, "Có thành viên trong nhóm đang mất kết nối!");
+                    return;
                 }
             }
-        }
 
-        createAndLaunchBattle(p.party, teamBParty);
+            // Nếu có nhóm khác trong hàng chờ thì ghép đối đầu, ngược lại cho nhóm vào Phe Đỏ (Team A) để thử sức
+            Party teamBParty = null;
+            if (!WAITING_QUEUE.isEmpty()) {
+                for (Party other : WAITING_QUEUE) {
+                    if (!other.equals(p.party)) {
+                        teamBParty = other;
+                        WAITING_QUEUE.remove(other);
+                        break;
+                    }
+                }
+            }
+
+            createAndLaunchBattle(p.party, teamBParty);
+        } else {
+            // Luyện tập 1 mình (Solo thử sức / test trụ)
+            Party soloParty = new Party(p);
+            createAndLaunchBattle(soloParty, null);
+        }
     }
 
     /**
@@ -585,7 +599,7 @@ public class Battleground5v5 {
     public void update() {
         if (isFinished) {
             long now = System.currentTimeMillis();
-            if (isNotifiedFinish && now >= timeReturnVillage) {
+            if (isNotifiedFinish && !isClosed && now >= timeReturnVillage) {
                 closeBattle();
             }
             return;
@@ -804,7 +818,8 @@ public class Battleground5v5 {
      * - Phe Xanh (type_pk = 5) chỉ được đánh Trụ Phe A (122, 123)
      */
     public boolean canAttackTower(Player p, Mob mob) {
-        if (p == null || mob == null || mob.mob_template == null) return false;
+        if (p == null || mob == null || mob.mob_template == null || isFinished) return false;
+        if (mob.isdie || mob.hp <= 0) return false;
         int mobId = mob.mob_template.mob_id;
 
         boolean isTowerA = (mobId == MOB_TRU_THUONG_A || mobId == MOB_TRU_CHINH_A);
@@ -825,6 +840,21 @@ public class Battleground5v5 {
      */
     public void onTowerDestroyed(Player killer, Mob tower) {
         if (tower == null || isFinished) return;
+        tower.hp = 0;
+        tower.isdie = true;
+        tower.time_refresh = Long.MAX_VALUE;
+
+        // Phát sóng send_mob_info cho tất cả người chơi trong map chứa trụ để client chuyển sang trạng thái vỡ (Frame 1)
+        if (tower.map != null && tower.map.players != null) {
+            for (Player p : tower.map.players) {
+                if (p != null && p.conn != null && p.conn.connected) {
+                    try {
+                        Service.send_mob_info(p, tower);
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        }
 
         int mobId = tower.mob_template.mob_id;
         String towerName = tower.mob_template.name;
@@ -847,7 +877,7 @@ public class Battleground5v5 {
      * Kết thúc trận đấu
      * @param winTeam 1: Phe Đỏ (Team A), 2: Phe Xanh (Team B)
      */
-    public void finishBattle(int winTeam) {
+    public synchronized void finishBattle(int winTeam) {
         if (isFinished) return;
         isFinished = true;
         isNotifiedFinish = true;
@@ -893,38 +923,68 @@ public class Battleground5v5 {
     /**
      * Đưa tất cả người chơi về Làng và dọn dẹp instance
      */
-    public void closeBattle() {
+    public synchronized void closeBattle() {
+        if (isClosed) return;
+        isClosed = true;
+
         List<Player> allPlayers = new ArrayList<>();
         allPlayers.addAll(teamA);
         allPlayers.addAll(teamB);
 
         for (Player p : allPlayers) {
-            if (p != null && p.conn != null && p.conn.connected) {
-                try {
-                    // Trả lại cờ trắng bình thường
-                    p.type_pk = 0; if (p.map != null) { p.map.change_flag(p, 0); }
-                    p.battleground5v5 = null;
-                    PvpClan.send_return_village_countdown(p, 0);
+            if (p != null) {
+                p.battleground5v5 = null;
+                p.type_pk = -1; // Tháo cờ về hòa bình
+                if (p.conn != null && p.conn.connected) {
+                    try {
+                        PvpClan.send_return_village_countdown(p, 0);
+                        PvpClan.send_revive_countdown(p, 0);
 
-                    // Dịch chuyển về Làng Cối Xay Gió (Map 1)
-                    Map villageMap = Map.get_map_by_id(1)[0];
-                    Vgo vgo = new Vgo();
-                    vgo.map_go = new Map[] { villageMap };
-                    vgo.xnew = 420;
-                    vgo.ynew = 280;
-                    p.goto_map(vgo);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                        // Hồi sinh nếu người chơi đang chết hoặc hết máu
+                        if (p.isdie || p.hp <= 0) {
+                            p.isdie = false;
+                            p.hp = p.body.get_hp_max(true);
+                            p.mp = p.body.get_mp_max(true);
+                        }
+                        Service.use_potion(p, 0, p.hp);
+                        Service.use_potion(p, 1, p.mp);
+
+                        // Dịch chuyển về Làng đã lưu của người chơi hoặc Map 1 (Làng Cối Xay Gió)
+                        int targetMapId = (p.id_map_save > 0 && !isBattleMapStatic(p.id_map_save)) ? p.id_map_save : 1;
+                        Map[] targetMaps = Map.get_map_by_id(targetMapId);
+                        if (targetMaps == null || targetMaps.length == 0 || targetMaps[0] == null) {
+                            targetMapId = 1;
+                            targetMaps = Map.get_map_by_id(1);
+                        }
+
+                        Vgo vgo = new Vgo();
+                        vgo.map_go = targetMaps;
+                        vgo.xnew = (short) (targetMapId == 1 ? 420 : 300);
+                        vgo.ynew = (short) (targetMapId == 1 ? 280 : 250);
+                        p.goto_map(vgo);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
 
-        // Xóa 5 map instance khỏi Map
-        for (Map m : maps) {
-            if (m != null) {
-                Map.remove_map_plus(m);
+        // Dừng và giải phóng triệt để các map instance của phó bản
+        if (maps != null) {
+            for (Map m : maps) {
+                if (m != null) {
+                    m.running = false;
+                    m.map_battleground5v5 = null;
+                    Map.remove_map_plus(m);
+                }
             }
         }
+
+        teamA.clear();
+        teamB.clear();
+        deathCounts.clear();
+        reviveTimes.clear();
+        towers.clear();
 
         ACTIVE_BATTLES.remove(this);
     }
@@ -988,6 +1048,68 @@ public class Battleground5v5 {
             case MAP_MID:       return maps != null && maps.length > 3 ? maps[3] : null;
             case MAP_BOT:       return maps != null && maps.length > 4 ? maps[4] : null;
             default: return null;
+        }
+    }
+
+    public static boolean isBattleMapStatic(int mapId) {
+        return mapId >= 129 && mapId <= 133;
+    }
+
+    public static boolean isBattleMapStatic(Map map) {
+        return map != null && map.template != null && isBattleMapStatic(map.template.id);
+    }
+
+    /**
+     * Xử lý khi người chơi thoát game (disconnect/logout)
+     */
+    public static void handlePlayerExit(Player p) {
+        if (p == null) return;
+        try {
+            // 1. Rút khỏi hàng chờ 1v1 nếu đang đợi
+            WAITING_QUEUE_1V1.remove(p);
+
+            // 2. Rút khỏi hàng chờ 5v5 nếu đang đợi trong nhóm
+            if (p.party != null && WAITING_QUEUE.contains(p.party)) {
+                WAITING_QUEUE.remove(p.party);
+                for (Player m : p.party.list) {
+                    if (m != null && !m.equals(p)) {
+                        sendThongBao(m, "Thành viên " + p.name + " đã thoát game, nhóm bị hủy khỏi hàng chờ Chiến Trường 5vs5!");
+                    }
+                }
+            }
+
+            // 3. Nếu đang trong trận đấu
+            if (p.battleground5v5 != null) {
+                Battleground5v5 battle = p.battleground5v5;
+                battle.teamA.remove(p);
+                battle.teamB.remove(p);
+                p.type_pk = -1; // Tắt cờ Đỏ / Xanh về hòa bình
+
+                // Thông báo cho các người chơi còn lại trong trận
+                List<Player> remainingPlayers = new ArrayList<>();
+                remainingPlayers.addAll(battle.teamA);
+                remainingPlayers.addAll(battle.teamB);
+                for (Player rem : remainingPlayers) {
+                    if (rem != null && rem.conn != null && rem.conn.connected) {
+                        sendThongBao(rem, "Người chơi " + p.name + " đã thoát trận đấu!");
+                    }
+                }
+
+                // Nếu là 1v1 hoặc một bên không còn người chơi nào, bên còn lại thắng
+                if (!battle.isFinished) {
+                    if (battle.teamA.isEmpty() && !battle.teamB.isEmpty()) {
+                        battle.finishBattle(2); // Phe Xanh thắng
+                    } else if (battle.teamB.isEmpty() && !battle.teamA.isEmpty()) {
+                        battle.finishBattle(1); // Phe Đỏ thắng
+                    } else if (battle.teamA.isEmpty() && battle.teamB.isEmpty()) {
+                        battle.closeBattle(); // Không còn ai trong trận, dọn dẹp ngay
+                    }
+                }
+
+                p.battleground5v5 = null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

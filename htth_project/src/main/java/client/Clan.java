@@ -86,6 +86,19 @@ public class Clan {
         return is_icon_used(iconId, null);
     }
 
+    public static boolean is_valid_icon(int id) {
+        if (id >= 0 && id < 278) {
+            return true;
+        }
+        if (id >= 293 && id <= 419 && id != 303) {
+            return true;
+        }
+        if (id >= 500 && id <= 552) {
+            return true;
+        }
+        return false;
+    }
+
     public synchronized static short get_first_available_icon() {
         if (ENTRY == null) {
             return 0;
@@ -100,8 +113,13 @@ public class Clan {
                 return i;
             }
         }
-        for (short i = 293; i < 370; i++) {
+        for (short i = 293; i <= 419; i++) {
             if (i == 303) continue;
+            if (!is_icon_used(i, null)) {
+                return i;
+            }
+        }
+        for (short i = 500; i <= 552; i++) {
             if (!is_icon_used(i, null)) {
                 return i;
             }
@@ -1750,7 +1768,7 @@ public class Clan {
 
     public static int get_ngoc_icon(short id) {
         int result = 2000;
-        if (id >= 293 && id < 370) {
+        if (id >= 293) {
             result = 5000;
         }
         return result;

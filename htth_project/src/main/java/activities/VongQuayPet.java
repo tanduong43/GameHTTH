@@ -15,6 +15,7 @@ public class VongQuayPet {
         p.type_vongquay = 1;
         Message m = new Message(54);
         m.writer().writeByte(0);
+        m.writer().writeByte(1); // 1 = VongQuayPet
         p.conn.addmsg(m);
         m.cleanup();
     }
@@ -31,6 +32,10 @@ public class VongQuayPet {
 
     public static void process(Player p, Message m2) throws IOException {
         byte action = m2.reader().readByte();
+        process(p, action);
+    }
+
+    public static void process(Player p, byte action) throws IOException {
         switch (action) {
             case 3: { // Load item to display on the wheel
                 Message m = new Message(54);

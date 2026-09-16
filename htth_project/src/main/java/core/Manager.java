@@ -199,6 +199,17 @@ public class Manager {
                 ps.executeUpdate("UPDATE `maps` SET `mobs` = '[[122,350,288],[124,706,288]]' WHERE `id` = 131 AND (`mobs` IS NULL OR `mobs` = '[]' OR `mobs` = '');");
                 ps.executeUpdate("UPDATE `maps` SET `mobs` = '[[122,350,288],[124,706,288]]' WHERE `id` = 132 AND (`mobs` IS NULL OR `mobs` = '[]' OR `mobs` = '');");
                 ps.executeUpdate("UPDATE `maps` SET `mobs` = '[[122,350,288],[124,706,288]]' WHERE `id` = 133 AND (`mobs` IS NULL OR `mobs` = '[]' OR `mobs` = '');");
+                // Tự động đồng bộ HP Trụ Chiến Trường 5vs5 (Trụ thường 100 HP, Trụ chính 200 HP)
+                ps.executeUpdate("UPDATE `mobs` SET `hp` = 100 WHERE `id` IN (122, 124);");
+                ps.executeUpdate("UPDATE `mobs` SET `hp` = 200 WHERE `id` IN (123, 125);");
+                // Tự động đồng bộ Part 1118 và Tóc Hồng (Rose) vào bảng parts và itemhair
+                ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1118, 5, '[[12978,1,-8],[12979,2,-8]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
+                ps.executeUpdate("INSERT INTO `itemhair` (`id`, `name`, `icon`, `beri`, `ruby`) VALUES (68, 'Tóc Hồng (Rose)', 1118, 0, 500) ON DUPLICATE KEY UPDATE `icon`=1118, `ruby`=500;");
+                // Tự động đồng bộ Thời trang Nezuko (Fashion 249 & Parts 1119, 1120, 1121)
+                ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1119, 0, '[[12939,5,4],[12940,5,4],[12940,5,4],[12941,5,4],[12942,5,3]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
+                ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1120, 1, '[[12943,0,0],[12944,0,0],[12945,0,0],[12946,0,0],[12947,0,0],[12948,0,0],[12949,0,0],[12950,0,0],[12951,0,0],[12952,0,0],[12953,0,0],[12954,0,0],[12955,0,0],[12956,0,0],[12957,0,0],[12958,0,0],[12959,0,0],[12960,0,0],[12961,0,0],[12962,0,0]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
+                ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1121, 2, '[[12963,0,4],[12964,0,4],[12965,0,4],[12966,0,4],[12967,0,4],[12968,0,4],[12969,0,4],[12970,0,4],[12971,0,4],[12972,0,4],[12973,0,4],[12974,0,4],[12975,0,4],[12976,0,4],[12977,0,4]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
+                ps.executeUpdate("INSERT INTO `fashiontemplate` (`id`, `icon`, `name`, `info`, `mwear`, `op`, `price`) VALUES (249, 142, 'Thời trang Nezuko', 'Thời trang Nezuko Kamado\\n+10% Chí mạng\\n+10% Né tránh\\n+10% Miễn thương\\nHạn sử dụng vĩnh viễn', '[-2,-2,-1,1120,-1,1121,1119,-2]', '[[10,100],[12,100],[53,100]]', 10000) ON DUPLICATE KEY UPDATE `icon`=142, `name`='Thời trang Nezuko', `info`='Thời trang Nezuko Kamado\\n+10% Chí mạng\\n+10% Né tránh\\n+10% Miễn thương\\nHạn sử dụng vĩnh viễn', `mwear`='[-2,-2,-1,1120,-1,1121,1119,-2]', `op`='[[10,100],[12,100],[53,100]]', `price`=10000;");
             } catch (Exception ignored) {
             }
             // load mobs
@@ -1752,6 +1763,29 @@ public class Manager {
         rs.close();
         ps.close();
         conn.close();
+    }
+
+    public static int reload_hair() throws SQLException {
+        String query = "SELECT * FROM `itemhair`;";
+        Connection conn = database.SQL.gI().getCon();
+        Statement ps = conn.createStatement();
+        ResultSet rs = ps.executeQuery(query);
+        List<ItemHair> list = new ArrayList<>();
+        while (rs.next()) {
+            list.add(ItemHair.read_json_it_hair(rs));
+        }
+        rs.close();
+        ps.close();
+        conn.close();
+        // Preserve type 108 (head items loaded from msg/head)
+        for (int i = 0; i < ItemHair.ENTRYS.size(); i++) {
+            ItemHair old = ItemHair.ENTRYS.get(i);
+            if (old.type == 108) {
+                list.add(old);
+            }
+        }
+        ItemHair.ENTRYS = list;
+        return list.size();
     }
 
     public static void reload_mobs() throws Exception {
