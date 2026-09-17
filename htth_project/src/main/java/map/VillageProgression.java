@@ -88,7 +88,7 @@ public class VillageProgression {
         return mapId == 1000 || mapId == 1001 || mapId == 1002 || mapId == 2000 || mapId == 2026 || mapId == 2027 || mapId == 2028
                 || (mapId >= 2030 && mapId <= 2032)
                 || (mapId >= 119 && mapId <= 123)
-                || (mapId >= 167 && mapId <= 176) || (mapId >= 500 && mapId <= 512)
+                || (mapId >= 167 && mapId <= 176) || (mapId >= 178 && mapId <= 183) || (mapId >= 500 && mapId <= 512)
                 || mapId == 62 || activities.BossHunt.isBossHuntMap(mapId);
     }
 
@@ -100,6 +100,7 @@ public class VillageProgression {
         // Nếu player đang ở trong map phó bản/dungeon và đang thoát ra về làng, luôn cho phép
         if (p.map != null && (Map.is_map_dungeon(p.map.template.id)
                 || (p.map.template.id >= 167 && p.map.template.id <= 176)
+                || (p.map.template.id >= 178 && p.map.template.id <= 183)
                 || p.map.map_little_garden != null || p.map.map_pvp_clan != null)) {
             return true;
         }

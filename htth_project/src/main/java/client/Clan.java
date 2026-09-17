@@ -1602,6 +1602,9 @@ public class Clan {
 
     public synchronized static void delete_clan(Clan clan) {
         ENTRY.remove(clan);
+        if (clan != null) {
+            event.SeaLeaderManager.getInstance().onClanDisband(clan.id);
+        }
     }
 
     public static int get_xp_max(int level, int ts) {

@@ -717,6 +717,16 @@ public class Player {
                         + "). Redirecting to id_map_save or map 1.");
                 savedMapId = this.id_map_save > 0 ? this.id_map_save : 1;
             }
+            boolean wasSeaLeaderMap = (savedMapId >= 178 && savedMapId <= 183);
+            if (wasSeaLeaderMap) {
+                if (this.clan == null) {
+                    this.clan = Clan.get_my_clan(this.name);
+                }
+                if (!event.SeaLeaderManager.getInstance().canEnter(this, savedMapId)) {
+                    System.out.println("[SeaLeader] Player " + this.name + " reconnecting to ended/unauthorized event map (" + savedMapId + "). Redirecting to map 1.");
+                    savedMapId = 1;
+                }
+            }
             Map[] map = Map.get_map_by_id(savedMapId);
             if (map == null || map.length == 0) {
                 map = Map.get_map_by_id(0); // Fallback về Làng Cối Xay Gió
@@ -1498,6 +1508,14 @@ public class Player {
                 js.add(p.mp);
                 js.add((p.originalX > 0 && returnMapId == p.originalMapId) ? p.originalX : 611);
                 js.add((p.originalY > 0 && returnMapId == p.originalMapId) ? p.originalY : 250);
+            } else if (p.map != null && p.map.template.id >= 178 && p.map.template.id <= 183) {
+                // Thoát game khi đang trong Map sự kiện Thủ Lĩnh Biển Khơi (178 - 183): khi vào lại trở về Nhà hàng Barati (Map 33)
+                js.add(33);
+                js.add(0);
+                js.add(p.hp <= 0 ? p.body.get_hp_max(true) : p.hp);
+                js.add(p.mp <= 0 ? p.body.get_mp_max(true) : p.mp);
+                js.add(200);
+                js.add(200);
             } else if (Map.map_cant_save_site(p.map.template.id)) {
                 //
                 int x_save = -1, y_save = -1;
@@ -1942,6 +1960,60 @@ public class Player {
             Service.send_box_ThongBao_OK(this, "Chưa thể đi đến map này!");
             return;
         }
+        // [SeaLeader] Xử lý chuyển map từ Sảnh hộ vệ (Map 180) sang Biển của Clan
+        if (this.map != null && this.map.template.id == event.SeaLeaderManager.MAP_SANH_HO_VE && (vgo.xold >= 300 || vgo.id_map_go != event.SeaLeaderManager.MAP_SANH_CHIEN)) {
+            if (this.clan == null) {
+                this.clan = Clan.get_my_clan(this.name);
+            }
+            if (this.clan == null) {
+                this.wait_change_map = false;
+                this.ischangemap = true;
+                Service.send_box_ThongBao_OK(this, "Bạn cần tham gia Băng Hải Tặc!");
+                return;
+            }
+            event.SeaLeaderSea sea = event.SeaLeaderManager.getInstance().getSeaOfClan(this.clan.id);
+            if (sea == null) {
+                this.wait_change_map = false;
+                this.ischangemap = true;
+                Service.send_box_ThongBao_OK(this, "Clan của bạn chưa đăng ký biển nào!");
+                return;
+            }
+            map_go = Map.get_map_by_id(sea.getMapId());
+            if (map_go == null || map_go.length == 0) {
+                this.wait_change_map = false;
+                this.ischangemap = true;
+                Service.send_box_ThongBao_OK(this, "Chưa tải được dữ liệu biển " + sea.getName() + " (Map " + sea.getMapId() + ")!");
+                return;
+            }
+            vgo.map_go = map_go;
+            vgo.id_map_go = (short) sea.getMapId();
+            vgo.xnew = 60;
+            vgo.ynew = 288;
+        }
+
+        // [SeaLeader] Kiểm tra quyền vào các Map Biển sự kiện Thủ Lĩnh Biển Khơi
+        if (map_go != null && map_go.length > 0) {
+            int targetMapId = map_go[0].template.id;
+            if (targetMapId == event.SeaLeaderManager.MAP_BIEN_BAC
+                    || targetMapId == event.SeaLeaderManager.MAP_BIEN_NAM
+                    || targetMapId == event.SeaLeaderManager.MAP_BIEN_DONG
+                    || targetMapId == event.SeaLeaderManager.MAP_BIEN_TAY) {
+                if (!event.SeaLeaderManager.getInstance().canEnter(this, targetMapId)) {
+                    this.wait_change_map = false;
+                    this.ischangemap = true;
+                    Service.send_box_ThongBao_OK(this, "Bạn không thể vào biển này (chỉ vào được biển mà Clan bạn đã đăng ký)!");
+                    return;
+                }
+            }
+        }
+
+        // [SeaLeader] Nếu rời khỏi các map sự kiện thì xóa bảng điểm 4 Biển bên phải màn hình
+        if (this.map != null && (this.map.template.id >= 178 && this.map.template.id <= 183)) {
+            if (map_go != null && map_go.length > 0 && !(map_go[0].template.id >= 178 && map_go[0].template.id <= 183)) {
+                event.SeaLeaderManager.getInstance().clearSeaScoreboard(this);
+            }
+        }
+
         if (!VillageProgression.canAccessMap(this, map_go[0].template.id)) {
             this.wait_change_map = false;
             this.ischangemap = true;

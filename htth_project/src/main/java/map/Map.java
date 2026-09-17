@@ -181,13 +181,26 @@ public class Map implements Runnable {
         }
     }
 
-    public void start_map() {
+    public synchronized void start_map() {
+        if (this.running && this.mythread != null && this.mythread.isAlive()) {
+            return;
+        }
+        this.running = true;
+        this.mythread = new Thread(this);
         this.mythread.start();
     }
 
-    public void stop_map() {
+    public synchronized void stop_map() {
         this.running = false;
-        this.mythread.interrupt();
+        if (this.mythread != null) {
+            this.mythread.interrupt();
+        }
+    }
+
+    public void clear_map_items() {
+        synchronized (this) {
+            this.list_it_map = new ItemMap[1_000];
+        }
     }
 
     @Override
@@ -2436,6 +2449,7 @@ public class Map implements Runnable {
                             mob.hp = mob.hp_max;
                             mob.id_target = -1;
                             mob.damageDealers.clear(); // Reset danh sách sát thương khi hồi sinh (Đảo Ruby)
+                            event.SeaLeaderManager.getInstance().onMobRespawn(this, mob);
                             //
                             try {
                                 Message m_local = new Message(1);
@@ -4963,6 +4977,8 @@ public class Map implements Runnable {
                 if (mob_target.hp <= 0 && !mob_target.isdie) {
                     mob_target.hp = 0;
                     mob_target.isdie = true;
+                    // Hook tính điểm sự kiện Thủ Lĩnh Biển Khơi
+                    event.SeaLeaderManager.getInstance().onMobKilled(p, this, mob_target);
                     if (isBossDaoRuby && mob_target.boss_info == null && mob_target.mob_template != null) {
                         Manager.gI().chatKTG(0,
                                 p.name + " đã tiêu diệt Boss Đảo Ruby (" + mob_target.mob_template.name + ")!", 5);
@@ -7026,6 +7042,9 @@ public class Map implements Runnable {
     }
 
     public static boolean map_cant_save_site(int id) {
+        if (id >= 178 && id <= 183) {
+            return false; // Cho phép lưu map sự kiện Thủ Lĩnh Biển Khơi (178 - 183) khi thoát game
+        }
         boolean check = false;
         for (int i = 0; i < DataTemplate.mSea.length; i++) {
             if (DataTemplate.mSea[i][1] == id) {
@@ -7458,6 +7477,9 @@ public class Map implements Runnable {
             }
             if (this.map_pvp_clan != null) {
                 activities.PvpClan.send_pvp_clan_score(p, this);
+            }
+            if (this.template.id >= 178 && this.template.id <= 183) {
+                event.SeaLeaderManager.getInstance().sendSeaScoreboard(p);
             }
             // conn.p.map.enter_zone(conn.p);
             if (Map.is_map_save_revival(this.template.id)) {

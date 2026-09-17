@@ -1096,6 +1096,25 @@ public class MessageHandler {
                 conn.p.mp = conn.p.body.get_mp_max(true);
             }
 
+            // Safety check: nếu out game khi đang trong Map sự kiện Thủ Lĩnh Biển Khơi (178 - 183) thì khi vào lại chuyển về Nhà hàng Barati (Map 33)
+            if (conn.p.map != null && conn.p.map.template.id >= 178 && conn.p.map.template.id <= 183) {
+                System.out.println("[SeaLeader] Login safety: player " + conn.p.name
+                        + " logged in while in event map (" + conn.p.map.template.id + "), redirecting to Barati (Map 33)");
+                map.Map[] baratiMap = map.Map.get_map_by_id(33);
+                if (baratiMap != null && baratiMap.length > 0) {
+                    conn.p.map = baratiMap[0];
+                    conn.p.x = 200;
+                    conn.p.y = 200;
+                }
+                conn.p.type_pk = -1;
+                if (conn.p.isdie) {
+                    conn.p.isdie = false;
+                    conn.p.hp = conn.p.body.get_hp_max(true);
+                    conn.p.mp = conn.p.body.get_mp_max(true);
+                }
+                event.SeaLeaderManager.getInstance().clearSeaScoreboard(conn.p);
+            }
+
             // Safety check: nếu out game khi đang trong Sảnh Chờ Trận Chiến Lớn (2030, 2031, 2032)
             if (conn.p.map != null && (activities.BigBattle.isWaitingMap(conn.p.map)
                     || (conn.p.map.template.id >= 2030 && conn.p.map.template.id <= 2032))) {
@@ -1212,6 +1231,7 @@ public class MessageHandler {
             Service.login_ok(conn.p, true);
             Service.Wanted(conn.p, true);
             Clan.send_info(conn.p, true);
+            event.SeaLeaderManager.getInstance().checkAndGrantRewardOnLogin(conn.p);
             conn.p.item.update_assets_Inventory(true);
 
             // // Boss Status Announcement

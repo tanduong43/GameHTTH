@@ -185,6 +185,21 @@ public class MenuController {
               null);
           break;
         }
+        case -888: { // NPC Su Gia Bien Khoi (Map 179)
+          send_dynamic_menu(p, type, "Sứ Giả Biển Khơi",
+              new String[] { "Đến Sảnh hộ vệ (Map 180)", "Xem Bảng Điểm", "Về Làng" }, null);
+          break;
+        }
+        case -889: { // NPC Ho Ve Truong (Map 180)
+          send_dynamic_menu(p, type, "Hộ Vệ Trưởng",
+              new String[] { "Tiến vào Biển của Băng", "Xem Bảng Điểm", "Quay lại Sảnh chiến (Map 179)", "Về Làng" }, null);
+          break;
+        }
+        case -890: { // NPC Thuyen Tro Ve (Map Bien)
+          send_dynamic_menu(p, type, "Thuyền Trở Về",
+              new String[] { "Quay lại Sảnh hộ vệ", "Rời khỏi sự kiện (Về Làng)" }, null);
+          break;
+        }
         case -106:
         case -91:
         case -71:
@@ -1157,6 +1172,9 @@ public class MenuController {
         }
         case 984: {
           // pho ban bang select
+          if (p.clan == null) {
+            p.clan = Clan.get_my_clan(p.name);
+          }
           if (p.clan != null) {
             switch (index) {
               case 0: { // dang ky pho ban pvp bang (Map 123)
@@ -1339,7 +1357,33 @@ public class MenuController {
                 }
                 break;
               }
+              case 3: { // Phó bản Thủ lĩnh biển khơi
+                event.SeaLeaderManager.getInstance().showSeaSelectMenu(p);
+                break;
+              }
             }
+          } else {
+            Service.send_box_ThongBao_OK(p, "Bạn cần tham gia Băng Hải Tặc để đăng ký Thủ lĩnh biển khơi!");
+          }
+          break;
+        }
+        case event.SeaLeaderManager.MENU_ID_SELECT_SEA: {
+          event.SeaLeaderManager.getInstance().handleSeaMenu(p, index);
+          break;
+        }
+        case event.SeaLeaderManager.NPC_SU_GIA_MAP_179: {
+          event.SeaLeaderManager.getInstance().handleNpcSanhChien(p, index);
+          break;
+        }
+        case event.SeaLeaderManager.NPC_HO_VE_MAP_180: {
+          event.SeaLeaderManager.getInstance().handleNpcSanhHoVe(p, index);
+          break;
+        }
+        case -890: {
+          if (index == 0) {
+            event.SeaLeaderManager.getInstance().movePlayerToMap(p, event.SeaLeaderManager.MAP_SANH_HO_VE, 400, 276);
+          } else if (index == 1) {
+            event.SeaLeaderManager.getInstance().movePlayerToMap(p, 1, 200, 200);
           }
           break;
         }
@@ -1884,9 +1928,15 @@ public class MenuController {
               Service.send_box_ThongBao_OK(p, "Đảo Ruby chỉ mở cửa từ 8h-9h sáng và 18h-19h30 tối hàng ngày!");
               break;
             }
-            Vgo vgo = new Vgo();
-            vgo.map_go = map.Map.get_map_by_id(1001);
-            if (vgo.map_go != null) {
+            map.Map[] rubyMaps = map.Map.get_map_by_id(1001);
+            if (rubyMaps != null && rubyMaps.length > 0) {
+              for (map.Map mRuby : rubyMaps) {
+                if (!mRuby.running) {
+                  mRuby.start_map();
+                }
+              }
+              Vgo vgo = new Vgo();
+              vgo.map_go = rubyMaps;
               vgo.xnew = 200;
               vgo.ynew = 250;
               p.goto_map(vgo);
@@ -2581,7 +2631,7 @@ public class MenuController {
       }
       case 2: {
         send_dynamic_menu(p, 984, "Phó bản băng",
-            new String[] { "Phó bản PVP", "Phó bản khổng lồ", "Đại Chiến Đảo Đào Hoa" },
+            new String[] { "Phó bản PVP", "Phó bản khổng lồ", "Đại Chiến Đảo Đào Hoa", "Phó bản Thủ lĩnh biển khơi" },
             null);
         break;
       }

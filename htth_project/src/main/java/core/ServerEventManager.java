@@ -145,53 +145,80 @@ public class ServerEventManager {
                         }
                     }
                     if (sec % 1 == 0) { // update eff player
-                        for (Map[] mapall : Map.ENTRYS) {
-                            for (Map map : mapall) {
-                                for (int i = 0; i < map.players.size(); i++) {
-                                    Player p0 = map.players.get(i);
-                                    try {
-                                        p0.update_eff();
-                                    } catch (Exception e) {
-                                    }
-                                }
-                            }
-                        }
-                        List<Map> mapplus = Map.get_map_plus();
-                        for (int i = 0; i < mapplus.size(); i++) {
-                            for (int i12 = 0; i12 < mapplus.get(i).players.size(); i12++) {
-                                Player p0 = mapplus.get(i).players.get(i12);
-                                try {
-                                    p0.update_eff();
-                                } catch (Exception e) {
-                                }
-                            }
-                        }
-                        Manager.gI().TaiXiu().upTime();
-                        Boss.update_bosses();
-
-                        if (!Map.isRubyIslandOpen()) {
-                            Map[] rubyMaps = Map.get_map_by_id(1001);
-                            if (rubyMaps != null) {
-                                for (Map mRuby : rubyMaps) {
-                                    // Reset danh sách sát thương trên tất cả mob khi đảo đóng cửa
-                                    if (mRuby.list_mob != null) {
-                                        for (int mobId : mRuby.list_mob) {
-                                            map.Mob mob = map.Mob.ENTRYS.get(mobId);
-                                            if (mob != null && !mob.damageDealers.isEmpty()) {
-                                                mob.damageDealers.clear();
+                        try {
+                            for (Map[] mapall : Map.ENTRYS) {
+                                for (Map map : mapall) {
+                                    for (int i = 0; i < map.players.size(); i++) {
+                                        Player p0 = map.players.get(i);
+                                        try {
+                                            if (p0 != null) {
+                                                p0.update_eff();
                                             }
+                                        } catch (Exception e) {
                                         }
                                     }
-                                    for (int i = mRuby.players.size() - 1; i >= 0; i--) {
-                                        Player p0 = mRuby.players.get(i);
-                                        if (p0 != null && p0.conn != null) {
-                                            Vgo vgo = new Vgo();
-                                            vgo.map_go = Map.get_map_by_id(1);
-                                            if (vgo.map_go != null) {
-                                                vgo.xnew = 611;
-                                                vgo.ynew = 250;
+                                }
+                            }
+                        } catch (Exception e) {
+                        }
+                        try {
+                            List<Map> mapplus = Map.get_map_plus();
+                            for (int i = 0; i < mapplus.size(); i++) {
+                                Map mPlus = mapplus.get(i);
+                                if (mPlus != null) {
+                                    for (int i12 = 0; i12 < mPlus.players.size(); i12++) {
+                                        Player p0 = mPlus.players.get(i12);
+                                        try {
+                                            if (p0 != null) {
+                                                p0.update_eff();
+                                            }
+                                        } catch (Exception e) {
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                        }
+                        try {
+                            Manager.gI().TaiXiu().upTime();
+                        } catch (Exception e) {
+                        }
+                        try {
+                            Boss.update_bosses();
+                        } catch (Exception e) {
+                        }
+
+                        // Quản lý Đảo Ruby (Map 1001): Tự động mở/tắt map và đưa người chơi về làng khi hết giờ
+                        try {
+                            boolean isRubyOpen = Map.isRubyIslandOpen();
+                            Map[] rubyMaps = Map.get_map_by_id(1001);
+                            if (rubyMaps != null) {
+                                if (!isRubyOpen) {
+                                    // Khi ĐẢO RUBY ĐÓNG CỬA
+                                    Map[] villageMap = Map.get_map_by_id(1);
+                                    for (Map mRuby : rubyMaps) {
+                                        // 1. Chuyển tất cả người chơi trong map về Làng Cối Xay Gió
+                                        List<Player> playersToTeleport;
+                                        synchronized (mRuby) {
+                                            playersToTeleport = new ArrayList<>(mRuby.players);
+                                        }
+                                        for (Player p0 : playersToTeleport) {
+                                            if (p0 != null && p0.conn != null) {
                                                 try {
-                                                    p0.goto_map(vgo);
+                                                    // Hồi sinh người chơi nếu đang bị hạ gục để tránh bị kẹt màn hình
+                                                    if (p0.isdie) {
+                                                        p0.isdie = false;
+                                                        p0.hp = p0.body.get_hp_max(true);
+                                                        p0.mp = p0.body.get_mp_max(true);
+                                                    }
+                                                    p0.type_pk = -1; // Tháo cờ PK
+                                                    if (villageMap != null && villageMap.length > 0) {
+                                                        Vgo vgo = new Vgo();
+                                                        vgo.map_go = villageMap;
+                                                        vgo.xnew = 611;
+                                                        vgo.ynew = 250;
+                                                        p0.goto_map(vgo);
+                                                    }
                                                     Service.send_box_ThongBao_OK(p0,
                                                             "Đảo Ruby đã hết thời gian mở cửa! Hẹn gặp lại bạn từ 8h-9h sáng và 18h-19h30 tối.");
                                                 } catch (Exception e) {
@@ -199,9 +226,58 @@ public class ServerEventManager {
                                                 }
                                             }
                                         }
+
+                                        // 2. Reset trạng thái toàn bộ mob
+                                        if (mRuby.list_mob != null) {
+                                            for (int mobId : mRuby.list_mob) {
+                                                map.Mob mob = map.Mob.ENTRYS.get(mobId);
+                                                if (mob != null) {
+                                                    mob.id_target = -1;
+                                                    if (!mob.damageDealers.isEmpty()) {
+                                                        mob.damageDealers.clear();
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // 3. Xóa sạch vật phẩm rơi trên đất để giải phóng RAM
+                                        mRuby.clear_map_items();
+
+                                        // 4. Dừng luồng của map Đảo Ruby để nhẹ RAM & CPU
+                                        if (mRuby.running) {
+                                            mRuby.stop_map();
+                                            System.out.println("[DaoRuby] Da dong cua Khu " + (mRuby.zone_id + 1)
+                                                    + " va tat map giai phong RAM.");
+                                        }
+                                    }
+                                } else {
+                                    // Khi ĐẢO RUBY ĐANG MỞ CỬA
+                                    for (Map mRuby : rubyMaps) {
+                                        // Nếu map chưa chạy -> khởi động map
+                                        if (!mRuby.running) {
+                                            mRuby.start_map();
+                                            System.out.println("[DaoRuby] Da khoi dong Map Khu " + (mRuby.zone_id + 1));
+                                        }
+                                        // Hồi sinh Boss Đảo Ruby (mob_id 174) nếu bị khóa ở phiên trước
+                                        if (mRuby.list_mob != null) {
+                                            for (int mobId : mRuby.list_mob) {
+                                                map.Mob mob = map.Mob.ENTRYS.get(mobId);
+                                                if (mob != null && mob.mob_template != null && mob.mob_template.mob_id == 174) {
+                                                    if (mob.isdie && mob.time_refresh == Long.MAX_VALUE) {
+                                                        mob.isdie = false;
+                                                        mob.hp = mob.hp_max;
+                                                        mob.time_refresh = 0;
+                                                        mob.id_target = -1;
+                                                        mob.damageDealers.clear();
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
                     if (sec % 5 == 0) { // fine clan little garden

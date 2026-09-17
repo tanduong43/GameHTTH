@@ -97,6 +97,10 @@ public class Manager {
         for (Map[] mapall : Map.ENTRYS) {
             for (Map map : mapall) {
                 if (!Map.is_map_boss(map.template.id) && !Map.is_map_dungeon(map.template.id)) {
+                    // Đảo Ruby (Map 1001) chỉ khởi động luồng khi đang trong giờ mở cửa để tiết kiệm RAM
+                    if (map.template.id == 1001 && !Map.isRubyIslandOpen()) {
+                        continue;
+                    }
                     map.start_map();
                 }
             }
@@ -107,6 +111,7 @@ public class Manager {
         EventTet.getInstance();
         event.Event2011.getInstance();
         event.GuildWarDaoHoa.getInstance().init();
+        event.SeaLeaderManager.getInstance().init();
         activities.BigBattle.init();
         a = Rebuild_Item.ID_SELL.length;
         a = Red_Line.KEY0.length;
