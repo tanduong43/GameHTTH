@@ -4647,7 +4647,7 @@ public class Map implements Runnable {
                                     }
                                 }
                                 if (dealer != null && dealer.conn != null && dealer.conn.connected && !dealer.isdie) {
-                                    int ruby = Util.random(100, 501);
+                                    int ruby = Util.random(100, 201);
                                     dealer.update_ngoc(ruby);
                                     dealer.update_money();
                                     try {
