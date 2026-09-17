@@ -731,6 +731,10 @@ public class MenuController {
           activities.Bank.handleConfigNap(p, index);
           break;
         }
+        case activities.Bank.MENU_ID_TOP_NAP_TUAN: {
+          activities.TopNapTuan.handleMenu(p, index);
+          break;
+        }
         case 9915: {
           // Rương Đá Thần Thoại Tự Chọn (id=1004) - menu response
           if (p.data_yesno != null && p.data_yesno[0] == 10040 && p.data_yesno[1] == 1004) {
@@ -1436,11 +1440,11 @@ public class MenuController {
             int save = index;
             p.data_yesno = new int[] { save };
             if (save < 7) {
-              Service.send_box_yesno(p, 52, "Thông báo",
+              Service.send_box_yesno(p, 988, "Thông báo",
                   ("Vào phó bản đơn cấp độ " + (index + 3) + " cần 1 chìa khóa phó bản"),
                   new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
             } else {
-              Service.send_box_yesno(p, 52, "Thông báo",
+              Service.send_box_yesno(p, 988, "Thông báo",
                   ("Vào phó bản đơn cấp độ " + (index + 3) + " cần 2 chìa khóa phó bản"),
                   new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
             }
@@ -2064,7 +2068,7 @@ public class MenuController {
               }
 
               int khienAmount = (myRank == 0) ? 3 : (myRank == 1) ? 2 : 1;
-              int rubyAmount = (myRank == 0) ? 300 : (myRank == 1) ? 200 : 100;
+              int rubyAmount = (myRank == 0) ? 1000 : (myRank == 1) ? 500 : 100;
 
               if (p.item.add_item_bag47(7, 10, khienAmount)) {
                 p.update_ngoc(rubyAmount);
@@ -2881,6 +2885,11 @@ public class MenuController {
   }
 
   private static void Select_Map_Tele(Player p, byte index) throws IOException {
+    if (p.battleground5v5 != null || (p.map != null && activities.Battleground5v5.isBattleMapStatic(p.map))) {
+      Service.send_box_ThongBao_OK(p, "Không thể dịch chuyển khi đang trong Chiến Trường 5vs5!");
+      p.map_tele = null;
+      return;
+    }
     if (p.map_tele != null && index < p.map_tele.length) {
       int targetMapId = p.map_tele[index];
       if (!map.VillageProgression.canAccessMap(p, targetMapId)) {
@@ -2917,6 +2926,11 @@ public class MenuController {
   }
 
   private static void Select_Map_Tele_world(Player p, byte index) throws IOException {
+    if (p.battleground5v5 != null || (p.map != null && activities.Battleground5v5.isBattleMapStatic(p.map))) {
+      Service.send_box_ThongBao_OK(p, "Không thể dịch chuyển khi đang trong Chiến Trường 5vs5!");
+      p.map_tele = null;
+      return;
+    }
     if (p.map_tele != null && index < p.map_tele.length) {
       int targetMapId = p.map_tele[index];
       if (!map.VillageProgression.canAccessMap(p, targetMapId)) {
@@ -4068,6 +4082,10 @@ public class MenuController {
   }
 
   private static void Show_List_Map_Tele(Player p, int index, int idNPC) throws IOException {
+    if (p.battleground5v5 != null || (p.map != null && activities.Battleground5v5.isBattleMapStatic(p.map))) {
+      Service.send_box_ThongBao_OK(p, "Không thể dịch chuyển khi đang trong Chiến Trường 5vs5!");
+      return;
+    }
     if (index == 1) {
       p.map_tele = MenuController.ID_MAP_LANG;
       send_dynamic_menu(p, 995, "Dịch chuyển", p.map_tele);

@@ -364,8 +364,6 @@ public class BXH {
                 break;
             }
             case 17: {
-                // Tạm thời đóng BXH Top Nạp
-                /*
                 updateTopNap();
                 int bound1 = 0;
                 int bound2 = BXH.TOP_NAP.size();
@@ -385,18 +383,13 @@ public class BXH {
                     page = 0;
                 }
                 m.writer().writeByte(17);
-                m.writer().writeUTF("Top Nạp");
+                m.writer().writeUTF("Top Nạp Tuần");
                 m.writer().writeByte(page);
                 m.writer().writeByte(bound2 - bound1);
                 for (int i = bound1; i < bound2; i++) {
                     InfoMemList temp = BXH.TOP_NAP.get(i);
                     InfoMemList.WriteInfoMemList(m.writer(), temp);
                 }
-                */
-                m.writer().writeByte(17);
-                m.writer().writeUTF("Top Nạp");
-                m.writer().writeByte(0);
-                m.writer().writeByte(0);
                 break;
             }
             case 18: {
@@ -1911,27 +1904,26 @@ public class BXH {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
+            java.time.LocalDate monday = activities.TopNapTuan.getCurrentMonday();
+            java.time.LocalDate sunday = monday.plusDays(6);
+            String startStr = monday.atStartOfDay().format(activities.TopNapTuan.SQL_DATE_FORMAT);
+            String endStr = sunday.atTime(23, 59, 59).format(activities.TopNapTuan.SQL_DATE_FORMAT);
+
             connection = SQL.gI().getCon();
             ps = connection.prepareStatement(
-                    "SELECT a.`id`, a.`user`, a.`char`, a.`sumamount`, a.`tichnap`, a.`tongnap`, a.`vnd`, a.`vip`, "
-                            + "GREATEST("
-                            + "  COALESCE(a.`sumamount`, 0), "
-                            + "  COALESCE(a.`tichnap`, 0), "
-                            + "  CASE WHEN COALESCE(a.`tongnap`, 0) >= 2000000000 THEN a.`tongnap` - 2000000000 ELSE COALESCE(a.`tongnap`, 0) END, "
-                            + "  COALESCE(a.`vnd`, 0)"
-                            + ") AS real_amount, "
-                            + "COALESCE("
-                            + "  (SELECT MAX(rh.created_at) FROM `recharge_history` rh WHERE rh.username = a.user AND rh.status IN (1, 2)), "
-                            + "  a.created_at, "
-                            + "  '2099-12-31 23:59:59'"
-                            + ") AS last_recharge_time "
-                            + "FROM `accounts` a "
-                            + "WHERE a.`sumamount` > 0 "
-                            + "   OR a.`tichnap` > 0 "
-                            + "   OR (a.`tongnap` > 0 AND a.`tongnap` != 2000000000) "
-                            + "   OR a.`vnd` > 0 "
-                            + "ORDER BY real_amount DESC, last_recharge_time ASC, a.`id` ASC "
+                    "SELECT rh.username, "
+                            + "COALESCE(SUM(rh.amount), 0) AS week_amount, "
+                            + "MAX(rh.created_at) AS last_recharge_time, "
+                            + "a.`char`, a.`vip` "
+                            + "FROM `recharge_history` rh "
+                            + "LEFT JOIN `accounts` a ON BINARY rh.username = BINARY a.user "
+                            + "WHERE rh.status = 1 "
+                            + "  AND rh.created_at >= ? AND rh.created_at <= ? "
+                            + "GROUP BY rh.username, a.`char`, a.`vip` "
+                            + "ORDER BY week_amount DESC, last_recharge_time ASC "
                             + "LIMIT 50;");
+            ps.setString(1, startStr);
+            ps.setString(2, endStr);
             rs = ps.executeQuery();
             while (rs.next()) {
                 String charName = null;
@@ -1946,18 +1938,10 @@ public class BXH {
                 } catch (Exception e) {}
 
                 if (charName == null || charName.trim().isEmpty()) {
-                    charName = rs.getString("user");
+                    charName = rs.getString("username");
                 }
 
-                long sumamount = rs.getLong("sumamount");
-                long tichnap = rs.getLong("tichnap");
-                long tongnap = rs.getLong("tongnap");
-                long vnd = rs.getLong("vnd");
-                long realTongNap = (tongnap >= 2000000000L) ? (tongnap - 2000000000L) : tongnap;
-                long amount = rs.getLong("real_amount");
-                if (amount <= 0) {
-                    amount = Math.max(sumamount, Math.max(tichnap, Math.max(realTongNap, vnd)));
-                }
+                long amount = rs.getLong("week_amount");
                 if (amount <= 0) {
                     continue;
                 }
@@ -1970,7 +1954,7 @@ public class BXH {
                 temp.head = 0;
                 temp.hair = 0;
                 temp.hat = -1;
-                temp.info = "Tổng nạp: " + Util.format_short(amount);
+                temp.info = "Nạp tuần: " + Util.format_short(amount);
 
                 Player pOnline = Map.get_player_by_name_allmap(charName);
                 if (pOnline != null) {

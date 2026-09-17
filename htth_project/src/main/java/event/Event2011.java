@@ -460,11 +460,7 @@ public class Event2011 implements Runnable {
         if (!isEvent() || p == null) return;
         addMaterial(p, ITEM_GIAY_GOI_QUA, 2);
         addMaterial(p, ITEM_GAU_BONG, 1);
-        try {
-            Service.send_box_ThongBao_OK(p, "🎓 Nhận được 2 Giấy Gói Quà & 1 Gấu Bông từ Phó Bản!");
-        } catch (IOException e) {
-            // ignore
-        }
+        Service.send_server_notice(p, "🎓 Nhận được 2 Giấy Gói Quà & 1 Gấu Bông từ Phó Bản!");
     }
 
     /**
@@ -474,11 +470,7 @@ public class Event2011 implements Runnable {
         if (!isEvent() || p == null) return;
         addMaterial(p, ITEM_GAU_BONG, 1);
         addMaterial(p, ITEM_SACH_CONG_THUC, 2);
-        try {
-            Service.send_box_ThongBao_OK(p, "🎓 Nhận được 1 Gấu Bông & 2 Sách Công Thức từ Thử Thách Vệ Thần!");
-        } catch (IOException e) {
-            // ignore
-        }
+        Service.send_server_notice(p, "🎓 Nhận được 1 Gấu Bông & 2 Sách Công Thức từ Thử Thách Vệ Thần!");
     }
 
     /**
@@ -487,11 +479,7 @@ public class Event2011 implements Runnable {
     public static void rewardPvpArena(Player p) {
         if (!isEvent() || p == null) return;
         addMaterial(p, ITEM_BAN_NHAC, 1);
-        try {
-            Service.send_box_ThongBao_OK(p, "🎓 Nhận được 1 Bản Nhạc Kích Lệ từ Hoạt động Chiến Đấu!");
-        } catch (IOException e) {
-            // ignore
-        }
+        Service.send_server_notice(p, "🎓 Nhận được 1 Bản Nhạc Kích Lệ từ Hoạt động Chiến Đấu!");
     }
 
     /**
@@ -500,11 +488,7 @@ public class Event2011 implements Runnable {
     public static void rewardTrade(Player p) {
         if (!isEvent() || p == null) return;
         addMaterial(p, ITEM_GIAY_GOI_QUA, 3);
-        try {
-            Service.send_box_ThongBao_OK(p, "🎓 Nhận được 3 Giấy Gói Quà từ Chuyến Vận Buôn!");
-        } catch (IOException e) {
-            // ignore
-        }
+        Service.send_server_notice(p, "🎓 Nhận được 3 Giấy Gói Quà từ Chuyến Vận Buôn!");
     }
 
     // ================== SỬ DỤNG ITEM VÀ MỞ HỘP QUÀ ==================

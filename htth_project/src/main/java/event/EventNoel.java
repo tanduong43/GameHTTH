@@ -453,7 +453,7 @@ public class EventNoel implements Runnable {
             p.item.add_item_bag47(4, ITEM_NON_NOEL, 1);
             p.item.add_item_bag47(4, ITEM_CHUONG_NOEL, 1);
             p.item.update_Inventory(-1, false);
-            Service.send_box_ThongBao_OK(p, "🎁 Nhận thưởng sự kiện Giáng Sinh:\n+2 Giấy Gói Quà\n+1 Nón Giáng Sinh\n+1 Chuông Giáng Sinh");
+            Service.send_server_notice(p, "🎁 Nhận thưởng sự kiện Giáng Sinh: +2 Giấy Gói Quà, +1 Nón Giáng Sinh, +1 Chuông Giáng Sinh");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -470,7 +470,7 @@ public class EventNoel implements Runnable {
             p.item.add_item_bag47(4, ITEM_NGOI_SAO_NOEL, 1);
             p.item.add_item_bag47(4, ITEM_VE_NOEL, 1);
             p.item.update_Inventory(-1, false);
-            Service.send_box_ThongBao_OK(p, "🎁 Thưởng thắng Đấu trường Giáng Sinh:\n+1 Ngôi Sao Giáng Sinh\n+1 Vé Noel");
+            Service.send_server_notice(p, "🎁 Thưởng thắng Đấu trường Giáng Sinh: +1 Ngôi Sao Giáng Sinh, +1 Vé Noel");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -503,7 +503,7 @@ public class EventNoel implements Runnable {
             p.item.add_item_bag47(4, ITEM_GIAY_GOI_QUA, 3);
             p.item.add_item_bag47(4, ITEM_VE_DOI_TT_NOEL, 1);
             p.item.update_Inventory(-1, false);
-            Service.send_box_ThongBao_OK(p, "🎁 Thưởng Chuyến buôn Giáng Sinh:\n+3 Giấy Gói Quà\n+1 Vé Đổi Trang Phục Noel");
+            Service.send_server_notice(p, "🎁 Thưởng Chuyến buôn Giáng Sinh: +3 Giấy Gói Quà, +1 Vé Đổi Trang Phục Noel");
         } catch (Exception e) {
             e.printStackTrace();
         }

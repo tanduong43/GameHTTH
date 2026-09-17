@@ -452,7 +452,7 @@ public class TowerChallenge extends Dungeon {
                     + stageIndex);
             if (p.daily_achievements[1] == 0) {
                 p.daily_achievements[1] = 1;
-                core.Service.send_box_ThongBao_OK(p, "Hoàn thành Thành tích hằng ngày: Đi liên tầng");
+                core.Service.send_server_notice(p, "Hoàn thành Thành tích hằng ngày: Đi liên tầng");
             }
             event.EventTrungThu.rewardLienTangMr3(p);
             event.Event2011.rewardTower(p);

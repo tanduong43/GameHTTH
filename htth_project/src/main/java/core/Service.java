@@ -1530,6 +1530,21 @@ public class Service {
         m.cleanup();
     }
 
+    public static void send_server_notice(Player p, String notice) {
+        if (p == null || p.conn == null) return;
+        try {
+            Message m = new Message(-31);
+            m.writer().writeByte(0); // type 0: banner chữ chạy giữa màn hình
+            m.writer().writeUTF(notice);
+            m.writer().writeByte(5); // color: vàng sáng
+            m.writer().writeShort(-1); // không kèm icon clan
+            p.conn.addmsg(m);
+            m.cleanup();
+            activities.Chat.send_chat(p, "Sự Kiện", notice, false);
+        } catch (Exception ignored) {
+        }
+    }
+
     public static void ChestWanted(Player p, boolean save_cache) throws IOException {
         Message m = new Message(-86);
         m.writer().writeByte(1);

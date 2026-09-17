@@ -15,6 +15,7 @@ public class Mob {
 	public int level;
 	public MobTemplate mob_template;
 	public boolean isdie;
+	public boolean is_removed_client = false;
 	public int id_target;
 	public int index;
 	public long time_skill;

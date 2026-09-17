@@ -42,6 +42,7 @@ public class Bank {
     public static final short MENU_ID_ADMIN_ACTION_DEPOSIT = 20507;
     public static final short MENU_ID_ADMIN_CONFIG_NAP = 20508;
     public static final short YESNO_ID_BANK_REJECT_DEPOSIT = 20509;
+    public static final short MENU_ID_TOP_NAP_TUAN = 20510;
 
     /** Hệ số nhân nạp hiện tại (1 = bình thường, 2 = x2, 3 = x3) */
     private static volatile int DEPOSIT_MULTIPLIER = 1;
@@ -82,16 +83,16 @@ public class Bank {
         }
         if (isAdmin(p)) {
             MenuController.send_dynamic_menu(p, npcId, "Ngân Hàng",
-                    new String[] { "Nạp tiền", "Đổi Coin", "Xem Coin", "Duyệt nạp", "Cấu hình nạp", "Thông tin" },
-                    new short[] { 132, 140, 140, 161, 148, 148 });
+                    new String[] { "Nạp tiền", "Đổi Coin", "Xem Coin", "Top Nạp Tuần", "Duyệt nạp", "Cấu hình nạp", "Thông tin" },
+                    new short[] { 132, 140, 140, 148, 161, 148, 148 });
         } else {
             int mult = getDepositMultiplier();
             String napLabel = mult > 1
                     ? "Nạp tiền (đang x" + mult + ")"
                     : "Nạp tiền";
             MenuController.send_dynamic_menu(p, npcId, "Ngân Hàng",
-                    new String[] { napLabel, "Đổi Coin", "Xem Coin", "Thông tin" },
-                    new short[] { 132, 140, 140, 148 });
+                    new String[] { napLabel, "Đổi Coin", "Xem Coin", "Top Nạp Tuần", "Thông tin" },
+                    new short[] { 132, 140, 140, 148, 148 });
         }
     }
 
@@ -111,12 +112,15 @@ public class Bank {
                     showCoin(p);
                     break;
                 case 3:
-                    showPendingList(p);
+                    TopNapTuan.sendMenu(p);
                     break;
                 case 4:
-                    showConfigNapMenu(p);
+                    showPendingList(p);
                     break;
                 case 5:
+                    showConfigNapMenu(p);
+                    break;
+                case 6:
                     showInfoMenu(p, npcId);
                     break;
             }
@@ -132,6 +136,9 @@ public class Bank {
                     showCoin(p);
                     break;
                 case 3:
+                    TopNapTuan.sendMenu(p);
+                    break;
+                case 4:
                     showInfoMenu(p, npcId);
                     break;
             }

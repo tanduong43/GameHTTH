@@ -288,6 +288,12 @@ public class UseItem {
                 }
             } else {
                 if (id == 89) {
+                    if (p.battleground5v5 != null
+                            || (p.map != null && p.map.map_battleground5v5 != null)
+                            || activities.Battleground5v5.isBattleMapStatic(p.map)) {
+                        Service.send_box_ThongBao_OK(p, "Không thể sử dụng Vé Hồi Sinh trong Chiến Trường 5vs5!");
+                        return true;
+                    }
                     if (p.isdie || p.hp <= 0) {
                         if (Player.do_revive_with_ticket(p)) {
                             Service.send_box_ThongBao_OK(p, "Đã hồi sinh bằng Vé Hồi Sinh và được bảo vệ 30 phút!");

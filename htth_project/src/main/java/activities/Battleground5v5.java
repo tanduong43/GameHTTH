@@ -254,11 +254,12 @@ public class Battleground5v5 {
                 + "- Nhiệm vụ: Phá hết Trụ Phụ rồi phá Trụ Chính đối phương để giành chiến thắng.\n"
                 + "- Đánh trụ mỗi lần trừ 1 HP. Trụ vỡ sẽ giữ nguyên trạng thái.\n"
                 + "- Hồi sinh: Khi chết quay về Trụ Chính phe mình. Thời gian ban đầu 5 giây, mỗi lần chết +1 giây.\n"
-                + "- Phần thưởng: Thắng nhận 500.000 Beri + 1.000 Ruby. Thua nhận 100.000 Beri + 200 Ruby.\n"
+                + "- Phần thưởng: Thắng nhận 1.500.000 Beri + 3.000 Ruby. Thua nhận 300.000 Beri + 600 Ruby.\n"
                 + "--- CHẾ ĐỘ 1VS1 ---\n"
                 + "- Không cần nhóm, chỉ 2 người chơi vào hàng chờ.\n"
                 + "- Mỗi người một căn cứ riêng (Map 129 và Map 130).\n"
                 + "- Phá hủy Trụ Phụ rồi phá Trụ Chính đối phương trước là thắng!\n"
+                + "- Phần thưởng: Thắng nhận 500.000 Beri + 1.000 Ruby. Thua nhận 100.000 Beri + 200 Ruby.\n"
                 + "- Thời gian tối đa: 10 phút.";
         sendThongBao(p, msg);
     }
@@ -552,6 +553,7 @@ public class Battleground5v5 {
      */
     public static void createAndLaunchBattle(Party partyA, Party partyB) {
         Battleground5v5 battle = new Battleground5v5();
+        battle.mode = MODE_5V5;
         battle.timeEnd = System.currentTimeMillis() + 15 * 60 * 1000L; // Tối đa 15 phút
 
         // 1. Tạo instance 5 maps (129, 130, 131, 132, 133)
@@ -659,13 +661,32 @@ public class Battleground5v5 {
 
         // 1. Kiểm tra hết thời gian trận đấu (15 phút 5vs5 / 10 phút 1v1)
         if (now >= timeEnd) {
-            // Hết giờ: Bên nào còn nhiều máu Trụ Chính hơn sẽ thắng
+            if (teamA.isEmpty() && teamB.isEmpty()) {
+                cancelBattle();
+                return;
+            }
+            // Nếu một phe đã thoát hết nhưng phe còn lại chưa phá được trụ chính trước khi hết giờ -> Hủy trận, không nhận quà
+            if (teamA.isEmpty()) {
+                broadcastMessage("=== HẾT GIỜ THI ĐẤU ===\nPhe Xanh chưa phá hủy được Trụ Chính Phe Đỏ trước khi hết giờ, trận đấu bị hủy và không nhận quà!");
+                cancelBattle();
+                return;
+            }
+            if (teamB.isEmpty()) {
+                broadcastMessage("=== HẾT GIỜ THI ĐẤU ===\nPhe Đỏ chưa phá hủy được Trụ Chính Phe Xanh trước khi hết giờ, trận đấu bị hủy và không nhận quà!");
+                cancelBattle();
+                return;
+            }
+
+            // Cả hai phe đều còn người chơi thi đấu: so sánh lượng máu Trụ Chính
             int hpA = (mainTowerA != null && !mainTowerA.isdie) ? mainTowerA.hp : 0;
             int hpB = (mainTowerB != null && !mainTowerB.isdie) ? mainTowerB.hp : 0;
             if (hpA > hpB) {
                 finishBattle(1); // Phe Đỏ thắng
-            } else {
+            } else if (hpB > hpA) {
                 finishBattle(2); // Phe Xanh thắng
+            } else {
+                broadcastMessage("=== HẾT GIỜ THI ĐẤU ===\nHai phe có lượng máu Trụ Chính bằng nhau! Trận đấu kết thúc với kết quả HÒA, không trao thưởng!");
+                cancelBattle();
             }
             return;
         }
@@ -1008,6 +1029,37 @@ public class Battleground5v5 {
     }
 
     /**
+     * Hủy trận đấu (khi cả 2 bên đều thoát trận hoặc không phá được trụ khi hết giờ)
+     * Không trao thưởng cho bất kỳ ai.
+     */
+    public synchronized void cancelBattle() {
+        if (isFinished) return;
+        isFinished = true;
+        isNotifiedFinish = true;
+        winningTeam = 0;
+        timeReturnVillage = System.currentTimeMillis() + 8000L;
+
+        // Nếu không còn ai trong trận (cả 2 phe đều out), dọn dẹp ngay
+        if (teamA.isEmpty() && teamB.isEmpty()) {
+            closeBattle();
+            return;
+        }
+
+        // Nếu còn người chơi (trường hợp hết giờ hoặc hòa), thông báo hủy và đếm ngược về làng
+        List<Player> allPlayers = new ArrayList<>();
+        allPlayers.addAll(teamA);
+        allPlayers.addAll(teamB);
+
+        String cancelMsg = "=== TRẬN ĐẤU BỊ HỦY ===\nTrận đấu đã kết thúc hoặc bị hủy, không có phần thưởng!\nChuẩn bị trở về Làng sau 8 giây!";
+        for (Player p : allPlayers) {
+            if (p != null && p.conn != null && p.conn.connected) {
+                sendThongBao(p, cancelMsg);
+                PvpClan.send_return_village_countdown(p, 8);
+            }
+        }
+    }
+
+    /**
      * Kết thúc trận đấu
      * @param winTeam 1: Phe Đỏ (Team A), 2: Phe Xanh (Team B)
      */
@@ -1044,12 +1096,20 @@ public class Battleground5v5 {
      */
     private void rewardPlayer(Player p, boolean isWinner) {
         try {
-            int beri = isWinner ? 500_000 : 100_000;
-            int ruby = isWinner ? 1000 : 200;
+            int beri;
+            int ruby;
+            if (mode == MODE_5V5) {
+                beri = isWinner ? 1_500_000 : 300_000;
+                ruby = isWinner ? 3000 : 600;
+            } else { // MODE_1V1
+                beri = isWinner ? 500_000 : 100_000;
+                ruby = isWinner ? 1000 : 200;
+            }
             p.update_vang(beri);
             p.update_ngoc(ruby);
             p.update_money();
-            sendThongBao(p, "Phần thưởng trận đấu:\n+ " + Util.number_format(beri) + " Beri\n+ " + Util.number_format(ruby) + " Ruby!");
+            String modeName = (mode == MODE_5V5) ? "5vs5" : "1vs1";
+            sendThongBao(p, "Phần thưởng trận đấu " + modeName + ":\n+ " + Util.number_format(beri) + " Beri\n+ " + Util.number_format(ruby) + " Ruby!");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1231,14 +1291,25 @@ public class Battleground5v5 {
                     }
                 }
 
-                // Nếu là 1v1 hoặc một bên không còn người chơi nào, bên còn lại thắng
+                // Kiểm tra trạng thái trận đấu sau khi người chơi thoát
                 if (!battle.isFinished) {
-                    if (battle.teamA.isEmpty() && !battle.teamB.isEmpty()) {
-                        battle.finishBattle(2); // Phe Xanh thắng
-                    } else if (battle.teamB.isEmpty() && !battle.teamA.isEmpty()) {
-                        battle.finishBattle(1); // Phe Đỏ thắng
-                    } else if (battle.teamA.isEmpty() && battle.teamB.isEmpty()) {
-                        battle.closeBattle(); // Không còn ai trong trận, dọn dẹp ngay
+                    if (battle.teamA.isEmpty() && battle.teamB.isEmpty()) {
+                        // Cả hai bên đều đã thoát trận -> Hủy trận đấu, dọn dẹp ngay không trao thưởng
+                        battle.cancelBattle();
+                    } else if (battle.teamA.isEmpty()) {
+                        // Phe Đỏ đã thoát hết, Phe Xanh vẫn phải đánh tiếp phá bể trụ mới win và nhận quà
+                        for (Player rem : battle.teamB) {
+                            if (rem != null && rem.conn != null && rem.conn.connected) {
+                                sendThongBao(rem, "Toàn bộ đối thủ Phe Đỏ đã thoát trận!\nPhe Xanh hãy tiếp tục tấn công phá hủy Trụ Chính Phe Đỏ để giành chiến thắng và nhận quà!");
+                            }
+                        }
+                    } else if (battle.teamB.isEmpty()) {
+                        // Phe Xanh đã thoát hết, Phe Đỏ vẫn phải đánh tiếp phá bể trụ mới win và nhận quà
+                        for (Player rem : battle.teamA) {
+                            if (rem != null && rem.conn != null && rem.conn.connected) {
+                                sendThongBao(rem, "Toàn bộ đối thủ Phe Xanh đã thoát trận!\nPhe Đỏ hãy tiếp tục tấn công phá hủy Trụ Chính Phe Xanh để giành chiến thắng và nhận quà!");
+                            }
+                        }
                     }
                 }
 

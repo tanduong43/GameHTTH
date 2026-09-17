@@ -34,6 +34,8 @@ public class ServerEventManager {
     }
 
     public void init() {
+        // Khởi tạo bảng dữ liệu và kiểm tra bù Top Nạp Tuần nếu bị tắt server lúc qua tuần
+        activities.TopNapTuan.init();
         //
         this.running = true;
         this.thread_cal_time = new Thread(() -> {
@@ -68,6 +70,11 @@ public class ServerEventManager {
                         Clan.reset_day();
                         LittleGarden.LIST.clear();
                         activities.BigBattle.resetDailyMatches();
+
+                        // Tự động chốt và reset Top Nạp Tuần vào 00:00:00 Thứ 2 hàng tuần
+                        if (Util.is_DayofWeek(1)) {
+                            activities.TopNapTuan.checkAutoWeeklyReset();
+                        }
                     }
                     // Boss làng (thegioi=2) tự hồi độc lập trong Boss.update_bosses() — không random 1 con/5 phút nữa
 

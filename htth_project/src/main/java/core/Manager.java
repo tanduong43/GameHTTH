@@ -349,6 +349,12 @@ public class Manager {
                         for (int k = 0; k < npc.wearing.length; k++) {
                             npc.wearing[k] = Short.parseShort(js_npc_temp_3.get(k).toString());
                         }
+                        // Đảm bảo NPC dạng người (như Ngộ Không, Chị Hằng,...) luôn có bóng dưới chân (isPerson = 1)
+                        if ((npc.iditem == -201 || npc.iditem == -154 || npc.iditem == -202
+                                || (npc.name != null && (npc.name.contains("Ngộ Không") || npc.name.contains("Chị Hằng"))))
+                                && npc.isPerson == 0) {
+                            npc.isPerson = 1;
+                        }
                         map_temp.npcs.add(npc);
                     } catch (Exception e) {
                         System.err.println("[DEBUG HAKI] Skip invalid NPC entry in map " + id_map + ": " + e.getMessage());
@@ -443,41 +449,6 @@ public class Manager {
                     vgo_temp.xnew = Short.parseShort(js_0.get(3).toString());
                     vgo_temp.ynew = Short.parseShort(js_0.get(4).toString());
                     if (vgo_temp.id_map_go != -1) {
-                        // FIX: Điều chỉnh tọa độ yold/ynew cho các map Phó bản Vượt ải đơn (167-176)
-                        // Trong dữ liệu gốc, các cổng quay lại bị đặt yold=12 khiến Client ẩn waypoint (point.y <= 72)
-                        // và Server không nhận va chạm (|12 - yGround| > 60).
-                        if (id_map >= 167 && id_map <= 176 && vgo_temp.yold <= 72) {
-                            short groundY = 250;
-                            switch (id_map) {
-                                case 167: groundY = 240; break;
-                                case 168: groundY = 260; break;
-                                case 169: groundY = 240; break;
-                                case 170: groundY = 245; break;
-                                case 171: groundY = 270; break;
-                                case 172: groundY = 240; break;
-                                case 173: groundY = 255; break;
-                                case 174: groundY = 225; break;
-                                case 175: groundY = 255; break;
-                                case 176: groundY = 245; break;
-                            }
-                            vgo_temp.yold = groundY;
-                        }
-                        if (vgo_temp.id_map_go >= 167 && vgo_temp.id_map_go <= 176 && vgo_temp.ynew <= 72) {
-                            short destGroundY = 250;
-                            switch (vgo_temp.id_map_go) {
-                                case 167: destGroundY = 240; break;
-                                case 168: destGroundY = 260; break;
-                                case 169: destGroundY = 240; break;
-                                case 170: destGroundY = 245; break;
-                                case 171: destGroundY = 270; break;
-                                case 172: destGroundY = 240; break;
-                                case 173: destGroundY = 255; break;
-                                case 174: destGroundY = 225; break;
-                                case 175: destGroundY = 255; break;
-                                case 176: destGroundY = 245; break;
-                            }
-                            vgo_temp.ynew = destGroundY;
-                        }
                         map_temp.vgos.add(vgo_temp);
                     }
                 }

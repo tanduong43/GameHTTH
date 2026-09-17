@@ -1266,11 +1266,7 @@ public class EventTrungThu implements Runnable {
 
         p.trungMuoiReceivedToday += amount;
         addMaterial(p, ITEM_TRUNG_MUOI, amount);
-        try {
-            Service.send_box_ThongBao_OK(p, "Bạn nhận được " + amount + " Trứng Muối từ hoạt động!");
-        } catch (IOException e) {
-            System.out.println("Error sending message: " + e.getMessage());
-        }
+        Service.send_server_notice(p, "Bạn nhận được " + amount + " Trứng Muối từ hoạt động!");
     }
 
     /**
@@ -1280,11 +1276,7 @@ public class EventTrungThu implements Runnable {
         if (!isEvent() || p == null)
             return;
         addMaterial(p, ITEM_DEN_ONG_SAO, 1);
-        try {
-            Service.send_box_ThongBao_OK(p, "Bạn nhận được 1 Đèn Ông Sao từ hoạt động!");
-        } catch (IOException e) {
-            System.out.println("Error sending message: " + e.getMessage());
-        }
+        Service.send_server_notice(p, "Bạn nhận được 1 Đèn Ông Sao từ hoạt động!");
     }
 
     // ================== UTILITY ==================
@@ -1314,11 +1306,7 @@ public class EventTrungThu implements Runnable {
         if (!isEvent() || p == null)
             return;
         addMaterial(p, ITEM_BOT_MI, Util.random(5, 15));
-        try {
-            Service.send_box_ThongBao_OK(p, "Bạn nhận được Bột Mì từ Phong Thách Nami!");
-        } catch (IOException e) {
-            System.out.println("Error sending message: " + e.getMessage());
-        }
+        Service.send_server_notice(p, "Bạn nhận được Bột Mì từ Phong Thách Nami!");
     }
 
     /**

@@ -1983,6 +1983,11 @@ public class Player {
                 vgo.ynew = 260;
             } else {
                 switch (map_go[0].template.id) {
+                    case 167: {
+                        vgo.xnew = 350;
+                        vgo.ynew = 260;
+                        break;
+                    }
                     case 168: {
                         vgo.xnew = 1490;
                         vgo.ynew = 260;
@@ -2228,7 +2233,10 @@ public class Player {
                 || p.dungeon instanceof activities.HangDong
                 || p.map.map_dungeon instanceof activities.HangDong
                 || (p.map.map_pvp_clan != null && !p.map.map_pvp_clan.is_finish)
-                || (p.map.map_dao_hoa != null && !p.map.map_dao_hoa.is_finish)) {
+                || (p.map.map_dao_hoa != null && !p.map.map_dao_hoa.is_finish)
+                || p.battleground5v5 != null
+                || (p.map != null && p.map.map_battleground5v5 != null)
+                || activities.Battleground5v5.isBattleMapStatic(p.map)) {
             return false;
         }
         if (p.item.total_item_bag_by_id(4, 89) <= 0) {
@@ -2300,8 +2308,10 @@ public class Player {
             byte type = m2.reader().readByte();
             if (type == 1) { //
                 if (Map.is_map_dungeon(this.map.template.id)
-                        || (this.map != null && (this.map.map_pvp_clan != null || this.map.map_dao_hoa != null))) {
-                    Service.send_box_ThongBao_OK(this, "Đang trong trận đấu, bạn sẽ tự động hồi sinh sau vài giây!");
+                        || (this.map != null && (this.map.map_pvp_clan != null || this.map.map_dao_hoa != null || this.map.map_battleground5v5 != null))
+                        || this.battleground5v5 != null
+                        || activities.Battleground5v5.isBattleMapStatic(this.map)) {
+                    Service.send_box_ThongBao_OK(this, "Đang trong trận đấu Chiến Trường, bạn sẽ tự động hồi sinh tại Căn Cứ sau vài giây!");
                     return;
                 }
                 if (this.item.total_item_bag_by_id(4, 89) > 0) {
@@ -2343,6 +2353,12 @@ public class Player {
                             || (this.map.map_dao_hoa != null && !this.map.map_dao_hoa.is_finish))) {
                         // Trong PVP Băng / Đảo Đào Hoa: tự hồi sinh tại căn cứ sau 5 giây (không cho về làng thủ công)
                         Service.send_box_ThongBao_OK(this, "Đang hồi sinh! Vui lòng chờ đếm ngược hồi sinh tự động.");
+                        return;
+                    }
+                    if (this.battleground5v5 != null
+                            || (this.map != null && this.map.map_battleground5v5 != null)
+                            || activities.Battleground5v5.isBattleMapStatic(this.map)) {
+                        Service.send_box_ThongBao_OK(this, "Đang trong trận đấu Chiến Trường! Vui lòng chờ đếm ngược hồi sinh tự động tại Căn Cứ.");
                         return;
                     }
                     if (this.map != null && this.map.map_pvp != null) {

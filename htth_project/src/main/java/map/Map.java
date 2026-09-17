@@ -2018,18 +2018,18 @@ public class Map implements Runnable {
                             p0.update_skill_exp(sk_id, exp_skill_gain);
                         }
 
-                        Service.send_gift(p0, 1, "Ải đơn cấp độ " + (mode_dungeon + 3),
+                        Service.send_gift(p0, 0, "Ải đơn cấp độ " + (mode_dungeon + 3),
                                 "Phần thưởng", list_gift, true);
                         System.out.println("[Dungeon] Trao quà phòng " + this.template.id
                                 + " cho player " + p0.name);
 
                         // FIX: Phòng cuối (map 175): set countdown "Về Làng" SAU khi trao quà
-                        // Đảm bảo quà được trao trước khi timeout đối xuống
+                        // Đảm bảo quà được trao trước khi timeout đối xuống (tăng lên 30s để kịp nhận quà)
                         if (this.template.id == 175) {
                             System.out.println(
-                                    "[Dungeon] Map 175 cleared! Setting 10s countdown to return to village for "
+                                    "[Dungeon] Map 175 cleared! Setting 30s countdown to return to village for "
                                             + p0.name);
-                            p0.dungeon.time = System.currentTimeMillis() + 10_000L;
+                            p0.dungeon.time = System.currentTimeMillis() + 30_000L;
                             Service.send_time_cool_down(p0, p0.dungeon.time, "Về Làng", 2);
                         }
                     }
@@ -2505,9 +2505,10 @@ public class Map implements Runnable {
             }
             for (int i = 0; i < get_list_Mob.size(); i++) {
                 Mob mob = get_list_Mob.get(i);
-                if (mob.isdie && ((mob.time_refresh - (Mob.TIME_RESPAWN * 1000) / 2) < System
+                if (mob.isdie && !mob.is_removed_client && ((mob.time_refresh - (Mob.TIME_RESPAWN * 1000) / 2) < System
                         .currentTimeMillis())) {
                     list_remove.add(mob);
+                    mob.is_removed_client = true;
                 }
             }
             for (int i = 0; i < list_remove.size(); i++) {
@@ -2518,9 +2519,7 @@ public class Map implements Runnable {
                 }
             }
             get_list_Mob.removeAll(list_remove);
-            if (players.size() > 0) {
-                players.get(0).dungeon.mobs.removeAll(list_remove);
-            }
+            // Không xóa quái chết khỏi p.dungeon.mobs để update_map_dungeon và kiểm tra cổng hoạt động chính xác
             for (int i = 0; i < get_list_Mob.size(); i++) {
                 Mob mob = get_list_Mob.get(i);
                 if (!mob.isdie) {
@@ -2989,8 +2988,13 @@ public class Map implements Runnable {
         }
         p0.isdie = true;
         p0.update_die();
-        if (p0.item.total_item_bag_by_id(4, 89) > 0) {
+        boolean isBattle5v5 = (this.map_battleground5v5 != null || p0.battleground5v5 != null
+                || activities.Battleground5v5.isBattleMapStatic(this));
+        if (!isBattle5v5 && this.map_pvp_clan == null && this.map_dao_hoa == null && this.map_pvp == null
+                && !Map.is_map_dungeon(this.template.id) && p0.item.total_item_bag_by_id(4, 89) > 0) {
             p0.time_auto_revive_ticket = System.currentTimeMillis() + 4_000L;
+        } else {
+            p0.time_auto_revive_ticket = 0;
         }
         // Phó bản 5vs5 Phá Trụ
         if (this.map_battleground5v5 != null) {
@@ -3311,6 +3315,26 @@ public class Map implements Runnable {
                 }
             }
             if (p.ischangemap) {
+                if (Map.is_map_dungeon(this.template.id) && p.dungeon != null) {
+                    int num_mob = 0;
+                    for (int i = 0; i < p.dungeon.mobs.size(); i++) {
+                        Mob mob_dungeon = p.dungeon.mobs.get(i);
+                        if (mob_dungeon != null && !mob_dungeon.isdie && mob_dungeon.hp > 0
+                                && mob_dungeon.map.equals(this)) {
+                            num_mob++;
+                            Message mmove = new Message(1);
+                            mmove.writer().writeByte(1);
+                            mmove.writer().writeShort(mob_dungeon.index);
+                            mmove.writer().writeShort(mob_dungeon.x);
+                            mmove.writer().writeShort(mob_dungeon.y);
+                            send_msg_all_p(mmove, p, true);
+                            mmove.cleanup();
+                        }
+                    }
+                    if (num_mob > 0) {
+                        return;
+                    }
+                }
                 // BossHunt: không cho chuyển map qua vgo khi boss còn sống
                 if (this.map_bossHunt != null && this.map_bossHunt.active && p.bossHunt != null) {
                     int num_boss = 0;
@@ -3326,29 +3350,6 @@ public class Map implements Runnable {
                 }
                 for (Vgo vgo : this.template.vgos) {
                     if (Math.abs(vgo.xold - p.x) < 60 && Math.abs(vgo.yold - p.y) < 60) {
-                        if (Map.is_map_dungeon(this.template.id) && p.dungeon != null) {
-                            int num_mob = 0;
-                            for (int i = 0; i < p.dungeon.mobs.size(); i++) {
-                                Mob mob_dungeon = p.dungeon.mobs.get(i);
-                                if (mob_dungeon != null && !mob_dungeon.isdie && mob_dungeon.hp > 0
-                                        && mob_dungeon.map.equals(this)) {
-                                    num_mob++;
-                                    break;
-                                }
-                            }
-                            if (num_mob > 0) {
-                                // Cho phép lùi về map đã hoàn thành hoặc map bắt đầu (167)
-                                boolean canRetreat = (p.dungeon.checkG != null
-                                        && (p.dungeon.checkG.contains((int) vgo.id_map_go) || vgo.id_map_go == 167));
-                                if (!canRetreat) {
-                                    if (System.currentTimeMillis() - p.time_last_notice_dungeon > 3000L) {
-                                        p.time_last_notice_dungeon = System.currentTimeMillis();
-                                        Service.send_box_ThongBao_OK(p, "Hãy tiêu diệt hết quái trong khu vực để mở cổng!");
-                                    }
-                                    return;
-                                }
-                            }
-                        }
                         p.time_change_map = System.currentTimeMillis() + 5000L;
                         try {
                             Thread.sleep(250L);
@@ -4632,7 +4633,7 @@ public class Map implements Runnable {
                                     }
                                 }
                                 if (dealer != null && dealer.conn != null && dealer.conn.connected && !dealer.isdie) {
-                                    int ruby = Util.random(100, 201);
+                                    int ruby = Util.random(100, 501);
                                     dealer.update_ngoc(ruby);
                                     dealer.update_money();
                                     try {
@@ -6644,7 +6645,14 @@ public class Map implements Runnable {
                 mnpc.writer().writeUTF(npc.chat);
                 mnpc.writer().writeShort(npc.x);
                 mnpc.writer().writeShort(npc.y);
-                mnpc.writer().writeByte(npc.isPerson);
+                byte isPerson = npc.isPerson;
+                if ((npc.iditem == -201 || npc.iditem == -154 || npc.iditem == -202
+                        || (npc.name != null && (npc.name.contains("Ngộ Không") || npc.name.contains("Chị Hằng"))))
+                        && isPerson == 0) {
+                    isPerson = 1;
+                    npc.isPerson = 1;
+                }
+                mnpc.writer().writeByte(isPerson);
                 mnpc.writer().writeByte(npc.typeIcon);
                 mnpc.writer().writeByte(npc.wBlock);
                 mnpc.writer().writeByte(npc.hBlock);
