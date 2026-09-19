@@ -2,12 +2,15 @@
 -- SQL Script: Thêm Bộ Thời Trang Nezuko Kamado (Fashion 249)
 -- Part 1119 (Đầu), Part 1120 (Thân), Part 1121 (Quần)
 -- Ngày tạo: 2026-09-16
--- =====================================================================
+use full_db_htth;
+-- 0. Xóa dữ liệu cũ để làm sạch và nạp lại từ đầu
+DELETE FROM `parts` WHERE `id` IN (1119, 1120, 1121);
+DELETE FROM `fashiontemplate` WHERE `id` = 249;
 
 -- 1. Thêm các Part vào bảng `parts`
--- Part 1119 (Type 0 - Đầu: 5 frame, canh chỉnh dx=5 qua trái, dy=4 cho đứng/đánh/chạy, dy=3 cho gục ngã)
+-- Part 1119 (Type 0 - Đầu: 5 frame, canh chỉnh dx=-3 qua trái thêm 3px, dy=4 cho đứng/đánh/chạy, dy=3 cho gục ngã)
 INSERT INTO `parts` (`id`, `type`, `data`) 
-VALUES (1119, 0, '[[12939,5,4],[12940,5,4],[12940,5,4],[12941,5,4],[12942,5,3]]')
+VALUES (1119, 0, '[[12939,-3,4],[12940,-3,4],[12940,-3,4],[12941,-3,4],[12942,-3,3]]')
 ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `data` = VALUES(`data`);
 
 -- Part 1120 (Type 1 - Thân / Áo: 20 frame)
@@ -22,14 +25,14 @@ ON DUPLICATE KEY UPDATE `type` = VALUES(`type`), `data` = VALUES(`data`);
 
 -- 2. Thêm Thời trang Nezuko vào bảng `fashiontemplate`
 -- ID: 249
--- icon: 142 (file data/icon/x4/20142.png)
+-- icon: 141 (file data/icon/x4/20141.png)
 -- mwear: [-2, -2, -1, 1120, -1, 1121, 1119, -2] (Thân 1120, Quần 1121, Đầu 1119, ẩn nón và tóc mặc định)
 -- op: [[10,100],[12,100],[53,100]] (10% Chí mạng, 10% Né tránh, 10% Miễn thương)
 -- price: 10000 Ruby
 INSERT INTO `fashiontemplate` (`id`, `icon`, `name`, `info`, `mwear`, `op`, `price`)
 VALUES (
     249,
-    142,
+    141,
     'Thời trang Nezuko',
     'Thời trang Nezuko Kamado\n+10% Chí mạng\n+10% Né tránh\n+10% Miễn thương\nHạn sử dụng vĩnh viễn',
     '[-2,-2,-1,1120,-1,1121,1119,-2]',
