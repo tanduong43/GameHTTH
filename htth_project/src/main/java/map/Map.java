@@ -3581,8 +3581,9 @@ public class Map implements Runnable {
                             }
                         }
                     }
-                    for (Skill_info sk : p.skill_point) {
-                        if (sk.temp.indexSkillInServer >= 900 && sk.temp.indexSkillInServer <= 902) {
+                    for (int i = 0; i < p.skill_point.size(); i++) {
+                        Skill_info sk = p.skill_point.get(i);
+                        if (sk != null && sk.temp != null && sk.temp.indexSkillInServer >= 900 && sk.temp.indexSkillInServer <= 902) {
                             if (sk.temp.Lv_RQ >= 1 && sk.temp.Lv_RQ <= Skill_info.EXP_HAKI.length) {
                                 sk.exp += 1;
                                 long exp_max = Skill_info.EXP_HAKI[sk.temp.Lv_RQ - 1];
@@ -3591,9 +3592,11 @@ public class Map implements Runnable {
                                         sk.exp -= exp_max;
                                         try {
                                             Service.send_box_ThongBao_OK(p,
-                                                    "Kỹ năng " + sk.temp.name + " đã thăng cấp!");
+                                                    "Kỹ năng " + sk.temp.name + " đã thăng cấp lên cấp " + sk.temp.Lv_RQ + "!");
                                             // Gui cap nhat skill day du khi len cap
+                                            p.send_skill_lv_up(sk);
                                             p.send_skill();
+                                            p.update_info_to_all();
                                         } catch (Exception e) {
                                         }
                                     } else {

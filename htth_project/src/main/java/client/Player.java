@@ -1075,8 +1075,16 @@ public class Player {
                         JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i).toString());
                         Skill_info skill_add = new Skill_info();
                         skill_add.exp = Long.parseLong(js2.get(1).toString());
+                        int level = -2;
+                        if (js2.size() >= 5) {
+                            try {
+                                level = Integer.parseInt(js2.get(4).toString());
+                            } catch (Exception e) {
+                                level = -2;
+                            }
+                        }
                         skill_add.temp = Skill_Template.get_temp(Short.parseShort(js2.get(0).toString()),
-                                skill_add.exp);
+                                skill_add.exp, level);
                         skill_add.lvdevil = Byte.parseByte(js2.get(2).toString());
                         skill_add.devilpercent = Byte.parseByte(js2.get(3).toString());
                         if (skill_add.temp != null) {
@@ -1690,6 +1698,7 @@ public class Player {
                 js_temp.add(p.skill_point.get(i).exp);
                 js_temp.add(p.skill_point.get(i).lvdevil);
                 js_temp.add(p.skill_point.get(i).devilpercent);
+                js_temp.add((int) p.skill_point.get(i).temp.Lv_RQ);
                 js.add(js_temp);
             }
             ps.setNString(10, js.toJSONString());
@@ -3129,7 +3138,7 @@ public class Player {
         }
     }
 
-    private void send_skill_lv_up(Skill_info sk_info) throws IOException {
+    public void send_skill_lv_up(Skill_info sk_info) throws IOException {
         Message m = new Message(-28);
         m.writer().writeByte(1);
         write_data_skill(m.writer(), sk_info);

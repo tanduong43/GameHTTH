@@ -28,10 +28,17 @@ public class Learn_Skill {
 				}
 				if (sk_temp == null) {
 					for (int i = 0; i < p.skill_point.size(); i++) {
-						if (p.skill_point.get(i).temp.Lv_RQ != -1
-								&& p.skill_point.get(i).temp.indexSkillInServer == (id - 1)) {
-							sk_temp = p.skill_point.get(i);
-							break;
+						int curIdx = p.skill_point.get(i).temp.indexSkillInServer;
+						if (p.skill_point.get(i).temp.Lv_RQ != -1) {
+							if (id >= 900 && id <= 902) {
+								if (curIdx == id) {
+									sk_temp = p.skill_point.get(i);
+									break;
+								}
+							} else if (curIdx == (id - 1)) {
+								sk_temp = p.skill_point.get(i);
+								break;
+							}
 						}
 					}
 				}
@@ -41,13 +48,23 @@ public class Learn_Skill {
 								"Bạn không đủ 10k Beri. Phí học kỹ năng này là 10k Beri!");
 						return;
 					}
-					if (Skill_Template.learn_skill(sk_temp)) {
+					boolean success = false;
+					if (sk_temp.temp.indexSkillInServer >= 900 && sk_temp.temp.indexSkillInServer <= 902 && sk_temp.temp.Lv_RQ > -1) {
+						success = Skill_Template.upgrade_skill(sk_temp, p.clazz);
+						if (success) {
+							sk_temp.exp = 0;
+						}
+					} else {
+						success = Skill_Template.learn_skill(sk_temp);
+					}
+					if (success) {
 						p.set_spend_context("Học kỹ năng", sk_temp.temp.name);
 						p.update_vang(-10_000);
 						p.update_money();
+						p.send_skill_lv_up(sk_temp);
 						p.send_skill();
 						p.update_info_to_all();
-						Service.send_box_ThongBao_OK(p, "Học Thành công " + sk_temp.temp.name);
+						Service.send_box_ThongBao_OK(p, "Học Thành công " + sk_temp.temp.name + " cấp " + sk_temp.temp.Lv_RQ);
 					} else {
 						Service.send_box_ThongBao_OK(p,
 								"Có lỗi xảy ra khi học skill, hãy báo cho admin fix ngay");

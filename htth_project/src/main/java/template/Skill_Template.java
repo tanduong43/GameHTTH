@@ -167,6 +167,18 @@ public class Skill_Template {
         this.typeDevil = typeDevil;
     }
 
+    public static Skill_Template get_temp(int index, long exp, int level) {
+        if (level > 0 || level == -1) {
+            for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
+                Skill_Template temp = Skill_Template.ENTRYS.get(i);
+                if (temp.indexSkillInServer == index && temp.Lv_RQ == level) {
+                    return temp;
+                }
+            }
+        }
+        return get_temp(index, exp);
+    }
+
     public static Skill_Template get_temp(int index, long exp) {
         Skill_Template fallback = null;
         for (int i = 0; i < Skill_Template.ENTRYS.size(); i++) {
