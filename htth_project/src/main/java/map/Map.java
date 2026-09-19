@@ -6318,6 +6318,82 @@ public class Map implements Runnable {
                             Service.send_box_ThongBao_OK(p, "Khong tim thay player " + targetName);
                         }
                     }
+                } else if (cmd.startsWith("sethaki ") || cmd.equals("sethaki")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        Player targetPlayer = p;
+                        int targetLv = 10;
+                        if (parts.length == 2) {
+                            try {
+                                targetLv = Integer.parseInt(parts[1]);
+                            } catch (Exception ex) {
+                                targetPlayer = map.Map.get_player_by_name_allmap(parts[1]);
+                                targetLv = 10;
+                            }
+                        } else if (parts.length >= 3) {
+                            targetPlayer = map.Map.get_player_by_name_allmap(parts[1]);
+                            targetLv = Integer.parseInt(parts[2]);
+                        }
+                        if (targetPlayer != null) {
+                            targetLv = Math.max(1, Math.min(10, targetLv));
+                            int[] hakiIndices = new int[] { 900, 901, 902 };
+                            for (int hIdx : hakiIndices) {
+                                Skill_info found = null;
+                                for (int i = 0; i < targetPlayer.skill_point.size(); i++) {
+                                    if (targetPlayer.skill_point.get(i).temp.indexSkillInServer == hIdx) {
+                                        found = targetPlayer.skill_point.get(i);
+                                        break;
+                                    }
+                                }
+                                if (found == null) {
+                                    found = new Skill_info();
+                                    found.temp = Skill_Template.get_temp(hIdx, 0, targetLv);
+                                    found.exp = 0;
+                                    targetPlayer.skill_point.add(found);
+                                } else {
+                                    Skill_Template newTemp = Skill_Template.get_temp(hIdx, 0, targetLv);
+                                    if (newTemp != null) {
+                                        found.temp = newTemp;
+                                        found.exp = 0;
+                                    }
+                                }
+                                targetPlayer.send_skill_lv_up(found);
+                            }
+                            if (targetLv >= 10) {
+                                targetPlayer.haki_monster_killed = Math.max(targetPlayer.haki_monster_killed, 13_500_000);
+                            }
+                            targetPlayer.send_skill();
+                            targetPlayer.update_info_to_all();
+                            Service.send_box_ThongBao_OK(p, "Đã set Haki cấp " + targetLv + " cho player " + targetPlayer.name + " thành công!");
+                            if (targetPlayer != p) {
+                                Service.send_box_ThongBao_OK(targetPlayer, "Haki của bạn đã được nâng lên cấp " + targetLv + "!");
+                            }
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Không tìm thấy player " + parts[1]);
+                        }
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin sethaki <level> hoặc admin sethaki <tên_player> <level>. VD: admin sethaki 10 hoặc admin sethaki openne 10");
+                    }
+                } else if (cmd.startsWith("quaihaki ")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        Player targetPlayer = p;
+                        int count = 13_500_000;
+                        if (parts.length == 2) {
+                            count = Integer.parseInt(parts[1]);
+                        } else if (parts.length >= 3) {
+                            targetPlayer = map.Map.get_player_by_name_allmap(parts[1]);
+                            count = Integer.parseInt(parts[2]);
+                        }
+                        if (targetPlayer != null) {
+                            targetPlayer.haki_monster_killed = count;
+                            Service.send_box_ThongBao_OK(p, "Đã set số quái Haki cho " + targetPlayer.name + " thành " + count + " con!");
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Không tìm thấy player " + parts[1]);
+                        }
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin quaihaki <số_quái> hoặc admin quaihaki <tên_player> <số_quái>");
+                    }
                 } else
                     Service.send_box_ThongBao_OK(p, "Lenh admin khong hop le!");
                 return;
