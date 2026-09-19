@@ -4,7 +4,7 @@ import struct
 import math
 import random
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -537,7 +537,7 @@ def draw_ground_crater_and_debris(w=208, h=104, phase=0):
     draw_sparkle(d, cx, cy, r=int(10*s), color=(0, 255, 255, 230))
     return im
 
-def draw_sword_stuck_in_crater(w=120, h=184):
+def draw_sword_stuck_in_crater(w=120, h=184, phase=0):
     im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     cx = w // 2
@@ -553,14 +553,15 @@ def draw_sword_stuck_in_crater(w=120, h=184):
     d.ellipse([cx - int(30*s), y_ground - int(9*s), cx + int(30*s), y_ground + int(11*s)], fill=(6, 2, 4, 255))
     d.arc([cx - rx_crater, y_ground - ry_crater, cx + rx_crater, y_ground + ry_crater], start=0, end=180, fill=(80, 40, 30, 255), width=int(4*s))
 
-    # 2. Vết nứt đất rực sáng năng lượng sét Haki (đỏ rực + lõi trắng)
+    # 2. Vết nứt đất rực sáng năng lượng sét Haki
     cracks = [
         (-36, 4, -18, 2), (-18, 2, 0, 0), (0, 0, 20, 3), (20, 3, 38, 6), (0, 0, 8, 14), (0, 0, -10, 12)
     ]
     for dx1, dy1, dx2, dy2 in cracks:
         p1 = (cx + int(dx1*s), y_ground + int(dy1*s))
         p2 = (cx + int(dx2*s), y_ground + int(dy2*s))
-        d.line([p1, p2], fill=(255, 20, 60, 220), width=int(3*s))
+        c_glow = (255, 20, 60, 240) if phase in [2, 3] else (255, 30, 70, 200)
+        d.line([p1, p2], fill=c_glow, width=int(3*s))
         d.line([p1, p2], fill=(255, 255, 255, 240), width=1)
 
     # Đất đá vụn văng quanh chân kiếm
@@ -572,14 +573,15 @@ def draw_sword_stuck_in_crater(w=120, h=184):
     blade_w = int(12 * s)
     hw = blade_w // 2
 
-    # Hào quang Haki đỏ ôm sát thân kiếm
+    # Hào quang Haki đỏ ôm thân kiếm (dao động nhẹ theo phase tạo độ thở uy lực)
+    pulse_w = 1 if phase in [1, 3] else (2 if phase == 2 else 0)
     d.polygon([
-        (cx - hw - 2, y_tsuba), (cx + hw + 2, y_tsuba),
-        (cx + hw + 2, y_ground), (cx - hw - 2, y_ground)
+        (cx - hw - 2 - pulse_w, y_tsuba), (cx + hw + 2 + pulse_w, y_tsuba),
+        (cx + hw + 2 + pulse_w, y_ground), (cx - hw - 2 - pulse_w, y_ground)
     ], fill=(180, 10, 40, 190))
     d.polygon([
-        (cx - hw - 1, y_tsuba), (cx + hw + 1, y_tsuba),
-        (cx + hw + 1, y_ground), (cx - hw - 1, y_ground)
+        (cx - hw - 1 - pulse_w, y_tsuba), (cx + hw + 1 + pulse_w, y_tsuba),
+        (cx + hw + 1 + pulse_w, y_ground), (cx - hw - 1 - pulse_w, y_ground)
     ], fill=(240, 25, 65, 220))
 
     # Thân kiếm Haki đen tuyền
@@ -610,29 +612,93 @@ def draw_sword_stuck_in_crater(w=120, h=184):
         d.line([(cx - 3, y_c + 2), (cx + 3, y_c - 2)], fill=(255, 255, 255, 230), width=1)
     d.ellipse([cx - 5, y_pommel - 5, cx + 5, y_pommel + 5], fill=(255, 215, 0, 255), outline=(190, 150, 0, 255))
 
-    # 6. TIA SÉT HAKI PHÓNG XUỐNG ĐẤT
-    bolt_stuck1 = [
-        (cx + int(3*s), y_tsuba + int(4*s)),
-        (cx - int(8*s), y_tsuba + int(16*s)),
-        (cx - int(18*s), y_tsuba + int(24*s)),
-        (cx - int(6*s), y_tsuba + int(36*s)),
-        (cx + int(8*s), y_ground - int(6*s)),
-        (cx - int(12*s), y_ground + int(6*s))
-    ]
-    draw_tapered_haki_lightning(d, bolt_stuck1, base_w=3)
+    # 6. TIA SÉT HAKI DYNAMIC (4 PHASES CHUYỂN ĐỘNG LIÊN HOÀN)
+    if phase == 0:
+        # Phase 0: Sét Haki cuộn xoáy cánh trái, phóng thẳng xuống đất
+        b1 = [
+            (cx + int(2*s), y_tsuba + int(2*s)),
+            (cx - int(10*s), y_tsuba + int(14*s)),
+            (cx - int(22*s), y_tsuba + int(26*s)),
+            (cx - int(12*s), y_tsuba + int(38*s)),
+            (cx - int(4*s), y_tsuba + int(50*s)),
+            (cx - int(16*s), y_ground + int(6*s))
+        ]
+        draw_tapered_haki_lightning(d, b1, base_w=3)
+        br1 = [
+            (cx - int(22*s), y_tsuba + int(26*s)),
+            (cx - int(34*s), y_tsuba + int(22*s)),
+            (cx - int(42*s), y_tsuba + int(30*s))
+        ]
+        draw_tapered_haki_lightning(d, br1, base_w=2)
+        draw_sparkle(d, cx - int(42*s), y_tsuba + int(30*s), r=int(6*s), color=(255, 255, 255))
+        draw_sparkle(d, cx - int(16*s), y_ground + int(6*s), r=int(7*s), color=(255, 40, 80))
 
-    bolt_stuck2 = [
-        (cx - int(6*s), y_tsuba + int(36*s)),
-        (cx + int(14*s), y_tsuba + int(28*s)),
-        (cx + int(28*s), y_ground - int(2*s)),
-        (cx + int(34*s), y_ground + int(8*s))
-    ]
-    draw_tapered_haki_lightning(d, bolt_stuck2, base_w=2)
+    elif phase == 1:
+        # Phase 1: Sét Haki giật sang cánh phải, ngoằn ngoèo xé toạc thân kiếm
+        b2 = [
+            (cx - int(4*s), y_tsuba + int(6*s)),
+            (cx + int(12*s), y_tsuba + int(18*s)),
+            (cx + int(26*s), y_tsuba + int(14*s)),
+            (cx + int(16*s), y_tsuba + int(32*s)),
+            (cx + int(28*s), y_tsuba + int(46*s)),
+            (cx + int(14*s), y_ground - int(2*s)),
+            (cx + int(26*s), y_ground + int(8*s))
+        ]
+        draw_tapered_haki_lightning(d, b2, base_w=3)
+        br2 = [
+            (cx + int(12*s), y_tsuba + int(18*s)),
+            (cx + int(30*s), y_tsuba + int(6*s))
+        ]
+        draw_tapered_haki_lightning(d, br2, base_w=2)
+        draw_sparkle(d, cx + int(30*s), y_tsuba + int(6*s), r=int(6*s), color=(255, 255, 255))
+        draw_sparkle(d, cx + int(26*s), y_ground + int(8*s), r=int(8*s), color=(255, 255, 255))
 
-    # Đốm sao sáng sét
-    draw_sparkle(d, cx - int(12*s), y_ground + int(6*s), r=int(7*s), color=(255, 255, 255, 255))
-    draw_sparkle(d, cx + int(34*s), y_ground + int(8*s), r=int(6*s), color=(255, 30, 80, 240))
-    draw_sparkle(d, cx - int(18*s), y_tsuba + int(24*s), r=int(5*s), color=(255, 255, 255, 240))
+    elif phase == 2:
+        # Phase 2: BỘC PHÁ CẢ 2 BÊN - SẤM SÉT BÁ VƯƠNG BÙNG NỔ DỮ DỘI
+        b_left = [
+            (cx - int(2*s), y_tsuba + int(4*s)),
+            (cx - int(16*s), y_tsuba + int(20*s)),
+            (cx - int(28*s), y_tsuba + int(34*s)),
+            (cx - int(14*s), y_ground + int(4*s))
+        ]
+        draw_tapered_haki_lightning(d, b_left, base_w=3)
+        b_right = [
+            (cx + int(3*s), y_tsuba + int(8*s)),
+            (cx + int(18*s), y_tsuba + int(24*s)),
+            (cx + int(32*s), y_tsuba + int(38*s)),
+            (cx + int(20*s), y_ground + int(8*s))
+        ]
+        draw_tapered_haki_lightning(d, b_right, base_w=3)
+        b_mid = [
+            (cx - int(16*s), y_tsuba + int(20*s)),
+            (cx, y_tsuba + int(26*s)),
+            (cx + int(18*s), y_tsuba + int(24*s))
+        ]
+        draw_tapered_haki_lightning(d, b_mid, base_w=2)
+        draw_sparkle(d, cx - int(28*s), y_tsuba + int(34*s), r=int(7*s), color=(255, 255, 255))
+        draw_sparkle(d, cx + int(32*s), y_tsuba + int(38*s), r=int(7*s), color=(255, 30, 80))
+        draw_sparkle(d, cx, y_tsuba + int(26*s), r=int(9*s), color=(255, 255, 255))
+
+    elif phase == 3:
+        # Phase 3: Sét Haki cuộn xoắn từ chuôi xuống tận mũi kiếm + tia hồ quang vòng
+        b3 = [
+            (cx + int(5*s), y_tsuba - int(2*s)),
+            (cx - int(8*s), y_tsuba + int(10*s)),
+            (cx + int(16*s), y_tsuba + int(24*s)),
+            (cx - int(18*s), y_tsuba + int(36*s)),
+            (cx + int(8*s), y_ground + int(2*s)),
+            (cx - int(4*s), y_ground + int(10*s))
+        ]
+        draw_tapered_haki_lightning(d, b3, base_w=3)
+        br3 = [
+            (cx - int(18*s), y_tsuba + int(36*s)),
+            (cx - int(32*s), y_tsuba + int(44*s)),
+            (cx - int(40*s), y_tsuba + int(38*s))
+        ]
+        draw_tapered_haki_lightning(d, br3, base_w=2)
+        draw_sparkle(d, cx - int(40*s), y_tsuba + int(38*s), r=int(6*s), color=(255, 255, 255))
+        draw_sparkle(d, cx + int(5*s), y_tsuba - int(2*s), r=int(7*s), color=(255, 40, 80))
+        draw_sparkle(d, cx - int(4*s), y_ground + int(10*s), r=int(8*s), color=(255, 255, 255))
 
     return im
 
@@ -746,56 +812,84 @@ def draw_dissolve_sparks(w=176, h=176):
 def create_effect_914_room_slash():
     scale = 4
     w_sheet = 248 * scale
-    h_sheet = 270 * scale
+    h_sheet = 290 * scale
     im = Image.new('RGBA', (w_sheet, h_sheet), (0, 0, 0, 0))
 
-    im_room           = draw_anime_hemisphere_room_dome(248*scale, 152*scale)
-    im_sword_straight = draw_straight_kikoku_sword(22*scale, 56*scale, is_trail=False)
-    im_sword_trail    = draw_straight_kikoku_sword(22*scale, 56*scale, is_trail=True)
+    im_room             = draw_anime_hemisphere_room_dome(248*scale, 152*scale)
+    im_giant_sword      = draw_straight_kikoku_sword(46*scale, 100*scale, is_trail=True, is_giant=True)
+    im_sword_crater_p0  = draw_sword_stuck_in_crater(30*scale, 46*scale, phase=0)
+    im_sword_crater_p1  = draw_sword_stuck_in_crater(30*scale, 46*scale, phase=1)
+    im_sword_crater_p2  = draw_sword_stuck_in_crater(30*scale, 46*scale, phase=2)
+    im_sword_crater_p3  = draw_sword_stuck_in_crater(30*scale, 46*scale, phase=3)
+    im_sword_trail      = draw_straight_kikoku_sword(22*scale, 56*scale, is_trail=True)
 
-    im_crater1        = draw_ground_crater_and_debris(52*scale, 24*scale, phase=0)
-    im_crater2        = draw_ground_crater_and_debris(58*scale, 28*scale, phase=1)
-    im_sword_crater   = draw_sword_stuck_in_crater(30*scale, 46*scale)
-    im_shockwave      = draw_ground_shockwave(54*scale, 22*scale)
+    im_crater1          = draw_ground_crater_and_debris(52*scale, 24*scale, phase=0)
+    im_crater2          = draw_ground_crater_and_debris(58*scale, 28*scale, phase=1)
+    im_shockwave        = draw_ground_shockwave(54*scale, 22*scale)
 
-    im_giant_sword    = draw_straight_kikoku_sword(46*scale, 100*scale, is_trail=True, is_giant=True)
-    im_massive_crater = draw_massive_climax_crater(84*scale, 34*scale)
-    im_slash_burst    = draw_slash_burst(54*scale, 48*scale)
-    im_dissolve       = draw_dissolve_sparks(44*scale, 44*scale)
+    im_massive_crater   = draw_massive_climax_crater(84*scale, 34*scale)
+    im_slash_burst      = draw_slash_burst(54*scale, 48*scale)
+    im_dissolve         = draw_dissolve_sparks(44*scale, 44*scale)
 
-    im_smoke_puff1    = draw_circling_smoke_puff(32*scale, 18*scale, variant=0)
-    im_smoke_puff2    = draw_circling_smoke_puff(34*scale, 20*scale, variant=1)
+    im_smoke_puff1      = draw_circling_smoke_puff(32*scale, 18*scale, variant=0)
+    im_smoke_puff2      = draw_circling_smoke_puff(34*scale, 20*scale, variant=1)
 
     # Bố trí Sprite vào Sheet
-    im.paste(im_room,           (0*scale,   0*scale),   im_room)
-    im.paste(im_giant_sword,    (0*scale,   154*scale), im_giant_sword)
-    im.paste(im_sword_straight, (48*scale,  154*scale), im_sword_straight)
-    im.paste(im_sword_trail,    (72*scale,  154*scale), im_sword_trail)
-    im.paste(im_sword_crater,   (96*scale,  154*scale), im_sword_crater)
-    im.paste(im_massive_crater, (128*scale, 154*scale), im_massive_crater)
-    im.paste(im_smoke_puff1,    (214*scale, 154*scale), im_smoke_puff1)
-    im.paste(im_smoke_puff2,    (214*scale, 174*scale), im_smoke_puff2)
-    im.paste(im_slash_burst,    (128*scale, 190*scale), im_slash_burst)
-    im.paste(im_dissolve,       (186*scale, 196*scale), im_dissolve)
-    im.paste(im_crater2,        (48*scale,  212*scale), im_crater2)
-    im.paste(im_shockwave,      (48*scale,  242*scale), im_shockwave)
-    im.paste(im_crater1,        (104*scale, 242*scale), im_crater1)
+    im.paste(im_room,             (0*scale,   0*scale),   im_room)
+    im.paste(im_giant_sword,      (0*scale,   154*scale), im_giant_sword)
+    im.paste(im_sword_crater_p1,  (48*scale,  154*scale), im_sword_crater_p1) # 1: 48, 154, 30, 46
+    im.paste(im_sword_trail,      (78*scale,  154*scale), im_sword_trail)     # 2: 78, 154, 22, 56
+    im.paste(im_sword_crater_p0,  (100*scale, 154*scale), im_sword_crater_p0) # 5: 100, 154, 30, 46
+    im.paste(im_massive_crater,   (130*scale, 154*scale), im_massive_crater)  # 8: 130, 154, 84, 34
+    im.paste(im_smoke_puff1,      (214*scale, 154*scale), im_smoke_puff1)     # 11: 214, 154, 32, 18
+    im.paste(im_smoke_puff2,      (214*scale, 174*scale), im_smoke_puff2)     # 12: 214, 174, 34, 20
+    im.paste(im_slash_burst,      (130*scale, 190*scale), im_slash_burst)     # 9: 130, 190, 54, 48
+    im.paste(im_dissolve,         (186*scale, 196*scale), im_dissolve)        # 10: 186, 196, 44, 44
+    im.paste(im_crater2,          (48*scale,  212*scale), im_crater2)         # 4: 48, 212, 58, 28
+    im.paste(im_shockwave,        (48*scale,  242*scale), im_shockwave)       # 6: 48, 242, 54, 22
+    im.paste(im_crater1,          (104*scale, 242*scale), im_crater1)         # 3: 104, 242, 52, 24
+    im.paste(im_sword_crater_p2,  (160*scale, 242*scale), im_sword_crater_p2) # 13: 160, 242, 30, 46
+    im.paste(im_sword_crater_p3,  (192*scale, 242*scale), im_sword_crater_p3) # 14: 192, 242, 30, 46
 
     small_imgs = [
         (0,    0,   0, 248, 152), # Sprite 0: Vòm Nửa Hình Cầu Room
-        (1,   48, 154,  22,  56), # Sprite 1: Kiếm Kikoku rơi thẳng
-        (2,   72, 154,  22,  56), # Sprite 2: Kiếm Kikoku rơi thẳng xé gió
+        (1,   48, 154,  30,  46), # Sprite 1: Kiếm cắm đất Phase 1 (Sét Haki giật sang phải)
+        (2,   78, 154,  22,  56), # Sprite 2: Kiếm Kikoku rơi thẳng xé gió
         (3,  104, 242,  52,  24), # Sprite 3: Hố lún đất + đá văng pha 1
         (4,   48, 212,  58,  28), # Sprite 4: Hố lún đất + đá văng bùng nổ pha 2
-        (5,   96, 154,  30,  46), # Sprite 5: Kiếm cắm ngập trong hố lún đất
+        (5,  100, 154,  30,  46), # Sprite 5: Kiếm cắm đất Phase 0 (Sét Haki cuộn cánh trái)
         (6,   48, 242,  54,  22), # Sprite 6: Sóng chấn động lún đất
         (7,    0, 154,  46, 100), # Sprite 7: Đại Thần Kiếm khổng lồ uy lực rơi thẳng
-        (8,  128, 154,  84,  34), # Sprite 8: Đại hố lún cực đại
-        (9,  128, 190,  54,  48), # Sprite 9: Vết chém nứt rách không gian
+        (8,  130, 154,  84,  34), # Sprite 8: Đại hố lún cực đại
+        (9,  130, 190,  54,  48), # Sprite 9: Vết chém nứt rách không gian
         (10, 186, 196,  44,  44), # Sprite 10: Tinh thể tan biến
         (11, 214, 154,  32,  18), # Sprite 11: Khói bụi xoáy tròn chân đế 1
         (12, 214, 174,  34,  20), # Sprite 12: Khói bụi xoáy tròn chân đế 2
+        (13, 160, 242,  30,  46), # Sprite 13: Kiếm cắm đất Phase 2 (Song tia sét Bá Vương bộc phá)
+        (14, 192, 242,  30,  46), # Sprite 14: Kiếm cắm đất Phase 3 (Sét Haki xoắn ốc + hồ quang)
     ]
+
+    sword_coords = [
+        (-31, -35),
+        (-75, -35),
+        ( 29, -35),
+        (-103, -35),
+        ( 57, -35),
+        (-43, -35),
+        (  5, -35),
+        (-63, -35)
+    ]
+    phases = [5, 1, 13, 14]
+
+    def make_swords(count, step):
+        parts = []
+        for i in range(count):
+            sx, sy = sword_coords[i]
+            p_idx = (i + step) % 4
+            sp_id = phases[p_idx]
+            fl = 1 if (i + step) % 2 == 1 else 0
+            parts.append((sx, sy, sp_id, fl, 1))
+        return parts
 
     raw_frames = [
         # Frame 0: Vòm Room mở ra (0.0s)
@@ -809,153 +903,113 @@ def create_effect_914_room_slash():
         ],
         
         # Frame 2: Kiếm 1 & 2 CẮM ĐẤT! Nổ hố lún + Đợt 2: Kiếm 3 & 4 lao nhanh (0.16s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
+        [(-124, -129, 0, 0, 0)] + make_swords(2, 0) + [
             ( -42,  -12, 3, 0, 1),
             ( -43,  -11, 6, 0, 1),
-            ( -75,  -35, 5, 0, 1),
             ( -86,  -12, 3, 0, 1),
             (  33, -100, 2, 0, 1),
             ( -99, -100, 2, 0, 1),
         ],
         
-        # Frame 3: Kiếm 3 & 4 CẮM ĐẤT! (Kiếm 1 & 2 giữ nguyên) + Đợt 3: Kiếm 5 & 6 lao nhanh (0.28s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
+        # Frame 3: Kiếm 3 & 4 CẮM ĐẤT! (Sét Haki di chuyển động liên hoàn) + Đợt 3 lao nhanh (0.28s)
+        [(-124, -129, 0, 0, 0)] + make_swords(4, 1) + [
             (  15,  -14, 4, 0, 1),
-            (-103,  -35, 5, 0, 1),
             (-117,  -14, 4, 0, 1),
             (  61, -100, 2, 0, 1),
             ( -39, -100, 2, 0, 1),
         ],
         
-        # Frame 4: Kiếm 5 & 6 CẮM ĐẤT! (Kiếm 1..4 giữ nguyên) + Đợt 4: Kiếm 7 & 8 lao nhanh (0.40s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
-            (-103,  -35, 5, 0, 1),
-            (  57,  -35, 5, 0, 1),
+        # Frame 4: Kiếm 5 & 6 CẮM ĐẤT! (Sét Haki tiếp tục di chuyển nhảy pha) + Đợt 4 lao nhanh (0.40s)
+        [(-124, -129, 0, 0, 0)] + make_swords(6, 2) + [
             (  46,  -12, 3, 0, 1),
-            ( -43,  -35, 5, 0, 1),
             ( -54,  -12, 3, 0, 1),
             (   9, -100, 2, 0, 1),
             ( -59, -100, 2, 0, 1),
         ],
         
-        # Frame 5: Kiếm 7 & 8 CẮM ĐẤT! Cả 8 cây kiếm cắm ngập hoàn tất giữ nguyên mặt đất (0.52s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
-            (-103,  -35, 5, 0, 1),
-            (  57,  -35, 5, 0, 1),
-            ( -43,  -35, 5, 0, 1),
-            (   5,  -35, 5, 0, 1),
+        # Frame 5a: Kiếm 7 & 8 CẮM ĐẤT! Cả 8 kiếm cắm hoàn tất, Haki sét rực sáng pha 3 (0.52s)
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 3) + [
             (  -9,  -14, 4, 0, 1),
-            ( -63,  -35, 5, 0, 1),
+            ( -77,  -14, 4, 0, 1),
+        ],
+
+        # Frame 5b: Cả 8 kiếm Haki sét giật nhảy pha 4 (nhấp nháy sống động)
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 4) + [
+            (  -9,  -14, 4, 0, 1),
             ( -77,  -14, 4, 0, 1),
         ],
         
-        # Frame 6: Chấn động cực đại! Toàn bộ 8 cây kiếm GIỮ NGUYÊN trên mặt đất (0.64s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
-            (-103,  -35, 5, 0, 1),
-            (  57,  -35, 5, 0, 1),
-            ( -43,  -35, 5, 0, 1),
-            (   5,  -35, 5, 0, 1),
-            ( -63,  -35, 5, 0, 1),
+        # Frame 6a: Chấn động cực đại! 8 cây kiếm Haki giật nổ pha 5 (0.64s)
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 5) + [
+            ( -42,  -14, 4, 0, 1),
+            (  15,  -14, 4, 0, 1),
+            ( -43,  -11, 6, 0, 1),
+        ],
+
+        # Frame 6b: 8 cây kiếm Haki giật nổ pha 6
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 6) + [
             ( -42,  -14, 4, 0, 1),
             (  15,  -14, 4, 0, 1),
             ( -43,  -11, 6, 0, 1),
         ],
         
-        # Frame 7: ĐẠI THẦN KIẾM KHỔNG LỒ xuất hiện trên đỉnh Room! Toàn bộ 8 kiếm GIỮ NGUYÊN (0.76s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
-            (-103,  -35, 5, 0, 1),
-            (  57,  -35, 5, 0, 1),
-            ( -43,  -35, 5, 0, 1),
-            (   5,  -35, 5, 0, 1),
-            ( -63,  -35, 5, 0, 1),
+        # Frame 7a: ĐẠI THẦN KIẾM xuất hiện! 8 kiếm Haki giật pha 7 (0.76s)
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 7) + [
             ( -33, -150, 7, 0, 1),
         ],
-        
-        # Frame 8: Đại Thần Kiếm lao nhanh xé gió siêu thanh! Toàn bộ 8 kiếm GIỮ NGUYÊN (0.88s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
-            (-103,  -35, 5, 0, 1),
-            (  57,  -35, 5, 0, 1),
-            ( -43,  -35, 5, 0, 1),
-            (   5,  -35, 5, 0, 1),
-            ( -63,  -35, 5, 0, 1),
-            ( -33, -110, 7, 0, 1),
+
+        # Frame 7b: Đại Thần Kiếm tích tụ Haki giật sang phải! 8 kiếm Haki giật pha 8
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 8) + [
+            ( -33, -150, 7, 1, 1),
         ],
         
-        # Frame 9: Đại Thần Kiếm sát mặt đất + Chấn động! Toàn bộ 8 kiếm GIỮ NGUYÊN (1.00s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
-            (-103,  -35, 5, 0, 1),
-            (  57,  -35, 5, 0, 1),
-            ( -43,  -35, 5, 0, 1),
-            (   5,  -35, 5, 0, 1),
-            ( -63,  -35, 5, 0, 1),
+        # Frame 8a: Đại Thần Kiếm lao nhanh xé gió! 8 kiếm Haki giật pha 9 (0.88s)
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 9) + [
+            ( -33, -110, 7, 0, 1),
+        ],
+
+        # Frame 8b: Đại Thần Kiếm lao nhanh xé gió! 8 kiếm Haki giật pha 10
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 10) + [
+            ( -33, -110, 7, 1, 1),
+        ],
+        
+        # Frame 9: Đại Thần Kiếm sát mặt đất + Chấn động! 8 kiếm Haki giật pha 11 (1.00s)
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 11) + [
             ( -33,  -85, 7, 0, 1),
             ( -43,  -11, 6, 0, 1),
         ],
         
-        # Frame 10: ĐẠI THẦN KIẾM CẮM ĐẤT! TẠO ĐẠI HỐ LÚN + VẾT NỨT KHÔNG GIAN! Toàn bộ 8 kiếm GIỮ NGUYÊN (1.12s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
-            (-103,  -35, 5, 0, 1),
-            (  57,  -35, 5, 0, 1),
-            ( -43,  -35, 5, 0, 1),
-            (   5,  -35, 5, 0, 1),
-            ( -63,  -35, 5, 0, 1),
+        # Frame 10a: ĐẠI THẦN KIẾM CẮM ĐẤT! Đại hố lún nứt toác! 8 kiếm Haki giật pha 12 (1.12s)
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 12) + [
             ( -52,  -17, 8, 0, 1),
             ( -33,  -75, 7, 0, 1),
             ( -37,  -40, 9, 0, 1),
         ],
+
+        # Frame 10b: Đại Thần Kiếm cắm đất chấn động giật sét! 8 kiếm Haki giật pha 13
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 13) + [
+            ( -52,  -17, 8, 0, 1),
+            ( -33,  -75, 7, 1, 1),
+            ( -37,  -40, 9, 0, 1),
+        ],
         
-        # Frame 11: Toàn bộ Room nổ bùng chấn động cực đại! Toàn bộ 8 kiếm GIỮ NGUYÊN (1.24s)
-        [
-            (-124, -129, 0, 0, 0),
-            ( -31,  -35, 5, 0, 1),
-            ( -75,  -35, 5, 0, 1),
-            (  29,  -35, 5, 0, 1),
-            (-103,  -35, 5, 0, 1),
-            (  57,  -35, 5, 0, 1),
-            ( -43,  -35, 5, 0, 1),
-            (   5,  -35, 5, 0, 1),
-            ( -63,  -35, 5, 0, 1),
+        # Frame 11a: Toàn bộ Room nổ bùng chói lọi! 8 kiếm Haki giật pha 14 (1.24s)
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 14) + [
             ( -52,  -17, 8, 0, 1),
             ( -33,  -75, 7, 0, 1),
             ( -37,  -40, 9, 0, 1),
             ( -43,  -11, 6, 0, 1),
         ],
+
+        # Frame 11b: Toàn bộ Room nổ bùng chấn động! 8 kiếm Haki giật pha 15
+        [(-124, -129, 0, 0, 0)] + make_swords(8, 15) + [
+            ( -52,  -17, 8, 0, 1),
+            ( -33,  -75, 7, 1, 1),
+            ( -37,  -40, 9, 0, 1),
+            ( -43,  -11, 6, 0, 1),
+        ],
         
-        # Frame 12: TOÀN BỘ CÁC CÂY KIẾM BIẾN MẤT! Không gian vỡ vụn, tinh thể tung tóe (1.36s)
+        # Frame 12: TOÀN BỘ CÁC CÂY KIẾM BIẾN MẤT! Không gian vỡ vụn (1.36s)
         [
             (-124, -129, 0, 0, 0),
             ( -37,  -40, 9, 0, 1),
@@ -1005,531 +1059,531 @@ def create_effect_914_room_slash():
                 return rx_e * math.cos(t), ry_e * math.sin(t), math.sin(t)
         return rx_e, 0.0, 0.0
 
-    # 22 cụm khói mây cuộn xoay tròn quanh chân Room
     N_puffs = 22
     frames = []
     for f_idx, rf in enumerate(raw_frames):
         f_list = list(rf)
-        if f_idx <= 12:
-            offset_s = (f_idx * (total_len / 16.0)) % total_len
+        if f_idx <= 17:
+            offset_s = (f_idx * (total_len / 18.0)) % total_len
             for k in range(N_puffs):
                 target_s = (k / N_puffs) * total_len + offset_s
                 ex, ey, sin_t = get_ellipse_point(target_s)
                 sp_id = 11 if k % 2 == 0 else 12
-                px = int(round(ex)) - (16 if k % 2 == 0 else 18)
-                py = int(round(ey)) - (9 if k % 2 == 0 else 10)
+                px = int(round(ex)) - (16 if k % 2 == 0 else 17)
+                py = int(round(11 + ey)) - (9 if k % 2 == 0 else 10)
                 layer = 0 if sin_t < 0 else 1
                 f_list.append((px, py, sp_id, 0, layer))
         frames.append(f_list)
 
     seq = (
-        [0] * 3 +       # 3 ticks (0.12s): Vòm Room mở ra bao trọn không gian
-        [1] * 3 +       # 3 ticks (0.12s): Vòm Room ổn định, Đợt 1 (Kiếm 1 & 2) lao nhanh từ trên cao
-        [2] * 5 +       # 5 ticks (0.20s): Kiếm 1 & 2 cắm phập đất nổ hố lún, Đợt 2 (Kiếm 3 & 4) lao xuống
-        [3] * 5 +       # 5 ticks (0.20s): Kiếm 3 & 4 cắm đất (Kiếm 1 & 2 giữ nguyên), Đợt 3 lao xuống
-        [4] * 5 +       # 5 ticks (0.20s): Kiếm 5 & 6 cắm đất (Kiếm 1..4 giữ nguyên), Đợt 4 lao xuống
-        [5] * 5 +       # 5 ticks (0.20s): Kiếm 7 & 8 cắm đất, toàn bộ 8 cây kiếm cắm hoàn tất giữ nguyên
-        [6] * 6 +       # 6 ticks (0.24s): Dư chấn rung chuyển cực đại, 8 cây kiếm tiếp tục cắm giữ nguyên
-        [7] * 6 +       # 6 ticks (0.24s): Đỉnh Room phát quang, ĐẠI THẦN KIẾM xuất hiện tích tụ Haki
-        [8] * 4 +       # 4 ticks (0.16s): Đại Thần Kiếm lao nhanh xé gió siêu thanh
-        [9] * 4 +       # 4 ticks (0.16s): Đại Thần Kiếm áp sát đất, sóng xung kích cực lớn dồn xuống
-        [10] * 8 +      # 8 ticks (0.32s): ĐẠI THẦN KIẾM CẮM ĐẤT! Đại hố lún cực đại nứt toác, vết chém nứt rách không gian
-        [11] * 8 +      # 8 ticks (0.32s): Toàn bộ Room nổ bùng chói lọi cực đại! 8 kiếm và kiếm khổng lồ rung chuyển
-        [12] * 5 +      # 5 ticks (0.20s): TẤT CẢ KIẾM BIẾN MẤT! Không gian nứt vỡ, tinh thể văng tung tóe
-        [13] * 4 +      # 4 ticks (0.16s): Vòm Room tan biến, tinh thể không gian lấp lánh
-        [14] * 3 +      # 3 ticks (0.12s): Tinh thể bay tỏa nhẹ
-        [15] * 1        # 1 tick  (0.04s): Tia sáng cuối cùng tan biến (tổng cộng 75 ticks = 3.00s)
+        [0] * 3 +       # 3 ticks (0.12s)
+        [1] * 3 +       # 3 ticks (0.12s)
+        [2] * 5 +       # 5 ticks (0.20s)
+        [3] * 5 +       # 5 ticks (0.20s)
+        [4] * 5 +       # 5 ticks (0.20s)
+        [5, 6, 5, 6, 5] +   # 5 ticks: 8 kiếm Haki sét di chuyển nhảy pha liên hoàn!
+        [7, 8, 7, 8, 7, 8] + # 6 ticks: Dư chấn rung chuyển, Haki sét crackling liên tục!
+        [9, 10, 9, 10, 9, 10] + # 6 ticks: Đại thần kiếm xuất hiện tích tụ Haki chớp giật!
+        [11, 12, 11, 12] +      # 4 ticks: Đại thần kiếm lao nhanh xé gió
+        [13] * 4 +              # 4 ticks: Đại thần kiếm sát đất
+        [14, 15, 14, 15, 14, 15, 14, 15] + # 8 ticks: Đại thần kiếm cắm đất, Haki nổ bùng chấn động!
+        [16, 17, 16, 17, 16, 17, 16, 17] + # 8 ticks: Toàn bộ Room nổ bùng, sấm sét Bá Vương cuộn xoáy!
+        [18] * 5 +      # 5 ticks: Kiếm tan vỡ
+        [19] * 4 +      # 4 ticks: Vòm tan biến
+        [20] * 3 +      # 3 ticks: Tinh thể tỏa
+        [21] * 1        # 1 tick: Hết
     )
 
     data_bytes = build_data_effect(small_imgs, frames, seq)
     save_multizoom_effect(914, im, data_bytes)
 
 # ==============================================================================
-# 2. TẠO EFFECT 915: ROOM HÌNH CẦU & ĐÁ ĐẨY VÔ PLAYER TRÚNG ĐÒN (SPHERE ROCK CRUSH)
+# 2. TẠO EFFECT 915: VÒNG XOÁY DAO PHÓNG XẠ GAMMA (GAMMA KNIFE OBSIDIAN VORTEX)
+# Chuẩn 100% hình ảnh mẫu người dùng + TIA SÉT TỪ TRỜI GIÁNG XUỐNG + CHỚP TOÀN MÀN HÌNH:
+# - Vành đai 10 khối đao Hắc Diện Thạch đa giác 3D góc cạnh sắc bén
+# - Vòng sấm sét Cyan / Neon Electric Blue cuộn xoáy tròn bao quanh
+# - Lõi cực quang và 32 chùm tia sáng nan hoa (Sunburst Beams) xuyên tâm
+# - Cột sét siêu thực từ trên trời đánh thẳng xuống tâm vòng xoáy
+# - Chớp sáng phủ kín toàn màn hình (Full Screen Flash) khi bộc phá nổ cực hạn
 # ==============================================================================
-def draw_tact_gamma_sphere(w=560, h=560):
+
+def draw_gamma_vortex_base_and_rays(w=520, h=416):
     """
-    Sprite 0: Vòng cầu 3D Room bao trọn người chơi bị trúng đòn (140x140 ở 1x -> 560x560 ở 4x - PHIÊN BẢN TO ĐẸP)
-    Chuẩn phong cách quả cầu Room năng lượng xanh ngọc lam cyan trong suốt như ảnh mẫu người dùng
+    Sprite 0: Vòng xoáy Năng Lượng & Chùm Tia Sáng Nan Hoa (130x104 ở 1x -> 520x416 ở 4x)
     """
     im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
     cx, cy = w // 2, h // 2
-    d_size = int(w * 0.94)
-    r_outer = d_size // 2
-
-    # Hào quang viền phát quang cyan
-    for dr, a in [(12, 25), (6, 50), (2, 85)]:
-        d.ellipse([cx - r_outer - dr, cy - r_outer - dr, cx + r_outer + dr, cy + r_outer + dr], fill=(130, 225, 255, a))
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    bubble_path = os.path.join(script_dir, 'data', 'room_bubble.png')
-    if os.path.exists(bubble_path):
-        src_bubble = Image.open(bubble_path).convert('RGBA')
-        bubble_resized = src_bubble.resize((d_size, d_size), Image.Resampling.LANCZOS)
-        im.paste(bubble_resized, (cx - r_outer, cy - r_outer), bubble_resized)
-    else:
-        # Fallback gradient nếu không có file ảnh
-        y_coords, x_coords = np.ogrid[:h, :w]
-        dx = (x_coords - cx) / float(r_outer)
-        dy = (y_coords - cy) / float(r_outer)
-        dist = np.sqrt(dx**2 + dy**2)
-        in_sp = dist <= 1.0
-        arr = np.zeros((h, w, 4), dtype=np.uint8)
-        arr[in_sp, 0] = np.clip(160.0 - 40.0 * dist[in_sp], 0, 255)
-        arr[in_sp, 1] = np.clip(235.0 - 20.0 * dist[in_sp], 0, 255)
-        arr[in_sp, 2] = np.clip(255.0 - 5.0 * dist[in_sp], 0, 255)
-        arr[in_sp, 3] = np.clip(35.0 + 85.0 * (dist[in_sp]**2.0), 0, 130)
-        im_body = Image.fromarray(arr, mode='RGBA')
-        im.alpha_composite(im_body)
-        d.ellipse([cx - r_outer, cy - r_outer, cx + r_outer, cy + r_outer], outline=(60, 195, 245, 240), width=6)
-        d.ellipse([cx - r_outer + 2, cy - r_outer + 2, cx + r_outer - 2, cy + r_outer - 2], outline=(220, 250, 255, 255), width=3)
-    return im
-
-def draw_crushing_boulder_a(w=168, h=144):
-    """
-    Sprite 1: Tảng đá góc cạnh lớn A (42x36 ở 1x -> 168x144 ở 4x - PHIÊN BẢN TO BẢN)
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    sx, sy = w / 112.0, h / 96.0
-    def t(pts): return [(int(x * sx), int(y * sy)) for x, y in pts]
-    pts = t([(20, 16), (56, 8), (96, 24), (104, 60), (76, 88), (28, 80), (8, 48)])
-    d.polygon(pts, fill=(62, 58, 66, 255))
-    d.polygon(t([(20, 16), (56, 8), (64, 44), (28, 52)]), fill=(94, 90, 100, 255))
-    d.polygon(t([(64, 44), (104, 60), (76, 88), (48, 72)]), fill=(38, 34, 42, 255))
-    d.line(t([(24, 24), (44, 36), (64, 44), (76, 68)]), fill=(0, 255, 220, 240), width=int(5*sx))
-    d.line(t([(24, 24), (44, 36), (64, 44), (76, 68)]), fill=(255, 255, 255, 255), width=int(2*sx))
-    d.line(pts + [pts[0]], fill=(0, 220, 255, 120), width=int(3*sx))
-    return im
-
-def draw_crushing_boulder_b(w=168, h=144):
-    """
-    Sprite 2: Tảng đá góc cạnh lớn B (42x36 ở 1x -> 168x144 ở 4x - PHIÊN BẢN TO BẢN)
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    sx, sy = w / 112.0, h / 96.0
-    def t(pts): return [(int(x * sx), int(y * sy)) for x, y in pts]
-    pts = t([(16, 28), (48, 12), (92, 16), (100, 52), (84, 84), (36, 88), (12, 64)])
-    d.polygon(pts, fill=(58, 54, 62, 255))
-    d.polygon(t([(48, 12), (92, 16), (68, 48), (36, 40)]), fill=(92, 88, 98, 255))
-    d.polygon(t([(68, 48), (100, 52), (84, 84), (44, 68)]), fill=(36, 32, 40, 255))
-    d.line(t([(48, 12), (52, 48), (36, 88)]), fill=(0, 255, 220, 240), width=int(5*sx))
-    d.line(t([(48, 12), (52, 48), (36, 88)]), fill=(255, 255, 255, 255), width=int(2*sx))
-    d.line(t([(52, 48), (84, 56)]), fill=(0, 255, 220, 200), width=int(4*sx))
-    d.line(pts + [pts[0]], fill=(0, 220, 255, 120), width=int(3*sx))
-    return im
-
-def draw_crushing_rock_spire(w=136, h=112):
-    """
-    Sprite 3: Mảnh đá nhọn lao nhanh (34x28 ở 1x -> 136x112 ở 4x - PHIÊN BẢN TO BẢN)
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    sx, sy = w / 88.0, h / 72.0
-    def t(pts): return [(int(x * sx), int(y * sy)) for x, y in pts]
-    pts = t([(8, 36), (44, 12), (80, 24), (68, 56), (36, 60)])
-    d.polygon(pts, fill=(68, 64, 72, 255))
-    d.polygon(t([(8, 36), (44, 12), (48, 38)]), fill=(100, 96, 106, 255))
-    d.polygon(t([(48, 38), (80, 24), (68, 56)]), fill=(42, 38, 46, 255))
-    d.line(t([(8, 36), (48, 38), (80, 24)]), fill=(0, 255, 210, 240), width=int(4*sx))
-    d.line(t([(8, 36), (48, 38), (80, 24)]), fill=(255, 255, 255, 255), width=int(2*sx))
-    d.line(pts + [pts[0]], fill=(0, 220, 255, 130), width=int(3*sx))
-    return im
-
-def draw_crushing_rock_slab(w=152, h=120):
-    """
-    Sprite 4: Khối đá tảng dẹp (38x30 ở 1x -> 152x120 ở 4x - PHIÊN BẢN TO BẢN)
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    sx, sy = w / 104.0, h / 80.0
-    def t(pts): return [(int(x * sx), int(y * sy)) for x, y in pts]
-    pts = t([(12, 20), (52, 10), (96, 18), (92, 64), (48, 72), (16, 58)])
-    d.polygon(pts, fill=(55, 50, 58, 255))
-    d.polygon(t([(12, 20), (52, 10), (60, 42), (24, 48)]), fill=(88, 82, 92, 255))
-    d.polygon(t([(60, 42), (96, 18), (92, 64), (52, 58)]), fill=(34, 30, 36, 255))
-    d.line(t([(12, 20), (60, 42), (92, 64)]), fill=(0, 255, 220, 240), width=int(5*sx))
-    d.line(t([(12, 20), (60, 42), (92, 64)]), fill=(255, 255, 255, 255), width=int(2*sx))
-    d.line(pts + [pts[0]], fill=(0, 220, 255, 120), width=int(3*sx))
-    return im
-
-def draw_crushing_impact_shockwave(w=304, h=256):
-    """
-    Sprite 5: Sóng xung kích va đập cực đại (76x64 ở 1x -> 304x256 ở 4x - PHIÊN BẢN TO BẢN)
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    cx, cy = w // 2, h // 2
-    sx, sy = w / 200.0, h / 168.0
-    rx1, ry1 = int(86 * sx), int(68 * sy)
-    rx2, ry2 = int(74 * sx), int(58 * sy)
-    rx3, ry3 = int(62 * sx), int(48 * sy)
-    d.ellipse([cx - rx1, cy - ry1, cx + rx1, cy + ry1], outline=(0, 220, 255, 100), width=int(10*sx))
-    d.ellipse([cx - rx2, cy - ry2, cx + rx2, cy + ry2], outline=(0, 255, 240, 210), width=int(6*sx))
-    d.ellipse([cx - rx3, cy - ry3, cx + rx3, cy + ry3], outline=(255, 255, 255, 255), width=int(4*sx))
-    for deg in range(0, 360, 30):
-        rad = math.radians(deg)
-        x1 = cx + int(math.cos(rad) * rx3)
-        y1 = cy + int(math.sin(rad) * ry3)
-        x2 = cx + int(math.cos(rad) * int(94 * sx))
-        y2 = cy + int(math.sin(rad) * int(76 * sy))
-        d.line([(x1, y1), (x2, y2)], fill=(0, 255, 230, 180), width=int(4*sx))
-    return im
-
-def draw_plasma_lightning_burst(w=288, h=288):
-    """
-    Sprite 6: Tia sét Plasma Gamma & bùng nổ va đập (72x72 ở 1x -> 288x288 ở 4x - PHIÊN BẢN TO BẢN)
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    cx, cy = w // 2, h // 2
-    s = w / 184.0
-    r1 = int(22 * s)
-    r2 = int(32 * s)
-    d.ellipse([cx - r1, cy - r1, cx + r1, cy + r1], fill=(255, 255, 255, 255))
-    d.ellipse([cx - r2, cy - r2, cx + r2, cy + r2], outline=(0, 255, 220, 200), width=int(5*s))
-    branches = [
-        [(cx, cy), (cx - int(36*s), cy - int(48*s)), (cx - int(72*s), cy - int(66*s)), (cx - int(108*s), cy - int(90*s))],
-        [(cx, cy), (cx + int(42*s), cy - int(42*s)), (cx + int(78*s), cy - int(72*s)), (cx + int(112*s), cy - int(94*s))],
-        [(cx, cy), (cx - int(54*s), cy + int(18*s)), (cx - int(84*s), cy + int(36*s)), (cx - int(114*s), cy + int(58*s))],
-        [(cx, cy), (cx + int(52*s), cy + int(22*s)), (cx + int(90*s), cy + int(40*s)), (cx + int(118*s), cy + int(64*s))],
-        [(cx, cy), (cx - int(28*s), cy + int(60*s)), (cx - int(48*s), cy + int(96*s))],
-        [(cx, cy), (cx + int(28*s), cy + int(58*s)), (cx + int(54*s), cy + int(96*s))],
-    ]
-    for b in branches:
-        draw_lightning(d, b, color_glow=(0, 255, 210, 210), color_core=(255, 255, 255, 255), width=int(4*s))
-    for sx, sy in [(-int(108*s), -int(90*s)), (int(112*s), -int(94*s)), (-int(114*s), int(58*s)), (int(118*s), int(64*s))]:
-        draw_sparkle(d, cx + sx, cy + sy, r=int(10*s), color=(255, 255, 255, 255))
-    return im
-
-def draw_shattered_rock_fragments(w=248, h=216):
-    """
-    Sprite 7: Mảnh đá vỡ vụn văng tứ phía (62x54 ở 1x -> 248x216 ở 4x - PHIÊN BẢN TO BẢN)
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    cx, cy = w // 2, h // 2
-    s = w / 160.0
-    chunks = [
-        [(-48, -40), (-34, -48), (-38, -32)],
-        [(36, -42), (52, -34), (42, -26)],
-        [(-54, 18), (-40, 10), (-36, 26)],
-        [(40, 22), (56, 32), (34, 40)],
-        [(-14, -52), (0, -60), (8, -48)],
-        [(10, 48), (-4, 56), (-12, 42)],
-        [(-24, 6), (-12, -4), (-8, 14)],
-        [(22, -8), (14, 8), (28, 4)],
-    ]
-    for c in chunks:
-        pts = [(cx + int(px * s), cy + int(py * s)) for px, py in c]
-        d.polygon(pts, fill=(70, 65, 75, 255), outline=(0, 255, 210, 220))
-    for sx, sy in [(-44, -36), (46, -30), (-46, 16), (48, 28), (0, -54), (0, 48)]:
-        draw_sparkle(d, cx + int(sx * s), cy + int(sy * s), r=int(8*s), color=(0, 255, 230, 220))
-    return im
-
-def draw_crush_dust_puff(w=216, h=160):
-    """
-    Sprite 8: Khói bụi va đập tản mác (54x40 ở 1x -> 216x160 ở 4x - PHIÊN BẢN TO BẢN)
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    cx, cy = w // 2, h // 2
-    s = w / 144.0
-    for bx, by, br in [(-30, 6, 18), (30, 6, 19), (-48, 8, 13), (48, 8, 13), (0, 2, 17)]:
-        nbx, nby, nbr = int(bx * s), int(by * s), int(br * s)
-        d.ellipse([cx + nbx - nbr, cy + nby - nbr, cx + nbx + nbr, cy + nby + nbr], fill=(120, 110, 118, 140))
-        d.ellipse([cx + nbx - nbr + 3, cy + nby - nbr + 3, cx + nbx + nbr - 3, cy + nby + nbr - 3], fill=(155, 145, 150, 110))
-    for sx, sy in [(-32, -12), (32, -14), (0, -8)]:
-        draw_sparkle(d, cx + int(sx * s), cy + int(sy * s), r=int(9*s), color=(0, 255, 210, 180))
-    return im
-
-def draw_smooth_plasma_bolt(draw, pts, base_w=12, glow_col=(0, 240, 255)):
-    if len(pts) < 2: return
-    # Layer 1: Atmospheric aura
-    draw.line(pts, fill=(glow_col[0], glow_col[1], glow_col[2], 45), width=max(3, int(base_w * 2.8)), joint='curve')
-    # Layer 2: Radiant electric cyan glow
-    draw.line(pts, fill=(glow_col[0], glow_col[1], glow_col[2], 130), width=max(2, int(base_w * 1.8)), joint='curve')
-    # Layer 3: Intense electric core
-    draw.line(pts, fill=(130, 255, 255, 220), width=max(1, int(base_w * 1.0)), joint='curve')
-    # Layer 4: Hot white center
-    draw.line(pts, fill=(255, 255, 255, 255), width=max(1, int(base_w * 0.45)), joint='curve')
-    # Junction / end nodes
-    r_j = max(2, int(base_w * 0.45)) // 2 + 1
-    for p in (pts[0], pts[-1]):
-        draw.ellipse([p[0]-r_j, p[1]-r_j, p[0]+r_j, p[1]+r_j], fill=(255, 255, 255, 255))
-
-def generate_lightning_path(p1, p2, depth=4, disp=18, seed=42):
-    rng = random.Random(seed)
-    pts = [p1, p2]
-    d = disp
-    for _ in range(depth):
-        new_pts = [pts[0]]
-        for i in range(len(pts) - 1):
-            a, b = pts[i], pts[i+1]
-            mx = (a[0] + b[0]) / 2.0
-            my = (a[1] + b[1]) / 2.0
-            dx = b[0] - a[0]
-            dy = b[1] - a[1]
-            length = (dx*dx + dy*dy)**0.5
-            if length < 1e-4:
-                new_pts.append(b)
-                continue
-            nx = -dy / length
-            ny = dx / length
-            offset = (rng.random() - 0.5) * 2.0 * d
-            new_pts.append((mx + nx * offset, my + ny * offset))
-            new_pts.append(b)
-        pts = new_pts
-        d *= 0.58
-    return [(int(round(x)), int(round(y))) for x, y in pts]
-
-def draw_realistic_sky_lightning(w=216, h=432, phase=0):
-    """
-    Vẽ TIA SÉT TỰ NHIÊN SIÊU THỰC GIÁNG TỪ TRÊN TRỜI XUỐNG:
-    - Thuật toán Fractal Midpoint Displacement tạo đường đi giật góc hữu cơ chuẩn sấm sét tự nhiên
-    - Đa tầng hào quang Plasma Cyan phát quang dịu mắt, lõi sáng trắng cực đại (255, 255, 255)
-    - Nhánh sét phụ chằng chịt phân nhánh xé toạc không gian
-    - Vòm phóng điện hồ quang cực đại và các tia sét lan mặt đất khi va chạm
-    """
-    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    cx = w // 2 # 108 khi w=216
-    s = w / 216.0
+    rx, ry = int(w * 0.45), int(h * 0.42)
     
-    if phase == 0:
-        # Phase 0: Sét giáng tiên đạo (Main leader bolt + sprawling fractal branches)
-        key_nodes = [
-            (cx - int(15*s), 0),
-            (cx + int(18*s), int(h * 0.15)),
-            (cx - int(32*s), int(h * 0.32)),
-            (cx + int(25*s), int(h * 0.50)),
-            (cx - int(20*s), int(h * 0.68)),
-            (cx + int(16*s), int(h * 0.85)),
-            (cx, h)
+    # 1. Đĩa chấn động bụi cát & hào quang nền
+    d = ImageDraw.Draw(im)
+    for dr in range(16, 0, -3):
+        alpha = int(35 * (1.0 - dr / 16.0))
+        d.ellipse([cx - rx - dr, cy - ry - dr, cx + rx + dr, cy + ry + dr], outline=(170, 145, 105, alpha), width=3)
+    d.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], outline=(0, 220, 255, 120), width=4)
+    
+    # 2. Hào quang xanh dịu
+    glow_im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d_g = ImageDraw.Draw(glow_im)
+    for r_f in np.linspace(1.0, 0.15, 10):
+        cur_rx = int(rx * r_f)
+        cur_ry = int(ry * r_f)
+        alpha = int(40 * (1.1 - r_f))
+        d_g.ellipse([cx - cur_rx, cy - cur_ry, cx + cur_rx, cy + cur_ry], fill=(0, 175, 255, alpha))
+    glow_im = glow_im.filter(ImageFilter.GaussianBlur(12))
+    im.alpha_composite(glow_im)
+    
+    # 3. 32 Chùm tia sáng nan hoa
+    d = ImageDraw.Draw(im)
+    num_rays = 32
+    np.random.seed(77)
+    for i in range(num_rays):
+        angle = 2 * math.pi * i / num_rays + np.random.uniform(-0.03, 0.03)
+        cos_a = math.cos(angle)
+        sin_a = math.sin(angle)
+        ray_len = np.random.uniform(0.70, 0.98)
+        ex = cx + rx * cos_a * ray_len
+        ey = cy + ry * sin_a * ray_len
+        w_ray = np.random.uniform(3.0, 7.5)
+        perp_x = -sin_a * w_ray
+        perp_y = cos_a * w_ray * 0.85
+        poly = [
+            (cx - perp_x * 0.25, cy - perp_y * 0.25),
+            (cx + perp_x * 0.25, cy + perp_y * 0.25),
+            (ex + perp_x * 0.05, ey + perp_y * 0.05),
+            (ex, ey),
+            (ex - perp_x * 0.05, ey - perp_y * 0.05)
         ]
-        main_path = []
-        for i in range(len(key_nodes) - 1):
-            seg = generate_lightning_path(key_nodes[i], key_nodes[i+1], depth=3, disp=int(14*s), seed=100 + i*7)
-            if i > 0: seg = seg[1:]
-            main_path.extend(seg)
-            
-        draw_smooth_plasma_bolt(d, main_path, base_w=int(10*s))
-        
-        # Nhánh lớn 1: Tách ở 32%
-        b1_nodes = [(cx - int(32*s), int(h * 0.32)), (cx - int(75*s), int(h * 0.40)), (cx - int(95*s), int(h * 0.52))]
-        b1_path = generate_lightning_path(b1_nodes[0], b1_nodes[1], depth=3, disp=int(10*s), seed=201)
-        b1_path.extend(generate_lightning_path(b1_nodes[1], b1_nodes[2], depth=3, disp=int(8*s), seed=202)[1:])
-        draw_smooth_plasma_bolt(d, b1_path, base_w=int(5*s))
-        b1_sub = generate_lightning_path((cx - int(75*s), int(h * 0.40)), (cx - int(65*s), int(h * 0.48)), depth=2, disp=int(6*s), seed=203)
-        draw_smooth_plasma_bolt(d, b1_sub, base_w=int(3*s))
-        
-        # Nhánh lớn 2: Tách ở 50%
-        b2_nodes = [(cx + int(25*s), int(h * 0.50)), (cx + int(70*s), int(h * 0.58)), (cx + int(92*s), int(h * 0.70))]
-        b2_path = generate_lightning_path(b2_nodes[0], b2_nodes[1], depth=3, disp=int(10*s), seed=301)
-        b2_path.extend(generate_lightning_path(b2_nodes[1], b2_nodes[2], depth=3, disp=int(8*s), seed=302)[1:])
-        draw_smooth_plasma_bolt(d, b2_path, base_w=int(5*s))
-        b2_sub = generate_lightning_path((cx + int(70*s), int(h * 0.58)), (cx + int(85*s), int(h * 0.54)), depth=2, disp=int(6*s), seed=303)
-        draw_smooth_plasma_bolt(d, b2_sub, base_w=int(3*s))
-        
-        # Nhánh lớn 3: Tách ở 15%
-        b3_path = generate_lightning_path((cx + int(18*s), int(h * 0.15)), (cx + int(62*s), int(h * 0.22)), depth=3, disp=int(8*s), seed=401)
-        draw_smooth_plasma_bolt(d, b3_path, base_w=int(4*s))
-        
-        # Nhánh 4: Tách ở 68%
-        b4_nodes = [(cx - int(20*s), int(h * 0.68)), (cx - int(55*s), int(h * 0.76)), (cx - int(45*s), int(h * 0.90))]
-        b4_path = generate_lightning_path(b4_nodes[0], b4_nodes[1], depth=3, disp=int(9*s), seed=501)
-        b4_path.extend(generate_lightning_path(b4_nodes[1], b4_nodes[2], depth=3, disp=int(7*s), seed=502)[1:])
-        draw_smooth_plasma_bolt(d, b4_path, base_w=int(5*s))
-        
-        # Ambient micro-arcs
-        for p_start, p_end, sd in [
-            ((cx - int(15*s), int(h * 0.08)), (cx - int(45*s), int(h * 0.14)), 601),
-            ((cx + int(5*s), int(h * 0.40)), (cx - int(18*s), int(h * 0.46)), 602),
-            ((cx + int(8*s), int(h * 0.75)), (cx + int(38*s), int(h * 0.82)), 603)
-        ]:
-            micro_p = generate_lightning_path(p_start, p_end, depth=2, disp=int(5*s), seed=sd)
-            draw_smooth_plasma_bolt(d, micro_p, base_w=int(3*s))
+        alpha = int(np.random.uniform(140, 230))
+        d.polygon(poly, fill=(0, 235, 255, alpha))
+        if w_ray > 4.5:
+            poly_core = [
+                (cx, cy),
+                (cx + perp_x * 0.12, cy + perp_y * 0.12),
+                (ex * 0.75 + cx * 0.25, ey * 0.75 + cy * 0.25),
+                (cx - perp_x * 0.12, cy - perp_y * 0.12)
+            ]
+            d.polygon(poly_core, fill=(255, 255, 255, int(alpha * 0.9)))
 
-        # Điểm va chạm nổ điện ở chân sét
-        d.ellipse([cx - int(22*s), h - int(28*s), cx + int(22*s), h + int(16*s)], fill=(255, 255, 255, 255))
-        d.ellipse([cx - int(36*s), h - int(38*s), cx + int(36*s), h + int(24*s)], outline=(0, 240, 255, 200), width=int(4*s))
-        for dx_s, dy_s in [(-int(95*s), int(h * 0.52)), (int(92*s), int(h * 0.70)), (int(62*s), int(h * 0.22)), (-int(45*s), int(h * 0.90))]:
-            draw_sparkle(d, cx + dx_s, dy_s, r=int(10*s), color=(255, 255, 255, 255))
-            
-    else: # Phase 1: Return stroke bùng nổ cực hạn
-        key_nodes = [
-            (cx + int(12*s), 0),
-            (cx - int(22*s), int(h * 0.16)),
-            (cx + int(28*s), int(h * 0.35)),
-            (cx - int(26*s), int(h * 0.54)),
-            (cx + int(24*s), int(h * 0.72)),
-            (cx - int(12*s), int(h * 0.88)),
-            (cx, h)
-        ]
-        main_path = []
-        for i in range(len(key_nodes) - 1):
-            seg = generate_lightning_path(key_nodes[i], key_nodes[i+1], depth=3, disp=int(15*s), seed=700 + i*9)
-            if i > 0: seg = seg[1:]
-            main_path.extend(seg)
-            
-        draw_smooth_plasma_bolt(d, main_path, base_w=int(14*s))
-        
-        # Cột sét phụ đánh song song
-        para_nodes = [
-            (cx - int(10*s), int(h * 0.10)),
-            (cx + int(8*s), int(h * 0.24)),
-            (cx - int(8*s), int(h * 0.40)),
-            (cx + int(20*s), int(h * 0.56)),
-            (cx - int(6*s), int(h * 0.76)),
-            (cx, h)
-        ]
-        para_path = []
-        for i in range(len(para_nodes) - 1):
-            seg = generate_lightning_path(para_nodes[i], para_nodes[i+1], depth=3, disp=int(11*s), seed=800 + i*11)
-            if i > 0: seg = seg[1:]
-            para_path.extend(seg)
-        draw_smooth_plasma_bolt(d, para_path, base_w=int(6*s))
-        
-        # Nhánh hồ quang văng rộng 1: bên phải
-        b1_nodes = [(cx + int(28*s), int(h * 0.35)), (cx + int(82*s), int(h * 0.42)), (cx + int(102*s), int(h * 0.55))]
-        b1_path = generate_lightning_path(b1_nodes[0], b1_nodes[1], depth=3, disp=int(11*s), seed=901)
-        b1_path.extend(generate_lightning_path(b1_nodes[1], b1_nodes[2], depth=3, disp=int(9*s), seed=902)[1:])
-        draw_smooth_plasma_bolt(d, b1_path, base_w=int(6*s))
-        
-        # Nhánh hồ quang văng rộng 2: bên trái
-        b2_nodes = [(cx - int(26*s), int(h * 0.54)), (cx - int(78*s), int(h * 0.62)), (cx - int(98*s), int(h * 0.74))]
-        b2_path = generate_lightning_path(b2_nodes[0], b2_nodes[1], depth=3, disp=int(11*s), seed=903)
-        b2_path.extend(generate_lightning_path(b2_nodes[1], b2_nodes[2], depth=3, disp=int(9*s), seed=904)[1:])
-        draw_smooth_plasma_bolt(d, b2_path, base_w=int(6*s))
-        
-        # Sét lan mặt đất
-        g_arc_left = generate_lightning_path((cx, h - int(8*s)), (cx - int(75*s), h - int(4*s)), depth=3, disp=int(8*s), seed=905)
-        g_arc_right = generate_lightning_path((cx, h - int(8*s)), (cx + int(75*s), h - int(4*s)), depth=3, disp=int(8*s), seed=906)
-        draw_smooth_plasma_bolt(d, g_arc_left, base_w=int(5*s))
-        draw_smooth_plasma_bolt(d, g_arc_right, base_w=int(5*s))
-        
-        # Khối plasma va chạm cực đại ở chân
-        d.ellipse([cx - int(32*s), h - int(38*s), cx + int(32*s), h + int(24*s)], fill=(255, 255, 255, 255))
-        d.ellipse([cx - int(50*s), h - int(52*s), cx + int(50*s), h + int(34*s)], outline=(0, 255, 240, 220), width=int(6*s))
-        d.ellipse([cx - int(70*s), h - int(68*s), cx + int(70*s), h + int(46*s)], outline=(0, 220, 255, 130), width=int(8*s))
-        
-        for sx, sy in [(cx + int(102*s), int(h * 0.55)), (cx - int(98*s), int(h * 0.74)), (cx - int(75*s), h - int(4*s)), (cx + int(75*s), h - int(4*s))]:
-            draw_sparkle(d, sx, sy, r=int(12*s), color=(255, 255, 255, 255))
+    # 4. Lõi cực quang chói lòa
+    core_layer = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d_c = ImageDraw.Draw(core_layer)
+    for r_c, a_c in [(55, 80), (38, 140), (22, 220)]:
+        d_c.ellipse([cx - r_c, cy - int(r_c * 0.85), cx + r_c, cy + int(r_c * 0.85)], fill=(0, 230, 255, a_c))
+    core_layer = core_layer.filter(ImageFilter.GaussianBlur(6))
+    im.alpha_composite(core_layer)
+    
+    d.ellipse([cx - 18, cy - 14, cx + 18, cy + 14], fill=(235, 250, 255, 250))
+    d.ellipse([cx - 10, cy - 8, cx + 10, cy + 8], fill=(255, 255, 255, 255))
+    draw_sparkle(d, cx, cy, r=22, color=(255, 255, 255, 255))
+    return im
 
+def draw_gamma_lightning_ring(w=520, h=416):
+    """
+    Sprite 1: Vành Đai Sét Hồ Quang Cuộn Tròn (130x104 ở 1x -> 520x416 ở 4x)
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    cx, cy = w // 2, h // 2
+    rx, ry = int(w * 0.44), int(h * 0.42)
+    np.random.seed(101)
+    glow_im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d_g = ImageDraw.Draw(glow_im)
+    d = ImageDraw.Draw(im)
+    
+    for ring_i in range(3):
+        offset = (ring_i - 1) * 8
+        cur_rx = rx + offset
+        cur_ry = ry + offset * 0.92
+        num_pts = 42
+        pts = []
+        for k in range(num_pts + 1):
+            theta = 2 * math.pi * k / num_pts
+            jx = np.random.uniform(-5, 5)
+            jy = np.random.uniform(-5, 5)
+            px = cx + (cur_rx + jx) * math.cos(theta)
+            py = cy + (cur_ry + jy) * math.sin(theta)
+            pts.append((px, py))
+        for k in range(len(pts) - 1):
+            d_g.line([pts[k], pts[k+1]], fill=(0, 210, 255, 180), width=12)
+            d.line([pts[k], pts[k+1]], fill=(0, 245, 255, 230), width=5)
+            d.line([pts[k], pts[k+1]], fill=(255, 255, 255, 255), width=2)
+            
+    glow_im = glow_im.filter(ImageFilter.GaussianBlur(8))
+    im = Image.alpha_composite(glow_im, im)
+    d = ImageDraw.Draw(im)
+    
+    for k in range(12):
+        theta = 2 * math.pi * k / 12 + np.random.uniform(-0.1, 0.1)
+        sx = cx + rx * math.cos(theta)
+        sy = cy + ry * math.sin(theta)
+        d_mult = -1.0 if (k % 2 == 0) else 0.7
+        l_sp = np.random.uniform(28, 55)
+        mx = sx + math.cos(theta) * l_sp * 0.5 * d_mult + np.random.uniform(-10, 10)
+        my = sy + math.sin(theta) * l_sp * 0.5 * d_mult + np.random.uniform(-10, 10)
+        ex = sx + math.cos(theta) * l_sp * d_mult + np.random.uniform(-12, 12)
+        ey = sy + math.sin(theta) * l_sp * d_mult + np.random.uniform(-12, 12)
+        d.line([(sx, sy), (mx, my), (ex, ey)], fill=(0, 240, 255, 220), width=3)
+        d.line([(sx, sy), (mx, my), (ex, ey)], fill=(255, 255, 255, 255), width=1)
+        draw_sparkle(d, int(ex), int(ey), r=5, color=(255, 255, 255, 255))
+    return im
+
+def draw_gamma_sky_lightning(w=176, h=560, seed_val=404):
+    """
+    Sprite 2: Tia Sét Từ Trời Giáng Xuống Liền Mạch (44x140 ở 1x -> 176x560 ở 4x)
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    cx = w // 2
+    np.random.seed(seed_val)
+    nodes = [
+        (cx + np.random.uniform(-8, 8), 0),
+        (cx + np.random.uniform(-28, -10), int(h * 0.20)),
+        (cx + np.random.uniform(10, 30), int(h * 0.40)),
+        (cx + np.random.uniform(-30, -12), int(h * 0.60)),
+        (cx + np.random.uniform(12, 28), int(h * 0.80)),
+        (cx + np.random.uniform(-10, 8), int(h * 0.95)),
+        (cx, h)
+    ]
+    full_path = [nodes[0]]
+    for i in range(len(nodes) - 1):
+        p1, p2 = nodes[i], nodes[i+1]
+        mid1 = ((p1[0] + p2[0])/2.0 + np.random.uniform(-12, 12), (p1[1] + p2[1])/2.0)
+        sub1 = ((p1[0] + mid1[0])/2.0 + np.random.uniform(-8, 8), (p1[1] + mid1[1])/2.0)
+        sub2 = ((mid1[0] + p2[0])/2.0 + np.random.uniform(-8, 8), (mid1[1] + p2[1])/2.0)
+        full_path.extend([sub1, mid1, sub2, p2])
+        
+    glow_im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d_g = ImageDraw.Draw(glow_im)
+    for i in range(len(full_path) - 1):
+        d_g.line([full_path[i], full_path[i+1]], fill=(0, 200, 255, 200), width=18)
+    glow_im = glow_im.filter(ImageFilter.GaussianBlur(8))
+    im.alpha_composite(glow_im)
+    
+    d = ImageDraw.Draw(im)
+    for i in range(len(full_path) - 1):
+        d.line([full_path[i], full_path[i+1]], fill=(0, 235, 255, 240), width=8)
+        d.line([full_path[i], full_path[i+1]], fill=(255, 255, 255, 255), width=3)
+        
+    for branch_i in range(3):
+        idx_b = int(len(full_path) * (0.25 + branch_i * 0.28))
+        bp_start = full_path[idx_b]
+        b_dir = -1.0 if (branch_i % 2 == 0) else 1.0
+        bp_mid = (bp_start[0] + b_dir * np.random.uniform(25, 45), bp_start[1] + np.random.uniform(20, 45))
+        bp_end = (bp_mid[0] + b_dir * np.random.uniform(20, 35), bp_mid[1] + np.random.uniform(20, 40))
+        d.line([bp_start, bp_mid, bp_end], fill=(0, 230, 255, 220), width=4)
+        d.line([bp_start, bp_mid, bp_end], fill=(255, 255, 255, 255), width=2)
+        draw_sparkle(d, int(bp_end[0]), int(bp_end[1]), r=6, color=(255, 255, 255, 255))
+        
+    return im
+
+def draw_gamma_center_mega_flash(w=296, h=272):
+    """
+    Sprite 3: Chớp Sáng Cực Đại Bùng Nổ Ngay Tại Trung Tâm Chiêu (74x68 ở 1x -> 296x272 ở 4x)
+    Vầng hào quang cyan bloom tỏa rộng, các tia chớp nan hoa xé toạc không gian từ tâm và lõi trắng chói lòa
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    cx, cy = w // 2, h // 2
+    
+    # 1. Vầng hào quang cyan bloom nở rộng
+    glow = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d_g = ImageDraw.Draw(glow)
+    for r_f in np.linspace(1.0, 0.2, 10):
+        rx = int((w * 0.46) * r_f)
+        ry = int((h * 0.44) * r_f)
+        alpha = int(120 * (1.1 - r_f * 0.6))
+        d_g.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=(0, 220, 255, alpha))
+    glow = glow.filter(ImageFilter.GaussianBlur(14))
+    im.alpha_composite(glow)
+    
+    d = ImageDraw.Draw(im)
+    
+    # 2. Các tia chớp nan hoa xé toạc không gian từ tâm (Flash Spikes)
+    for ang_deg in [0, 45, 90, 135, 180, 225, 270, 315]:
+        ang = math.radians(ang_deg)
+        cos_a, sin_a = math.cos(ang), math.sin(ang)
+        r_spike = (w * 0.46) if (ang_deg % 90 == 0) else (w * 0.38)
+        ex = cx + cos_a * r_spike
+        ey = cy + sin_a * r_spike * 0.85
+        w_b = 6.0 if (ang_deg % 90 == 0) else 4.0
+        px = -sin_a * w_b
+        py = cos_a * w_b
+        poly = [(cx - px, cy - py), (cx + px, cy + py), (ex, ey)]
+        d.polygon(poly, fill=(0, 240, 255, 230))
+        d.polygon([(cx - px*0.4, cy - py*0.4), (cx + px*0.4, cy + py*0.4), (ex*0.8 + cx*0.2, ey*0.8 + cy*0.2)], fill=(255, 255, 255, 255))
+        
+    for i in range(16):
+        ang = 2 * math.pi * i / 16.0 + 0.1
+        ex = cx + math.cos(ang) * (w * 0.32)
+        ey = cy + math.sin(ang) * (h * 0.28)
+        d.line([(cx, cy), (ex, ey)], fill=(160, 245, 255, 220), width=2)
+        draw_sparkle(d, int(ex), int(ey), r=5, color=(255, 255, 255, 255))
+        
+    # 3. Lõi trắng chói lòa tại trung tâm (Pure White Starburst)
+    core = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d_c = ImageDraw.Draw(core)
+    for r_c, a_c in [(65, 120), (45, 180), (28, 240)]:
+        d_c.ellipse([cx - r_c, cy - int(r_c * 0.8), cx + r_c, cy + int(r_c * 0.8)], fill=(0, 245, 255, a_c))
+    core = core.filter(ImageFilter.GaussianBlur(6))
+    im.alpha_composite(core)
+    
+    d = ImageDraw.Draw(im)
+    d.ellipse([cx - 32, cy - 24, cx + 32, cy + 24], fill=(240, 255, 255, 255))
+    d.ellipse([cx - 18, cy - 14, cx + 18, cy + 14], fill=(255, 255, 255, 255))
+    draw_sparkle(d, cx, cy, r=36, color=(255, 255, 255, 255))
+    draw_sparkle(d, cx, cy, r=22, color=(180, 245, 255, 255))
+    return im
+
+def draw_gamma_detonation_burst(w=288, h=216):
+    """
+    Sprite 4: Chớp Nổ Bộc Phá Plasma Cực Đại (72x54 ở 1x -> 288x216 ở 4x)
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    cx, cy = w // 2, h // 2
+    d = ImageDraw.Draw(im)
+    for r_b, a_b in [(100, 60), (70, 130), (45, 200), (24, 255)]:
+        d.ellipse([cx - r_b, cy - int(r_b*0.75), cx + r_b, cy + int(r_b*0.75)], fill=(0, 235, 255, a_b))
+    d.ellipse([cx - 30, cy - 22, cx + 30, cy + 22], fill=(245, 255, 255, 255))
+    draw_sparkle(d, cx, cy, r=38, color=(255, 255, 255, 255))
+    draw_sparkle(d, cx, cy, r=22, color=(0, 240, 255, 255))
+    return im
+
+def draw_gamma_blade_top_left(w=152, h=136):
+    """
+    Sprite 5: Đao Hắc Thạch Lớn Góc Trên (38x34 ở 1x -> 152x136 ở 4x)
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    tip = (134, 120)
+    p_top_e = (66, 12)
+    p_top_l = (22, 34)
+    p_mid_l = (12, 78)
+    p_ridge_1 = (70, 50)
+    p_ridge_2 = (94, 78)
+    p_right_e = (124, 42)
+    p_bot_l = (42, 110)
+    d.polygon([p_top_l, p_mid_l, p_bot_l, tip, p_ridge_2, p_ridge_1], fill=(16, 20, 26, 255))
+    d.polygon([p_mid_l, p_bot_l, tip], fill=(10, 14, 20, 255))
+    d.polygon([p_top_l, p_top_e, p_ridge_1], fill=(38, 46, 60, 255))
+    d.polygon([p_bot_l, tip, p_ridge_2], fill=(26, 32, 42, 255))
+    d.polygon([p_top_e, p_right_e, p_ridge_2, p_ridge_1], fill=(74, 88, 112, 255))
+    d.polygon([p_right_e, tip, p_ridge_2], fill=(106, 124, 150, 255))
+    d.line([p_top_e, p_ridge_1, p_ridge_2, tip], fill=(155, 180, 210, 255), width=3)
+    d.line([p_right_e, tip], fill=(185, 215, 240, 255), width=2)
+    d.line([tip, p_right_e, p_top_e], fill=(0, 235, 255, 220), width=3)
+    d.line([tip, p_bot_l], fill=(0, 180, 240, 150), width=2)
+    draw_sparkle(d, tip[0], tip[1], r=7, color=(255, 255, 255, 255))
+    return im
+
+def draw_gamma_blade_bottom_left(w=152, h=136):
+    """
+    Sprite 6: Đao Hắc Thạch Lớn Góc Dưới (38x34 ở 1x -> 152x136 ở 4x)
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    tip = (136, 16)
+    p_bot_e = (62, 122)
+    p_bot_l = (18, 92)
+    p_mid_l = (10, 52)
+    p_ridge_1 = (72, 78)
+    p_ridge_2 = (96, 48)
+    p_right_b = (120, 90)
+    p_top_l = (46, 20)
+    d.polygon([p_mid_l, p_bot_l, p_bot_e, p_right_b, p_ridge_1], fill=(14, 18, 24, 255))
+    d.polygon([p_mid_l, p_top_l, tip, p_ridge_2, p_ridge_1], fill=(22, 28, 38, 255))
+    d.polygon([p_top_l, tip, p_ridge_2], fill=(66, 80, 102, 255))
+    d.polygon([p_ridge_1, p_ridge_2, tip, p_right_b], fill=(94, 112, 138, 255))
+    d.line([p_bot_e, p_ridge_1, p_ridge_2, tip], fill=(150, 175, 205, 255), width=3)
+    d.line([tip, p_top_l], fill=(0, 240, 255, 230), width=3)
+    d.line([tip, p_right_b], fill=(0, 190, 245, 160), width=2)
+    draw_sparkle(d, tip[0], tip[1], r=7, color=(255, 255, 255, 255))
+    return im
+
+def draw_gamma_blade_vertical(w=144, h=128):
+    """
+    Sprite 7: Đao Hắc Thạch Dựng Đứng (36x32 ở 1x -> 144x128 ở 4x)
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    tip = (72, 118)
+    p_top_l = (18, 14)
+    p_top_r = (126, 14)
+    p_top_m = (72, 8)
+    p_ridge = (72, 64)
+    p_mid_l = (24, 60)
+    p_mid_r = (120, 60)
+    d.polygon([p_top_l, p_mid_l, tip, p_ridge], fill=(20, 26, 36, 255))
+    d.polygon([p_mid_l, p_top_l, p_top_m, p_ridge], fill=(34, 42, 56, 255))
+    d.polygon([p_top_m, p_top_r, p_mid_r, p_ridge], fill=(72, 86, 110, 255))
+    d.polygon([p_mid_r, tip, p_ridge], fill=(100, 118, 144, 255))
+    d.line([p_top_m, p_ridge, tip], fill=(155, 180, 210, 255), width=3)
+    d.line([tip, p_mid_r, p_top_r], fill=(0, 235, 255, 220), width=2)
+    d.line([tip, p_mid_l], fill=(0, 180, 240, 160), width=2)
+    draw_sparkle(d, tip[0], tip[1], r=6, color=(255, 255, 255, 255))
+    return im
+
+def draw_gamma_blade_side(w=144, h=104):
+    """
+    Sprite 8: Đao Hắc Thạch Nằm Ngang (36x26 ở 1x -> 144x104 ở 4x)
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    tip = (136, 52)
+    p_back_t = (14, 18)
+    p_back_b = (16, 86)
+    p_back_m = (8, 52)
+    p_facet_t = (76, 20)
+    p_facet_b = (78, 84)
+    p_ridge = (80, 52)
+    d.polygon([p_back_m, p_back_b, p_facet_b, tip, p_ridge], fill=(16, 20, 28, 255))
+    d.polygon([p_back_m, p_back_t, p_facet_t, p_ridge], fill=(46, 56, 74, 255))
+    d.polygon([p_facet_t, tip, p_ridge], fill=(95, 112, 140, 255))
+    d.polygon([p_facet_b, tip, p_ridge], fill=(30, 38, 50, 255))
+    d.line([p_back_m, p_ridge, tip], fill=(155, 180, 210, 255), width=3)
+    d.line([tip, p_facet_t, p_back_t], fill=(0, 235, 255, 220), width=2)
+    draw_sparkle(d, tip[0], tip[1], r=6, color=(255, 255, 255, 255))
+    return im
+
+def draw_gamma_fragment(w=72, h=64):
+    """
+    Sprite 9: Mảnh Vỡ Tinh Thể Lơ Lửng (18x16 ở 1x -> 72x64 ở 4x)
+    """
+    im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    pts = [(12, 32), (36, 12), (60, 26), (50, 52), (22, 48)]
+    d.polygon(pts, fill=(28, 34, 46, 255))
+    d.polygon([(12, 32), (36, 12), (38, 32)], fill=(80, 96, 122, 255))
+    d.line([(36, 12), (60, 26)], fill=(0, 230, 255, 220), width=2)
     return im
 
 def create_effect_915_room_earth_detonation():
     """
-    Tạo Effect 915: Room Hình Cầu & Đá Đẩy Vô Player Trúng Đòn (SPHERE ROCK CRUSH & REALISTIC SKY LIGHTNING):
-    1. Mục tiêu đơn: Tạo phòng Room hình cầu 3D trong suốt chuẩn ảnh mẫu ôm trọn người chơi bị trúng đòn.
-    2. Các tảng đá khổng lồ xuất hiện xung quanh viền hình cầu rồi bị đẩy/lao mạnh vào người chơi.
-    3. Sau khi mấy cục đá gộp vô tâm người chơi -> TIA SÉT SIÊU THỰC TỰ NHIÊN TỪ TRÊN TRỜI GIÁNG XUỐNG!
-    4. Sét nổ bùng cực đại phá vỡ khối đá thành các mảnh vỡ văng tứ phía, sóng xung kích và khói bụi.
-    5. Diễn hoạt trọn vẹn đúng 3.0 giây (75 ticks tại 25 FPS).
+    Tạo Effect 915: Vòng Xoáy Dao Phóng Xạ Gamma (Gamma Knife Obsidian Vortex):
+    1. Vành đai 10 khối đao Hắc Diện Thạch đa giác 3D khóa trọn mục tiêu.
+    2. Vòng sấm sét Cyan cuộn xoáy dữ dội nhiều lớp.
+    3. Lõi cực quang và 32 chùm tia sáng nan hoa (Sunburst Beams) tỏa từ tâm ra ngoài.
+    4. TIA SÉT TỰ NHIÊN TỪ TRÊN TRỜI ĐÁNH THẲNG XUỐNG TÂM.
+    5. CHỚP SÁNG BÙNG NỔ NGAY TẠI TRUNG TÂM CHIÊU (Center Mega-Flash) khi bộc phá nổ cực hạn.
     """
     scale = 4
     w_sheet = 252 * scale
     h_sheet = 252 * scale
     im = Image.new('RGBA', (w_sheet, h_sheet), (0, 0, 0, 0))
 
-    im_sphere         = draw_tact_gamma_sphere(140*scale, 140*scale)
-    im_boulder_a      = draw_crushing_boulder_a(42*scale, 36*scale)
-    im_boulder_b      = draw_crushing_boulder_b(42*scale, 36*scale)
-    im_spire          = draw_crushing_rock_spire(34*scale, 28*scale)
-    im_slab           = draw_crushing_rock_slab(38*scale, 30*scale)
-    im_shockwave      = draw_crushing_impact_shockwave(76*scale, 54*scale)
-    im_plasma         = draw_plasma_lightning_burst(72*scale, 72*scale)
-    im_shattered      = draw_shattered_rock_fragments(62*scale, 54*scale)
-    im_dust           = draw_crush_dust_puff(54*scale, 36*scale)
-    im_sky_lightning1 = draw_realistic_sky_lightning(54*scale, 180*scale, phase=0)
-    im_sky_lightning2 = draw_realistic_sky_lightning(54*scale, 180*scale, phase=1)
+    sp0_base       = draw_gamma_vortex_base_and_rays(130*scale, 104*scale)
+    sp1_ring       = draw_gamma_lightning_ring(130*scale, 104*scale)
+    sp2_lightning  = draw_gamma_sky_lightning(44*scale, 140*scale)
+    sp3_flash      = draw_gamma_center_mega_flash(74*scale, 68*scale)
+    sp4_burst      = draw_gamma_detonation_burst(72*scale, 54*scale)
+    sp5_blade_tl   = draw_gamma_blade_top_left(38*scale, 34*scale)
+    sp6_blade_bl   = draw_gamma_blade_bottom_left(38*scale, 34*scale)
+    sp7_blade_v    = draw_gamma_blade_vertical(36*scale, 32*scale)
+    sp8_blade_s    = draw_gamma_blade_side(36*scale, 26*scale)
+    sp9_frag       = draw_gamma_fragment(18*scale, 16*scale)
 
-    # Bố trí Sprite vào Sheet (Đảm bảo 100% tọa độ <= 252 < 255)
-    im.paste(im_sphere,         (0*scale,   0*scale),   im_sphere)
-    im.paste(im_plasma,         (0*scale,   142*scale), im_plasma)
-    im.paste(im_dust,           (0*scale,   216*scale), im_dust)
-    im.paste(im_shattered,      (74*scale,  142*scale), im_shattered)
-    im.paste(im_shockwave,      (60*scale,  198*scale), im_shockwave)
-    im.paste(im_boulder_a,      (142*scale, 0*scale),   im_boulder_a)
-    im.paste(im_boulder_b,      (186*scale, 0*scale),   im_boulder_b)
-    im.paste(im_spire,          (142*scale, 38*scale),  im_spire)
-    im.paste(im_slab,           (178*scale, 38*scale),  im_slab)
-    im.paste(im_sky_lightning1, (142*scale, 72*scale),  im_sky_lightning1)
-    im.paste(im_sky_lightning2, (198*scale, 72*scale),  im_sky_lightning2)
+    # Bố trí Sprite vào Sheet (Đảm bảo 100% tọa độ <= 252 ở 1x)
+    im.paste(sp0_base,      (0*scale,   0*scale),   sp0_base)       # 0: x=0, y=0, w=130, h=104
+    im.paste(sp1_ring,      (0*scale, 106*scale),   sp1_ring)       # 1: x=0, y=106, w=130, h=104
+    im.paste(sp2_lightning, (132*scale, 0*scale),   sp2_lightning)  # 2: x=132, y=0, w=44, h=140
+    im.paste(sp3_flash,     (178*scale, 0*scale),   sp3_flash)      # 3: x=178, y=0, w=74, h=68
+    im.paste(sp4_burst,     (178*scale, 70*scale),  sp4_burst)      # 4: x=178, y=70, w=72, h=54
+    im.paste(sp5_blade_tl,  (132*scale, 142*scale), sp5_blade_tl)   # 5: x=132, y=142, w=38, h=34
+    im.paste(sp6_blade_bl,  (172*scale, 142*scale), sp6_blade_bl)   # 6: x=172, y=142, w=38, h=34
+    im.paste(sp7_blade_v,   (212*scale, 142*scale), sp7_blade_v)    # 7: x=212, y=142, w=36, h=32
+    im.paste(sp8_blade_s,   (132*scale, 178*scale), sp8_blade_s)    # 8: x=132, y=178, w=36, h=26
+    im.paste(sp9_frag,      (170*scale, 178*scale), sp9_frag)       # 9: x=170, y=178, w=18, h=16
 
     small_imgs = [
-        (0,   0,   0, 140, 140), # Sprite 0: Phòng Room hình cầu 3D
-        (1, 142,   0,  42,  36), # Sprite 1: Tảng đá lớn A
-        (2, 186,   0,  42,  36), # Sprite 2: Tảng đá lớn B
-        (3, 142,  38,  34,  28), # Sprite 3: Mảnh đá nhọn
-        (4, 178,  38,  38,  30), # Sprite 4: Khối đá tảng dẹp
-        (5,  60, 198,  76,  54), # Sprite 5: Sóng xung kích va đập cực đại
-        (6,   0, 142,  72,  72), # Sprite 6: Tia sét Plasma Gamma
-        (7,  74, 142,  62,  54), # Sprite 7: Mảnh đá vỡ vụn văng tứ phía
-        (8,   0, 216,  54,  36), # Sprite 8: Khói bụi va đập
-        (9, 142,  72,  54, 180), # Sprite 9: Tia sét giáng từ trời siêu thực pha 1 (h=180px)
-        (10,198,  72,  54, 180), # Sprite 10: Tia sét giáng từ trời siêu thực pha 2 (h=180px)
+        (0,   0,   0, 130, 104), # Sprite 0: Vortex Base & Sunburst Beams
+        (1,   0, 106, 130, 104), # Sprite 1: Swirling Lightning Ring
+        (2, 132,   0,  44, 140), # Sprite 2: Sky Lightning Bolt (Tia sét từ trời)
+        (3, 178,   0,  74,  68), # Sprite 3: Center Mega-Flash (Chớp sáng cực đại trung tâm chiêu)
+        (4, 178,  70,  72,  54), # Sprite 4: Detonation Plasma Burst
+        (5, 132, 142,  38,  34), # Sprite 5: Top-Left Blade
+        (6, 172, 142,  38,  34), # Sprite 6: Bottom-Left Blade
+        (7, 212, 142,  36,  32), # Sprite 7: Vertical Blade
+        (8, 132, 178,  36,  26), # Sprite 8: Side Blade
+        (9, 170, 178,  18,  16), # Sprite 9: Fragment
     ]
 
     frames = []
+    # Diễn hoạt 25 Frame hoàn chỉnh
     for fid in range(25):
         f_parts = []
-        # Quả cầu Room xuất hiện từ frame 0 đến 20 (ôm trọn người chơi tại (0, -26))
-        if fid <= 20:
-            f_parts.append((-70, -96, 0, 0, 0))
+        
+        # 1. Base đĩa chấn động & chùm tia nan hoa
+        if fid <= 21:
+            f_parts.append((-65, -72, 0, 0, 0))
             
-        # Vị trí các tảng đá lao vào tâm
-        if 3 <= fid <= 8:
-            if fid in (3, 4): r_rock = 60
-            elif fid == 5: r_rock = 56
-            elif fid == 6: r_rock = 38
-            elif fid == 7: r_rock = 18
-            elif fid == 8: r_rock = 6
-            
-            f_parts.append((-r_rock - 21, -26 - 18, 1, 0, 0))
-            f_parts.append((r_rock - 21, -26 - 18, 2, 0, 0))
-            f_parts.append((-int(r_rock*0.7) - 17, -26 - int(r_rock*0.7) - 14, 3, 0, 0))
-            f_parts.append((int(r_rock*0.7) - 19, -26 - int(r_rock*0.7) - 15, 4, 0, 0))
-            f_parts.append((-int(r_rock*0.7) - 17, -26 + int(r_rock*0.7) - 14, 3, 0, 1))
-            f_parts.append((int(r_rock*0.7) - 19, -26 + int(r_rock*0.7) - 15, 4, 0, 1))
-            
-        if fid == 9: # Các tảng đá gộp sát vô tâm + TIA SÉT SIÊU THỰC TỪ TRÊN TRỜI GIÁNG XUỐNG!
-            f_parts.append((-23, -26 - 18, 1, 0, 0))
-            f_parts.append((-19, -26 - 18, 2, 0, 0))
-            f_parts.append((-18, -26 - 15, 3, 0, 0))
-            f_parts.append((-18, -26 - 15, 4, 0, 0))
-            # Sét trên trời đánh xuống cực cao (từ ngoài màn hình y=-350 và y=-206 đâm thẳng xuống tâm)
-            f_parts.append((-27, -350, 9, 0, 1)) # Sét tầng mây trên trời
-            f_parts.append((-27, -206, 9, 0, 1)) # Sét giáng siêu thực xuống khối đá
-            f_parts.append((-38, -26 - 27, 5, 0, 1)) # Sóng xung kích bắt đầu bùng nổ
-            f_parts.append((-36, -26 - 36, 6, 0, 1)) # Lõi plasma phát sáng
-            
-        if fid == 10: # Sét nổ bùng pha 2 cực đại + Phá nát khối đá thành các mảnh vỡ
-            f_parts.append((-27, -350, 10, 0, 1)) # Sét tầng mây nổ hồi quy cực đại
-            f_parts.append((-27, -206, 10, 0, 1)) # Sét pha 2 phóng điện cực mạnh
-            f_parts.append((-38, -26 - 27, 5, 0, 1)) # Sóng xung kích cực đại
-            f_parts.append((-36, -26 - 36, 6, 0, 1)) # Sét plasma bùng nổ
-            f_parts.append((-31, -26 - 27, 7, 0, 1)) # Mảnh đá vỡ vụn văng tung tóe
-            
-        if fid == 11: # Sét hồ quang giật sáng tàn dư + Mảnh vỡ bay tứ phía + Khói bụi
-            f_parts.append((-27, -350, 9, 0, 1))
-            f_parts.append((-27, -206, 9, 0, 1)) # Hồ quang sét giật
-            f_parts.append((-38, -26 - 27, 5, 0, 1))
-            f_parts.append((-36, -26 - 36, 6, 0, 1))
-            f_parts.append((-31, -26 - 27, 7, 0, 1))
-            f_parts.append((-27, -26 - 18, 8, 0, 1)) # Khói bụi bùng lên
-            
-        if fid in (12, 13):
-            f_parts.append((-31 - 10, -26 - 27 - 4, 7, 0, 1))
-            f_parts.append((-31 + 10, -26 - 27 - 4, 7, 0, 1))
-            f_parts.append((-27 - 12, -26 - 18, 8, 0, 1))
-            f_parts.append((-27 + 12, -26 - 18, 8, 0, 1))
-            
-        if fid in (14, 15, 16, 17, 18, 19, 20, 21, 22, 23):
-            f_parts.append((-27, -26 - 18, 8, 0, 1))
-            
+        # 2. Vành đai sét cuộn tròn quanh chu vi
+        if 2 <= fid <= 18:
+            jit = 1 if fid % 2 == 0 else 0
+            f_parts.append((-65 + jit, -72 - jit, 1, 0, 0))
+
+        # 3. Diễn biến Vòng Đao Hắc Thạch:
+        if 3 <= fid <= 5: # Đao trận từ xa lao vào vị trí khóa
+            d_out = (5 - fid) * 8
+            f_parts.append((-58 - d_out, -66 - int(d_out*0.8), 5, 0, 1))
+            f_parts.append(( 20 + d_out, -66 - int(d_out*0.8), 5, 1, 1))
+            f_parts.append((-18, -78 - d_out, 7, 0, 1))
+            f_parts.append((-60 - d_out, -10 + int(d_out*0.8), 6, 0, 1))
+            f_parts.append(( 22 + d_out, -10 + int(d_out*0.8), 6, 1, 1))
+            f_parts.append((-18,  -2 + d_out, 7, 2, 1))
+            f_parts.append((-68 - d_out, -33, 8, 0, 1))
+            f_parts.append(( 32 + d_out, -33, 8, 1, 1))
+
+        elif 6 <= fid <= 13: # KHOẢNH KHẮC ĐAO TRẬN KHÓA MỤC TIÊU (CHUẨN 100% ẢNH MẪU)
+            jit_x = 1 if fid % 3 == 0 else 0
+            jit_y = -1 if fid % 2 == 0 else 0
+            f_parts.append((-58 + jit_x, -66 + jit_y, 5, 0, 1)) # Top-Left
+            f_parts.append(( 20 - jit_x, -66 + jit_y, 5, 1, 1)) # Top-Right
+            f_parts.append((-18, -78 + jit_y, 7, 0, 1))          # Top-Mid
+            f_parts.append((-60 + jit_x, -10 - jit_y, 6, 0, 1)) # Bottom-Left
+            f_parts.append(( 22 - jit_x, -10 - jit_y, 6, 1, 1)) # Bottom-Right
+            f_parts.append((-18,  -2 - jit_y, 7, 2, 1))          # Bottom-Mid
+            f_parts.append((-68 + jit_x, -33, 8, 0, 1))          # Side-Left
+            f_parts.append(( 32 - jit_x, -33, 8, 1, 1))          # Side-Right
+            f_parts.append((-44, -50, 9, 0, 1))
+            f_parts.append(( 32, -50, 9, 1, 1))
+            f_parts.append((-46,   4, 9, 0, 1))
+            f_parts.append(( 34,   4, 9, 1, 1))
+
+        elif 14 <= fid <= 16: # TIA SÉT TỪ TRỜI GIÁNG XUỐNG + Đao đâm thấu vào tâm dồn lực
+            d_in = (fid - 13) * 12
+            f_parts.append((-58 + d_in, -66 + int(d_in*0.8), 5, 0, 1))
+            f_parts.append(( 20 - d_in, -66 + int(d_in*0.8), 5, 1, 1))
+            f_parts.append((-18, -78 + d_in, 7, 0, 1))
+            f_parts.append((-60 + d_in, -10 - int(d_in*0.8), 6, 0, 1))
+            f_parts.append(( 22 - d_in, -10 - int(d_in*0.8), 6, 1, 1))
+            f_parts.append((-18,  -2 - d_in, 7, 2, 1))
+            f_parts.append((-68 + d_in, -33, 8, 0, 1))
+            f_parts.append(( 32 - d_in, -33, 8, 1, 1))
+            # TIA SÉT GIÁNG TỪ TRỜI CỰC MẠNH XUYÊN THẲNG XUỐNG TÂM
+            f_parts.append((-22, -300, 2, 0, 1)) # Sét tầng mây
+            f_parts.append((-22, -160, 2, 0, 1)) # Sét đâm thẳng vào tâm
+        elif 17 <= fid <= 18: # BỘC PHÁ NỔ CỰC ĐẠI
+            # 1. Cột sét trên trời giáng chói lòa thẳng vào tâm chiêu
+            f_parts.append((-22, -300, 2, 0, 1))
+            f_parts.append((-22, -160, 2, 0, 1))
+
+            # 2. Chớp nổ plasma bộc phá cực đại ở tâm
+            f_parts.append((-36, -47, 4, 0, 1))
+
+        elif 19 <= fid <= 21: # Mảnh vỡ tinh thể văng tung tóe sau vụ nổ
+            f_parts.append((-36, -47, 4, 0, 1))
+            d_scat = (fid - 18) * 16
+            f_parts.append((-24 - d_scat, -42 - d_scat, 9, 0, 1))
+            f_parts.append((-24 + d_scat, -42 - d_scat, 9, 1, 1))
+            f_parts.append((-24 - d_scat, -42 + d_scat, 9, 0, 1))
+            f_parts.append((-24 + d_scat, -42 + d_scat, 9, 1, 1))
+            f_parts.append((-24 - int(d_scat*1.4), -42, 9, 0, 1))
+            f_parts.append((-24 + int(d_scat*1.4), -42, 9, 1, 1))
+
+        elif 22 <= fid <= 24: # Tiêu tán dần
+            d_scat = 48 + (fid - 21) * 8
+            f_parts.append((-24 - d_scat, -42 - d_scat, 9, 0, 1))
+            f_parts.append((-24 + d_scat, -42 - d_scat, 9, 1, 1))
+            f_parts.append((-24 - d_scat, -42 + d_scat, 9, 0, 1))
+            f_parts.append((-24 + d_scat, -42 + d_scat, 9, 1, 1))
+
         frames.append(f_parts)
 
     seq = [f for f in range(25) for _ in range(3)]
