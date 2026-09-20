@@ -3723,6 +3723,71 @@ public class Player {
         }
     }
 
+    public Skill_info get_skill_by_index(int indexSkillInServer) {
+        if (this.skill_point == null) return null;
+        for (int i = 0; i < this.skill_point.size(); i++) {
+            Skill_info sk = this.skill_point.get(i);
+            if (sk != null && sk.temp != null && sk.temp.indexSkillInServer == indexSkillInServer) {
+                return sk;
+            }
+        }
+        return null;
+    }
+
+    public boolean sync_haki_skills() throws IOException {
+        int count = this.haki_monster_killed;
+        int[] hakiIndices = new int[] { 900, 901, 902 };
+        int[] reqUnlock = new int[] { 10, 15, 20 };
+        boolean updated = false;
+
+        for (int k = 0; k < hakiIndices.length; k++) {
+            int hIdx = hakiIndices[k];
+            int req = reqUnlock[k];
+            if (count < req) {
+                continue;
+            }
+
+            long kills = count - req;
+            int targetLv = 1;
+            long remExp = kills;
+            for (int l = 0; l < Skill_info.EXP_HAKI.length - 1; l++) {
+                long need = Skill_info.EXP_HAKI[l];
+                if (remExp >= need) {
+                    remExp -= need;
+                    targetLv++;
+                } else {
+                    break;
+                }
+            }
+            if (targetLv >= 10) {
+                targetLv = 10;
+                remExp = 0;
+            }
+
+            Skill_info found = get_skill_by_index(hIdx);
+            Skill_Template newTemp = Skill_Template.get_temp(hIdx, 0, targetLv);
+            if (newTemp != null) {
+                if (found == null) {
+                    found = new Skill_info();
+                    found.temp = newTemp;
+                    found.exp = remExp;
+                    this.skill_point.add(found);
+                } else {
+                    found.temp = newTemp;
+                    found.exp = remExp;
+                }
+                this.send_skill_lv_up(found);
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            this.send_skill();
+            this.update_info_to_all();
+        }
+        return updated;
+    }
+
     public void update_info_to_all() throws IOException {
         Service.Main_char_Info(this);
         Service.getThanhTich(this, this);

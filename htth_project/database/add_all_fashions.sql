@@ -18,16 +18,16 @@ DELETE FROM `fashiontemplate` WHERE `id` IN (249, 250, 251, 252, 253, 254, 255, 
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
--- Thời trang ID 249: Thời trang Nezuko (Icon: 142)
+-- Thời trang ID 249: Thời trang Nezuko (Icon: 141)
 -- ---------------------------------------------------------------------
 -- Part 1119 (Đầu (Head - 5 frame))
-INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1119, 0, '[[12939,0,4],[12940,0,4],[12940,0,4],[12941,0,4],[12942,0,3]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);
+INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1119, 0, '[[12939,-3,4],[12940,-3,4],[12940,-3,4],[12941,-3,4],[12942,-3,3]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);
 -- Part 1120 (Thân/Áo (Body - 20 frame))
 INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1120, 1, '[[12943, 0, 0], [12944, 0, 0], [12945, 0, 0], [12946, 0, 0], [12947, 0, 0], [12948, 0, 0], [12949, 0, 0], [12950, 0, 0], [12951, 0, 0], [12952, 0, 0], [12953, 0, 0], [12954, 0, 0], [12955, 0, 0], [12956, 0, 0], [12957, 0, 0], [12958, 0, 0], [12959, 0, 0], [12960, 0, 0], [12961, 0, 0], [12962, 0, 0]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);
 -- Part 1121 (Quần/Chân (Leg - 15 frame))
 INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1121, 2, '[[12963, 0, 4], [12964, 0, 4], [12965, 0, 4], [12966, 0, 4], [12967, 0, 4], [12968, 0, 4], [12969, 0, 4], [12970, 0, 4], [12971, 0, 4], [12972, 0, 4], [12973, 0, 4], [12974, 0, 4], [12975, 0, 4], [12976, 0, 4], [12977, 0, 4]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);
 -- FashionTemplate 249
-INSERT INTO `fashiontemplate` (`id`, `icon`, `name`, `info`, `mwear`, `op`, `price`) VALUES (249, 142, 'Thời trang Nezuko', 'Thời trang Nezuko Kamado\n+10% Chí mạng\n+10% Né tránh\n+10% Miễn thương\nHạn sử dụng vĩnh viễn', '[-2,-2,-1,1120,-1,1121,1119,-2]', '[[10,100],[12,100],[53,100]]', -1) ON DUPLICATE KEY UPDATE `icon`=142, `name`='Thời trang Nezuko', `info`='Thời trang Nezuko Kamado\n+10% Chí mạng\n+10% Né tránh\n+10% Miễn thương\nHạn sử dụng vĩnh viễn', `mwear`='[-2,-2,-1,1120,-1,1121,1119,-2]', `op`='[[10,100],[12,100],[53,100]]', `price`=-1;
+INSERT INTO `fashiontemplate` (`id`, `icon`, `name`, `info`, `mwear`, `op`, `price`) VALUES (249, 141, 'Thời trang Nezuko', 'Thời trang Nezuko Kamado\n+10% Chí mạng\n+10% Né tránh\n+10% Miễn thương\nHạn sử dụng vĩnh viễn', '[-2,-2,-1,1120,-1,1121,1119,-2]', '[[10,100],[12,100],[53,100]]', -1) ON DUPLICATE KEY UPDATE `icon`=141, `name`='Thời trang Nezuko', `info`='Thời trang Nezuko Kamado\n+10% Chí mạng\n+10% Né tránh\n+10% Miễn thương\nHạn sử dụng vĩnh viễn', `mwear`='[-2,-2,-1,1120,-1,1121,1119,-2]', `op`='[[10,100],[12,100],[53,100]]', `price`=-1;
 
 -- ---------------------------------------------------------------------
 -- Thời trang ID 250: Thời trang Sabo (Icon: 142)

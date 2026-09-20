@@ -23,6 +23,11 @@ import template.ItemTemplate4;
  */
 public class Qua_tu_hop {
 
+    public static final short[] FASHION_CAO_CAP_IDS = new short[] {
+        54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234,
+        249, 250, 251, 252, 253, 254, 255, 36, 37, 38
+    };
+
     public static void process(Player p, Message m2) throws IOException {
         short idItem = m2.reader().readShort();
         byte cat = m2.reader().readByte();
@@ -177,7 +182,7 @@ public class Qua_tu_hop {
             }
         }
         if (idItem == 692 && cat == 105) { // Thời trang cao cấp (menuId từ UseItem)
-            short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234};
+            short[] listId = FASHION_CAO_CAP_IDS;
             if (select >= 0 && select < listId.length) {
                 ItemFashion fashion = ItemFashion.get_item(listId[select]);
                 if (fashion != null) {
@@ -285,7 +290,7 @@ public class Qua_tu_hop {
         }
         if (idItem == 1002 && cat == 105) { // Thời trang cao cấp
             if (p.item.total_item_bag_by_id(4, 1002) > 0 || p.item.total_item_bag_by_id(1, 1002) > 0) {
-                short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234};
+                short[] listId = FASHION_CAO_CAP_IDS;
                 if (select >= 0 && select < listId.length) {
                     ItemFashion fashion = ItemFashion.get_item(listId[select]);
                     if (fashion != null) {
@@ -321,7 +326,7 @@ public class Qua_tu_hop {
         }
         if (idItem == 9911 && cat == 105) { // Thời trang cao cấp (id cũ)
             if (p.item.total_item_bag_by_id(4, 1002) > 0 || p.item.total_item_bag_by_id(1, 1002) > 0) {
-                short[] listId = new short[]{54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234};
+                short[] listId = FASHION_CAO_CAP_IDS;
                 if (select >= 0 && select < listId.length) {
                     ItemFashion fashion = ItemFashion.get_item(listId[select]);
                     if (fashion != null) {

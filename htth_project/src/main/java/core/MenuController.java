@@ -3605,7 +3605,28 @@ public class MenuController {
     Service.Help_From_Server(p, idNPC, sb.toString());
   }
 
-  private static void showHakiMonsterProgress(Player p) throws IOException {
+  public static String formatHakiSkillLine(String name, int reqUnlock, int kills, Skill_info sk) {
+    StringBuilder sb = new StringBuilder();
+    if (sk == null && kills < reqUnlock) {
+      sb.append("• ").append(name).append(": Chưa mở (").append(Util.number_format(kills)).append("/").append(reqUnlock).append(" quái)");
+    } else if (sk == null || sk.temp == null) {
+      sb.append("• ").append(name).append(": Đủ điều kiện mở (Cần đồng bộ)");
+    } else if (sk.temp.Lv_RQ >= Skill_info.EXP_HAKI.length) {
+      sb.append("• ").append(name).append(" C.").append(sk.temp.Lv_RQ).append("/10: Đạt tối đa (MAX)");
+    } else {
+      int lv = sk.temp.Lv_RQ;
+      int lvIdx = Math.max(0, Math.min(lv - 1, Skill_info.EXP_HAKI.length - 1));
+      long cur = sk.exp;
+      long req = Skill_info.EXP_HAKI[lvIdx];
+      int percent = (req > 0) ? (int) Math.min(100, (cur * 100) / req) : 0;
+      sb.append("• ").append(name).append(" C.").append(lv).append("/10: ")
+          .append(Util.number_format(cur)).append("/").append(Util.number_format(req))
+          .append(" quái (").append(percent).append("%)");
+    }
+    return sb.toString();
+  }
+
+  public static String getHakiInfo(Player p) {
     Skill_info hq = null, hv = null, hb = null;
     if (p.skill_point != null) {
       for (Skill_info sk : p.skill_point) {
@@ -3622,52 +3643,90 @@ public class MenuController {
     }
 
     StringBuilder sb = new StringBuilder();
-    sb.append("TIẾN ĐỘ LUYỆN HAKI\n");
-    sb.append("• Số quái đã hạ: ").append(Util.number_format(p.haki_monster_killed)).append(" con\n");
+    sb.append("=== TIẾN ĐỘ HAKI [ ").append(p.name).append(" ] ===\n");
+    sb.append("• Số quái Haki đã hạ: ").append(Util.number_format(p.haki_monster_killed)).append(" con\n");
+    sb.append(formatHakiSkillLine("Quan Sát", 10, p.haki_monster_killed, hq)).append("\n");
+    sb.append(formatHakiSkillLine("Vũ Trang", 15, p.haki_monster_killed, hv)).append("\n");
+    sb.append(formatHakiSkillLine("Bá Vương", 20, p.haki_monster_killed, hb));
+    return sb.toString();
+  }
 
-    // Haki Quan Sát (900)
-    if (hq == null && p.haki_monster_killed < 10) {
-      sb.append("• Quan Sát: Chưa mở (").append(p.haki_monster_killed).append("/10 quái)\n");
-    } else if (hq != null && hq.temp.Lv_RQ >= Skill_info.EXP_HAKI.length) {
-      sb.append("• Quan Sát C.").append(hq.temp.Lv_RQ).append(": Đạt tối đa\n");
-    } else {
-      int lv = (hq != null) ? hq.temp.Lv_RQ : 1;
-      int lvIdx = Math.max(0, Math.min(lv - 1, Skill_info.EXP_HAKI.length - 1));
-      long cur = (hq != null) ? hq.exp : 0;
-      long req = Skill_info.EXP_HAKI[lvIdx];
-      sb.append("• Quan Sát C.").append(lv).append(": ")
-          .append(Util.number_format(cur)).append("/").append(Util.number_format(req)).append(" quái\n");
+  public static String getHakiInfoFromDatabase(String targetName) {
+    java.sql.Connection conn = null;
+    java.sql.PreparedStatement ps = null;
+    java.sql.ResultSet rs = null;
+    try {
+      conn = SQL.gI().getCon();
+      ps = conn.prepareStatement("SELECT point_inven, skill FROM players WHERE name = ?");
+      ps.setString(1, targetName);
+      rs = ps.executeQuery();
+      if (rs.next()) {
+        int kills = 0;
+        String pointInvenStr = rs.getString("point_inven");
+        if (pointInvenStr != null && !pointInvenStr.isEmpty()) {
+          org.json.simple.JSONArray js = (org.json.simple.JSONArray) org.json.simple.JSONValue.parse(pointInvenStr);
+          if (js != null && js.size() > 24 && js.get(24) != null) {
+            try {
+              kills = Integer.parseInt(js.get(24).toString());
+            } catch (Exception e) {}
+          }
+        }
+
+        Skill_info hq = null, hv = null, hb = null;
+        String skillStr = rs.getString("skill");
+        if (skillStr != null && !skillStr.isEmpty()) {
+          org.json.simple.JSONArray jsSkill = (org.json.simple.JSONArray) org.json.simple.JSONValue.parse(skillStr);
+          if (jsSkill != null) {
+            for (int i = 0; i < jsSkill.size(); i++) {
+              try {
+                org.json.simple.JSONArray js2 = (org.json.simple.JSONArray) org.json.simple.JSONValue.parse(jsSkill.get(i).toString());
+                short id = Short.parseShort(js2.get(0).toString());
+                if (id >= 900 && id <= 902) {
+                  Skill_info sk = new Skill_info();
+                  sk.exp = Long.parseLong(js2.get(1).toString());
+                  int level = -2;
+                  if (js2.size() >= 5) {
+                    level = Integer.parseInt(js2.get(4).toString());
+                  }
+                  sk.temp = Skill_Template.get_temp(id, sk.exp, level);
+                  if (id == 900) hq = sk;
+                  else if (id == 901) hv = sk;
+                  else if (id == 902) hb = sk;
+                }
+              } catch (Exception ex) {}
+            }
+          }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== TIẾN ĐỘ HAKI [ ").append(targetName).append(" (Offline) ] ===\n");
+        sb.append("• Số quái Haki đã hạ: ").append(Util.number_format(kills)).append(" con\n");
+        sb.append(formatHakiSkillLine("Quan Sát", 10, kills, hq)).append("\n");
+        sb.append(formatHakiSkillLine("Vũ Trang", 15, kills, hv)).append("\n");
+        sb.append(formatHakiSkillLine("Bá Vương", 20, kills, hb));
+        return sb.toString();
+      } else {
+        return "Không tìm thấy người chơi '" + targetName + "' trong hệ thống!";
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      return "Lỗi khi tra cứu dữ liệu Haki của " + targetName + ": " + e.getMessage();
+    } finally {
+      try {
+        if (rs != null) rs.close();
+        if (ps != null) ps.close();
+        if (conn != null) conn.close();
+      } catch (Exception e) {}
     }
+  }
 
-    // Haki Vũ Trang (901)
-    if (hv == null && p.haki_monster_killed < 15) {
-      sb.append("• Vũ Trang: Chưa mở (").append(p.haki_monster_killed).append("/15 quái)\n");
-    } else if (hv != null && hv.temp.Lv_RQ >= Skill_info.EXP_HAKI.length) {
-      sb.append("• Vũ Trang C.").append(hv.temp.Lv_RQ).append(": Đạt tối đa\n");
-    } else {
-      int lv = (hv != null) ? hv.temp.Lv_RQ : 1;
-      int lvIdx = Math.max(0, Math.min(lv - 1, Skill_info.EXP_HAKI.length - 1));
-      long cur = (hv != null) ? hv.exp : 0;
-      long req = Skill_info.EXP_HAKI[lvIdx];
-      sb.append("• Vũ Trang C.").append(lv).append(": ")
-          .append(Util.number_format(cur)).append("/").append(Util.number_format(req)).append(" quái\n");
+  public static void showHakiMonsterProgress(Player p) throws IOException {
+    if (p != null && p.haki_monster_killed >= 10) {
+      try {
+        p.sync_haki_skills();
+      } catch (Exception e) {}
     }
-
-    // Haki Bá Vương (902)
-    if (hb == null && p.haki_monster_killed < 20) {
-      sb.append("• Bá Vương: Chưa mở (").append(p.haki_monster_killed).append("/20 quái)");
-    } else if (hb != null && hb.temp.Lv_RQ >= Skill_info.EXP_HAKI.length) {
-      sb.append("• Bá Vương C.").append(hb.temp.Lv_RQ).append(": Đạt tối đa");
-    } else {
-      int lv = (hb != null) ? hb.temp.Lv_RQ : 1;
-      int lvIdx = Math.max(0, Math.min(lv - 1, Skill_info.EXP_HAKI.length - 1));
-      long cur = (hb != null) ? hb.exp : 0;
-      long req = Skill_info.EXP_HAKI[lvIdx];
-      sb.append("• Bá Vương C.").append(lv).append(": ")
-          .append(Util.number_format(cur)).append("/").append(Util.number_format(req)).append(" quái");
-    }
-
-    Service.send_box_ThongBao_OK(p, sb.toString());
+    Service.send_box_ThongBao_OK(p, getHakiInfo(p));
   }
 
   private static void Menu_Buggi(Player p, byte index) throws IOException {

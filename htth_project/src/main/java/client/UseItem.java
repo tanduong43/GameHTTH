@@ -1193,7 +1193,7 @@ public class UseItem {
                         m.writer().writeUTF("Rương Thời Trang Cao");
                         m.writer().writeUTF("Đổi");
 
-                        short[] ids = new short[] { 54, 55, 59, 110, 109, 120, 118, 239, 243, 237, 102, 103, 104, 123, 125, 128, 234 };
+                        short[] ids = Qua_tu_hop.FASHION_CAO_CAP_IDS;
                         m.writer().writeByte(ids.length);
 
                         for (short fashionId : ids) {
@@ -1202,6 +1202,13 @@ public class UseItem {
                                 m.writer().writeByte(105);
                                 m.writer().writeUTF(fashion.name);
                                 m.writer().writeShort(fashion.idIcon);
+                                m.writer().writeByte(0);
+                                m.writer().writeShort(1);
+                                m.writer().writeByte(0);
+                            } else {
+                                m.writer().writeByte(105);
+                                m.writer().writeUTF("Thời trang " + fashionId);
+                                m.writer().writeShort(0);
                                 m.writer().writeByte(0);
                                 m.writer().writeShort(1);
                                 m.writer().writeByte(0);

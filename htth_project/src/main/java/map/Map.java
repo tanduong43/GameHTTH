@@ -3547,7 +3547,7 @@ public class Map implements Runnable {
             if (exp_up != null) { // update exp
                 if (this.template.id == 2000) {
                     p.haki_monster_killed += 1;
-                    if (p.haki_monster_killed == 10) {
+                    if (p.haki_monster_killed >= 10 && p.get_skill_by_index(900) == null) {
                         Skill_info hq = new Skill_info();
                         hq.temp = Skill_Template.get_temp(900, -1);
                         if (hq.temp != null && Skill_Template.learn_skill(hq)) {
@@ -3558,7 +3558,8 @@ public class Map implements Runnable {
                             } catch (Exception e) {
                             }
                         }
-                    } else if (p.haki_monster_killed == 15) {
+                    }
+                    if (p.haki_monster_killed >= 15 && p.get_skill_by_index(901) == null) {
                         Skill_info hv = new Skill_info();
                         hv.temp = Skill_Template.get_temp(901, -1);
                         if (hv.temp != null && Skill_Template.learn_skill(hv)) {
@@ -3569,7 +3570,8 @@ public class Map implements Runnable {
                             } catch (Exception e) {
                             }
                         }
-                    } else if (p.haki_monster_killed == 20) {
+                    }
+                    if (p.haki_monster_killed >= 20 && p.get_skill_by_index(902) == null) {
                         Skill_info hb = new Skill_info();
                         hb.temp = Skill_Template.get_temp(902, -1);
                         if (hb.temp != null && Skill_Template.learn_skill(hb)) {
@@ -6374,7 +6376,7 @@ public class Map implements Runnable {
                     } catch (Exception e) {
                         Service.send_box_ThongBao_OK(p, "Cú pháp: admin sethaki <level> hoặc admin sethaki <tên_player> <level>. VD: admin sethaki 10 hoặc admin sethaki openne 10");
                     }
-                } else if (cmd.startsWith("quaihaki ")) {
+                } else if (cmd.startsWith("quaihaki ") || cmd.equals("quaihaki")) {
                     try {
                         String[] parts = cmd.split(" ");
                         Player targetPlayer = p;
@@ -6387,17 +6389,75 @@ public class Map implements Runnable {
                         }
                         if (targetPlayer != null) {
                             targetPlayer.haki_monster_killed = count;
-                            Service.send_box_ThongBao_OK(p, "Đã set số quái Haki cho " + targetPlayer.name + " thành " + count + " con!");
+                            targetPlayer.sync_haki_skills();
+                            Service.send_box_ThongBao_OK(p, "Đã set số quái Haki cho " + targetPlayer.name + " thành " + Util.number_format(count) + " con và đồng bộ kỹ năng Haki!");
+                            if (targetPlayer != p) {
+                                Service.send_box_ThongBao_OK(targetPlayer, "Bạn nhận được " + Util.number_format(count) + " quái Haki (kỹ năng Haki đã đồng bộ)!");
+                            }
                         } else {
                             Service.send_box_ThongBao_OK(p, "Không tìm thấy player " + parts[1]);
                         }
                     } catch (Exception e) {
                         Service.send_box_ThongBao_OK(p, "Cú pháp: admin quaihaki <số_quái> hoặc admin quaihaki <tên_player> <số_quái>");
                     }
+                } else if (cmd.startsWith("checkhaki") || cmd.equals("checkhaki")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        if (parts.length == 1) {
+                            Service.send_box_ThongBao_OK(p, MenuController.getHakiInfo(p));
+                        } else {
+                            String targetName = parts[1];
+                            Player targetPlayer = map.Map.get_player_by_name_allmap(targetName);
+                            if (targetPlayer != null) {
+                                Service.send_box_ThongBao_OK(p, MenuController.getHakiInfo(targetPlayer));
+                            } else {
+                                Service.send_box_ThongBao_OK(p, MenuController.getHakiInfoFromDatabase(targetName));
+                            }
+                        }
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin checkhaki hoặc admin checkhaki <tên_player>");
+                    }
+                } else if (cmd.startsWith("synchaki") || cmd.equals("synchaki")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        Player targetPlayer = p;
+                        if (parts.length >= 2) {
+                            targetPlayer = map.Map.get_player_by_name_allmap(parts[1]);
+                        }
+                        if (targetPlayer != null) {
+                            targetPlayer.sync_haki_skills();
+                            Service.send_box_ThongBao_OK(p, "Đã đồng bộ Haki thành công cho " + targetPlayer.name + "!");
+                            if (targetPlayer != p) {
+                                Service.send_box_ThongBao_OK(targetPlayer, "Kỹ năng Haki của bạn đã được đồng bộ với số quái đã hạ!");
+                            }
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Không tìm thấy player " + parts[1] + " (player phải online để đồng bộ)");
+                        }
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin synchaki hoặc admin synchaki <tên_player>");
+                    }
                 } else
                     Service.send_box_ThongBao_OK(p, "Lenh admin khong hop le!");
                 return;
             }
+        }
+        if (txt.equalsIgnoreCase("haki") || txt.equalsIgnoreCase("/haki")
+                || txt.equalsIgnoreCase("checkhaki") || txt.equalsIgnoreCase("/checkhaki")
+                || txt.toLowerCase().startsWith("checkhaki ") || txt.toLowerCase().startsWith("/checkhaki ")
+                || txt.toLowerCase().startsWith("haki ") || txt.toLowerCase().startsWith("/haki ")) {
+            String[] parts = txt.split("\\s+");
+            if (parts.length == 1) {
+                MenuController.showHakiMonsterProgress(p);
+            } else {
+                String targetName = parts[1];
+                Player targetPlayer = map.Map.get_player_by_name_allmap(targetName);
+                if (targetPlayer != null) {
+                    Service.send_box_ThongBao_OK(p, MenuController.getHakiInfo(targetPlayer));
+                } else {
+                    Service.send_box_ThongBao_OK(p, MenuController.getHakiInfoFromDatabase(targetName));
+                }
+            }
+            return;
         }
         if (txt.equals("danhhieu") || txt.equals("/danhhieu")) {
             MenuController.Menu_DanhHieu(p, (byte) 0);
