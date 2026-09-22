@@ -488,7 +488,7 @@ public class MenuController {
         case -201: {
           send_dynamic_menu(p, type, get_name_npc(type),
               new String[] { "Nói chuyện", "Đến đảo ruby", "Đấu trường sinh tồn", "Hang động",
-                  "Đến đảo huấn luyện pet", "Chiến Trường 5vs5" },
+                  "Đến đảo huấn luyện pet", "Chiến Trường Phá Trụ" },
               null);
           break;
         }

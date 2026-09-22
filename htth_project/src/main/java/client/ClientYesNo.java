@@ -3796,6 +3796,17 @@ public class ClientYesNo {
                     }
                     break;
                 }
+                case 5017: { // trai nika (luffy gear 5)
+                    if (p.item.total_item_bag_by_id(4, 1017) > 0) {
+                        String[] name_ = new String[] { "Cao Su Xà Quyền", "Thần Nika Cự Quyền", "Thức Tỉnh Nika", "Tiếng Trống Giải Phóng" };
+                        int[] icon_ = new int[] { 4439, 4438, 4440, 4441 };
+                        Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
+                        p.get_skill_taq_new(id - 4000);
+                        p.item.remove_item47(4, 1017, 1);
+                        p.item.update_Inventory(-1, false);
+                    }
+                    break;
+                }
                 case 4800: {
                     // Haki Quan Sát - check bằng indexSkillInServer mới (900)
                     boolean hasHaki = false;

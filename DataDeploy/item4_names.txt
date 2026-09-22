@@ -682,5 +682,6 @@ id  name
 683 Đá Vô Cực Truyền Thuyết         
 1015 Trái Nikyu Nikyu
 1016 Trái Ope Ope
+1017 Trái Nika
 
 

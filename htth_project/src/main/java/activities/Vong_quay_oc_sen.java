@@ -72,6 +72,7 @@ public class Vong_quay_oc_sen {
         if (category == 4) {
             if (id == 1015) return 190;
             if (id == 1016) return 191;
+            if (id == 1017) return 683;
             ItemTemplate4 it = ItemTemplate4.get_it_by_id(id);
             return it != null ? it.icon : 0;
         } else if (category == 7) {
@@ -88,6 +89,7 @@ public class Vong_quay_oc_sen {
         if (category == 4) {
             if (id == 1015) return "Trái Nikyu Nikyu";
             if (id == 1016) return "Trái Ope Ope";
+            if (id == 1017) return "Trái Nika";
             ItemTemplate4 it = ItemTemplate4.get_it_by_id(id);
             return it != null ? it.name : ("Vật phẩm " + id);
         } else if (category == 7) {
@@ -188,7 +190,7 @@ public class Vong_quay_oc_sen {
         p.update_money();
 
         // Broadcast if winning rare fruit or chest
-        if (reward.id == 1015 || reward.id == 1016 || reward.id == 158) {
+        if (reward.id == 1015 || reward.id == 1016 || reward.id == 1017 || reward.id == 158) {
             try {
                 core.Manager.gI().chatKTG(0, "Chúc mừng " + p.name + " vừa quay trúng " + getName(reward.category, reward.id) + " từ Vòng Quay Ốc Sên!", 5);
             } catch (Exception e) {

@@ -5842,24 +5842,34 @@ public class Map implements Runnable {
         send_msg_all_p(m, p, true);
         m.cleanup();
         if (typeEffSkill >= 900) {
-            int timeEff = (typeEffSkill == 912 || typeEffSkill == 916) ? 1500 : 0;
-            if (timeEff > 0) {
-                short targetEffId = p.index_map;
-                for (Player p0 : this.players) {
-                    if (p0 != null && p0.conn != null) {
-                        Service.send_effect_data(p0.conn, typeEffSkill);
-                        try {
-                            Message mEff = new Message(74);
-                            mEff.writer().writeByte(1);
-                            mEff.writer().writeShort(targetEffId);
-                            mEff.writer().writeShort(typeEffSkill);
-                            mEff.writer().writeInt(timeEff);
-                            mEff.writer().writeByte(0);
-                            mEff.writer().writeByte(0);
-                            p0.conn.addmsg(mEff);
-                            mEff.cleanup();
-                        } catch (Exception ignored) {
-                        }
+            for (Player p0 : this.players) {
+                if (p0 != null && p0.conn != null) {
+                    Service.send_effect_data(p0.conn, typeEffSkill);
+                }
+            }
+            int timeEff = (typeEffSkill == 912 || typeEffSkill == 916 || typeEffSkill == 920) ? 1500 : 0;
+            short targetEffId = p.index_map;
+            if (timeEff == 0 && list != null && !list.isEmpty()) {
+                Dame_Msg firstTarget = list.get(0);
+                if (firstTarget.targetM != null) {
+                    targetEffId = (short) firstTarget.targetM.index;
+                } else if (firstTarget.targetP != null) {
+                    targetEffId = firstTarget.targetP.index_map;
+                }
+            }
+            for (Player p0 : this.players) {
+                if (p0 != null && p0.conn != null) {
+                    try {
+                        Message mEff = new Message(74);
+                        mEff.writer().writeByte(1);
+                        mEff.writer().writeShort(targetEffId);
+                        mEff.writer().writeShort(typeEffSkill);
+                        mEff.writer().writeInt(timeEff);
+                        mEff.writer().writeByte(0);
+                        mEff.writer().writeByte(0);
+                        p0.conn.addmsg(mEff);
+                        mEff.cleanup();
+                    } catch (Exception ignored) {
                     }
                 }
             }
@@ -6629,16 +6639,17 @@ public class Map implements Runnable {
                     Service.send_box_ThongBao_OK(p, "DANH SÁCH EFFECT MỚI (ĐỒNG BỘ ID):\n"
                             + "• Skill Kuma (ID 910-912 / Nikyu): 910(Áp Lực Pháo - Pad Ho), 911(Đại Hùng Chưởng - Ursus Shock), 912(Đệm Thịt Hộ Thể)\n"
                             + "• Skill Law (ID 914-916 / Ope Ope): 914(Room Trảm Không Gian), 915(Dao Phóng Xạ Gamma), 916(Khiên Phẫu Thuật Curtain)\n"
+                            + "• Skill Nika (ID 918-920 / Gear 5): 918(Cao Su Xà Quyền - Culverin/Hydra), 919(Thần Nika Cự Quyền - Bajrang Gun), 920(Thức Tỉnh Nika - Awakening)\n"
                             + "• Skill 24 (ID 37-41 / 124-128): 37(Tụ lực), 38(Hào quang), 39(Tia đạn), 40(Trúng đích), 41(Nổ vỡ)\n"
                             + "• Skill 25 (ID 42-48 / 130-136): 42(Thế đánh), 43(Cầu năng lượng), 44(Bắn tia), 45(Chùm tia), 46(Va chạm), 47(Nổ to), 48(Chớp nổ)\n"
                             + "• Skill 26 (ID 49-54 / 140-145): 49(Xuất chiêu), 50(Tụ chưởng), 51(Chưởng lớn), 52(Cột năng lượng), 53(Nổ quét), 54(Xung kích)\n\n"
                             + "Cú pháp: /eff <id> [số_giây/loop/once]\n"
-                            + "Ví dụ: /eff 914 hoặc /eff 915 hoặc /eff 916\n"
+                            + "Ví dụ: /eff 918 hoặc /eff 919 hoặc /eff 920\n"
                             + "Tắt: /rmeff <id> hoặc /cleareff");
                     return;
                 }
                 if (parts.length >= 2 && (parts[1].equals("demo") || parts[1].equals("testall"))) {
-                    short[] demoIds = new short[] { 910, 911, 912, 914, 915, 916, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+                    short[] demoIds = new short[] { 910, 911, 912, 914, 915, 916, 918, 919, 920, 37, 38, 39, 40, 41, 42, 43, 44, 45,
                             46, 47, 48, 49, 50, 51, 52, 53, 54 };
                     new Thread(() -> {
                         try {

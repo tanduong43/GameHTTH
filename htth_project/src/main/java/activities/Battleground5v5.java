@@ -49,12 +49,14 @@ public class Battleground5v5 {
 
     // Mode trận đấu
     public static final int MODE_5V5 = 5;
+    public static final int MODE_3V3 = 3;
     public static final int MODE_1V1 = 1;
     public int mode = MODE_5V5; // Mặc định 5v5
 
     // Quản lý danh sách các trận đấu đang diễn ra và hàng chờ ghép trận
     public static final List<Battleground5v5> ACTIVE_BATTLES = new CopyOnWriteArrayList<>();
     public static final List<Party> WAITING_QUEUE = new CopyOnWriteArrayList<>();
+    public static final List<Party> WAITING_QUEUE_3V3 = new CopyOnWriteArrayList<>();
 
     // Hàng chờ ghép trận 1v1 (từng Player riêng lẻ, không cần Party)
     public static final List<Player> WAITING_QUEUE_1V1 = new CopyOnWriteArrayList<>();
@@ -209,6 +211,8 @@ public class Battleground5v5 {
                     new String[] {
                         "Đăng ký 5 vs 5 (Nhóm)",
                         "Hủy tìm trận 5 vs 5",
+                        "Đăng ký 3 vs 3 (Nhóm)",
+                        "Hủy tìm trận 3 vs 3",
                         "Đăng ký 1 vs 1",
                         "Hủy đăng ký 1 vs 1",
                         "Luật chiến trường"
@@ -228,13 +232,19 @@ public class Battleground5v5 {
             case 1: // Hủy tìm trận 5vs5
                 cancelQueue(p);
                 break;
-            case 2: // Đăng ký 1v1
+            case 2: // Đăng ký 3vs3
+                registerQueue3v3(p);
+                break;
+            case 3: // Hủy tìm trận 3vs3
+                cancelQueue3v3(p);
+                break;
+            case 4: // Đăng ký 1v1
                 register1v1(p);
                 break;
-            case 3: // Hủy đăng ký 1v1
+            case 5: // Hủy đăng ký 1v1
                 cancel1v1(p);
                 break;
-            case 4: // Luật chiến trường
+            case 6: // Luật chiến trường
                 showRules(p);
                 break;
         }
@@ -255,6 +265,12 @@ public class Battleground5v5 {
                 + "- Đánh trụ mỗi lần trừ 1 HP. Trụ vỡ sẽ giữ nguyên trạng thái.\n"
                 + "- Hồi sinh: Khi chết quay về Trụ Chính phe mình. Thời gian ban đầu 5 giây, mỗi lần chết +1 giây.\n"
                 + "- Phần thưởng: Thắng nhận 1.500.000 Beri + 3.000 Ruby. Thua nhận 300.000 Beri + 600 Ruby.\n"
+                + "- Thời gian tối đa: 15 phút.\n"
+                + "--- CHẾ ĐỘ 3VS3 ---\n"
+                + "- Đội hình: 3 người mỗi bên (Phe Đỏ vs Phe Xanh), cần tạo Nhóm đúng 3 thành viên.\n"
+                + "- Luật phá trụ, hồi sinh giống 5vs5.\n"
+                + "- Phần thưởng: Thắng nhận 1.000.000 Beri + 2.000 Ruby. Thua nhận 200.000 Beri + 400 Ruby.\n"
+                + "- Thời gian tối đa: 12 phút.\n"
                 + "--- CHẾ ĐỘ 1VS1 ---\n"
                 + "- Không cần nhóm, chỉ 2 người chơi vào hàng chờ.\n"
                 + "- Mỗi người một căn cứ riêng (Map 129 và Map 130).\n"
@@ -291,10 +307,16 @@ public class Battleground5v5 {
             return;
         }
 
-        // Kiểm tra đã có trong queue 5v5 chưa
+        // Kiểm tra đã có trong queue 5v5 / 3v3 chưa
         for (Party party : WAITING_QUEUE) {
             if (party.list.contains(p)) {
                 sendThongBao(p, "Bạn đang trong hàng chờ 5vs5! Hãy hủy 5vs5 trước.");
+                return;
+            }
+        }
+        for (Party party : WAITING_QUEUE_3V3) {
+            if (party.list.contains(p)) {
+                sendThongBao(p, "Bạn đang trong hàng chờ 3vs3! Hãy hủy 3vs3 trước.");
                 return;
             }
         }
@@ -451,6 +473,10 @@ public class Battleground5v5 {
             sendThongBao(p, "Nhóm của bạn đã ở trong hàng đợi ghép trận!");
             return;
         }
+        if (WAITING_QUEUE_3V3.contains(p.party)) {
+            sendThongBao(p, "Nhóm đang trong hàng chờ 3vs3! Hãy hủy 3vs3 trước khi đăng ký 5vs5.");
+            return;
+        }
 
         WAITING_QUEUE.add(p.party);
         for (Player m : p.party.list) {
@@ -479,6 +505,93 @@ public class Battleground5v5 {
             }
         } else {
             sendThongBao(p, "Nhóm của bạn hiện không nằm trong hàng đợi!");
+        }
+    }
+
+    // ===================== CHẾ ĐỘ 3 VS 3 =====================
+
+    /**
+     * Đăng ký hàng chờ ghép đội 3vs3
+     */
+    public static synchronized void registerQueue3v3(Player p) {
+        if (p == null) return;
+        p.change_new_date();
+
+        if (p.party == null) {
+            sendThongBao(p, "Bạn cần phải tạo Nhóm và đủ đúng 3 thành viên mới có thể đăng ký!");
+            return;
+        }
+        if (!p.party.list.get(0).equals(p)) {
+            sendThongBao(p, "Chỉ có Trưởng nhóm mới có quyền đăng ký Chiến Trường 3vs3!");
+            return;
+        }
+        if (p.party.list.size() != 3) {
+            sendThongBao(p, "Nhóm của bạn hiện có " + p.party.list.size() + "/3 thành viên. Cần đúng 3 người!");
+            return;
+        }
+
+        for (Player member : p.party.list) {
+            if (member == null || member.conn == null || !member.conn.connected) {
+                sendThongBao(p, "Có thành viên trong nhóm đang mất kết nối!");
+                return;
+            }
+            member.change_new_date();
+            if (member.time_5vs5 >= MAX_DAILY_TURNS) {
+                if (member.equals(p)) {
+                    sendThongBao(p, "Bạn đã tham gia đủ " + MAX_DAILY_TURNS + " lượt Chiến Trường hôm nay (tối đa " + MAX_DAILY_TURNS + " lần/ngày)!");
+                } else {
+                    sendThongBao(p, "Thành viên " + member.name + " đã hết lượt tham gia Chiến Trường hôm nay (đã đi " + MAX_DAILY_TURNS + "/" + MAX_DAILY_TURNS + " lần)!");
+                }
+                return;
+            }
+            if (member.map == null || member.map.template.id != p.map.template.id) {
+                sendThongBao(p, "Tất cả 3 thành viên phải có mặt cùng map với Trưởng nhóm!");
+                return;
+            }
+        }
+        if (WAITING_QUEUE_3V3.contains(p.party)) {
+            sendThongBao(p, "Nhóm của bạn đã ở trong hàng đợi ghép trận 3vs3!");
+            return;
+        }
+        if (WAITING_QUEUE.contains(p.party)) {
+            sendThongBao(p, "Nhóm đang trong hàng chờ 5vs5! Hãy hủy 5vs5 trước khi đăng ký 3vs3.");
+            return;
+        }
+
+        WAITING_QUEUE_3V3.add(p.party);
+        for (Player m : p.party.list) {
+            sendThongBao(m, "Nhóm đã vào hàng chờ Chiến Trường 3vs3. Vui lòng đợi đối thủ!");
+        }
+
+        checkAndStartMatch3v3();
+    }
+
+    /**
+     * Hủy tìm trận 3vs3
+     */
+    public static synchronized void cancelQueue3v3(Player p) {
+        if (p.party == null) {
+            sendThongBao(p, "Bạn không có trong nhóm nào!");
+            return;
+        }
+        if (!p.party.list.get(0).equals(p)) {
+            sendThongBao(p, "Chỉ có Trưởng nhóm mới có quyền hủy tìm trận!");
+            return;
+        }
+        if (WAITING_QUEUE_3V3.remove(p.party)) {
+            for (Player m : p.party.list) {
+                sendThongBao(m, "Trưởng nhóm đã hủy tìm trận Chiến Trường 3vs3.");
+            }
+        } else {
+            sendThongBao(p, "Nhóm của bạn hiện không nằm trong hàng đợi 3vs3!");
+        }
+    }
+
+    public static synchronized void checkAndStartMatch3v3() {
+        if (WAITING_QUEUE_3V3.size() >= 2) {
+            Party party1 = WAITING_QUEUE_3V3.remove(0);
+            Party party2 = WAITING_QUEUE_3V3.remove(0);
+            createAndLaunchBattle(party1, party2, MODE_3V3);
         }
     }
 
@@ -544,7 +657,7 @@ public class Battleground5v5 {
         if (WAITING_QUEUE.size() >= 2) {
             Party party1 = WAITING_QUEUE.remove(0);
             Party party2 = WAITING_QUEUE.remove(0);
-            createAndLaunchBattle(party1, party2);
+            createAndLaunchBattle(party1, party2, MODE_5V5);
         }
     }
 
@@ -552,9 +665,18 @@ public class Battleground5v5 {
      * Khởi tạo trận đấu và đưa người chơi vào 5 map
      */
     public static void createAndLaunchBattle(Party partyA, Party partyB) {
+        createAndLaunchBattle(partyA, partyB, MODE_5V5);
+    }
+
+    public static void createAndLaunchBattle(Party partyA, Party partyB, int mode) {
         Battleground5v5 battle = new Battleground5v5();
-        battle.mode = MODE_5V5;
-        battle.timeEnd = System.currentTimeMillis() + 15 * 60 * 1000L; // Tối đa 15 phút
+        battle.mode = mode;
+        if (mode == MODE_3V3) {
+            battle.timeEnd = System.currentTimeMillis() + 12 * 60 * 1000L;
+        } else {
+            battle.timeEnd = System.currentTimeMillis() + 15 * 60 * 1000L;
+        }
+        String modeLabel = (mode == MODE_3V3) ? "3vs3" : "5vs5";
 
         // 1. Tạo instance 5 maps (129, 130, 131, 132, 133)
         int[] mapIds = { MAP_RED_BASE, MAP_BLUE_BASE, MAP_TOP, MAP_MID, MAP_BOT };
@@ -620,7 +742,7 @@ public class Battleground5v5 {
                 vgo.xnew = 100;
                 vgo.ynew = 288;
                 p.goto_map(vgo);
-                sendThongBao(p, "Trận chiến 5vs5 bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Đỏ: Phá hủy toàn bộ Trụ Phụ rồi tiêu diệt Trụ Chính B đối phương để chiến thắng!");
+                sendThongBao(p, "Trận chiến " + modeLabel + " bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Đỏ: Phá hủy toàn bộ Trụ Phụ rồi tiêu diệt Trụ Chính B đối phương để chiến thắng!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -638,7 +760,7 @@ public class Battleground5v5 {
                 vgo.xnew = 956;
                 vgo.ynew = 288;
                 p.goto_map(vgo);
-                sendThongBao(p, "Trận chiến 5vs5 bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Xanh: Phá hủy toàn bộ Trụ Phụ rồi tiêu diệt Trụ Chính A đối phương để chiến thắng!");
+                sendThongBao(p, "Trận chiến " + modeLabel + " bắt đầu! (Lượt " + p.time_5vs5 + "/" + MAX_DAILY_TURNS + ")\nPhe Xanh: Phá hủy toàn bộ Trụ Phụ rồi tiêu diệt Trụ Chính A đối phương để chiến thắng!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1098,17 +1220,23 @@ public class Battleground5v5 {
         try {
             int beri;
             int ruby;
+            String modeName;
             if (mode == MODE_5V5) {
                 beri = isWinner ? 1_500_000 : 300_000;
                 ruby = isWinner ? 3000 : 600;
-            } else { // MODE_1V1
+                modeName = "5vs5";
+            } else if (mode == MODE_3V3) {
+                beri = isWinner ? 1_000_000 : 200_000;
+                ruby = isWinner ? 2000 : 400;
+                modeName = "3vs3";
+            } else {
                 beri = isWinner ? 500_000 : 100_000;
                 ruby = isWinner ? 1000 : 200;
+                modeName = "1vs1";
             }
             p.update_vang(beri);
             p.update_ngoc(ruby);
             p.update_money();
-            String modeName = (mode == MODE_5V5) ? "5vs5" : "1vs1";
             sendThongBao(p, "Phần thưởng trận đấu " + modeName + ":\n+ " + Util.number_format(beri) + " Beri\n+ " + Util.number_format(ruby) + " Ruby!");
         } catch (Exception e) {
             e.printStackTrace();
@@ -1264,12 +1392,20 @@ public class Battleground5v5 {
             // 1. Rút khỏi hàng chờ 1v1 nếu đang đợi
             WAITING_QUEUE_1V1.remove(p);
 
-            // 2. Rút khỏi hàng chờ 5v5 nếu đang đợi trong nhóm
+            // 2. Rút khỏi hàng chờ 5v5 / 3v3 nếu đang đợi trong nhóm
             if (p.party != null && WAITING_QUEUE.contains(p.party)) {
                 WAITING_QUEUE.remove(p.party);
                 for (Player m : p.party.list) {
                     if (m != null && !m.equals(p)) {
                         sendThongBao(m, "Thành viên " + p.name + " đã thoát game, nhóm bị hủy khỏi hàng chờ Chiến Trường 5vs5!");
+                    }
+                }
+            }
+            if (p.party != null && WAITING_QUEUE_3V3.contains(p.party)) {
+                WAITING_QUEUE_3V3.remove(p.party);
+                for (Player m : p.party.list) {
+                    if (m != null && !m.equals(p)) {
+                        sendThongBao(m, "Thành viên " + p.name + " đã thoát game, nhóm bị hủy khỏi hàng chờ Chiến Trường 3vs3!");
                     }
                 }
             }

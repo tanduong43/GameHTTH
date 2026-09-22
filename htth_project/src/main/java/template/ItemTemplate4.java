@@ -52,6 +52,20 @@ public class ItemTemplate4 {
 			ItemTemplate4.ENTRYS.add(it);
 			return it;
 		}
+		if (id == 1017) {
+			ItemTemplate4 it = new ItemTemplate4();
+			it.id = 1017;
+			it.name = "Trái Nika";
+			it.icon = 683;
+			it.indexInfoPotion = 459;
+			it.beri = 10;
+			it.ruby = 0;
+			it.istrade = 1;
+			it.type = 7;
+			it.nameuse = "Ăn";
+			ItemTemplate4.ENTRYS.add(it);
+			return it;
+		}
 		return null;
 	}
 
@@ -67,6 +81,7 @@ public class ItemTemplate4 {
 	public static String get_item_name(int id) {
 		if (id == 1015) return "Trái Nikyu Nikyu";
 		if (id == 1016) return "Trái Ope Ope";
+		if (id == 1017) return "Trái Nika";
 		String s = "";
 		for (int i = 0; i < ItemTemplate4.ENTRYS.size(); i++) {
 			if (ItemTemplate4.ENTRYS.get(i).id == id) {

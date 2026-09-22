@@ -1076,7 +1076,8 @@ public class UseItem {
                     case 801:
                     case 802:
                     case 1015:
-                    case 1016: {
+                    case 1016:
+                    case 1017: {
                         String promptMsg = "Bạn có muốn sử dụng " + ItemTemplate4.get_it_by_id(id).name;
                         if (id == 240 && p.has_devil_fruit_bong_toi() && p.can_have_dual_devil_fruit()) {
                             promptMsg = "Bạn đang mặc Thời Trang Râu Đen và có Trái Bóng Tối. Ăn Trái Chấn Thiên sẽ kích hoạt cơ thể 2 Trái Ác Quỷ! Bạn có muốn sử dụng?";

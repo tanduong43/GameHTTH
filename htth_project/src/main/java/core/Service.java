@@ -473,11 +473,15 @@ public class Service {
                 if (id_request > 4912 && id_request < 4935) { // icon kich an
                     id_request = 4912;
                 }
-                // Map icon ky nang Trai Nikyu (ho tro ca id goc 417..420, id client 4417..4420 va id cong don 8417..8420)
-                if (id_request >= 8417 && id_request <= 8420) {
+                // Map icon ky nang Trai Nikyu, Ope, Nika
+                if (id_request >= 8417 && id_request <= 8441) {
                     id_request -= 4000;
-                } else if (id_request >= 417 && id_request <= 420) {
+                } else if (id_request >= 417 && id_request <= 424) {
                     id_request += 4000;
+                } else if (id_request >= 438 && id_request <= 441) {
+                    id_request += 4000;
+                } else if (id_request == 683) {
+                    id_request = 2683;
                 }
                 byte zoomlv = conn.zoomlv <= 0 ? 2 : conn.zoomlv;
                 path = "data/icon/x" + zoomlv + "/" + id_request + ".png";

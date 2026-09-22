@@ -118,6 +118,14 @@ public class Skill_info {
     }
 
     public short get_eff_skill() {
+        switch (temp.indexSkillInServer) {
+            case 918:
+                return 918;
+            case 919:
+                return 919;
+            case 920:
+                return 920;
+        }
         if (temp.ID >= 2000 && lvdevil == 5) {
             switch (temp.indexSkillInServer) {
                 case 658:
@@ -180,6 +188,12 @@ public class Skill_info {
                     return 915;
                 case 916:
                     return 916;
+                case 918:
+                    return 918;
+                case 919:
+                    return 919;
+                case 920:
+                    return 920;
             }
         }
         return temp.getTypeEffSkill();
