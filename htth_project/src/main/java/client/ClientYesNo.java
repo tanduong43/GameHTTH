@@ -829,7 +829,7 @@ public class ClientYesNo {
                     if (p.data_yesno != null && p.data_yesno.length == 1) {
                         Item_wear it_select = p.item.bag3[p.data_yesno[0]];
                         if (it_select != null && it_select.template.typeEquip == 7
-                                && it_select.numLoKham < 5) {
+                                && it_select.numLoKham < 8) {
                             if (it_select.valueChetac < 50) {
                                 Service.send_box_ThongBao_OK(p,
                                         "Vật phẩm không đủ điểm chế tác để thực hiện, tối thiểu 50!");
@@ -876,6 +876,8 @@ public class ClientYesNo {
                             p.item.update_Inventory(-1, false);
                         }
                     }
+                    p.data_yesno = null;
+                    p.map_tele = null;
                     break;
                 }
                 case 56: {

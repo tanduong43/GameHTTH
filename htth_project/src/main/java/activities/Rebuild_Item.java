@@ -615,7 +615,15 @@ public class Rebuild_Item {
             }
         } else if (cat == 3 && num == 1 && type == 19 && action == 1) { // bo dial vao de duc lo
             Item_wear it_select = p.item.bag3[idItem];
-            if (it_select != null && it_select.template.typeEquip == 7 && it_select.numLoKham < 5) {
+            if (it_select != null) {
+                if (it_select.template.typeEquip != 7) {
+                    Service.send_box_ThongBao_OK(p, "Chỉ có thể bỏ Dial vào để đục lỗ!");
+                    return;
+                }
+                if (it_select.numLoKham >= 8) {
+                    Service.send_box_ThongBao_OK(p, "Dial này đã đục tối đa 8 lỗ!");
+                    return;
+                }
                 Message m = new Message(-67);
                 m.writer().writeByte(1);
                 m.writer().writeShort(idItem);
@@ -626,18 +634,34 @@ public class Rebuild_Item {
             }
         } else if (cat == 3 && num == 1 && type == 19 && action == 7) { // bat dau duc lo dial
             Item_wear it_select = p.item.bag3[idItem];
-            if (it_select != null && it_select.template.typeEquip == 7 && it_select.numLoKham < 5) {
-                //
-                if (p.item.total_item_bag_by_id(4, 457) < 1) {
-                    Service.send_box_ThongBao_OK(p, "Không đủ 1 búa đục dial");
-                    return;
-                }
-                int ruby_req = 50 * (it_select.numLoKham + 1);
-                p.data_yesno = new int[] { idItem };
-                Service.send_box_yesno(p, 57, "Thông báo",
-                        "Đục lỗ dial bạn phải mất 1 búa đục dial và " + ruby_req + " ruby",
-                        new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, -1 });
+            if (it_select == null) {
+                return;
             }
+            if (it_select.template.typeEquip != 7) {
+                Service.send_box_ThongBao_OK(p, "Chỉ có thể đục lỗ Dial!");
+                return;
+            }
+            if (it_select.numLoKham >= 8) {
+                Service.send_box_ThongBao_OK(p, "Dial này đã đục tối đa 8 lỗ!");
+                return;
+            }
+            if (it_select.valueChetac < 50) {
+                Service.send_box_ThongBao_OK(p, "Vật phẩm không đủ điểm chế tác để thực hiện, tối thiểu 50!");
+                return;
+            }
+            if (p.item.total_item_bag_by_id(4, 457) < 1) {
+                Service.send_box_ThongBao_OK(p, "Không đủ 1 búa đục dial trong hành trang");
+                return;
+            }
+            int ruby_req = 50 * (it_select.numLoKham + 1);
+            if (p.get_ngoc() < ruby_req) {
+                Service.send_box_ThongBao_OK(p, "Không đủ " + ruby_req + " ruby để đục lỗ");
+                return;
+            }
+            p.data_yesno = new int[] { idItem };
+            Service.send_box_yesno(p, 57, "Thông báo",
+                    "Đục lỗ dial bạn phải mất 1 búa đục dial và " + ruby_req + " ruby (yêu cầu tối thiểu 50 điểm chế tác)",
+                    new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, -1 });
         }
     }
 
