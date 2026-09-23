@@ -478,6 +478,7 @@ public class Service {
                 // Map icon ky nang Trai Nikyu, Ope, Nika
                 if (id_request >= 8417 && id_request <= 8441) {
                     id_request -= 4000;
+                    id = id_request;
                 } else if (id_request >= 417 && id_request <= 424) {
                     id_request += 4000;
                 } else if (id_request >= 438 && id_request <= 441) {

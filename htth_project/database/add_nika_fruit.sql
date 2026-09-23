@@ -26,18 +26,18 @@ VALUES (459, 'Khi ăn Trái Ác Quỷ Nika (Hito Hito no Mi: Model Nika - Thần
 
 -- 3.1. Skill 1: Cao Su Xà Quyền (Snakeman Hydra / Culverin)
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1082, 918, 2068, 439, 1, 0, 'Cao Su Xà Quyền', 918, 180, 5, 160, 75, 55, 15000, 1, 'Tung vô số cú đấm co giãn tốc độ cực cao chuyển hướng liên tục như mãng xà khổng lồ tấn công dồn dập vào nhiều kẻ địch xung quanh, gây 380% sát thương của chiêu Quả đấm tốc độ, bạo kích và thiêu đốt Haki', 1, 1, '[[1, 450], [10, 350], [11, 200], [13, 400], [28, 5], [29, 350], [30, 20]]', '[5, 350, 20]');
+VALUES (1082, 918, 2068, 439, 1, 0, 'Cao Su Xà Quyền', 918, 180, 5, 160, 75, 55, 15000, 1, 'Tung vô số cú đấm co giãn tốc độ cực cao chuyển hướng liên tục như mãng xà khổng lồ tấn công dồn dập vào nhiều kẻ địch xung quanh, gây 1100% sát thương của chiêu Quả đấm tốc độ, bạo kích và thiêu đốt Haki', 1, 1, '[[1, 450], [10, 500], [11, 200], [13, 400], [28, 5], [29, 350], [30, 20]]', '[5, 350, 20]');
 
 -- 3.2. Skill 2: Thần Nika Cự Quyền (Bajrang Gun / Gigant Pistol)
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1083, 919, 2069, 438, 1, 0, 'Thần Nika Cự Quyền', 919, 200, 6, 180, 85, 70, 22000, 1, 'Hóa khổng lồ nắm đấm bao bọc Haki Bá Vương đen rực giáng sấm sét từ tầng mây xuống mặt đất, tạo chấn động hủy diệt gây 500% sát thương của chiêu Quả đấm tốc độ, làm choáng 3 giây và xuyên 50% giáp', 1, 1, '[[1, 550], [10, 450], [13, 500], [57, 250], [28, 9], [29, 500], [30, 20]]', '[9, 500, 20]');
+VALUES (1083, 919, 2069, 438, 1, 0, 'Thần Nika Cự Quyền', 919, 200, 6, 180, 85, 70, 22000, 1, 'Hóa khổng lồ nắm đấm bao bọc Haki Bá Vương đen rực giáng sấm sét từ tầng mây xuống mặt đất, tạo chấn động hủy diệt gây 1100% sát thương của chiêu Quả đấm tốc độ', 1, 1, '[[1, 550], [10, 500], [13, 500], [57, 250], [28, 9], [29, 500], [30, 20]]', '[9, 500, 20]');
 
 -- 3.3. Skill 3: Thức Tỉnh Nika (Sun God Awakening)
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1084, 920, 2080, 440, 2, 1, 'Thức Tỉnh Nika', 920, 120, 1, 120, 0, 80, 35000, 0, 'Thức tỉnh trạng thái Nika Thần Mặt Trời: Tỏa ra uy áp Bá Vương hủy diệt làm nứt toác mặt đất, hồi phục 25% HP, tăng 40% sát thương, 30% chí mạng, 35% phòng thủ và miễn thương trong 25 giây', 1, 1, '[[1, 400], [4, 400], [10, 300], [12, 350], [53, 250], [31, 1], [32, 300]]', '[0, -1, -1]');
+VALUES (1084, 920, 2080, 440, 2, 1, 'Thức Tỉnh Nika', 920, 120, 1, 120, 0, 80, 35000, 0, 'Thức tỉnh trạng thái Nika Thần Mặt Trời: Tỏa ra uy áp Bá Vương hủy diệt làm nứt toác mặt đất.', 1, 1, '[[1, 400], [4, 400], [10, 300], [12, 350], [53, 250], [56, 1000], [31, 1], [32, 300]]', '[0, -1, -1]');
 
 -- 3.4. Skill 4: Tiếng Trống Giải Phóng (Drums of Liberation)
 INSERT INTO `skill` (`id`, `id_index`, `id_2`, `icon`, `typeSkill`, `typeBuff`, `name`, `typeEffSkill`, `range`, `nTarget`, `rangeLan`, `damage`, `manaLost`, `timeDelay`, `nKick`, `info`, `Lv_RQ`, `typeDevil`, `option`, `EffSpec`)
-VALUES (1085, 921, 2071, 441, 3, 0, 'Tiếng Trống Giải Phóng', 0, 0, 0, 0, 0, 0, 0, 0, 'Nội tại Tiếng Trống Giải Phóng: Nhịp tim tự do vang dội giúp cơ thể liên tục hồi phục sinh lực, tăng vĩnh viễn máu tối đa, tốc độ chạy, xuyên giáp và kháng mọi hiệu ứng tiêu cực', 1, 1, '[[2, 500], [1, 350], [13, 400], [53, 200], [71, 300]]', '[0, -1, -1]');
+VALUES (1085, 921, 2071, 441, 3, 0, 'Tiếng Trống Giải Phóng', 0, 0, 0, 0, 0, 0, 0, 0, 'Nội tại Tiếng Trống Giải Phóng: Nhịp tim tự do vang dội giúp cơ thể liên tục hồi phục sinh lực.', 1, 1, '[[2, 500], [1, 350], [13, 400], [53, 200], [71, 300], [63, 1000], [57, 500]]', '[0, -1, -1]');
 
 SET SQL_SAFE_UPDATES = 1;

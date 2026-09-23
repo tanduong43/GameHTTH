@@ -3779,7 +3779,7 @@ public class ClientYesNo {
                 case 5015: { // trai nikyu nikyu (kuma)
                     if (p.item.total_item_bag_by_id(4, 1015) > 0) {
                         String[] name_ = new String[] { "Áp Lực Pháo", "Đại Hùng Chưởng", "Đệm Thịt Hộ Thể", "Phản Chấn Đệm Thịt" };
-                        int[] icon_ = new int[] { 4417, 4418, 4419, 4420 };
+                        int[] icon_ = new int[] { 417, 418, 419, 420 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 1015, 1);
@@ -3790,7 +3790,7 @@ public class ClientYesNo {
                 case 5016: { // trai ope ope (law)
                     if (p.item.total_item_bag_by_id(4, 1016) > 0) {
                         String[] name_ = new String[] { "Trảm Không Gian", "Dao Phóng Xạ Gamma", "Khiên Phẫu Thuật", "Bác Sĩ Tử Thần" };
-                        int[] icon_ = new int[] { 4421, 4422, 4423, 4424 };
+                        int[] icon_ = new int[] { 421, 422, 423, 424 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 1016, 1);
@@ -3801,7 +3801,7 @@ public class ClientYesNo {
                 case 5017: { // trai nika (luffy gear 5)
                     if (p.item.total_item_bag_by_id(4, 1017) > 0) {
                         String[] name_ = new String[] { "Cao Su Xà Quyền", "Thần Nika Cự Quyền", "Thức Tỉnh Nika", "Tiếng Trống Giải Phóng" };
-                        int[] icon_ = new int[] { 4439, 4438, 4440, 4441 };
+                        int[] icon_ = new int[] { 439, 438, 440, 441 };
                         Service.NewDialog_eat_taq(p, name_, icon_, (id - 4000));
                         p.get_skill_taq_new(id - 4000);
                         p.item.remove_item47(4, 1017, 1);

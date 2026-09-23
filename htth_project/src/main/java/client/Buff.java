@@ -42,7 +42,8 @@ public class Buff {
                         default: {
                             if (sk_info.temp.op.get(j).id != 25
                                     && (sk_info.temp.op.get(j).id < 28
-                                            || sk_info.temp.op.get(j).id == 53)
+                                            || sk_info.temp.op.get(j).id == 53
+                                            || sk_info.temp.op.get(j).id == 56)
                                     && sk_info.temp.op.get(j).id >= 0) {
                                 list_id.add(sk_info.temp.op.get(j).id);
                                 list_par.add(sk_info.temp.op.get(j).getParam());

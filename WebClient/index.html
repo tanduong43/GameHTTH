@@ -268,7 +268,8 @@
             sessionStorage.setItem("htth_auto_healed", "1");
             if (window.indexedDB && window.indexedDB.databases) {
               window.indexedDB.databases().then((dbs) => {
-                return Promise.all(dbs.map((db) => window.indexedDB.deleteDatabase(db.name)));
+                const cacheDbs = dbs.filter((db) => db.name && db.name.includes("UnityCache"));
+                return Promise.all(cacheDbs.map((db) => window.indexedDB.deleteDatabase(db.name)));
               }).finally(() => {
                 window.location.reload();
               });
@@ -288,7 +289,7 @@
         if (window.indexedDB && window.indexedDB.databases) {
           window.indexedDB.databases().then((dbs) => {
             dbs.forEach((db) => {
-              if (db.name && (db.name.includes("idbfs") || db.name.includes("UnityCache"))) {
+              if (db.name && db.name.includes("UnityCache")) {
                 window.indexedDB.deleteDatabase(db.name);
               }
             });
