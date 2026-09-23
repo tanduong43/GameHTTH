@@ -1,13 +1,12 @@
 """
-Effect 920 (Buff Nika Awakening) - FINAL v12
-Fixes:
-  1. Vong tron xoay ro rang: 8-spike ring, 60deg/frame rotation
-  2. Tia haki khong blink: 8 bolt branches segmented from source,
-     alternated across 6 frames (2-4 bolts per frame, different each frame)
+Effect 920 (Buff Nika Awakening) - Combined v14
+Features:
+  1. Original Anime Haki lightning bolts + Rotating 8-spike ground ring
+  2. PLUS omnidirectional radiating Haki shockwaves & energy arcs expanding outward 360 degrees
 """
-import math, os, sys, struct
+import math, os, sys, struct, io
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from scipy import ndimage
 
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
@@ -16,6 +15,7 @@ if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
 SCRATCH_PREV = 'C:/Users/admin/.gemini/antigravity-ide/brain/c86bc279-4d82-458a-911a-7fcf750991f2/scratch'
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, 'data', 'template', 'skill'))
+SCRATCH = r'C:\Users\admin\.gemini\antigravity-ide\brain\962f8d45-51ec-4554-8c92-12988262654e\scratch'
 
 # ============================================================
 # 1. LOAD & SEGMENT HAKI BOLTS
@@ -95,7 +95,6 @@ print(f"  Pre-rendered {len(bolt_layers)} bolt layers")
 # ============================================================
 # 2. FRAME SCHEDULE
 # ============================================================
-# Each frame shows 2-4 bolts, different each frame, never same set twice
 frame_schedules = [
     [1, 6],          # Frame 0: Left Main + Right Giant
     [8, 4, 7],       # Frame 1: Left Giant(mirror) + Center-Low + Far Right
@@ -177,13 +176,71 @@ def draw_ground_ring(H, W, alpha_rot, cx=120.0, cy=198.0, aspect=0.245):
     return ring
 
 # ============================================================
-# 4. RENDER 6 FRAMES
+# 4. DRAW RADIATING HAKI WAVES AROUND CHARACTER
 # ============================================================
-print("Rendering 6 frames...")
+def draw_radiating_haki_waves(H, W, fi, num_frames=6, cx=120, cy=140):
+    im_wave = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im_wave)
+    t = fi / float(num_frames)
+
+    # Concentric expanding Haki shockwave rings
+    for r_i in range(2):
+        rt = (t + r_i / 2.0) % 1.0
+        rad_x = 24 + rt * 80
+        rad_y = 16 + rt * 56
+        alpha = int(220 * math.sin(rt * math.pi))
+        
+        d.ellipse([cx - rad_x - 3, cy - rad_y - 2, cx + rad_x + 3, cy + rad_y + 2],
+                  outline=(255, int(20 + 40 * (1 - rt)), int(80 + 120 * rt), int(alpha * 0.4)), width=3)
+        d.ellipse([cx - rad_x, cy - rad_y, cx + rad_x, cy + rad_y],
+                  outline=(255, int(100 * (1 - rt)), int(220 * rt + 30), alpha), width=2)
+        if alpha > 70:
+            d.arc([cx - rad_x, cy - rad_y, cx + rad_x, cy + rad_y],
+                  start=20, end=160, fill=(255, 240, 255, int(alpha * 0.8)), width=2)
+
+    # Outward branching radial Haki lightning tendrils
+    num_tendrils = 6
+    for k in range(num_tendrils):
+        base_ang = (k / float(num_tendrils)) * 2 * math.pi + t * 0.8
+        t_len = 35 + 25 * math.sin(k * 2.1 + t * 2 * math.pi)
+        pts = [(cx + math.cos(base_ang) * 15, cy + math.sin(base_ang) * 12)]
+        for s in range(1, 4):
+            st = s / 3.0
+            jag = 8 * math.sin(s * 3.1 + k * 2.3 + fi)
+            ang = base_ang + jag * 0.04
+            dist = 15 + st * (t_len - 15)
+            nx = cx + math.cos(ang) * dist + jag * math.sin(base_ang)
+            ny = cy + math.sin(ang) * dist * 0.75 - jag * math.cos(base_ang)
+            pts.append((nx, ny))
+            
+        for i in range(len(pts) - 1):
+            p1, p2 = pts[i], pts[i+1]
+            w = max(1, int(3 * (1.0 - i / float(len(pts)))))
+            d.line([p1, p2], fill=(255, 20, 80, 200), width=w + 3)
+            d.line([p1, p2], fill=(15, 2, 20, 255), width=w + 1)
+            d.line([p1, p2], fill=(255, 220, 250, 230), width=max(1, w - 1))
+            
+    # Bursting spark particles flying outward
+    for p_i in range(8):
+        p_ang = (p_i / 8.0) * 2 * math.pi + p_i * 1.4
+        p_dist = 18 + (t * 60 + p_i * 8) % 65
+        px = cx + math.cos(p_ang) * p_dist
+        py = cy + math.sin(p_ang) * p_dist * 0.75
+        pr = max(1, int(2.5 * (1.0 - p_dist / 85.0)))
+        d.ellipse([px - pr, py - pr, px + pr, py + pr],
+                  fill=(255, 160, 230, int(230 * (1.0 - p_dist / 85.0))))
+
+    return np.array(im_wave).astype(float)
+
+# ============================================================
+# 5. RENDER & COMPOSITE 6 FRAMES
+# ============================================================
+print("Rendering 6 frames with added radiating Haki waves...")
 frames_240 = []
 for fi in range(6):
     rot = fi * (2.0 * math.pi / 6.0)
     ring_layer = draw_ground_ring(240, 240, rot)
+    wave_layer = draw_radiating_haki_waves(240, 240, fi)
 
     # Composite active bolts
     active_b = frame_schedules[fi]
@@ -199,27 +256,39 @@ for fi in range(6):
         haki_combined[:, :, :3] = rgb_n
         haki_combined[:, :, 3:] = an * 255.0
 
-    # Place haki on canvas
+    # Place haki & radiating waves on canvas
     canvas = ring_layer.copy()
+    
+    # Blend wave_layer over ring
+    aw = wave_layer[:, :, 3:] / 255.0
+    ar = canvas[:, :, 3:] / 255.0
+    a_rw = aw + ar * (1.0 - aw)
+    rgb_rw = np.where(a_rw > 0,
+        (wave_layer[:, :, :3] * aw + canvas[:, :, :3] * ar * (1.0 - aw)) / np.maximum(a_rw, 1e-6),
+        0.0)
+    canvas[:, :, :3] = rgb_rw
+    canvas[:, :, 3:] = a_rw * 255.0
+
+    # Place main source Haki bolts
     haki_canvas = np.zeros((240, 240, 4), dtype=float)
     haki_canvas[44:200, 10:230] = haki_combined
 
-    # Composite: Haki over Ring
-    a_h = haki_canvas[:, :, 3:] / 255.0
-    a_r = canvas[:, :, 3:] / 255.0
-    a_out = a_h + a_r * (1.0 - a_h)
+    # Composite Haki over Ring + Waves
+    ah = haki_canvas[:, :, 3:] / 255.0
+    ac = canvas[:, :, 3:] / 255.0
+    a_out = ah + ac * (1.0 - ah)
     rgb_out = np.where(a_out > 0,
-        (haki_canvas[:, :, :3] * a_h + canvas[:, :, :3] * a_r * (1.0 - a_h)) / np.maximum(a_out, 1e-6),
+        (haki_canvas[:, :, :3] * ah + canvas[:, :, :3] * ac * (1.0 - ah)) / np.maximum(a_out, 1e-6),
         0.0)
     frame_final = np.zeros((240, 240, 4), dtype=np.uint8)
     frame_final[:, :, :3] = np.clip(rgb_out, 0, 255).astype(np.uint8)
     frame_final[:, :, 3] = np.clip(a_out[:, :, 0] * 255, 0, 255).astype(np.uint8)
 
     frames_240.append(Image.fromarray(frame_final))
-    print(f"  Frame {fi}: {len(active_b)} bolts")
+    print(f"  Frame {fi}: {len(active_b)} bolts + radiating Haki waves")
 
 # ============================================================
-# 5. BUILD SPRITE SHEET (3x2, 720x480)
+# 6. BUILD SPRITE SHEET (3x2, 720x480)
 # ============================================================
 print("Building sprite sheet...")
 sheet = Image.new('RGBA', (720, 480), (0, 0, 0, 0))
@@ -227,11 +296,10 @@ for i, fr in enumerate(frames_240):
     sheet.paste(fr, ((i % 3) * 240, (i // 3) * 240))
 
 # ============================================================
-# 6. BUILD BINARY DATA
+# 7. BUILD BINARY DATA
 # ============================================================
 def build_data():
     out = bytearray()
-    # SmallImages: 6 cells at 1x = 60x60
     small_images = [
         [0,   0, 0, 60, 60],
         [1,  60, 0, 60, 60],
@@ -245,72 +313,79 @@ def build_data():
         for v in s:
             out.append(v)
 
-    # Frames: 6 frames, 1 part each
-    # dx=-30, dy=-50 centers effect at player feet
     out.extend(struct.pack('>h', 6))
     for i in range(6):
-        out.append(1)  # 1 part per frame
-        out.extend(struct.pack('>h', -30))  # dx
-        out.extend(struct.pack('>h', -50))  # dy
-        out.append(i)   # idSmallImg
-        out.append(0)   # flip
-        out.append(1)   # onTop = 1 (render on top of player)
+        out.append(1)
+        out.extend(struct.pack('>h', -30))
+        out.extend(struct.pack('>h', -50))
+        out.append(i)
+        out.append(0)
+        out.append(1)
 
-    # Sequence: 6 steps
     seq = [0, 1, 2, 3, 4, 5]
     out.append(len(seq))
     for s in seq:
         out.extend(struct.pack('>h', s))
 
-    # Trailing data: typeupdate byte + 3 frameChar arrays + 3 indexSplash bytes
-    out.append(0)  # typeupdate
+    out.append(0)
     for _ in range(3):
-        out.append(1)  # frameChar length
-        out.append(0)  # frameChar value
-    out.extend(bytes([0, 0, 0]))  # indexSplash
+        out.append(1)
+        out.append(0)
+    out.extend(bytes([0, 0, 0]))
     return bytes(out)
 
-data_bytes = build_data()
-print(f"  Data size: {len(data_bytes)} bytes")
-
 # ============================================================
-# 7. SAVE TO ALL ZOOM LEVELS
+# 8. DEPLOY ALL ZOOMS
 # ============================================================
-print("Saving to game data...")
-w4, h4 = sheet.size  # 720, 480
-w1, h1 = w4 // 4, h4 // 4  # 180, 120
+def generate():
+    data_bytes = build_data()
+    print(f"Data binary size: {len(data_bytes)} bytes")
 
-zooms = {
-    'x4': sheet,
-    'x3': sheet.resize((w1 * 3, h1 * 3), Image.Resampling.LANCZOS),
-    'x2': sheet.resize((w1 * 2, h1 * 2), Image.Resampling.LANCZOS),
-    'x1': sheet.resize((w1, h1), Image.Resampling.BILINEAR),
-    'x0': sheet.resize((w1, h1), Image.Resampling.BILINEAR),
-}
+    os.makedirs(SCRATCH, exist_ok=True)
+    gif_path = os.path.join(SCRATCH, 'nika920_combined_radiating_haki.gif')
+    frames_240[0].save(gif_path, save_all=True, append_images=frames_240[1:], duration=60, loop=0)
+    print(f"Saved preview GIF: {gif_path}")
 
-for z, im_z in zooms.items():
-    img_dir = os.path.join(BASE_DIR, z, 'img')
-    dat_dir = os.path.join(BASE_DIR, z, 'data')
-    os.makedirs(img_dir, exist_ok=True)
-    os.makedirs(dat_dir, exist_ok=True)
+    w4, h4 = sheet.size
+    w1, h1 = w4 // 4, h4 // 4
+    zooms = {
+        'x4': (sheet, 100),
+        'x3': (sheet.resize((w1 * 3, h1 * 3), Image.Resampling.LANCZOS), 100),
+        'x2': (sheet.resize((w1 * 2, h1 * 2), Image.Resampling.LANCZOS), 100),
+        'x1': (sheet.resize((w1 * 1, h1 * 1), Image.Resampling.BILINEAR), 128),
+        'x0': (sheet.resize((w1 * 1, h1 * 1), Image.Resampling.BILINEAR), 128),
+    }
 
-    # Clean near-transparent pixels, quantize to reduce size
-    arr_z = np.array(im_z)
-    arr_z[arr_z[:, :, 3] < 15] = 0
-    im_clean = Image.fromarray(arr_z)
-    im_q = im_clean.quantize(colors=100, method=Image.Quantize.FASTOCTREE)
+    for z, (im_z, n_col) in zooms.items():
+        img_dir = os.path.join(BASE_DIR, z, 'img')
+        dat_dir = os.path.join(BASE_DIR, z, 'data')
+        os.makedirs(img_dir, exist_ok=True)
+        os.makedirs(dat_dir, exist_ok=True)
 
-    img_path = os.path.join(img_dir, '920.png')
-    im_q.save(img_path, optimize=True)
-    sz = os.path.getsize(img_path)
+        arr_z = np.array(im_z)
+        arr_z[arr_z[:, :, 3] < 15] = [0, 0, 0, 0]
+        im_clean_z = Image.fromarray(arr_z)
+        im_q = im_clean_z.quantize(colors=n_col, method=Image.Quantize.FASTOCTREE)
 
-    dat_path = os.path.join(dat_dir, '920')
-    with open(dat_path, 'wb') as f:
-        f.write(data_bytes)
+        img_path = os.path.join(img_dir, '920.png')
+        buf = io.BytesIO()
+        im_q.save(buf, format='PNG', compress_level=9, optimize=True)
+        tmp_img = img_path + '.tmp'
+        with open(tmp_img, 'wb') as f:
+            f.write(buf.getvalue())
+        os.replace(tmp_img, img_path)
+        img_sz = os.path.getsize(img_path)
 
-    print(f"  [{z}] img={sz} bytes, data={len(data_bytes)} bytes")
+        dat_path = os.path.join(dat_dir, '920')
+        tmp_dat = dat_path + '.tmp'
+        with open(tmp_dat, 'wb') as f:
+            f.write(data_bytes)
+        os.replace(tmp_dat, dat_path)
 
-print("\n=== DONE! Effect 920 v12 saved to game! ===")
-print("Ring: 8 spikes rotating 60deg/frame")
-print("Haki: 8+2 bolt branches alternating across 6 frames")
-print("onTop=0: renders below player character")
+        total_sz = img_sz + len(data_bytes)
+        print(f"  [{z}] 920.png = {img_sz} bytes, total packet body = {total_sz} bytes (max 60000)")
+
+    print("\n=== SUCCESS! Effect 920 (Original Bolts + Ground Ring + Radiating Haki Waves) Deployed! ===")
+
+if __name__ == '__main__':
+    generate()

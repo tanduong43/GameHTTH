@@ -1713,34 +1713,7 @@ public class Clan {
             }
         }
         //
-        Clan.BXH.clear();
-        connection = null;
-        ps = null;
-        ResultSet rs = null;
-        try {
-            connection = SQL.gI().getCon();
-            ps = connection.prepareStatement("SELECT `name` FROM `clan` ORDER BY `xp` DESC, `id` ASC");
-            rs = ps.executeQuery();
-            while (rs.next()) {
-                Clan.BXH.add(rs.getString("name"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (ps != null) {
-                    ps.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        update_bxh();
         connection = null;
         ps = null;
         try {
@@ -1757,6 +1730,38 @@ public class Clan {
             e.printStackTrace();
         } finally {
             try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public synchronized static void update_bxh() {
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = SQL.gI().getCon();
+            ps = connection.prepareStatement("SELECT `name` FROM `clan` ORDER BY `xp` DESC, `id` ASC");
+            rs = ps.executeQuery();
+            List<String> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(rs.getString("name"));
+            }
+            Clan.BXH = list;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
                 if (ps != null) {
                     ps.close();
                 }

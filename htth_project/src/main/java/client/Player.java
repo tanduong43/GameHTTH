@@ -698,7 +698,7 @@ public class Player {
             boolean wasBattleground5v5 = (savedMapId >= 129 && savedMapId <= 133);
             boolean wasSpecialRedirectMap = (savedMapId == 2000 || savedMapId == 2028 
                     || savedMapId == activities.PetTraining.MAP_TRAIN_PET_ID 
-                    || savedMapId == 2026 || savedMapId == 1001 || savedMapId == 58
+                    || savedMapId == 2026 || (savedMapId >= event.EventTet.ARENA_MAP_MIN && savedMapId <= event.EventTet.ARENA_MAP_MAX) || savedMapId == 1001 || savedMapId == 58
                     || savedMapId == 119
                     || wasBigBattleMap
                     || wasBattleground5v5);
@@ -1499,7 +1499,7 @@ public class Player {
                 js.add(280);
             } else if (p.map.template.id == 2000 || p.map.template.id == 2028
                     || p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID
-                    || p.map.template.id == 2026 || p.map.template.id == 1001
+                    || p.map.template.id == 2026 || (p.map.template.id >= event.EventTet.ARENA_MAP_MIN && p.map.template.id <= event.EventTet.ARENA_MAP_MAX) || p.map.template.id == 1001
                     || (p.map.template.id >= 2030 && p.map.template.id <= 2032)
                     || activities.BigBattle.isWaitingMap(p.map)
                     || (p.map.map_pvp != null && p.map.map_pvp.type_map == 4)
@@ -2309,15 +2309,23 @@ public class Player {
         if (p == null || p.conn == null || !p.conn.connected || p.map == null) {
             return false;
         }
-        if (p.map.map_pvp != null || p.map.map_little_garden != null
+        boolean inDungeon = (p.dungeon != null
+                || (p.map != null && p.map.map_dungeon != null)
                 || Map.is_map_dungeon(p.map.template.id)
+                || p.map.map_pvp != null || p.map.map_little_garden != null
                 || p.dungeon instanceof activities.HangDong
                 || p.map.map_dungeon instanceof activities.HangDong
+                || p.dungeon instanceof activities.TowerChallenge
+                || p.dungeon instanceof activities.NamieTreasureDefense
                 || (p.map.map_pvp_clan != null && !p.map.map_pvp_clan.is_finish)
                 || (p.map.map_dao_hoa != null && !p.map.map_dao_hoa.is_finish)
                 || p.battleground5v5 != null
                 || (p.map != null && p.map.map_battleground5v5 != null)
-                || activities.Battleground5v5.isBattleMapStatic(p.map)) {
+                || activities.Battleground5v5.isBattleMapStatic(p.map)
+                || (p.map.template.id >= 500 && p.map.template.id <= 512)
+                || p.map.template.id == 984
+                || (p.map.template.id >= 167 && p.map.template.id <= 176));
+        if (inDungeon) {
             return false;
         }
         if (p.item.total_item_bag_by_id(4, 89) <= 0) {
@@ -2387,12 +2395,15 @@ public class Player {
                 }
             }
             byte type = m2.reader().readByte();
-            if (type == 1) { //
-                if (Map.is_map_dungeon(this.map.template.id)
+            if (type == 1) { // Hồi sinh tại chỗ
+                boolean inDungeon = (this.dungeon != null || (this.map != null && this.map.map_dungeon != null)
+                        || (this.map != null && Map.is_map_dungeon(this.map.template.id))
                         || (this.map != null && (this.map.map_pvp_clan != null || this.map.map_dao_hoa != null || this.map.map_battleground5v5 != null))
                         || this.battleground5v5 != null
-                        || activities.Battleground5v5.isBattleMapStatic(this.map)) {
-                    Service.send_box_ThongBao_OK(this, "Đang trong trận đấu Chiến Trường, bạn sẽ tự động hồi sinh tại Căn Cứ sau vài giây!");
+                        || activities.Battleground5v5.isBattleMapStatic(this.map)
+                        || (this.map != null && ((this.map.template.id >= 500 && this.map.template.id <= 512) || (this.map.template.id >= 167 && this.map.template.id <= 176))));
+                if (inDungeon) {
+                    Service.send_box_ThongBao_OK(this, "Không thể sử dụng Vé Hồi Sinh hoặc hồi sinh tại chỗ trong Phó Bản / Chiến Trường!");
                     return;
                 }
                 if (this.item.total_item_bag_by_id(4, 89) > 0) {

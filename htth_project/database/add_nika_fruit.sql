@@ -11,16 +11,16 @@ SET SQL_SAFE_UPDATES = 0;
 
 -- 0. XÓA DỮ LIỆU CŨ NẾU CÓ
 DELETE FROM `item4` WHERE `id` = 1017 OR `name` = 'Trái Nika';
-DELETE FROM `item4_info` WHERE `id` = 1017;
+DELETE FROM `item4_info` WHERE `id` IN (459, 1017);
 DELETE FROM `skill` WHERE `id` IN (1082, 1083, 1084, 1085) OR `id_index` IN (918, 919, 920, 921);
 
 -- 1. THÊM ITEM TRÁI NIKA VÀO ITEM4
 INSERT INTO `item4` (`id`, `name`, `icon`, `indexInfoPotion`, `price`, `priceruby`, `istrade`, `hpmpother`, `timedelay`, `value`, `timeactive`, `nameuse`)
-VALUES (1017, 'Trái Nika', 683, 459, 10, 0, 1, 7, 0, 0, 0, 'Ăn');
+VALUES (1017, 'Trái Nika', 192, 459, 10, 0, 1, 7, 0, 0, 0, 'Ăn');
 
 -- 2. THÊM MÔ TẢ ITEM VÀO ITEM4_INFO
 INSERT INTO `item4_info` (`id`, `info`)
-VALUES (1017, 'Khi ăn Trái Ác Quỷ Nika (Hito Hito no Mi: Model Nika - Thần Mặt Trời), bạn sẽ đánh thức sức mạnh tự do vô hạn của Chiến Binh Giải Phóng với các tuyệt kỹ: Cao Su Xà Quyền, Cự Quyền Nika (Bajrang Gun), Thức Tỉnh Nika và Tiếng Trống Giải Phóng.');
+VALUES (459, 'Khi ăn Trái Ác Quỷ Nika (Hito Hito no Mi: Model Nika - Thần Mặt Trời), bạn sẽ đánh thức sức mạnh tự do vô hạn của Chiến Binh Giải Phóng với các tuyệt kỹ: Cao Su Xà Quyền, Cự Quyền Nika (Bajrang Gun), Thức Tỉnh Nika và Tiếng Trống Giải Phóng.');
 
 -- 3. THÊM BỘ 4 KỸ NĂNG VÀO BẢNG SKILL
 

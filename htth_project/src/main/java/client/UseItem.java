@@ -288,18 +288,25 @@ public class UseItem {
                 }
             } else {
                 if (id == 89) {
-                    if (p.battleground5v5 != null
+                    boolean inDungeon = (p.dungeon != null || (p.map != null && p.map.map_dungeon != null)
+                            || (p.map != null && Map.is_map_dungeon(p.map.template.id))
+                            || p.battleground5v5 != null
                             || (p.map != null && p.map.map_battleground5v5 != null)
-                            || activities.Battleground5v5.isBattleMapStatic(p.map)) {
-                        Service.send_box_ThongBao_OK(p, "Không thể sử dụng Vé Hồi Sinh trong Chiến Trường 5vs5!");
+                            || (p.map != null && activities.Battleground5v5.isBattleMapStatic(p.map))
+                            || (p.map != null && (p.map.template.id >= 500 && p.map.template.id <= 512))
+                            || (p.map != null && (p.map.template.id >= 167 && p.map.template.id <= 176)));
+                    if (inDungeon) {
+                        Service.send_box_ThongBao_OK(p, "Không thể sử dụng Vé Hồi Sinh trong Phó Bản / Chiến Trường!");
                         return true;
                     }
                     if (p.isdie || p.hp <= 0) {
                         if (Player.do_revive_with_ticket(p)) {
                             Service.send_box_ThongBao_OK(p, "Đã hồi sinh bằng Vé Hồi Sinh và được bảo vệ 30 phút!");
+                        } else {
+                            Service.send_box_ThongBao_OK(p, "Không thể sử dụng Vé Hồi Sinh tại đây!");
                         }
                     } else {
-                        Service.send_box_ThongBao_OK(p, "Vé Hồi Sinh sẽ tự động được sử dụng khi bạn bị tiêu diệt (bảo vệ 30 phút chống PK)!");
+                        Service.send_box_ThongBao_OK(p, "Vé Hồi Sinh sẽ tự động được sử dụng khi bạn bị tiêu diệt (bảo vệ 30 phút chống PK) ngoài map thường!");
                     }
                     return true;
                 }
@@ -1014,6 +1021,40 @@ public class UseItem {
                     }
                     case 271: {
                         Service.input_text(p, 271, "Đổi tên nhân vật", new String[] { "Nhập tên mới" });
+                        used = false;
+                        break;
+                    }
+                    case 1018: {
+                        if (p.clan == null) {
+                            Service.send_box_ThongBao_OK(p, "Bạn chưa gia nhập Băng Hải Tặc nào!");
+                            used = false;
+                            break;
+                        }
+                        boolean isLeader = false;
+                        if (p.clan.members != null && !p.clan.members.isEmpty()) {
+                            if (p.clan.members.get(0).name.equals(p.name)) {
+                                isLeader = true;
+                            } else {
+                                for (int i = 0; i < p.clan.members.size(); i++) {
+                                    Clan_member m = p.clan.members.get(i);
+                                    if (m != null && m.name.equals(p.name) && m.levelInclan == 0) {
+                                        isLeader = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (!isLeader) {
+                            Service.send_box_ThongBao_OK(p, "Chỉ Thuyền trưởng mới có quyền sử dụng vật phẩm này để đổi tên Băng!");
+                            used = false;
+                            break;
+                        }
+                        if (p.clan.map_create != null || activities.PvpClan.LIST.contains(p.clan)) {
+                            Service.send_box_ThongBao_OK(p, "Băng đang tham gia hoạt động chiến đấu, không thể đổi tên lúc này!");
+                            used = false;
+                            break;
+                        }
+                        Service.input_text(p, 1018, "Đổi tên Clan", new String[] { "Nhập tên Băng mới" });
                         used = false;
                         break;
                     }
@@ -2218,6 +2259,7 @@ public class UseItem {
         if (numInBag > 0) {
             if (use_item_4(p, id)) {
                 if (id != 271
+                        && id != 1018
                         && id != EventTrungThu.ITEM_BANH_TRUNG_THU
                         && id != EventTrungThu.ITEM_BANH_DAU_XANH
                         && id != EventTrungThu.ITEM_BANH_TRUNG_MUOI

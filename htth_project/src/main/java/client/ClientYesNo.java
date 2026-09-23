@@ -669,8 +669,8 @@ public class ClientYesNo {
                             return;
                         }
                         if (p.update_coin(-coin)) {
-                            int rubyRec = coin * 100;
-                            int extolRec = coin * 1000;
+                            int rubyRec = coin * 200;
+                            int extolRec = coin * 2000;
                             p.update_ngoc(rubyRec);
                             p.update_vnd(extolRec);
                             p.update_money();
@@ -695,7 +695,7 @@ public class ClientYesNo {
                             return;
                         }
                         if (p.update_coin(-coin)) {
-                            long beri = (long) coin * 5_000_000L;
+                            long beri = (long) coin * 10_000_000L;
                             p.update_vang(beri);
                             p.update_money();
                             ActionLogger.logBeri(p.name, "Đổi Coin nhận Beri", beri, p.get_vang());

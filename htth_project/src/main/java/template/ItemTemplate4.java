@@ -66,6 +66,20 @@ public class ItemTemplate4 {
 			ItemTemplate4.ENTRYS.add(it);
 			return it;
 		}
+		if (id == 1018) {
+			ItemTemplate4 it = new ItemTemplate4();
+			it.id = 1018;
+			it.name = "Vé đổi tên Clan";
+			it.icon = 2106;
+			it.indexInfoPotion = 1018;
+			it.beri = 0;
+			it.ruby = 500;
+			it.istrade = 1;
+			it.type = 67;
+			it.nameuse = "Sử dụng";
+			ItemTemplate4.ENTRYS.add(it);
+			return it;
+		}
 		return null;
 	}
 
@@ -82,6 +96,7 @@ public class ItemTemplate4 {
 		if (id == 1015) return "Trái Nikyu Nikyu";
 		if (id == 1016) return "Trái Ope Ope";
 		if (id == 1017) return "Trái Nika";
+		if (id == 1018) return "Vé đổi tên Clan";
 		String s = "";
 		for (int i = 0; i < ItemTemplate4.ENTRYS.size(); i++) {
 			if (ItemTemplate4.ENTRYS.get(i).id == id) {

@@ -291,7 +291,7 @@ public class Bank {
      */
     public static void requestExchangeCoinInput(Player p) throws IOException {
         Service.input_text(p, INPUT_ID_BANK_EXCHANGE_COIN, "Đổi Coin (" + Util.number_format(p.conn.coin) + " Coin hiện có)",
-                new String[] { "Nhập số Coin muốn đổi (1 Coin = 100 Ruby + 1.000 Extol)" });
+                new String[] { "Nhập số Coin muốn đổi (1 Coin = 200 Ruby + 2.000 Extol)" });
     }
 
     /**
@@ -317,8 +317,8 @@ public class Bank {
             return;
         }
         int coin = (int) coinLong;
-        long rubyRec = coin * 100L;
-        long extolRec = coin * 1000L;
+        long rubyRec = coin * 200L;
+        long extolRec = coin * 2000L;
 
         p.data_yesno = new int[] { YESNO_ID_BANK_EXCHANGE_COIN, coin };
         Service.send_box_yesno(p, YESNO_ID_BANK_EXCHANGE_COIN, "Xác nhận đổi Coin",
@@ -339,8 +339,8 @@ public class Bank {
                 return;
             }
             if (p.update_coin(-coin)) {
-                int rubyRec = coin * 100;
-                int extolRec = coin * 1000;
+                int rubyRec = coin * 200;
+                int extolRec = coin * 2000;
                 p.update_ngoc(rubyRec);
                 p.update_vnd(extolRec);
                 p.update_money();
@@ -804,7 +804,7 @@ public class Bank {
             case 0: // Tỷ lệ quy đổi (ngắn gọn, không che màn hình)
                 Service.send_box_ThongBao_OK(p, "💰 TỶ LỆ QUY ĐỔI COIN 💰\n\n"
                         + "• 1.000 VNĐ = 1 Coin = 1.000 Điểm tích nạp.\n"
-                        + "• 1 Coin quy đổi nhận ngay: 100 Ruby + 1.000 Extol.\n"
+                        + "• 1 Coin quy đổi nhận ngay: 200 Ruby + 2.000 Extol.\n"
                         + "• Đổi Coin trực tiếp tại mục [Đổi Coin] ở NPC Ngân Hàng.");
                 break;
             case 1: // Mốc VIP (ngắn gọn, không che màn hình)
@@ -832,7 +832,7 @@ public class Bank {
                 String helpText = "Tỷ lệ nạp & quy đổi\r\n"
                         + "• 1.000 VNĐ = 1 Coin = 1.000 Điểm tích nạp.\b"
                         + "Quy đổi Coin sang Ruby & Extol\r\n"
-                        + "• 1 Coin quy đổi nhận ngay: 100 Ruby + 1.000 Extol.\r\n"
+                        + "• 1 Coin quy đổi nhận ngay: 200 Ruby + 2.000 Extol.\r\n"
                         + "• Đổi Coin trực tiếp tại mục [Đổi Coin] ở NPC Ngân Hàng.\b"
                         + "Mốc cấp VIP tự động\r\n"
                         + "• VIP 1: 200k | VIP 2: 500k | VIP 3: 1.000k\r\n"

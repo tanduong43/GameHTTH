@@ -3,6 +3,7 @@ package event;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
@@ -18,7 +19,9 @@ import core.Util;
 import io.Message;
 import map.Boss;
 import map.Map;
+import map.MapTemplate;
 import map.Mob;
+import map.Vgo;
 import template.GiftBox;
 import template.ItemFashionP2;
 import template.ItemTemplate4;
@@ -37,7 +40,242 @@ public class EventTet implements Runnable {
     private static final String CONFIG_KEY = "event-tet";
 
     // Map IDs
-    public static final int MAP_DAU_TRUONG = 2026;  // Đấu Trường Mùa Xuân
+    public static final int MAP_DAU_TRUONG = 2026;  // Đấu Trường Mùa Xuân (cũ)
+    public static final int ARENA_MAP_MIN = 134;
+    public static final int ARENA_MAP_MAX = 156;
+    public static final int ARENA_MAP_COUNT = 5;
+    public final List<Integer> activeArenaMaps = new CopyOnWriteArrayList<>();
+    private int currentArenaDay = -1;
+
+    public boolean isDauTruongMap(int mapId) {
+        return (mapId >= ARENA_MAP_MIN && mapId <= ARENA_MAP_MAX) || mapId == MAP_DAU_TRUONG;
+    }
+
+    public int getMainActiveArenaMap() {
+        if (activeArenaMaps.size() < ARENA_MAP_COUNT) {
+            refreshActiveArenaMaps();
+        }
+        if (!activeArenaMaps.isEmpty()) {
+            return activeArenaMaps.get(0); // Map sảnh chính cố định của 5 map trong ngày
+        }
+        return ARENA_MAP_MIN;
+    }
+
+    public int getRandomActiveArenaMap() {
+        if (activeArenaMaps.size() < ARENA_MAP_COUNT) {
+            refreshActiveArenaMaps();
+        }
+        if (!activeArenaMaps.isEmpty()) {
+            int idx = (int) (Math.random() * activeArenaMaps.size());
+            int targetId = activeArenaMaps.get(idx);
+            System.out.println("[DauTruong] Player teleported to random arena map: " + targetId + " (active pool: " + activeArenaMaps + ")");
+            return targetId;
+        }
+        int randId = ARENA_MAP_MIN + (int) (Math.random() * (ARENA_MAP_MAX - ARENA_MAP_MIN + 1));
+        return randId;
+    }
+
+    public synchronized void refreshActiveArenaMaps() {
+        List<Integer> pool = new ArrayList<>();
+        for (int m = ARENA_MAP_MIN; m <= ARENA_MAP_MAX; m++) {
+            Map[] mArr = Map.get_map_by_id(m);
+            if (mArr != null && mArr.length > 0 && mArr[0].template != null) {
+                pool.add(m);
+            }
+        }
+        if (pool.isEmpty()) {
+            for (int m = ARENA_MAP_MIN; m <= ARENA_MAP_MAX; m++) {
+                pool.add(m);
+            }
+        }
+        Collections.shuffle(pool);
+        activeArenaMaps.clear();
+        int count = Math.min(ARENA_MAP_COUNT, pool.size());
+        for (int i = 0; i < count; i++) {
+            activeArenaMaps.add(pool.get(i));
+        }
+
+        // Tự động kết nối đường dẫn (vgos) liên hoàn vòng tròn giữa 5 map
+        linkActiveArenaMapsVgos();
+        System.out.println("[DauTruong] Initialized " + activeArenaMaps.size() + " Active Arena Maps: " + activeArenaMaps);
+    }
+
+    public void openDauTruong() {
+        dauTruongOpen = true;
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        cal.add(Calendar.HOUR_OF_DAY, 1); // Kết thúc lúc 21:00
+        dauTruongEndTime = cal.getTimeInMillis();
+        dauTruongKillCount = 0;
+        dauTruongPlayers.clear();
+
+        refreshActiveArenaMaps();
+
+        StringBuilder mapNames = new StringBuilder();
+        for (int i = 0; i < activeArenaMaps.size(); i++) {
+            int mid = activeArenaMaps.get(i);
+            Map[] mArr = Map.get_map_by_id(mid);
+            String name = (mArr != null && mArr.length > 0 && mArr[0].template != null) ? mArr[0].template.name : ("Map " + mid);
+            if (i > 0) mapNames.append(", ");
+            mapNames.append(name);
+        }
+
+        try {
+            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã mở cửa từ 20:00 đến 21:00 tại 5 Chiến Trường: " + mapNames + "! Hãy đến gặp Tôn Ngộ Không để tham gia!");
+            Manager.gI().chatKTG(0, "🔥 Đấu Trường Sinh Tồn đang mở cửa (20:00 - 21:00) tại 5 Chiến Trường: " + mapNames + "! Hãy đến gặp Tôn Ngộ Không để tham gia!", 5);
+        } catch (IOException e) {
+            System.out.println("Error announcing dau truong open: " + e.getMessage());
+        }
+    }
+
+    private void linkActiveArenaMapsVgos() {
+        int n = activeArenaMaps.size();
+        if (n <= 1) return;
+        for (int i = 0; i < n; i++) {
+            int curId = activeArenaMaps.get(i);
+            int prevId = activeArenaMaps.get((i - 1 + n) % n);
+            int nextId = activeArenaMaps.get((i + 1) % n);
+
+            Map[] curArr = Map.get_map_by_id(curId);
+            Map[] prevArr = Map.get_map_by_id(prevId);
+            Map[] nextArr = Map.get_map_by_id(nextId);
+
+            if (curArr == null || curArr.length == 0 || curArr[0].template == null) continue;
+            MapTemplate curTemp = curArr[0].template;
+
+            int leftX = 36;
+            int leftY = 252;
+            int rightX = 1008;
+            int rightY = 252;
+
+            if (curTemp.vgos != null && !curTemp.vgos.isEmpty()) {
+                for (Vgo v : curTemp.vgos) {
+                    if (v.xold < 200) {
+                        leftX = v.xold;
+                        leftY = v.yold;
+                    } else if (v.xold > 800) {
+                        rightX = v.xold;
+                        rightY = v.yold;
+                    }
+                }
+            }
+
+            int prevTargetX = 950;
+            int prevTargetY = 252;
+            if (prevArr != null && prevArr.length > 0 && prevArr[0].template != null) {
+                for (Vgo v : prevArr[0].template.vgos) {
+                    if (v.xold > 800) {
+                        prevTargetX = Math.max(50, v.xold - 30);
+                        prevTargetY = v.yold;
+                        break;
+                    }
+                }
+            }
+
+            int nextTargetX = 60;
+            int nextTargetY = 252;
+            if (nextArr != null && nextArr.length > 0 && nextArr[0].template != null) {
+                for (Vgo v : nextArr[0].template.vgos) {
+                    if (v.xold < 200) {
+                        nextTargetX = v.xold + 30;
+                        nextTargetY = v.yold;
+                        break;
+                    }
+                }
+            }
+
+            Vgo vgoLeft = new Vgo();
+            vgoLeft.id_map_go = (short) prevId;
+            vgoLeft.map_go = prevArr;
+            vgoLeft.xold = (short) leftX;
+            vgoLeft.yold = (short) leftY;
+            vgoLeft.xnew = (short) prevTargetX;
+            vgoLeft.ynew = (short) prevTargetY;
+
+            Vgo vgoRight = new Vgo();
+            vgoRight.id_map_go = (short) nextId;
+            vgoRight.map_go = nextArr;
+            vgoRight.xold = (short) rightX;
+            vgoRight.yold = (short) rightY;
+            vgoRight.xnew = (short) nextTargetX;
+            vgoRight.ynew = (short) nextTargetY;
+
+            curTemp.vgos = new ArrayList<>();
+            curTemp.vgos.add(vgoLeft);
+            curTemp.vgos.add(vgoRight);
+        }
+    }
+
+    public void closeDauTruong() {
+        if (!dauTruongOpen) return;
+
+        dauTruongOpen = false;
+
+        // Xử lý thưởng Top
+        processDauTruongRewards();
+
+        try {
+            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã kết thúc! Hãy gặp Tôn Ngộ Không để nhận quà Top!");
+            Manager.gI().chatKTG(0, "🏆 Đấu Trường Sinh Tồn đã kết thúc! Các dũng sĩ đạt Top hãy đến gặp Tôn Ngộ Không nhận thưởng!", 5);
+        } catch (IOException e) {
+            System.out.println("Error announcing dau truong close: " + e.getMessage());
+        }
+
+        // Đưa người chơi trong các map đấu trường về làng
+        map.Vgo vgo = new map.Vgo();
+        vgo.map_go = Map.get_map_by_id(1);
+        if (vgo.map_go != null) {
+            vgo.xnew = 611;
+            vgo.ynew = 250;
+            for (Player pl : new ArrayList<>(dauTruongPlayers)) {
+                if (pl != null && pl.map != null && (isDauTruongMap(pl.map.template.id) || (pl.map.template.id >= ARENA_MAP_MIN && pl.map.template.id <= ARENA_MAP_MAX) || pl.map.template.id == MAP_DAU_TRUONG)) {
+                    try {
+                        pl.goto_map(vgo);
+                    } catch (IOException e) {
+                        System.out.println("Error moving player back to village: " + e.getMessage());
+                    }
+                }
+            }
+            // Quét thêm tất cả player còn kẹt trong các map đấu trường 134-156
+            for (int mid = ARENA_MAP_MIN; mid <= ARENA_MAP_MAX; mid++) {
+                Map[] mArr = Map.get_map_by_id(mid);
+                if (mArr != null) {
+                    for (Map m : mArr) {
+                        if (m != null && m.players != null) {
+                            for (Player pl : new ArrayList<>(m.players)) {
+                                if (pl != null) {
+                                    try {
+                                        pl.goto_map(vgo);
+                                    } catch (Exception ignored) {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        activeArenaMaps.clear();
+        dauTruongPlayers.clear();
+    }
+
+    public boolean isDauTruongOpen() {
+        return dauTruongOpen;
+    }
+
+    public void onPlayerJoinDauTruong(Player p) {
+        if (p != null && !dauTruongPlayers.contains(p)) {
+            dauTruongPlayers.add(p);
+        }
+        if (p != null && p.map != null && isDauTruongMap(p.map.template.id)) {
+            try {
+                p.map.change_flag(p, 3);
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+    }
     public static final int MAP_DAO_DAO_HOA = 2027; // Đảo Đào Hoa
 
     // Item IDs - Nguyên liệu làm bánh
@@ -205,12 +443,16 @@ public class EventTet implements Runnable {
     private void updateDauTruongSchedule() {
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-        int timeInMinutes = hour * 60 + minute;
+        int today = cal.get(Calendar.DAY_OF_YEAR);
 
-        // Mở từ 19h00 (1140 phút) đến 19h45 (1185 phút) hằng ngày
-        if (timeInMinutes >= 1140 && timeInMinutes < 1185) {
+        // Khung giờ mở: 20h00 đến 21h00 hằng ngày (20:00 - 20:59)
+        boolean shouldOpen = (hour == 20);
+
+        if (shouldOpen) {
             if (!dauTruongOpen) {
+                if (currentArenaDay != today || activeArenaMaps.size() < ARENA_MAP_COUNT) {
+                    currentArenaDay = today;
+                }
                 openDauTruong();
             }
         } else {
@@ -220,88 +462,16 @@ public class EventTet implements Runnable {
         }
     }
 
-    // ================== ĐẤU TRƯỜNG SINH TỒN ==================
 
-    public void openDauTruong() {
-        dauTruongOpen = true;
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 19);
-        cal.set(Calendar.MINUTE, 45);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        dauTruongEndTime = cal.getTimeInMillis();
-        dauTruongKillCount = 0;
-        dauTruongPlayers.clear();
-        try {
-            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã chính thức mở cửa (19h00 - 19h45)! Hãy đến gặp Tôn Ngộ Không để tham gia!");
-            Manager.gI().chatKTG(0, "🔥 Đấu Trường Sinh Tồn đã mở cửa từ 19h00 đến 19h45! Hãy đến gặp Tôn Ngộ Không để tham gia!", 5);
-        } catch (IOException e) {
-            System.out.println("Error announcing dau truong open: " + e.getMessage());
-        }
-    }
-
-    public void closeDauTruong() {
-        if (!dauTruongOpen) return;
-
-        dauTruongOpen = false;
-
-        // Xử lý thưởng Top
-        processDauTruongRewards();
-
-        try {
-            broadcastMessage("[ĐẤU TRƯỜNG] Đấu Trường Sinh Tồn đã kết thúc! Hãy gặp Tôn Ngộ Không để nhận quà Top!");
-            Manager.gI().chatKTG(0, "🏆 Đấu Trường Sinh Tồn đã kết thúc! Các dũng sĩ đạt Top hãy đến gặp Tôn Ngộ Không nhận thưởng!", 5);
-        } catch (IOException e) {
-            System.out.println("Error announcing dau truong close: " + e.getMessage());
-        }
-
-        // Đưa người chơi trong map 2026 về làng
-        Map[] mapDT = Map.get_map_by_id(MAP_DAU_TRUONG);
-        if (mapDT != null) {
-            map.Vgo vgo = new map.Vgo();
-            vgo.map_go = Map.get_map_by_id(1);
-            if (vgo.map_go != null) {
-                vgo.xnew = 611;
-                vgo.ynew = 250;
-                for (Player pl : new ArrayList<>(dauTruongPlayers)) {
-                    if (pl != null && pl.map != null && pl.map.template.id == MAP_DAU_TRUONG) {
-                        try {
-                            pl.goto_map(vgo);
-                        } catch (IOException e) {
-                            System.out.println("Error moving player back to village: " + e.getMessage());
-                        }
-                    }
-                }
-            }
-        }
-        dauTruongPlayers.clear();
-    }
-
-    public boolean isDauTruongOpen() {
-        return dauTruongOpen;
-    }
-
-    public void onPlayerJoinDauTruong(Player p) {
-        if (p != null && !dauTruongPlayers.contains(p)) {
-            dauTruongPlayers.add(p);
-        }
-        if (p != null && p.map != null && p.map.template.id == MAP_DAU_TRUONG) {
-            try {
-                p.map.change_flag(p, 3);
-            } catch (IOException e) {
-                // ignore
-            }
-        }
-    }
 
     public void onPlayerKillInDauTruong(Player killer, Player victim) {
         if (!isDauTruongOpen()) return;
 
-        dauTruongKillCount++;
+        dauTruongKillCount += 2;
 
-        // Cập nhật kill count cho killer
+        // Cập nhật điểm cho killer: +2 Điểm khi hạ gục người chơi
         if (killer != null) {
-            killer.dauTruongKills++;
+            killer.dauTruongKills += 2;
             if (!dauTruongPlayers.contains(killer)) {
                 dauTruongPlayers.add(killer);
             }
@@ -314,11 +484,28 @@ public class EventTet implements Runnable {
         if (killer != null && victim != null) {
             try {
                 Manager.gI().chatKTG(0,
-                    killer.name + " đã hạ gục " + victim.name + " tại Đấu Trường! (" + killer.dauTruongKills + " Kills)",
+                    killer.name + " đã hạ gục " + victim.name + " tại Đấu Trường! (+2 Điểm, Tổng: " + killer.dauTruongKills + " Điểm)",
                     5);
             } catch (IOException e) {
                 // ignore
             }
+        }
+    }
+
+    public void onMobKillInDauTruong(Player killer, Mob mob) {
+        if (!isDauTruongOpen() || killer == null) return;
+
+        dauTruongKillCount += 1;
+        killer.dauTruongKills += 1; // +1 Điểm khi tiêu diệt quái/Boss
+        if (!dauTruongPlayers.contains(killer)) {
+            dauTruongPlayers.add(killer);
+        }
+
+        String mobName = (mob != null && mob.mob_template != null) ? mob.mob_template.name : "Quái/Boss";
+        try {
+            Service.send_box_ThongBao_OK(killer, "Đã tiêu diệt " + mobName + " (+1 Điểm Đấu Trường)!\nTổng điểm: " + killer.dauTruongKills + " Điểm");
+        } catch (IOException e) {
+            // ignore
         }
     }
 
@@ -397,7 +584,7 @@ public class EventTet implements Runnable {
 
         List<GiftBox> rewards = new ArrayList<>();
         if (rank == 1) {
-            rewards.add(createGiftBox(1, 5000)); // 5000 Ruby
+            rewards.add(createGiftBox(1, 10000)); // 10.000 Ruby
             if (isEvent()) {
                 rewards.add(createGiftBox(ITEM_HOP_TRANG_PHUC, 1)); // 1 Hộp Thời Trang Tết Vĩnh Viễn (356)
             }
@@ -406,19 +593,19 @@ public class EventTet implements Runnable {
             p.id_danh_hieu_su_dung = DANH_HIEU_BAT_BAI;
             p.time_danh_hieu_bat_bai = System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000L; // 7 Ngày
         } else if (rank == 2) {
-            rewards.add(createGiftBox(1, 3000)); // 3000 Ruby
+            rewards.add(createGiftBox(1, 5000)); // 5.000 Ruby
             if (isEvent()) {
                 rewards.add(createGiftBox(ITEM_HOP_TRANG_PHUC_1, 1)); // 1 Hộp Trang Phục Tết 1 (637) [30 Ngày]
                 rewards.add(createGiftBox(ITEM_BAO_LI_XI_TAN_NIEN, 10)); // 10 Bao Lì Xì Tân Niên (357)
             }
         } else if (rank == 3) {
-            rewards.add(createGiftBox(1, 1000)); // 1000 Ruby
+            rewards.add(createGiftBox(1, 2000)); // 2.000 Ruby
             if (isEvent()) {
                 rewards.add(createGiftBox(ITEM_HOP_TRANG_PHUC_1, 1)); // 1 Hộp Trang Phục Tết 1 (637) [30 Ngày]
                 rewards.add(createGiftBox(ITEM_BAO_LI_XI_TAN_NIEN, 10)); // 10 Bao Lì Xì Tân Niên (357)
             }
         } else if (rank <= 10) {
-            rewards.add(createGiftBox(1, 200)); // 200 Ruby
+            rewards.add(createGiftBox(1, 500)); // 500 Ruby
             if (isEvent()) {
                 rewards.add(createGiftBox(ITEM_BAO_LI_XI_TAN_NIEN, 5)); // 5 Bao Lì Xì Tân Niên (357)
             }

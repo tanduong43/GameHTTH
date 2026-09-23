@@ -16,7 +16,7 @@ public class ItemSell {
     public byte typeMoney; // 0: Beri, 1: Ruby
     public static HashMap<Integer, List<List<ItemSell>>> ENTRYS = new HashMap<>();
     public static short[] ITEM_POTION_SELL = new short[] { 2, 3, 85, 5, 4, 15, 16, 29, 43, 40, 89,
-            80, 31, 6, 232, 361, 548, 173, 174, 271, 359 };
+            80, 31, 6, 232, 361, 548, 173, 174, 271, 359, 1018 };
     public static byte[] ITEM_MATERIAL_SELL = new byte[] { 1, 2, 3, 4, 5, 6, 9 };
     static {
         for (int i = 0; i < ItemTemplate3.ENTRYS.size(); i++) {

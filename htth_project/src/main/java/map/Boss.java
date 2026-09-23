@@ -278,6 +278,8 @@ public class Boss {
                 return List.of(32, 34, 35, 36);
             case 163:
                 return List.of(192, 193, 194, 195, 196, 197);
+            case 174:
+                return List.of(6);
             default:
                 return null;
         }
@@ -576,12 +578,17 @@ public class Boss {
             saturn.mob.map = p.map;
             saturn.mob.x = (short) (p.x + 40);
             saturn.mob.y = p.y;
-        } else if (saturn.mob.map == null) {
-            Map[] maps = Map.get_map_by_id(1001);
+        } else {
+            // Mặc định xuất hiện tại Bến tàu Fosha (Map 6)
+            Map[] maps = Map.get_map_by_id(6);
             if (maps != null && maps.length > 0) {
                 saturn.mob.map = maps[0];
-                saturn.mob.x = 300;
-                saturn.mob.y = 200;
+                saturn.mob.x = 384;
+                saturn.mob.y = 264;
+            } else if (saturn.mapOrigin != null) {
+                saturn.mob.map = saturn.mapOrigin;
+                saturn.mob.x = saturn.xOrigin;
+                saturn.mob.y = saturn.yOrigin;
             } else if (p != null && p.map != null) {
                 saturn.mob.map = p.map;
                 saturn.mob.x = p.x;
@@ -691,40 +698,54 @@ public class Boss {
         boss.mob.index = boss.index_mob_save;
         boss.updateHpForLevel();
 
-        List<Integer> allowedMaps;
-        if (boss.thegioi == 2) {
-            // Boss làng: random 1 map trong list đã định nghĩa sẵn theo mob_id
-            allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
-        } else if (boss.thegioi == 3) {
-            allowedMaps = new ArrayList<>(ALLOWED_MAP_IDS);
-        } else {
-            allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
-        }
-
-        Map[] zones = null;
-        if (allowedMaps != null && allowedMaps.size() > 0) {
-            int randomMapId = allowedMaps.get(Util.random(allowedMaps.size()));
-            zones = Map.get_map_by_id(randomMapId);
-        }
-
-        if (zones != null && zones.length > 0) {
-            Map randomMap = zones[Util.random(zones.length)];
-            boss.mob.map = randomMap;
-
-            short temp_x = 300;
-            short temp_y = 300;
-            if (randomMap.template.npcs.size() > 0) {
-                Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
-                temp_x = npc.x;
-                temp_y = npc.y;
+        if (boss.thegioi == 5 || (boss.mob != null && boss.mob.mob_template != null && boss.mob.mob_template.mob_id == 174)) {
+            // Boss Saturn cố định tại Bến tàu Fosha (Map 6)
+            Map[] maps = Map.get_map_by_id(6);
+            if (maps != null && maps.length > 0) {
+                boss.mob.map = maps[0];
+                boss.mob.x = 384;
+                boss.mob.y = 264;
+            } else if (boss.mapOrigin != null) {
+                boss.mob.map = boss.mapOrigin;
+                boss.mob.x = boss.xOrigin;
+                boss.mob.y = boss.yOrigin;
             }
-            boss.mob.x = temp_x;
-            boss.mob.y = temp_y;
-        } else if (boss.mapOrigin != null) {
-            // Fallback nếu mob_id chưa có trong getMapIdsForMob
-            boss.mob.map = boss.mapOrigin;
-            boss.mob.x = boss.xOrigin;
-            boss.mob.y = boss.yOrigin;
+        } else {
+            List<Integer> allowedMaps;
+            if (boss.thegioi == 2) {
+                // Boss làng: random 1 map trong list đã định nghĩa sẵn theo mob_id
+                allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
+            } else if (boss.thegioi == 3) {
+                allowedMaps = new ArrayList<>(ALLOWED_MAP_IDS);
+            } else {
+                allowedMaps = getMapIdsForMob(boss.mob.mob_template.mob_id);
+            }
+
+            Map[] zones = null;
+            if (allowedMaps != null && allowedMaps.size() > 0) {
+                int randomMapId = allowedMaps.get(Util.random(allowedMaps.size()));
+                zones = Map.get_map_by_id(randomMapId);
+            }
+
+            if (zones != null && zones.length > 0) {
+                Map randomMap = zones[Util.random(zones.length)];
+                boss.mob.map = randomMap;
+
+                short temp_x = 300;
+                short temp_y = 300;
+                if (randomMap.template.npcs.size() > 0) {
+                    Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
+                    temp_x = npc.x;
+                    temp_y = npc.y;
+                }
+                boss.mob.x = temp_x;
+                boss.mob.y = temp_y;
+            } else if (boss.mapOrigin != null) {
+                // Fallback nếu mob_id chưa có trong getMapIdsForMob
+                boss.mob.map = boss.mapOrigin;
+                boss.mob.x = boss.xOrigin;
+                boss.mob.y = boss.yOrigin;
+            }
         }
 
         if (boss.mob.map == null) {
@@ -1142,5 +1163,241 @@ public class Boss {
                 }
             }
         }
+    }
+
+    public static final int MOB_BIG_MOM = 175;
+    public static final int BOSS_BIG_MOM = 29;
+    public static boolean isBigMomSpawned = false;
+    public static long nextBigMomRespawnTime = 0;
+
+    public static boolean isBigMomBoss(Mob mob) {
+        if (mob == null) {
+            return false;
+        }
+        if (mob.boss_info != null && (mob.boss_info.id == BOSS_BIG_MOM || mob.boss_info.thegioi == 6)) {
+            return true;
+        }
+        if (mob.mob_template != null && (mob.mob_template.mob_id == MOB_BIG_MOM
+                || (mob.mob_template.name != null && mob.mob_template.name.toLowerCase().contains("big mom")))) {
+            return true;
+        }
+        return false;
+    }
+
+    public static void checkBigMomEvent(int hour, int min, int sec) {
+        // Khung giờ xuất hiện: 13h00 - 17h00 và 23h00 - 06h30 sáng
+        boolean ca1 = (hour >= 13 && hour < 17);
+        boolean ca2 = (hour >= 23 || hour < 6 || (hour == 6 && min < 30));
+        boolean inEventTime = ca1 || ca2;
+        long now = System.currentTimeMillis();
+
+        if (inEventTime) {
+            if (!isBigMomSpawned) {
+                // Nếu lần đầu hoặc sau khi chết đã trôi qua 30 phút
+                if (nextBigMomRespawnTime == 0 || now >= nextBigMomRespawnTime) {
+                    spawnBigMom();
+                }
+            }
+        } else {
+            if (isBigMomSpawned) {
+                despawnBigMom();
+            }
+            nextBigMomRespawnTime = 0;
+        }
+    }
+
+    public static void spawnBigMom() {
+        Boss bigMom = null;
+        if (Boss.ENTRYS != null) {
+            for (Boss b : Boss.ENTRYS) {
+                if (b != null && b.mob != null && b.mob.mob_template != null) {
+                    if (b.id == BOSS_BIG_MOM || b.mob.mob_template.mob_id == MOB_BIG_MOM
+                            || (b.mob.mob_template.name != null
+                                    && b.mob.mob_template.name.toLowerCase().contains("big mom"))) {
+                        bigMom = b;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (bigMom == null) {
+            bigMom = new Boss();
+            bigMom.id = BOSS_BIG_MOM;
+            bigMom.thegioi = 6;
+            bigMom.mob = new Mob();
+            template.MobTemplate temp = null;
+            if (template.MobTemplate.ENTRYS != null) {
+                for (template.MobTemplate mt : template.MobTemplate.ENTRYS) {
+                    if (mt.mob_id == MOB_BIG_MOM || (mt.name != null && mt.name.toLowerCase().contains("big mom"))) {
+                        temp = mt;
+                        break;
+                    }
+                }
+            }
+            if (temp == null) {
+                temp = new template.MobTemplate();
+                temp.mob_id = MOB_BIG_MOM;
+                temp.name = "Big Mom";
+                temp.level = 99;
+                temp.hOne = 118;
+                temp.hp_max = 10000;
+                temp.typemove = 1;
+                temp.ishuman = 0;
+                temp.typemonster = 2;
+                temp.icon = 200;
+                temp.skill = new short[] { 195, 196, 197 };
+                template.MobTemplate.ENTRYS.add(temp);
+            } else {
+                temp.name = "Big Mom";
+                temp.icon = 200;
+                temp.typemove = 1;
+                temp.hOne = 118;
+                temp.hp_max = 10000;
+            }
+            bigMom.mob.mob_template = temp;
+            bigMom.mob.hp_max = 10000;
+            bigMom.hp_max_origin = 10000;
+            bigMom.mob.hp = 10000;
+            bigMom.mob.level = 99;
+            bigMom.mob.isdie = false;
+            bigMom.mob.id_target = -1;
+            bigMom.mob.phong_thu = 0;
+            bigMom.mob.mien_thuong = 0;
+            bigMom.mob.max_dame_per_hit = 1;
+            bigMom.mob.final_dame = 0;
+            bigMom.mob.ne_don = 0;
+            bigMom.mob.phan_dame = 0;
+            int curIndex = Manager.gI().getIndexMob();
+            bigMom.mob.index = curIndex;
+            bigMom.index_mob_save = curIndex;
+            Manager.gI().setIndexMob(curIndex + 10);
+            bigMom.mob.boss_info = bigMom;
+            bigMom.skill = new short[] { 195, 196, 197 };
+            bigMom.time_atk = new long[bigMom.skill.length];
+            bigMom.TopDame = new ArrayList<>();
+            bigMom.levelBoss = 1;
+            Mob.ENTRYS.put(bigMom.mob.index, bigMom.mob);
+            if (Boss.ENTRYS == null) {
+                Boss.ENTRYS = new ArrayList<>();
+            }
+            Boss.ENTRYS.add(bigMom);
+        } else {
+            bigMom.skill = new short[] { 195, 196, 197 };
+            bigMom.time_atk = new long[bigMom.skill.length];
+            if (bigMom.mob != null) {
+                if (bigMom.mob.mob_template != null) {
+                    bigMom.mob.mob_template.name = "Big Mom";
+                    bigMom.mob.mob_template.icon = 200;
+                    bigMom.mob.mob_template.typemove = 1;
+                    bigMom.mob.mob_template.hOne = 118;
+                    bigMom.mob.mob_template.skill = new short[] { 195, 196, 197 };
+                    bigMom.mob.mob_template.hp_max = 10000;
+                }
+                bigMom.mob.hp_max = 10000;
+                bigMom.hp_max_origin = 10000;
+                bigMom.mob.hp = 10000;
+                bigMom.mob.final_dame = 0;
+                bigMom.mob.phong_thu = 0;
+                bigMom.mob.mien_thuong = 0;
+                bigMom.mob.max_dame_per_hit = 1;
+                bigMom.mob.ne_don = 0;
+                bigMom.mob.phan_dame = 0;
+            }
+        }
+
+        // Xuất hiện ngẫu nhiên ở các map cho phép giống Boss ID 11 (ALLOWED_MAP_IDS)
+        List<Integer> allowedMaps = new ArrayList<>(ALLOWED_MAP_IDS);
+        int randomMapId = allowedMaps.get(Util.random(allowedMaps.size()));
+        Map[] zones = Map.get_map_by_id(randomMapId);
+        if (zones != null && zones.length > 0) {
+            Map randomMap = zones[Util.random(zones.length)];
+            bigMom.mob.map = randomMap;
+            short temp_x = 300;
+            short temp_y = 300;
+            if (randomMap.template.npcs.size() > 0) {
+                Npc npc = randomMap.template.npcs.get(Util.random(randomMap.template.npcs.size()));
+                temp_x = npc.x;
+                temp_y = npc.y;
+            }
+            bigMom.mob.x = temp_x;
+            bigMom.mob.y = temp_y;
+        }
+
+        if (bigMom.mob.map == null) {
+            System.err.println("[WARN] spawnBigMom: Không tìm thấy map cho Big Mom!");
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        bigMom.mob.isdie = false;
+        bigMom.mob.hp = bigMom.mob.hp_max;
+        bigMom.mob.id_target = -1;
+        bigMom.levelBoss = 1;
+        bigMom.timeSpawn = now;
+        bigMom.status = STATUS_ALIVE;
+        bigMom.TopDame.clear();
+        isBigMomSpawned = true;
+        nextBigMomRespawnTime = 0;
+
+        try {
+            Message m_local = new Message(1);
+            m_local.writer().writeByte(1);
+            m_local.writer().writeShort(bigMom.mob.index);
+            m_local.writer().writeShort(bigMom.mob.x);
+            m_local.writer().writeShort(bigMom.mob.y);
+            bigMom.mob.map.send_msg_all_p(m_local, null, true);
+            m_local.cleanup();
+
+            Manager.gI().chatKTG(0,
+                    "Sự kiện: Tứ Hoàng " + bigMom.mob.mob_template.name + " đã xuất hiện tại "
+                            + bigMom.mob.map.template.name + " khu "
+                            + (bigMom.mob.map.zone_id + 1)
+                            + "! Hãy mau mau đi săn thôi (13h-17h & 23h-6h30)!",
+                    5);
+            System.out.println("[DEBUG LOG] Big Mom Spawned - Map: " + bigMom.mob.map.template.name
+                    + " khu " + (bigMom.mob.map.zone_id + 1));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void despawnBigMom() {
+        for (int i = 0; i < Boss.ENTRYS.size(); i++) {
+            Boss b = Boss.ENTRYS.get(i);
+            if (b != null && b.mob != null && b.mob.mob_template != null) {
+                if (b.id == BOSS_BIG_MOM || b.mob.mob_template.mob_id == MOB_BIG_MOM
+                        || (b.mob.mob_template.name != null && b.mob.mob_template.name.toLowerCase().contains("big mom"))) {
+                    if (!b.mob.isdie) {
+                        b.mob.isdie = true;
+                        b.mob.hp = 0;
+                        b.mob.id_target = -1;
+                        b.status = STATUS_DEAD;
+                        b.TopDame.clear();
+                        try {
+                            if (b.mob.map != null) {
+                                Message m_local = new Message(1);
+                                m_local.writer().writeByte(0);
+                                m_local.writer().writeShort(b.mob.index);
+                                for (int j = 0; j < b.mob.map.players.size(); j++) {
+                                    Player p0 = b.mob.map.players.get(j);
+                                    if (p0 != null && p0.conn != null) {
+                                        p0.conn.addmsg(m_local);
+                                    }
+                                }
+                                m_local.cleanup();
+                                b.mob.map.remove_obj(b.mob.index, 1);
+                            }
+                            Manager.gI().chatKTG(0,
+                                    "Hết thời gian sự kiện, Tứ Hoàng Big Mom đã rút lui! Hẹn gặp lại vào khung giờ tiếp theo (13h-17h & 23h-6h30).", 5);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+        isBigMomSpawned = false;
+        nextBigMomRespawnTime = 0;
     }
 }

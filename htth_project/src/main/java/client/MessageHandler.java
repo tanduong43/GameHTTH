@@ -729,7 +729,12 @@ public class MessageHandler {
                     if (conn.p.map.map_pvp != null) {// map pvp
                         Pvp.show_info(conn.p, 0, 0, 0, 3);
                     }
-                    conn.p.map.change_flag(conn.p, conn.p.type_pk);
+                    if (conn.p.map.template.id == 2026 || (conn.p.map.template.id >= event.EventTet.ARENA_MAP_MIN && conn.p.map.template.id <= event.EventTet.ARENA_MAP_MAX) || event.EventTet.getInstance().isDauTruongMap(conn.p.map.template.id)) {
+                        conn.p.type_pk = 3;
+                        conn.p.map.change_flag(conn.p, 3);
+                    } else {
+                        conn.p.map.change_flag(conn.p, conn.p.type_pk);
+                    }
                     Service.update_PK(conn.p, conn.p, false);
                     // weather
                     conn.p.map.send_weather(conn.p);
@@ -1060,8 +1065,8 @@ public class MessageHandler {
                 }
                 conn.p.dungeon = null;
             }
-            // Safety check: nếu out game khi đang trong Map Đấu Trường (2026), Đảo Ruby (1001), Luyện Haki (2000), Đảo Huấn Luyện Pet (2028) thì khi vào lại chuyển về Làng Cối Xay Gió (Map 1)
-            if (conn.p.map != null && (conn.p.map.template.id == 2026 || conn.p.map.template.id == 1001
+            // Safety check: nếu out game khi đang trong Map Đấu Trường (134-156, 2026), Đảo Ruby (1001), Luyện Haki (2000), Đảo Huấn Luyện Pet (2028) thì khi vào lại chuyển về Làng Cối Xay Gió (Map 1)
+            if (conn.p.map != null && (conn.p.map.template.id == 2026 || (conn.p.map.template.id >= event.EventTet.ARENA_MAP_MIN && conn.p.map.template.id <= event.EventTet.ARENA_MAP_MAX) || conn.p.map.template.id == 1001
                     || conn.p.map.template.id == 2000 || conn.p.map.template.id == 2028
                     || conn.p.map.template.id == activities.PetTraining.MAP_TRAIN_PET_ID)) {
                 System.out.println("[MapRedirect] Login safety: player " + conn.p.name

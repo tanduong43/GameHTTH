@@ -265,6 +265,10 @@ public class Manager {
                 ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1150, 1, '[[12904,0,0],[12905,0,0],[12906,0,0],[12907,0,0],[12908,0,0],[12909,0,0],[12910,0,0],[12911,0,0],[12912,0,0],[12913,0,0],[12914,0,0],[12915,0,0],[12916,0,0],[12917,0,0],[12918,0,0],[12919,0,0],[12920,0,0],[12921,0,0],[12922,0,0],[12923,0,0]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
                 ps.executeUpdate("INSERT INTO `parts` (`id`, `type`, `data`) VALUES (1151, 2, '[[12924,0,0],[12925,0,0],[12926,0,0],[12927,0,0],[12928,0,0],[12929,0,0],[12930,0,0],[12931,0,0],[12932,0,0],[12933,0,0],[12934,0,0],[12935,0,0],[12936,0,0],[12937,0,0],[12938,0,0]]') ON DUPLICATE KEY UPDATE `type`=VALUES(`type`), `data`=VALUES(`data`);");
                 ps.executeUpdate("INSERT INTO `fashiontemplate` (`id`, `icon`, `name`, `info`, `mwear`, `op`, `price`) VALUES (38, 156, 'Thời trang Nu', 'Thời trang Nu\\n+10% Miễn thương\\n+10% Giảm miễn thương\\n+10% Chí mạng\\nHạn sử dụng vĩnh viễn', '[-2,-2,-1,1150,-1,1151,1149,-2]', '[[53,100],[63,100],[10,100]]', -1) ON DUPLICATE KEY UPDATE `icon`=156, `name`='Thời trang Nu', `info`='Thời trang Nu\\n+10% Miễn thương\\n+10% Giảm miễn thương\\n+10% Chí mạng\\nHạn sử dụng vĩnh viễn', `mwear`='[-2,-2,-1,1150,-1,1151,1149,-2]', `op`='[[53,100],[63,100],[10,100]]', `price`=-1;");
+                // Tự động đồng bộ EXP nhiệm vụ Băng Hải Tặc (Cấp 1: 3000 XP, Cấp 2: 5000 XP, Cấp 3: 10000 XP)
+                ps.executeUpdate("UPDATE `quests` SET `gift` = '[[99,\"xp\",10,50000,1],[4,\"XP Clan\",91,3000,1],[4,\"Bery Clan\",93,500,5],[4,\"Ruby Clan\",92,100,5]]' WHERE `id` = -2999;");
+                ps.executeUpdate("UPDATE `quests` SET `gift` = '[[99,\"xp\",10,50000,1],[4,\"XP Clan\",91,5000,1],[4,\"Bery Clan\",93,1000,5],[4,\"Ruby Clan\",92,150,5]]' WHERE `id` = -2997;");
+                ps.executeUpdate("UPDATE `quests` SET `gift` = '[[99,\"xp\",10,50000,1],[4,\"XP Clan\",91,10000,1],[4,\"Bery Clan\",93,1500,5],[4,\"Ruby Clan\",92,200,5]]' WHERE `id` = -2995;");
             } catch (Exception ignored) {
             }
             // load mobs
@@ -301,6 +305,13 @@ public class Manager {
                 js.clear();
                 if (temp.mob_id == 174 || (temp.name != null && temp.name.toLowerCase().contains("saturn"))) {
                     temp.skill = new short[] { 195, 196, 197 };
+                }
+                if (temp.mob_id == 175 || (temp.name != null && temp.name.toLowerCase().contains("big mom"))) {
+                    temp.skill = new short[] { 195, 196, 197 };
+                    temp.icon = 200;
+                    temp.typemove = 1;
+                    temp.hOne = 118;
+                    temp.hp_max = 10000;
                 }
                 if (temp.mob_id == 172 || (temp.name != null && (temp.name.toLowerCase().contains("râu trắng") || temp.name.toLowerCase().contains("rau trang")))) {
                     temp.hOne = 120;
@@ -962,6 +973,9 @@ public class Manager {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int mob_id = rs.getInt("mob_id");
+                if (id == 100 || mob_id == 173) {
+                    continue; // Bỏ boss Chopper Khổng Lồ
+                }
                 String site = rs.getString("site");
                 int hp = rs.getInt("hp");
                 String skill = rs.getString("skill");
@@ -1036,6 +1050,25 @@ public class Manager {
                         boss_temp.mob.max_dame_per_hit = 2000000;
                         boss_temp.mob.ne_don = 10;
                         boss_temp.mob.phan_dame = 5;
+                    } else if (mob_id == 175 || id == 29 || (boss_temp.mob.mob_template != null && (boss_temp.mob.mob_template.mob_id == 175 || (boss_temp.mob.mob_template.name != null && boss_temp.mob.mob_template.name.toLowerCase().contains("big mom"))))) {
+                        boss_temp.skill = new short[] { 195, 196, 197 };
+                        if (boss_temp.mob.mob_template != null) {
+                            boss_temp.mob.mob_template.name = "Big Mom";
+                            boss_temp.mob.mob_template.skill = new short[] { 195, 196, 197 };
+                            boss_temp.mob.mob_template.hp_max = 10000;
+                            boss_temp.mob.mob_template.icon = 200;
+                            boss_temp.mob.mob_template.typemove = 1;
+                            boss_temp.mob.mob_template.hOne = 118;
+                        }
+                        boss_temp.mob.hp_max = 10000;
+                        boss_temp.hp_max_origin = 10000;
+                        boss_temp.mob.hp = 10000;
+                        boss_temp.mob.final_dame = 0;
+                        boss_temp.mob.phong_thu = 0;
+                        boss_temp.mob.mien_thuong = 0;
+                        boss_temp.mob.max_dame_per_hit = 1;
+                        boss_temp.mob.ne_don = 0;
+                        boss_temp.mob.phan_dame = 0;
                     }
                     if (mob_id == 172 || id == 11 || (boss_temp.mob.mob_template != null && (boss_temp.mob.mob_template.mob_id == 172 || (boss_temp.mob.mob_template.name != null && (boss_temp.mob.mob_template.name.toLowerCase().contains("râu trắng") || boss_temp.mob.mob_template.name.toLowerCase().contains("rau trang")))))) {
                         boss_temp.skill = new short[] { 210, 211, 243, 244 };
@@ -1851,6 +1884,13 @@ public class Manager {
             js.clear();
             if (temp.mob_id == 174 || (temp.name != null && temp.name.toLowerCase().contains("saturn"))) {
                 temp.skill = new short[] { 195, 196, 197 };
+            }
+            if (temp.mob_id == 175 || (temp.name != null && temp.name.toLowerCase().contains("big mom"))) {
+                temp.skill = new short[] { 195, 196, 197 };
+                temp.icon = 200;
+                temp.typemove = 1;
+                temp.hOne = 118;
+                temp.hp_max = 10000;
             }
             if (temp.mob_id == 172 || (temp.name != null && (temp.name.toLowerCase().contains("râu trắng") || temp.name.toLowerCase().contains("rau trang")))) {
                 temp.hOne = 120;

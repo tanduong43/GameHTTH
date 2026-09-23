@@ -13,4 +13,5 @@ public class ItemMap {
     public int id_master;
     public long time_exist;
     public short index;
+    public byte numLoKham;
 }

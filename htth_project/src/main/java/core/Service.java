@@ -243,7 +243,9 @@ public class Service {
     }
 
     public static void update_PK(Player p0, Player p, boolean save_cache) throws IOException {
-        if (!(p0.map.map_pvp != null || p0.map.map_pvp_clan != null || p0.map.template.id == 1000
+        if (p0.map != null && (p0.map.template.id == 2026 || (p0.map.template.id >= event.EventTet.ARENA_MAP_MIN && p0.map.template.id <= event.EventTet.ARENA_MAP_MAX) || event.EventTet.getInstance().isDauTruongMap(p0.map.template.id))) {
+            p0.type_pk = 3;
+        } else if (p0.map != null && !(p0.map.map_pvp != null || p0.map.map_pvp_clan != null || p0.map.template.id == 1000
                 || p0.map.template.id == 123)) {
             if (p0.pointPk >= 400 && p0.type_pk == -1) {
                 p0.type_pk = 1;
@@ -1968,8 +1970,12 @@ public class Service {
                         Item_wear it_add = new Item_wear();
                         it_add.setup_template_by_id(template3);
                         if (it_add.template != null) {
-                            int numLoKham = (60 > Util.random(120)) ? 0 : ((70 > Util.random(120)) ? 1 : 2);
-                            it_add.numLoKham = (byte) numLoKham;
+                            if (temp.numLoKham > 0) {
+                                it_add.numLoKham = temp.numLoKham;
+                            } else {
+                                int numLoKham = (60 > Util.random(120)) ? 0 : ((70 > Util.random(120)) ? 1 : 2);
+                                it_add.numLoKham = (byte) numLoKham;
+                            }
                             p.item.add_item_bag3(it_add);
                             //
                             if (it_add.template.name.equals("Dial Thần Thoại")) {
@@ -2389,6 +2395,9 @@ public class Service {
             data2 = Util.loadfile("data/template/skill/x" + z + "/img/" + effId + ".png");
             if (data1 != null && data2 != null) {
                 if (data1.length + data2.length > MAX_EFFECT_PACKET_BODY) {
+                    if (effId == 910 || effId == 918 || effId == 919 || effId == 920) {
+                        return new byte[][] { data1, data2 };
+                    }
                     System.out.println("[Haki Debug] effId=" + effId + " zoom=x" + z
                             + " qua lon (" + (data1.length + data2.length)
                             + " bytes) -> bo qua, thu zoom khac");
@@ -2471,7 +2480,8 @@ public class Service {
             byte zoomlv = conn.zoomlv <= 0 ? 4 : conn.zoomlv;
             byte[][] datas = get_effect_data_bytes(effId, zoomlv);
             if (datas != null && datas[0] != null && datas[1] != null) {
-                Message mData = new Message(74);
+                int totalSize = datas[0].length + datas[1].length;
+                Message mData = new Message(totalSize > MAX_EFFECT_PACKET_BODY ? 76 : 74);
                 mData.writer().writeByte(0);
                 mData.writer().writeShort(effId);
                 mData.writer().writeShort(datas[0].length);

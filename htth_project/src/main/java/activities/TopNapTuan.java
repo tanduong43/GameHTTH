@@ -54,7 +54,8 @@ public class TopNapTuan {
             { 4, 1003, 1 },   // 1x Rương Trái Ác Quỷ Cao Cấp Tự Chọn
             { 4, 1002, 1 },   // 1x Hộp Thời Trang Cao Cấp
             { 4, 551, 1 },    // 1x Bảo Hiểm Chuyển Hóa Cao
-            { 4, 131, 100 }   // 100x Rương Cam Cùng Hệ Lv100
+            { 4, 131, 100 },  // 100x Rương Cam Cùng Hệ Lv100
+            { 4, 1018, 1 }    // 1x Vé đổi tên Clan
     };
 
     // TOP 2 - 3
@@ -321,7 +322,8 @@ public class TopNapTuan {
                 + "• 1x Rương Trái Ác Quỷ Cao Cấp Tự Chọn (1003)\n"
                 + "• 1x Hộp Thời Trang Cao Cấp (1002)\n"
                 + "• 1x Bảo Hiểm Chuyển Hóa Cao (551)\n"
-                + "• 100x Rương Cam Cùng Hệ Lv100 (131)\n\n"
+                + "• 100x Rương Cam Cùng Hệ Lv100 (131)\n"
+                + "• 1x Vé đổi tên Clan (1018)\n\n"
                 + "👉 Bấm [Tiếp tục] để xem quà TOP 2 - 3!\b"
 
                 + "🥈 PHẦN THƯỞNG TOP 2 - 3 🥈\n"
@@ -410,8 +412,8 @@ public class TopNapTuan {
                 return;
             }
 
-            // Kiểm tra số ô trống trong hành trang (cần tối thiểu 6 ô trống)
-            int requiredSlots = (rank == 1) ? 5 : (rank <= 3) ? 6 : 3;
+            // Kiểm tra số ô trống trong hành trang
+            int requiredSlots = (rank == 1) ? TOP1_ITEMS.length : (rank <= 3) ? TOP23_ITEMS.length : TOP410_ITEMS.length;
             if (p.item.able_bag() < requiredSlots) {
                 Service.send_box_ThongBao_OK(p, "Hành trang của bạn không đủ chỗ trống!\n"
                         + "Vui lòng dọn dẹp ít nhất " + requiredSlots + " ô trống rồi nhận lại phần thưởng nhé!");

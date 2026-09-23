@@ -279,4 +279,54 @@ public class LeaveItemMap {
             LeaveItemMap.show_item_map(map, list_show, mob_target, p);
         }
     }
+
+    public static void leave_item3_bigmom(Map map, Mob mob_target, Player p) throws IOException {
+        List<ItemTemplate3> eligibleItems = new ArrayList<>();
+        for (int i = 0; i < ItemTemplate3.ENTRYS.size(); i++) {
+            ItemTemplate3 it = ItemTemplate3.ENTRYS.get(i);
+            if (it != null && it.color >= 0 && it.color <= 3 && it.typeEquip < 6) {
+                eligibleItems.add(it);
+            }
+        }
+        if (eligibleItems.isEmpty()) {
+            return;
+        }
+
+        // Rơi 2 đến 3 món trang bị ngẫu nhiên
+        int dropCount = Util.random(2, 4);
+        List<ItemMap> list_show = new ArrayList<>();
+
+        for (int d = 0; d < dropCount; d++) {
+            ItemTemplate3 template3 = eligibleItems.get(Util.random(eligibleItems.size()));
+
+            // Tỷ lệ số lỗ: 95% rơi 1-6 lỗ, 5% rơi 7-8 lỗ
+            byte numLoKham;
+            if (Util.random(100) < 95) {
+                numLoKham = (byte) Util.random(1, 7); // 1, 2, 3, 4, 5, 6 lỗ
+            } else {
+                numLoKham = (byte) Util.random(7, 9); // 7, 8 lỗ
+            }
+
+            ItemMap itm = new ItemMap();
+            itm.id = template3.id;
+            itm.category = 3;
+            itm.icon = template3.icon;
+            itm.color = template3.color;
+            itm.quant = 1;
+            itm.name = template3.name;
+            itm.numLoKham = numLoKham;
+            itm.id_master = p != null ? p.index_map : -1;
+            itm.time_exist = System.currentTimeMillis() + 60_000L;
+            itm.index = (short) map.get_index_item_map();
+
+            if (itm.index > -1) {
+                map.list_it_map[itm.index] = itm;
+                list_show.add(itm);
+            }
+        }
+
+        if (!list_show.isEmpty()) {
+            LeaveItemMap.show_item_map(map, list_show, mob_target, p);
+        }
+    }
 }

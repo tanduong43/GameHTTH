@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import activities.Fight;
+import activities.PvpClan;
 import core.Manager;
 import core.Service;
 import core.Util;
@@ -255,6 +256,175 @@ public class ClientInput {
                             e.printStackTrace();
                         }
                     }
+                }
+                break;
+            }
+            case 1018: {
+                if (name == null || name.length == 0 || name[0] == null) {
+                    return;
+                }
+                String newName = name[0].trim().replaceAll("\\s+", " ");
+
+                // 1. Kiểm tra độ dài (3-15 ký tự)
+                if (newName.length() < 3 || newName.length() > 15) {
+                    Service.send_box_ThongBao_OK(p, "Tên Băng phải từ 3 đến 15 ký tự!");
+                    return;
+                }
+
+                // 2. Kiểm tra ký tự hợp lệ (Chữ cái, số và khoảng trắng, hỗ trợ tiếng Việt có dấu)
+                Pattern pat = Pattern.compile("^[a-zA-Z0-9\\p{L} ]+$");
+                if (!pat.matcher(newName).matches()) {
+                    Service.send_box_ThongBao_OK(p, "Tên Băng không được chứa ký tự đặc biệt!");
+                    return;
+                }
+
+                // 3. Kiểm tra người chơi có Băng không
+                if (p.clan == null) {
+                    Service.send_box_ThongBao_OK(p, "Bạn chưa gia nhập Băng Hải Tặc nào!");
+                    return;
+                }
+
+                // 4. Kiểm tra quyền Thuyền trưởng (Chủ clan)
+                boolean isLeader = false;
+                if (p.clan.members != null && !p.clan.members.isEmpty()) {
+                    if (p.clan.members.get(0).name.equals(p.name)) {
+                        isLeader = true;
+                    } else {
+                        for (int i = 0; i < p.clan.members.size(); i++) {
+                            Clan_member m = p.clan.members.get(i);
+                            if (m != null && m.name.equals(p.name) && m.levelInclan == 0) {
+                                isLeader = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!isLeader) {
+                    Service.send_box_ThongBao_OK(p, "Chỉ Thuyền trưởng mới có quyền đổi tên Băng Hải Tặc!");
+                    return;
+                }
+
+                // 5. Kiểm tra trạng thái chiến đấu / PvP Clan
+                if (p.clan.map_create != null || PvpClan.LIST.contains(p.clan)) {
+                    Service.send_box_ThongBao_OK(p, "Băng đang tham gia hoạt động chiến đấu, không thể đổi tên lúc này!");
+                    return;
+                }
+
+                // 6. Kiểm tra tên mới trùng tên cũ của chính clan này
+                if (newName.equalsIgnoreCase(p.clan.name)) {
+                    Service.send_box_ThongBao_OK(p, "Tên mới không được trùng với tên hiện tại của Băng!");
+                    return;
+                }
+
+                // 7. Kiểm tra có vé trong hành trang không
+                if (p.item.total_item_bag_by_id(4, 1018) <= 0) {
+                    Service.send_box_ThongBao_OK(p, "Bạn không có Vé đổi tên Clan trong hành trang!");
+                    return;
+                }
+
+                // 8. Kiểm tra tên mới trùng với Clan khác đang có trong bộ nhớ (Clan.ENTRY)
+                if (Clan.ENTRY != null) {
+                    for (int i = 0; i < Clan.ENTRY.size(); i++) {
+                        Clan c = Clan.ENTRY.get(i);
+                        if (c != null && c.id != p.clan.id && c.name != null && c.name.equalsIgnoreCase(newName)) {
+                            Service.send_box_ThongBao_OK(p, "Tên Băng này đã được sử dụng, vui lòng chọn tên khác!");
+                            return;
+                        }
+                    }
+                }
+
+                // 9. Kiểm tra và cập nhật Database
+                Connection conn = null;
+                PreparedStatement psCheck = null;
+                ResultSet rs = null;
+                PreparedStatement psUpdate = null;
+                PreparedStatement psSea = null;
+                try {
+                    conn = SQL.gI().getCon();
+                    psCheck = conn.prepareStatement("SELECT 1 FROM `clan` WHERE LOWER(`name`) = LOWER(?) AND `id` != ? LIMIT 1;");
+                    psCheck.setString(1, newName);
+                    psCheck.setInt(2, p.clan.id);
+                    rs = psCheck.executeQuery();
+                    if (rs.next()) {
+                        Service.send_box_ThongBao_OK(p, "Tên Băng này đã được sử dụng trong hệ thống, vui lòng chọn tên khác!");
+                        return;
+                    }
+                    rs.close();
+                    psCheck.close();
+
+                    // Cập nhật tên trong bảng clan
+                    psUpdate = conn.prepareStatement("UPDATE `clan` SET `name` = ? WHERE `id` = ?;");
+                    psUpdate.setString(1, newName);
+                    psUpdate.setInt(2, p.clan.id);
+                    psUpdate.executeUpdate();
+                    psUpdate.close();
+
+                    // Cập nhật sea_leader_registration nếu bảng tồn tại
+                    try {
+                        psSea = conn.prepareStatement("UPDATE `sea_leader_registration` SET `clan_name` = ? WHERE `clan_id` = ?;");
+                        psSea.setString(1, newName);
+                        psSea.setInt(2, p.clan.id);
+                        psSea.executeUpdate();
+                        psSea.close();
+                    } catch (Exception ignored) {}
+
+                    // 10. Trừ 1 vé trong hành trang
+                    p.item.remove_item47(4, 1018, 1);
+
+                    // Gửi gói tin cập nhật số lượng item (-13) và hành trang
+                    Message mItem = new Message(-13);
+                    mItem.writer().writeShort(1018);
+                    mItem.writer().writeShort(p.item.total_item_bag_by_id(4, 1018));
+                    p.conn.addmsg(mItem);
+                    mItem.cleanup();
+                    p.item.update_Inventory(-1, false);
+
+                    // 11. Cập nhật dữ liệu runtime
+                    p.clan.name = newName;
+
+                    // Cập nhật Bảng Xếp Hạng Clan
+                    Clan.update_bxh();
+
+                    // 12. Đồng bộ thời gian thực cho toàn bộ thành viên trong bang đang online
+                    for (int i = 0; i < p.clan.members.size(); i++) {
+                        Clan_member mem = p.clan.members.get(i);
+                        if (mem != null) {
+                            Player pMem = Map.get_player_by_name_allmap(mem.name);
+                            if (pMem != null && pMem.conn != null) {
+                                Clan.send_info(pMem, false);
+                                Clan.update_list_member(pMem, false);
+
+                                // Cập nhật hiển thị Clan của thành viên tới những người chơi khác trong cùng map
+                                if (pMem.map != null) {
+                                    for (int j = 0; j < pMem.map.players.size(); j++) {
+                                        Player pOther = pMem.map.players.get(j);
+                                        if (pOther != null && !pOther.equals(pMem)) {
+                                            Clan.send_me_to_other(pMem, pOther, false);
+                                        }
+                                    }
+                                }
+
+                                if (!pMem.equals(p)) {
+                                    Service.send_box_ThongBao_OK(pMem, "Thuyền trưởng đã đổi tên Băng thành: " + newName);
+                                }
+                            }
+                        }
+                    }
+
+                    // Thông báo thành công cho Thuyền trưởng
+                    Service.send_box_ThongBao_OK(p, "Đổi tên Băng thành công thành: " + newName + "!");
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    Service.send_box_ThongBao_OK(p, "Có lỗi xảy ra khi đổi tên Băng, vui lòng thử lại sau!");
+                } finally {
+                    try {
+                        if (rs != null) rs.close();
+                        if (psCheck != null) psCheck.close();
+                        if (psUpdate != null) psUpdate.close();
+                        if (psSea != null) psSea.close();
+                        if (conn != null) conn.close();
+                    } catch (SQLException ignored) {}
                 }
                 break;
             }
@@ -588,10 +758,10 @@ public class ClientInput {
                         Service.send_box_ThongBao_OK(p, "Số nhập không hợp lệ");
                         return;
                     }
-                    // Hỗ trợ cả 2 cách: nhập số Coin muốn đổi HOẶC nhập số Beri muốn nhận (chia hết cho 5.000.000)
+                    // Hỗ trợ cả 2 cách: nhập số Coin muốn đổi HOẶC nhập số Beri muốn nhận (chia hết cho 10.000.000)
                     long coinNeeded = raw;
-                    if (raw >= 5_000_000L && raw % 5_000_000L == 0) {
-                        coinNeeded = raw / 5_000_000L;
+                    if (raw >= 10_000_000L && raw % 10_000_000L == 0) {
+                        coinNeeded = raw / 10_000_000L;
                     }
                     if (coinNeeded > Integer.MAX_VALUE) {
                         Service.send_box_ThongBao_OK(p, "Số lượng quá lớn!");
@@ -603,7 +773,7 @@ public class ClientInput {
                                 "Bạn không đủ " + Util.number_format(coin) + " coin");
                         return;
                     }
-                    long beri = (long) coin * 5_000_000L;
+                    long beri = (long) coin * 10_000_000L;
                     p.data_yesno = new int[] { coin };
                     Service.send_box_yesno(p, 61, "Thông báo",
                             "Bạn có thật sự muốn đổi " + Util.number_format(coin) + " Coin để"
@@ -633,8 +803,8 @@ public class ClientInput {
                     p.data_yesno = new int[] { coin };
                     Service.send_box_yesno(p, 62, "Thông báo",
                             "Bạn có thật sự muốn đổi " + Util.number_format(coin) + " Coin để"
-                                    + " đổi lấy " + Util.number_format(coin * 100L) + " Ruby và "
-                                    + Util.number_format(coin * 1000L) + " Extol không?",
+                                    + " đổi lấy " + Util.number_format(coin * 200L) + " Ruby và "
+                                    + Util.number_format(coin * 2000L) + " Extol không?",
                             new String[] { "Đồng ý", "Hủy" }, new byte[] { 2, 1 });
                     break;
                 }

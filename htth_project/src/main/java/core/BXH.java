@@ -1318,7 +1318,7 @@ public class BXH {
                 temp.head = (short) p0.get_head();
                 temp.hair = (short) p0.get_hair();
                 temp.hat = p0.get_hat();
-                temp.info = "Hạ gục: " + p0.dauTruongKills;
+                temp.info = "Điểm: " + p0.dauTruongKills;
                 temp.rank = (short) list_add.size();
                 list_add.add(temp);
             }
@@ -1344,7 +1344,7 @@ public class BXH {
                         temp.hair = -1;
                         temp.hat = -1;
                     }
-                    temp.info = "Hạ gục: " + rec.kills;
+                    temp.info = "Điểm: " + rec.kills;
                     temp.rank = (short) i;
                     list_add.add(temp);
                 }

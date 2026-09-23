@@ -501,15 +501,15 @@ public class MenuController {
           break;
         }
         case -202: {
-          if (p.map != null && p.map.template.id == event.EventTet.MAP_DAU_TRUONG) {
-            send_dynamic_menu(p, type, "Trọng Tài", new String[] { "Nói chuyện", "Rời Đấu Trường" }, null);
+          if (p.map != null && (event.EventTet.getInstance().isDauTruongMap(p.map.template.id) || (p.map.template.id >= event.EventTet.ARENA_MAP_MIN && p.map.template.id <= event.EventTet.ARENA_MAP_MAX) || p.map.template.id == event.EventTet.MAP_DAU_TRUONG)) {
+            send_dynamic_menu(p, type, "Trọng Tài", new String[] { "Nói chuyện", "Hướng dẫn", "Rời Đấu Trường" }, null);
           } else {
             send_dynamic_menu(p, type, get_name_npc(type), new String[] { "Nói chuyện", "Về Làng Cối Xay Gió" }, null);
           }
           break;
         }
         case 120: {
-          if (p.map != null && p.map.template.id == event.EventTet.MAP_DAU_TRUONG) {
+          if (p.map != null && (event.EventTet.getInstance().isDauTruongMap(p.map.template.id) || (p.map.template.id >= event.EventTet.ARENA_MAP_MIN && p.map.template.id <= event.EventTet.ARENA_MAP_MAX) || p.map.template.id == event.EventTet.MAP_DAU_TRUONG)) {
             send_dynamic_menu(p, type, "Bảng Xếp Hạng",
                 new String[] { "Top Kill Đấu Trường" },
                 null);
@@ -1687,7 +1687,7 @@ public class MenuController {
             // break;
             // }
             case 3: { // Đổi Beri (cũ: index 5)
-              Service.input_text(p, 9, "Đổi Coin Sang Beri", new String[] { "Nhập số coin (1 coin = 5.000.000 beri)" });
+              Service.input_text(p, 9, "Đổi Coin Sang Beri", new String[] { "Nhập số coin (1 coin = 10.000.000 beri)" });
               break;
             }
             case 4: { // Xem Coin (cũ: index 6)
@@ -1695,7 +1695,7 @@ public class MenuController {
               break;
             }
             case 5: { // Đổi Coin (cũ: index 7)
-              Service.input_text(p, 12, "Đổi Coin", new String[] { "Nhập số coin muốn đổi" });
+              Service.input_text(p, 12, "Đổi Coin", new String[] { "Nhập số coin (1 coin = 200 Ruby + 2.000 Extol)" });
               break;
             }
           }
@@ -1944,7 +1944,7 @@ public class MenuController {
               Service.send_box_ThongBao_OK(p, "Chưa mở Map Đảo Ruby!");
             }
           } else if (index == 2) {
-            send_dynamic_menu(p, 9898, "Đấu Trường Sinh Tồn", new String[] { "Vào Map", "Bảng Xếp Hạng", "Nhận quà" },
+            send_dynamic_menu(p, 9898, "Đấu Trường Sinh Tồn", new String[] { "Vào Map", "Bảng Xếp Hạng", "Nhận quà", "Hướng dẫn" },
                 null);
           } else if (index == 3) {
             send_dynamic_menu(p, 9899, "Hang động", new String[] { "Vào map", "Bảng xếp hạng" }, null);
@@ -1979,14 +1979,23 @@ public class MenuController {
             case 0: { // Vào Map
               if (!event.EventTet.getInstance().isDauTruongOpen()) {
                 Service.send_box_ThongBao_OK(p,
-                    "Đấu Trường Sinh Tồn mở cửa từ 19:00 đến 19:45 hằng ngày!");
+                    "Đấu Trường Sinh Tồn mở cửa từ 20:00 đến 21:00 hằng ngày!");
                 break;
               }
+              int targetMapId = event.EventTet.getInstance().getMainActiveArenaMap();
               Vgo vgo = new Vgo();
-              vgo.map_go = map.Map.get_map_by_id(event.EventTet.MAP_DAU_TRUONG);
-              if (vgo.map_go != null) {
-                vgo.xnew = 250;
-                vgo.ynew = 173;
+              vgo.map_go = map.Map.get_map_by_id(targetMapId);
+              if (vgo.map_go != null && vgo.map_go.length > 0 && vgo.map_go[0].template != null) {
+                map.MapTemplate t = vgo.map_go[0].template;
+                int groundY = 252;
+                if (t.vgos != null && !t.vgos.isEmpty()) {
+                  groundY = t.vgos.get(0).yold;
+                }
+                int minX = 100;
+                int maxX = (t.maxW > 400) ? (t.maxW - 200) : 800;
+                // Random vị trí xuất hiện ngẫu nhiên trên toàn bản đồ
+                vgo.xnew = (short) (minX + Util.random(Math.max(100, maxX - minX)));
+                vgo.ynew = (short) groundY;
                 p.goto_map(vgo);
                 event.EventTet.getInstance().onPlayerJoinDauTruong(p);
               } else {
@@ -2002,30 +2011,74 @@ public class MenuController {
               event.EventTet.getInstance().claimDauTruongReward(p);
               break;
             }
+            case 3: { // Hướng dẫn
+              String guide = "=== HƯỚNG DẪN ĐẤU TRƯỜNG SINH TỒN ===\n"
+                  + "1. Thời gian: Mở cửa từ 20:00 đến 21:00 hằng ngày.\n"
+                  + "2. Bản đồ: Mỗi ngày cố định ngẫu nhiên 5 Chiến Trường kết nối vòng tròn qua các cổng dịch chuyển.\n"
+                  + "3. Quy tắc & Tính điểm:\n"
+                  + " • Tự động bật Cờ Đen khi vào map.\n"
+                  + " • Tiêu diệt Quái / Boss: +1 Điểm.\n"
+                  + " • Hạ gục Người Chơi khác: +2 Điểm.\n"
+                  + " • Khi tử trận: Tự động hồi sinh sau 3 giây và ngẫu nhiên xuất hiện tại 1 trong 5 bản đồ.\n"
+                  + "4. Phần thưởng TOP sau trận:\n"
+                  + " • Top 1: 10.000 Ruby + Danh hiệu Bất Khả Chiến Bại (7 ngày).\n"
+                  + " • Top 2: 5.000 Ruby + Thời Trang Tết.\n"
+                  + " • Top 3: 2.000 Ruby + Thời Trang Tết.\n"
+                  + " • Top 4-10: 500 Ruby.\n"
+                  + "Hãy săn Boss và PK thật nhiều để đoạt Top 1!";
+              Service.send_box_ThongBao_OK(p, guide);
+              break;
+            }
           }
           break;
         }
         case -202: {
-          if (index == 0) {
-            if (p.map != null && p.map.template.id == event.EventTet.MAP_DAU_TRUONG) {
-              Service.send_box_ThongBao_OK(p,
-                  "Trọng Tài: Ngươi có muốn rời khỏi Đấu Trường Sinh Tồn để trở về Làng Cối Xay Gió?");
-            } else {
-              Service.send_box_ThongBao_OK(p, "Sứ Giả Aru: Ta có thể giúp ngươi trở về Làng Cối Xay Gió an toàn!");
+          boolean inArena = p.map != null && (event.EventTet.getInstance().isDauTruongMap(p.map.template.id) || (p.map.template.id >= event.EventTet.ARENA_MAP_MIN && p.map.template.id <= event.EventTet.ARENA_MAP_MAX) || p.map.template.id == event.EventTet.MAP_DAU_TRUONG);
+          if (inArena) {
+            if (index == 0) {
+              Service.send_box_ThongBao_OK(p, "Trọng Tài: Chào mừng ngươi đến với Đấu Trường Sinh Tồn! Hãy chiến đấu hết mình để giành lấy 10.000 Ruby!");
+            } else if (index == 1) {
+              String guide = "=== HƯỚNG DẪN ĐẤU TRƯỜNG SINH TỒN ===\n"
+                  + "1. Thời gian: Mở cửa từ 20:00 đến 21:00 hằng ngày.\n"
+                  + "2. Bản đồ: Mỗi ngày cố định ngẫu nhiên 5 Chiến Trường kết nối vòng tròn qua các cổng dịch chuyển.\n"
+                  + "3. Quy tắc & Tính điểm:\n"
+                  + " • Tự động bật Cờ Đen khi vào map.\n"
+                  + " • Tiêu diệt Quái / Boss: +1 Điểm.\n"
+                  + " • Hạ gục Người Chơi khác: +2 Điểm.\n"
+                  + " • Khi tử trận: Tự động hồi sinh sau 3 giây và ngẫu nhiên xuất hiện tại 1 trong 5 bản đồ.\n"
+                  + "4. Phần thưởng TOP sau trận:\n"
+                  + " • Top 1: 10.000 Ruby + Danh hiệu Bất Khả Chiến Bại (7 ngày).\n"
+                  + " • Top 2: 5.000 Ruby + Thời Trang Tết.\n"
+                  + " • Top 3: 2.000 Ruby + Thời Trang Tết.\n"
+                  + " • Top 4-10: 500 Ruby.\n"
+                  + "Hãy săn Boss và PK thật nhiều để đoạt Top 1!";
+              Service.send_box_ThongBao_OK(p, guide);
+            } else if (index == 2) {
+              Vgo vgo = new Vgo();
+              vgo.map_go = map.Map.get_map_by_id(1);
+              if (vgo.map_go != null) {
+                vgo.xnew = 611;
+                vgo.ynew = 250;
+                p.goto_map(vgo);
+              }
             }
-          } else if (index == 1) {
-            Vgo vgo = new Vgo();
-            vgo.map_go = map.Map.get_map_by_id(1);
-            if (vgo.map_go != null) {
-              vgo.xnew = 611;
-              vgo.ynew = 250;
-              p.goto_map(vgo);
+          } else {
+            if (index == 0) {
+              Service.send_box_ThongBao_OK(p, "Sứ Giả Aru: Ta có thể giúp ngươi trở về Làng Cối Xay Gió an toàn!");
+            } else if (index == 1) {
+              Vgo vgo = new Vgo();
+              vgo.map_go = map.Map.get_map_by_id(1);
+              if (vgo.map_go != null) {
+                vgo.xnew = 611;
+                vgo.ynew = 250;
+                p.goto_map(vgo);
+              }
             }
           }
           break;
         }
         case 120: { // bhx - bảng xếp hạng
-          if (p.map != null && p.map.template.id == event.EventTet.MAP_DAU_TRUONG) {
+          if (p.map != null && (event.EventTet.getInstance().isDauTruongMap(p.map.template.id) || (p.map.template.id >= event.EventTet.ARENA_MAP_MIN && p.map.template.id <= event.EventTet.ARENA_MAP_MAX) || p.map.template.id == event.EventTet.MAP_DAU_TRUONG)) {
             if (index == 0) {
               event.EventTet.getInstance().showTopKillDauTruong(p);
             }
@@ -3585,7 +3638,19 @@ public class MenuController {
 
         map.Map m = (b.mob != null && b.mob.map != null) ? b.mob.map : b.mapOrigin;
         String locationStr;
-        if (m != null && m.template != null) {
+        if (isAlive && m != null && m.template != null) {
+          int zoneNum = (m.zone_id >= 0) ? (m.zone_id + 1) : 1;
+          locationStr = m.template.name + " (Khu " + zoneNum + ")";
+        } else if (b.id == map.Boss.BOSS_BIG_MOM
+            || (b.mob != null && b.mob.mob_template != null && b.mob.mob_template.mob_id == map.Boss.MOB_BIG_MOM)) {
+          long now = System.currentTimeMillis();
+          if (map.Boss.nextBigMomRespawnTime > now) {
+            long secLeft = (map.Boss.nextBigMomRespawnTime - now) / 1000;
+            locationStr = "Hồi sinh sau " + secLeft + "s";
+          } else {
+            locationStr = "Xuất hiện 13h-17h & 23h-6h30";
+          }
+        } else if (m != null && m.template != null) {
           int zoneNum = (m.zone_id >= 0) ? (m.zone_id + 1) : 1;
           locationStr = m.template.name + " (Khu " + zoneNum + ")";
         } else {

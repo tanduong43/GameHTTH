@@ -82,6 +82,7 @@ public class ServerEventManager {
                         Boss.spawnDualEventBosses();
                     }
                     Boss.checkDualEventDespawn();
+                    Boss.checkBigMomEvent(hour, min, sec);
                     if ((hour == 18 || hour == 22) && sec == 0) {
                         // Kiểm tra xem Boss đã được gọi ra chưa (phòng trường hợp restart server lúc 18h)
                         boolean isMissed = true;

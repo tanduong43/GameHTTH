@@ -21,6 +21,7 @@ public class GiftBox {
     public int num;
     public byte color;
     public short id;
+    public byte numLoKham = -1;
 
     public static List<GiftBox> get_gift_map_boss_by_level(Player p) {
         List<GiftBox> listGift = new ArrayList<>();
