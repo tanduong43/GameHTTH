@@ -524,6 +524,7 @@ public class MenuController {
           send_dynamic_menu(p, type, "Kho Báu",
               new String[] { "Vòng quay kho báu", "Hoàn mỹ - Kích ẩn",
                   "Vòng quay ốc sên",
+                  "Mốc Vòng Quay Ốc Sên",
                   // "Lục Thức","Sức Mạnh Vật Lý", "Doriki",
                   "Quay Pet" },
               null);
@@ -2199,6 +2200,10 @@ public class MenuController {
           Menu_Buggi(p, index);
           break;
         }
+        case 9077: { // Menu chọn nhận Trái Ác Quỷ mốc 700k Ruby Vòng Quay Ốc Sên
+          activities.Vong_quay_oc_sen.handle_milestone_menu(p, index);
+          break;
+        }
         case -996: { // NPC Đô Đốc Trận Chiến Lớn
           activities.BigBattle.handleNpcMenu(p, index);
           break;
@@ -3810,7 +3815,11 @@ public class MenuController {
         Vong_quay_oc_sen.show_table(p);
         break;
       }
-      case 3: { // Quay Pet
+      case 3: { // Mốc Vòng Quay Ốc Sên
+        Vong_quay_oc_sen.show_milestone_menu(p);
+        break;
+      }
+      case 4: { // Quay Pet
         p.type_vongquay = 1;
         activities.VongQuayPet.show_table(p);
         break;

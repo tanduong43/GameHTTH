@@ -110,6 +110,7 @@ public class EventTet implements Runnable {
         dauTruongEndTime = cal.getTimeInMillis();
         dauTruongKillCount = 0;
         dauTruongPlayers.clear();
+        arenaPlayerKills.clear();
 
         refreshActiveArenaMaps();
 
@@ -258,6 +259,7 @@ public class EventTet implements Runnable {
         }
         activeArenaMaps.clear();
         dauTruongPlayers.clear();
+        arenaPlayerKills.clear();
     }
 
     public boolean isDauTruongOpen() {
@@ -265,10 +267,14 @@ public class EventTet implements Runnable {
     }
 
     public void onPlayerJoinDauTruong(Player p) {
-        if (p != null && !dauTruongPlayers.contains(p)) {
+        if (p == null) return;
+        if (isDauTruongOpen()) {
+            p.dauTruongKills = arenaPlayerKills.getOrDefault(p.name, 0);
+            arenaPlayerKills.putIfAbsent(p.name, p.dauTruongKills);
+            dauTruongPlayers.removeIf(pl -> pl == null || pl.id == p.id || pl.name.equals(p.name));
             dauTruongPlayers.add(p);
         }
-        if (p != null && p.map != null && isDauTruongMap(p.map.template.id)) {
+        if (p.map != null && isDauTruongMap(p.map.template.id)) {
             try {
                 p.map.change_flag(p, 3);
             } catch (IOException e) {
@@ -353,6 +359,7 @@ public class EventTet implements Runnable {
     private boolean dauTruongOpen = false;
     private int dauTruongKillCount = 0;
     private final CopyOnWriteArrayList<Player> dauTruongPlayers = new CopyOnWriteArrayList<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Integer> arenaPlayerKills = new java.util.concurrent.ConcurrentHashMap<>();
     private long dauTruongEndTime = 0;
 
     // Chiếm Đảo
@@ -471,12 +478,14 @@ public class EventTet implements Runnable {
 
         // Cập nhật điểm cho killer: +2 Điểm khi hạ gục người chơi
         if (killer != null) {
-            killer.dauTruongKills += 2;
-            if (!dauTruongPlayers.contains(killer)) {
-                dauTruongPlayers.add(killer);
-            }
+            int current = arenaPlayerKills.merge(killer.name, 2, Integer::sum);
+            killer.dauTruongKills = current;
+            dauTruongPlayers.removeIf(pl -> pl == null || pl.id == killer.id || pl.name.equals(killer.name));
+            dauTruongPlayers.add(killer);
         }
-        if (victim != null && !dauTruongPlayers.contains(victim)) {
+        if (victim != null) {
+            arenaPlayerKills.putIfAbsent(victim.name, 0);
+            dauTruongPlayers.removeIf(pl -> pl == null || pl.id == victim.id || pl.name.equals(victim.name));
             dauTruongPlayers.add(victim);
         }
 
@@ -496,10 +505,10 @@ public class EventTet implements Runnable {
         if (!isDauTruongOpen() || killer == null) return;
 
         dauTruongKillCount += 1;
-        killer.dauTruongKills += 1; // +1 Điểm khi tiêu diệt quái/Boss
-        if (!dauTruongPlayers.contains(killer)) {
-            dauTruongPlayers.add(killer);
-        }
+        int current = arenaPlayerKills.merge(killer.name, 1, Integer::sum);
+        killer.dauTruongKills = current; // +1 Điểm khi tiêu diệt quái/Boss
+        dauTruongPlayers.removeIf(pl -> pl == null || pl.id == killer.id || pl.name.equals(killer.name));
+        dauTruongPlayers.add(killer);
 
         String mobName = (mob != null && mob.mob_template != null) ? mob.mob_template.name : "Quái/Boss";
         try {
@@ -532,29 +541,44 @@ public class EventTet implements Runnable {
         return dauTruongPlayers;
     }
 
+    public java.util.Map<String, Integer> getCurrentArenaScores() {
+        java.util.Map<String, Integer> map = new java.util.HashMap<>(arenaPlayerKills);
+        for (Player p : dauTruongPlayers) {
+            if (p != null && p.name != null && p.dauTruongKills > 0) {
+                map.merge(p.name, p.dauTruongKills, Math::max);
+            }
+        }
+        return map;
+    }
+
     public java.util.Map<String, Integer> getPendingDauTruongRewards() {
         return pendingDauTruongRewards;
     }
 
     private void processDauTruongRewards() {
-        if (dauTruongPlayers.isEmpty()) return;
+        java.util.Map<String, Integer> finalScores = getCurrentArenaScores();
+        if (finalScores.isEmpty()) return;
 
-        // Sắp xếp theo số kill
-        List<Player> sorted = new ArrayList<>(dauTruongPlayers);
-        sorted.sort((p1, p2) -> Integer.compare(p2.dauTruongKills, p1.dauTruongKills));
+        List<java.util.Map.Entry<String, Integer>> sorted = new ArrayList<>(finalScores.entrySet());
+        sorted.removeIf(e -> e.getValue() == null || e.getValue() <= 0);
+        sorted.sort((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()));
 
         lastMatchTopList.clear();
         for (int i = 0; i < sorted.size(); i++) {
-            Player p = sorted.get(i);
-            if (p == null || p.dauTruongKills <= 0) continue;
+            java.util.Map.Entry<String, Integer> entry = sorted.get(i);
+            String pName = entry.getKey();
+            int kills = entry.getValue();
             int rank = i + 1;
-            lastMatchTopList.add(new DauTruongTopRecord(p.name, p.dauTruongKills, rank));
+            lastMatchTopList.add(new DauTruongTopRecord(pName, kills, rank));
             if (i < 10) {
-                pendingDauTruongRewards.put(p.name, rank);
-                try {
-                    Service.send_box_ThongBao_OK(p, "Trận đấu kết thúc! Bạn đạt TOP " + rank + " (" + p.dauTruongKills + " Kills) Đấu Trường Sinh Tồn!\nHãy gặp Tôn Ngộ Không để nhận quà!");
-                } catch (IOException e) {
-                    // ignore
+                pendingDauTruongRewards.put(pName, rank);
+                Player p = Map.get_player_by_name_allmap(pName);
+                if (p != null) {
+                    try {
+                        Service.send_box_ThongBao_OK(p, "Trận đấu kết thúc! Bạn đạt TOP " + rank + " (" + kills + " Kills) Đấu Trường Sinh Tồn!\nHãy gặp Tôn Ngộ Không để nhận quà!");
+                    } catch (IOException e) {
+                        // ignore
+                    }
                 }
             }
         }
@@ -565,6 +589,7 @@ public class EventTet implements Runnable {
                 p.dauTruongKills = 0;
             }
         }
+        arenaPlayerKills.clear();
     }
 
     public void claimDauTruongReward(Player p) {

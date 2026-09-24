@@ -386,37 +386,8 @@ def draw_detailed_divine_pillar(w=216, h=264, phase=0):
     return im
 
 def create_effect_919():
-    w_box, h_box = 216, 264
-    fist = draw_detailed_bajrang_fist(w_box, h_box)
-    imp1 = draw_detailed_divINE_pillar = draw_detailed_divine_pillar(w_box, h_box, phase=0)
-    imp2 = draw_detailed_divine_pillar(w_box, h_box, phase=1)
-    imp3 = draw_detailed_divine_pillar(w_box, h_box, phase=2)
-    
-    frames_img = [fist, imp1, imp2, imp3]
-    # 2 cols x 2 rows = 432 x 528 (1x: 108 x 132 <= 255)
-    cols = 2
-    rows = 2
-    im = Image.new('RGBA', (w_box * cols, h_box * rows), (0, 0, 0, 0))
-    small_imgs = []
-    for idx, f_im in enumerate(frames_img):
-        col = idx % cols
-        row = idx // cols
-        gx = col * w_box
-        gy = row * h_box
-        im.paste(f_im, (gx, gy))
-        small_imgs.append([idx, gx // 4, gy // 4, w_box // 4, h_box // 4])
-    
-    dx = -27
-    frame_list = [
-        [(dx, -85, 0, 0, 0)],
-        [(dx, -58, 0, 0, 0)],
-        [(dx, -35, 0, 0, 0), (dx, -35, 1, 0, 0)],
-        [(dx, -35, 2, 0, 0)],
-        [(dx, -35, 3, 0, 0)]
-    ]
-    seq = [0, 0, 1, 1, 2, 2, 3, 3, 3, 4, 4, 4]
-    data_bytes = build_data_effect(small_imgs, frame_list, seq)
-    save_multizoom_effect(919, im, data_bytes)
+    import generate_final_nika_919
+    generate_final_nika_919.generate()
 
 # ==============================================================================
 # 3. EFFECT 920: THỨC TỈNH NIKA (SUN GOD AWAKENING & UY ÁP BÁ VƯƠNG) - HÌNH 4

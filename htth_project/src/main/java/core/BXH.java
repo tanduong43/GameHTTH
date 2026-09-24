@@ -6,7 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
@@ -295,7 +297,7 @@ public class BXH {
                 } else {
                     page = 0;
                 }
-                m.writer().writeByte(4);
+                m.writer().writeByte(14);
                 m.writer().writeUTF("Top Đấu Trường");
                 m.writer().writeByte(page);
                 m.writer().writeByte(bound2 - bound1);
@@ -324,7 +326,7 @@ public class BXH {
                 } else {
                     page = 0;
                 }
-                m.writer().writeByte(4);
+                m.writer().writeByte(15);
                 m.writer().writeUTF("Top Săn Boss Lân Sư Tử");
                 m.writer().writeByte(page);
                 m.writer().writeByte(bound2 - bound1);
@@ -353,7 +355,7 @@ public class BXH {
                 } else {
                     page = 0;
                 }
-                m.writer().writeByte(4);
+                m.writer().writeByte(16);
                 m.writer().writeUTF("Top Nấu Bánh Chưng Tân Niên");
                 m.writer().writeByte(page);
                 m.writer().writeByte(bound2 - bound1);
@@ -1304,29 +1306,46 @@ public class BXH {
 
     public static void updateTopDauTruong() {
         List<InfoMemList> list_add = new ArrayList<>();
-        List<Player> playersInMatch = event.EventTet.getInstance().getDauTruongPlayers();
-        if (playersInMatch != null && !playersInMatch.isEmpty()) {
-            List<Player> sorted = new ArrayList<>(playersInMatch);
-            sorted.sort((p1, p2) -> Integer.compare(p2.dauTruongKills, p1.dauTruongKills));
-            for (int i = 0; i < sorted.size(); i++) {
-                Player p0 = sorted.get(i);
-                if (p0 == null || p0.dauTruongKills <= 0) continue;
-                InfoMemList temp = new InfoMemList();
-                temp.id = p0.id;
-                temp.name = p0.name;
-                temp.level = (short) p0.level;
-                temp.head = (short) p0.get_head();
-                temp.hair = (short) p0.get_hair();
-                temp.hat = p0.get_hat();
-                temp.info = "Điểm: " + p0.dauTruongKills;
-                temp.rank = (short) list_add.size();
-                list_add.add(temp);
+        Set<String> seenNames = new HashSet<>();
+
+        if (event.EventTet.getInstance().isDauTruongOpen()) {
+            java.util.Map<String, Integer> currentScores = event.EventTet.getInstance().getCurrentArenaScores();
+            if (currentScores != null && !currentScores.isEmpty()) {
+                List<java.util.Map.Entry<String, Integer>> sorted = new ArrayList<>(currentScores.entrySet());
+                sorted.removeIf(e -> e.getValue() == null || e.getValue() <= 0);
+                sorted.sort((p1, p2) -> Integer.compare(p2.getValue(), p1.getValue()));
+
+                for (java.util.Map.Entry<String, Integer> entry : sorted) {
+                    String pName = entry.getKey();
+                    if (pName == null || seenNames.contains(pName.toLowerCase())) continue;
+                    seenNames.add(pName.toLowerCase());
+
+                    InfoMemList temp = new InfoMemList();
+                    Player p0 = Map.get_player_by_name_allmap(pName);
+                    if (p0 != null) {
+                        temp.id = p0.id;
+                        temp.name = p0.name;
+                        temp.level = (short) p0.level;
+                        temp.head = (short) p0.get_head();
+                        temp.hair = (short) p0.get_hair();
+                        temp.hat = p0.get_hat();
+                    } else {
+                        loadOfflinePlayerAppearance(temp, pName);
+                    }
+                    temp.info = "Điểm: " + entry.getValue();
+                    temp.rank = (short) list_add.size();
+                    list_add.add(temp);
+                    if (list_add.size() >= 50) break;
+                }
             }
         } else {
             List<event.EventTet.DauTruongTopRecord> lastRecords = event.EventTet.getInstance().getLastMatchTopList();
             if (lastRecords != null && !lastRecords.isEmpty()) {
                 for (int i = 0; i < lastRecords.size(); i++) {
                     event.EventTet.DauTruongTopRecord rec = lastRecords.get(i);
+                    if (rec == null || rec.name == null || rec.kills <= 0 || seenNames.contains(rec.name.toLowerCase())) continue;
+                    seenNames.add(rec.name.toLowerCase());
+
                     InfoMemList temp = new InfoMemList();
                     Player p0 = Map.get_player_by_name_allmap(rec.name);
                     if (p0 != null) {
@@ -1337,21 +1356,135 @@ public class BXH {
                         temp.hair = (short) p0.get_hair();
                         temp.hat = p0.get_hat();
                     } else {
-                        temp.id = i + 1;
-                        temp.name = rec.name;
-                        temp.level = 1;
-                        temp.head = -1;
-                        temp.hair = -1;
-                        temp.hat = -1;
+                        loadOfflinePlayerAppearance(temp, rec.name);
                     }
                     temp.info = "Điểm: " + rec.kills;
-                    temp.rank = (short) i;
+                    temp.rank = (short) list_add.size();
                     list_add.add(temp);
+                    if (list_add.size() >= 50) break;
                 }
             }
         }
         BXH.DAU_TRUONG.clear();
         BXH.DAU_TRUONG.addAll(list_add);
+    }
+
+    public static void loadOfflinePlayerAppearance(InfoMemList temp, String pName) {
+        temp.name = pName;
+        temp.level = 1;
+        temp.head = -1;
+        temp.hair = -1;
+        temp.hat = -1;
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = SQL.gI().getCon();
+            ps = connection.prepareStatement(
+                    "SELECT `id`, `name`, `level`, `clazz`, `body`, `it_body`, `fashion`, `site` FROM `players` WHERE `name` = ? LIMIT 1;");
+            ps.setString(1, pName);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                temp.id = rs.getInt("id");
+                temp.name = rs.getString("name");
+                try {
+                    JSONArray jsLevel = (JSONArray) JSONValue.parse(rs.getString("level"));
+                    if (jsLevel != null && jsLevel.size() > 0) {
+                        temp.level = Short.parseShort(jsLevel.get(0).toString());
+                    }
+                } catch (Exception e) {}
+
+                List<ItemFashionP2> fashion = new ArrayList<>();
+                List<ItemFashionP> itfashionP = new ArrayList<>();
+                try {
+                    JSONArray js0 = (JSONArray) JSONValue.parse(rs.getString("fashion"));
+                    JSONArray js_temp_2 = (JSONArray) JSONValue.parse(js0.get(0).toString());
+                    for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                        ItemFashionP tempf = new ItemFashionP();
+                        tempf.category = Byte.parseByte(js_temp.get(0).toString());
+                        tempf.id = Short.parseShort(js_temp.get(1).toString());
+                        tempf.icon = Short.parseShort(js_temp.get(2).toString());
+                        tempf.is_use = Byte.parseByte(js_temp.get(3).toString()) == 1;
+                        itfashionP.add(tempf);
+                    }
+                    js_temp_2.clear();
+                    js_temp_2 = (JSONArray) JSONValue.parse(js0.get(1).toString());
+                    for (int i0 = 0; i0 < js_temp_2.size(); i0++) {
+                        JSONArray js_temp = (JSONArray) JSONValue.parse(js_temp_2.get(i0).toString());
+                        ItemFashionP2 tempf = new ItemFashionP2();
+                        tempf.id = Short.parseShort(js_temp.get(0).toString());
+                        tempf.is_use = Byte.parseByte(js_temp.get(1).toString()) == 1;
+                        fashion.add(tempf);
+                    }
+                } catch (Exception ex) {}
+
+                short hair_ = -1;
+                short head_ = -1;
+                short[] fashion_ = null;
+                for (int i0 = 0; i0 < fashion.size(); i0++) {
+                    if (fashion.get(i0).is_use) {
+                        ItemFashion tempF = ItemFashion.get_item(fashion.get(i0).id);
+                        if (tempF != null) {
+                            fashion_ = tempF.mWearing;
+                            break;
+                        }
+                    }
+                }
+                if (fashion_ != null && fashion_[6] != -1) {
+                    hair_ = -2;
+                    head_ = fashion_[6];
+                } else {
+                    for (int i0 = 0; i0 < itfashionP.size(); i0++) {
+                        if (itfashionP.get(i0).category == 103 && itfashionP.get(i0).is_use) {
+                            hair_ = itfashionP.get(i0).icon;
+                        }
+                    }
+                    for (int i0 = 0; i0 < itfashionP.size(); i0++) {
+                        if (itfashionP.get(i0).category == 108 && itfashionP.get(i0).is_use) {
+                            head_ = itfashionP.get(i0).icon;
+                        }
+                    }
+                }
+                try {
+                    JSONArray js = (JSONArray) JSONValue.parse(rs.getString("body"));
+                    temp.head = (head_ != -1) ? head_ : Short.parseShort(js.get(0).toString());
+                    temp.hair = (hair_ != -1) ? hair_ : Short.parseShort(js.get(1).toString());
+                } catch (Exception ex) {}
+
+                try {
+                    Item_wear[] it = new Item_wear[8];
+                    JSONArray js = (JSONArray) JSONValue.parse(rs.getString("it_body"));
+                    for (int i1 = 0; i1 < js.size(); i1++) {
+                        JSONArray js2 = (JSONArray) JSONValue.parse(js.get(i1).toString());
+                        Item_wear temp2 = new Item_wear();
+                        Item.readUpdateItem(js2.toString(), temp2);
+                        if (temp2.template != null) {
+                            it[temp2.index] = temp2;
+                        }
+                    }
+                    JSONArray jsSite = (JSONArray) JSONValue.parse(rs.getString("site"));
+                    boolean is_show_hat = Byte.parseByte(jsSite.get(6).toString()) == 1;
+                    if (!is_show_hat || it[1] == null) {
+                        temp.hat = -1;
+                    } else if (fashion_ != null && fashion_[1] != -1) {
+                        temp.hat = fashion_[1];
+                    } else {
+                        temp.hat = ItemTemplate3.get_it_by_id(it[1].template.id).part;
+                    }
+                } catch (Exception ex) {}
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (connection != null) connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void updateCaoThu() {

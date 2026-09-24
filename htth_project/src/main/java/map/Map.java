@@ -6161,6 +6161,19 @@ public class Map implements Runnable {
                     } catch (Exception e) {
                         Service.send_box_ThongBao_OK(p, "Cú pháp không đúng! Ví dụ: admin settier 5");
                     }
+                } else if (cmd.startsWith("setrubyocsen ") || cmd.startsWith("setocsen ")) {
+                    try {
+                        String[] parts = cmd.split(" ");
+                        int val = Integer.parseInt(parts[1]);
+                        p.ruby_spent_oc_sen = val;
+                        Service.send_box_ThongBao_OK(p, "Đã chỉnh tiến độ Ruby Vòng Quay Ốc Sên thành: " + Util.number_format(val));
+                    } catch (Exception e) {
+                        Service.send_box_ThongBao_OK(p, "Cú pháp: admin setrubyocsen <số_ruby>");
+                    }
+                } else if (cmd.equals("resetocsen")) {
+                    p.ruby_spent_oc_sen = 0;
+                    p.claimed_oc_sen_milestone = 0;
+                    Service.send_box_ThongBao_OK(p, "Đã reset mốc Vòng Quay Ốc Sên của bạn về 0!");
                 } else if (cmd.equals("reloadhair") || cmd.equals("reload_hair") || cmd.equals("updatehair")
                         || cmd.equals("update_hair")) {
                     try {

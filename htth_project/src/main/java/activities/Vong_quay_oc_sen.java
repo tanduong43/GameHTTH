@@ -1,6 +1,7 @@
 package activities;
 
 import client.Player;
+import core.MenuController;
 import core.Service;
 import core.Util;
 import io.Message;
@@ -15,6 +16,8 @@ import template.ItemTemplate7;
 public class Vong_quay_oc_sen {
 
     public static final int RUBY_COST = 500; // Giá quay 500 ruby
+    public static final int MILESTONE_RUBY = 700_000; // Mốc 700.000 Ruby (1.400 lượt quay)
+    public static final int MENU_ID_MILESTONE = 9077; // Menu ID nhận quà mốc
 
     public static class RewardSlot {
         public int id;
@@ -105,7 +108,8 @@ public class Vong_quay_oc_sen {
     public static void show_table(Player p) throws IOException {
         Message m = new Message(77);
         m.writer().writeByte(0);
-        m.writer().writeUTF("Vòng Quay Ốc Sên");
+        String progress = p.claimed_oc_sen_milestone > 0 ? " [Đã nhận mốc]" : " [" + Util.number_format(p.ruby_spent_oc_sen) + "/700k]";
+        m.writer().writeUTF("Vòng Quay Ốc Sên" + progress);
         p.conn.addmsg(m);
         m.cleanup();
     }
@@ -180,6 +184,17 @@ public class Vong_quay_oc_sen {
             p.update_money();
         }
 
+        // Tích lũy tiến độ mốc 700.000 Ruby (quay bằng Ruby hay Ốc Sên đều cộng 500 Ruby)
+        boolean reachedMilestoneNow = false;
+        if (p.claimed_oc_sen_milestone == 0) {
+            p.ruby_spent_oc_sen += RUBY_COST;
+            if (p.ruby_spent_oc_sen >= MILESTONE_RUBY && (p.ruby_spent_oc_sen - RUBY_COST) < MILESTONE_RUBY) {
+                reachedMilestoneNow = true;
+            }
+        } else {
+            p.ruby_spent_oc_sen += RUBY_COST;
+        }
+
         // Pick random slot theo trọng số tỉ lệ (Weighted Random)
         int indexWon = getRandomSlotIndex();
 
@@ -195,6 +210,11 @@ public class Vong_quay_oc_sen {
                 core.Manager.gI().chatKTG(0, "Chúc mừng " + p.name + " vừa quay trúng " + getName(reward.category, reward.id) + " từ Vòng Quay Ốc Sên!", 5);
             } catch (Exception e) {
             }
+        }
+
+        // Nếu vừa chạm đúng mốc 700.000 Ruby, hiện banner thông báo chúc mừng
+        if (reachedMilestoneNow) {
+            Service.send_server_notice(p, "🎉 Chúc mừng bạn đã đạt mốc 700.000 Ruby Vòng Quay Ốc Sên! Hãy gặp NPC Buggi để nhận Trái Ác Quỷ!");
         }
 
         // 1. Reset client item list state (đảm bảo tất cả 22 ô luôn giữ nguyên)
@@ -218,6 +238,79 @@ public class Vong_quay_oc_sen {
         m.writer().writeByte(indexWon);
         p.conn.addmsg(m);
         m.cleanup();
+    }
+
+    /**
+     * Menu hiển thị tiến độ và nhận quà mốc 700.000 Ruby tại NPC Buggi
+     */
+    public static void show_milestone_menu(Player p) throws IOException {
+        if (p.claimed_oc_sen_milestone >= 1) {
+            Service.send_box_ThongBao_OK(p, "Bạn đã nhận phần thưởng Trái Ác Quỷ từ mốc 700.000 Ruby rồi!\n(Mốc này chỉ nhận 1 lần duy nhất)");
+            return;
+        }
+
+        if (p.ruby_spent_oc_sen >= MILESTONE_RUBY) {
+            // Đã đạt mốc và chưa nhận -> Mở menu chọn Trái Ác Quỷ
+            MenuController.send_dynamic_menu(p, MENU_ID_MILESTONE,
+                "Mốc 700k Ruby (" + Util.number_format(p.ruby_spent_oc_sen) + "/700k)",
+                new String[] { "Nhận Trái Ope Ope", "Nhận Trái Nikyu Nikyu", "Đóng" },
+                new short[] { 191, 190, 117 });
+        } else {
+            // Chưa đạt mốc -> Thông báo tiến độ
+            int remaining = MILESTONE_RUBY - p.ruby_spent_oc_sen;
+            int spinCur = p.ruby_spent_oc_sen / RUBY_COST;
+            int spinTarget = MILESTONE_RUBY / RUBY_COST;
+            Service.send_box_ThongBao_OK(p, "Tiến độ tích lũy Vòng Quay Ốc Sên của bạn:\n"
+                + "• Đã tích lũy: " + Util.number_format(p.ruby_spent_oc_sen) + " / " + Util.number_format(MILESTONE_RUBY) + " Ruby\n"
+                + "• Tương đương: " + spinCur + " / " + spinTarget + " lượt quay\n\n"
+                + "Còn thiếu " + Util.number_format(remaining) + " Ruby nữa (" + (remaining / RUBY_COST) + " lượt) để nhận thẳng Trái Ope Ope hoặc Trái Nikyu Nikyu!");
+        }
+    }
+
+    /**
+     * Xử lý khi người chơi bấm chọn trong menu mốc 700k (menu 9077)
+     */
+    public static void handle_milestone_menu(Player p, byte index) throws IOException {
+        switch (index) {
+            case 0: { // Trái Ope Ope (ID 1016)
+                claim_milestone(p, 1016);
+                break;
+            }
+            case 1: { // Trái Nikyu Nikyu (ID 1015)
+                claim_milestone(p, 1015);
+                break;
+            }
+            case 2: // Đóng
+                break;
+        }
+    }
+
+    /**
+     * Trao quà mốc Trái Ác Quỷ
+     */
+    public static void claim_milestone(Player p, int fruitId) throws IOException {
+        if (p.claimed_oc_sen_milestone >= 1) {
+            Service.send_box_ThongBao_OK(p, "Bạn đã nhận phần thưởng mốc 700.000 Ruby rồi!");
+            return;
+        }
+        if (p.ruby_spent_oc_sen < MILESTONE_RUBY) {
+            Service.send_box_ThongBao_OK(p, "Bạn chưa tích lũy đủ 700.000 Ruby!");
+            return;
+        }
+        if (p.item.able_bag() < 1) {
+            Service.send_box_ThongBao_OK(p, "Hành trang của bạn không đủ chỗ trống! Vui lòng làm trống ít nhất 1 ô trong hành trang để nhận Trái Ác Quỷ.");
+            return;
+        }
+
+        p.claimed_oc_sen_milestone = 1;
+        p.item.add_item_bag47(4, fruitId, 1);
+        p.item.update_Inventory(-1, false);
+
+        String fruitName = getName(4, fruitId);
+        Service.send_box_ThongBao_OK(p, "🎉 Chúc mừng bạn đã nhận thành công " + fruitName + " từ Mốc 700.000 Ruby Vòng Quay Ốc Sên!");
+        try {
+            core.Manager.gI().chatKTG(0, "Chúc mừng người chơi " + p.name + " đã đạt mốc 700.000 Ruby Vòng Quay Ốc Sên và nhận thành công " + fruitName + "!", 5);
+        } catch (Exception e) {}
     }
 
     /**

@@ -132,6 +132,8 @@ public class Player {
     public byte time_hangdong;
     public byte time_5vs5; // Số lượt tham gia Phó bản 5vs5 trong ngày (tối đa 5 lần)
     public byte village_tier = 1;
+    public int ruby_spent_oc_sen = 0; // Tích lũy Ruby vòng quay ốc sên (bao gồm cả quay ốc sên quy đổi 500)
+    public byte claimed_oc_sen_milestone = 0; // 0: chưa nhận, 1: đã nhận mốc 700k
     public int[] daily_achievements = new int[8];
     public boolean[] daily_achievements_claimed = new boolean[8];
     public int botMiReceivedToday = 0;
@@ -523,6 +525,24 @@ public class Player {
                 time_5vs5 = safeByteFromJson(js.get(26));
             } else {
                 time_5vs5 = 0;
+            }
+            if (js.size() > 27 && js.get(27) != null) {
+                try {
+                    ruby_spent_oc_sen = Integer.parseInt(js.get(27).toString());
+                } catch (Exception e) {
+                    ruby_spent_oc_sen = 0;
+                }
+            } else {
+                ruby_spent_oc_sen = 0;
+            }
+            if (js.size() > 28 && js.get(28) != null) {
+                try {
+                    claimed_oc_sen_milestone = safeByteFromJson(js.get(28));
+                } catch (Exception e) {
+                    claimed_oc_sen_milestone = 0;
+                }
+            } else {
+                claimed_oc_sen_milestone = 0;
             }
             this.claimedMilestones = new ArrayList<>();
             this.tichTieuCheck = new byte[20];
@@ -1623,6 +1643,8 @@ public class Player {
             js.add(p.haki_monster_killed);
             js.add(p.village_tier);
             js.add(p.time_5vs5);
+            js.add(p.ruby_spent_oc_sen);
+            js.add(p.claimed_oc_sen_milestone);
             ps.setNString(4, js.toJSONString());
             js.clear();
             js = new JSONArray();
