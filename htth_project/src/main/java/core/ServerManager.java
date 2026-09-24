@@ -54,6 +54,8 @@ public class ServerManager implements Runnable {
         serverEventManager = new ServerEventManager();
         serverEventManager.init();
 
+        activities.AuctionManager.gI().init();
+
         // Start WebSocket server for WebGL clients
         try {
             int wsPort = Manager.gI().ws_port;

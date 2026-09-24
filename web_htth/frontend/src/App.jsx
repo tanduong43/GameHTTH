@@ -10,6 +10,7 @@ import AdminNews from './features/admin/components/AdminNews';
 import AdminBanking from './features/admin/components/AdminBanking';
 import AdminItems from './features/admin/components/AdminItems';
 import AdminLogs from './features/admin/components/AdminLogs';
+import AdminAuction from './features/admin/components/AdminAuction';
 import AnimatedPage from './components/AnimatedPage';
 import AuthForm from './components/AuthForm';
 
@@ -51,6 +52,7 @@ const routes = [
       { path: 'items', element: <AdminItems /> },
       { path: 'banking', element: <AdminBanking /> },
       { path: 'logs', element: <AdminLogs /> },
+      { path: 'auctions', element: <AdminAuction /> },
     ]
   },
 ];

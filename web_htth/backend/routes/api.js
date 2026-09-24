@@ -2557,4 +2557,180 @@ router.get('/admin/player-logs', jwtRequired, isAdmin, async (req, res) => {
     }
 });
 
+// ==========================================
+// ADMIN AUCTION ROUTES
+// ==========================================
+
+// GET /api/admin/auctions/search-templates
+router.get('/admin/auctions/search-templates', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const { keyword } = req.query;
+        if (!keyword || keyword.trim().length === 0) {
+            return res.json({ success: true, data: [] });
+        }
+        const term = `%${keyword.trim()}%`;
+        const isNum = !isNaN(keyword.trim()) ? parseInt(keyword.trim(), 10) : -1;
+
+        // Search item4 (potions, chests)
+        const [rows4] = await db.query(
+            'SELECT id, name, icon, 4 as category, 2 as defaultColor FROM item4 WHERE id = ? OR name LIKE ? LIMIT 10',
+            [isNum, term]
+        );
+        // Search item3 (equipment)
+        const [rows3] = await db.query(
+            'SELECT id, name, icon, color as defaultColor, 3 as category FROM item3 WHERE id = ? OR name LIKE ? LIMIT 10',
+            [isNum, term]
+        );
+        // Search item7 (gems/materials)
+        const [rows7] = await db.query(
+            'SELECT id, name, icon, 7 as category, 2 as defaultColor FROM item7 WHERE id = ? OR name LIKE ? LIMIT 10',
+            [isNum, term]
+        );
+
+        const combined = [...rows4, ...rows3, ...rows7];
+        return res.json({ success: true, data: combined });
+    } catch (err) {
+        console.error('Search templates error:', err);
+        return res.json({ success: false, message: err.message });
+    }
+});
+
+// GET /api/admin/auctions
+router.get('/admin/auctions', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const { status } = req.query;
+        let query = 'SELECT * FROM auction_items WHERE 1=1';
+        const params = [];
+        if (status !== undefined && status !== '') {
+            query += ' AND status = ?';
+            params.push(status);
+        }
+        query += ' ORDER BY id DESC';
+        const [rows] = await db.query(query, params);
+
+        const [statsRows] = await db.query(`
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as active_count,
+                SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as pending_claim_count,
+                SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as claimed_count,
+                SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as expired_count
+            FROM auction_items
+        `);
+
+        return res.json({
+            success: true,
+            data: rows,
+            stats: statsRows[0] || {}
+        });
+    } catch (err) {
+        console.error('Get auctions error:', err);
+        return res.json({ success: false, message: err.message });
+    }
+});
+
+// POST /api/admin/auctions/create
+router.post('/admin/auctions/create', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const {
+            name,
+            category,
+            template_id,
+            quantity = 1,
+            color = 0,
+            start_price = 10,
+            step_price = 5,
+            buyout_price = 0,
+            duration_hours = 2,
+            duration_minutes = 0
+        } = req.body;
+
+        if (!name || template_id === undefined || category === undefined) {
+            return res.json({ success: false, message: 'Thiếu thông tin vật phẩm (Tên, ID template, Loại)!' });
+        }
+
+        const totalMinutes = (parseInt(duration_hours, 10) || 0) * 60 + (parseInt(duration_minutes, 10) || 0);
+        if (totalMinutes <= 0) {
+            return res.json({ success: false, message: 'Thời gian đấu giá phải lớn hơn 0 phút!' });
+        }
+
+        const endTime = Date.now() + totalMinutes * 60 * 1000;
+
+        // Auto determine slot_id: find next available slot_id among active items
+        const [existingSlots] = await db.query('SELECT slot_id FROM auction_items WHERE status IN (0, 1)');
+        const usedSlots = new Set(existingSlots.map(r => r.slot_id));
+        let slotId = 0;
+        while (usedSlots.has(slotId)) {
+            slotId++;
+        }
+
+        const sPrice = Math.max(1, parseInt(start_price, 10) || 10);
+        const stPrice = Math.max(1, parseInt(step_price, 10) || 5);
+        const bPrice = Math.max(0, parseInt(buyout_price, 10) || 0);
+
+        await db.execute(
+            `INSERT INTO auction_items (
+                slot_id, name, category, template_id, quantity, color,
+                start_price, current_price, step_price, buyout_price,
+                highest_bidder_id, highest_bidder_name, highest_bidder_user,
+                end_time, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, -1, '', '', ?, 0)`,
+            [
+                slotId,
+                name.trim(),
+                parseInt(category, 10),
+                parseInt(template_id, 10),
+                Math.max(1, parseInt(quantity, 10) || 1),
+                parseInt(color, 10) || 0,
+                sPrice,
+                sPrice,
+                stPrice,
+                bPrice,
+                endTime
+            ]
+        );
+
+        return res.json({ success: true, message: `Thêm vật phẩm [${name}] vào sàn đấu giá thành công! Slot ${slotId}.` });
+    } catch (err) {
+        console.error('Create auction error:', err);
+        return res.json({ success: false, message: `Lỗi tạo đấu giá: ${err.message}` });
+    }
+});
+
+// POST /api/admin/auctions/delete
+router.post('/admin/auctions/delete', jwtRequired, isAdmin, async (req, res) => {
+    try {
+        const { id } = req.body;
+        if (!id) {
+            return res.json({ success: false, message: 'Thiếu ID vật phẩm cần xóa!' });
+        }
+
+        const [itemRows] = await db.query('SELECT * FROM auction_items WHERE id = ?', [id]);
+        if (itemRows.length === 0) {
+            return res.json({ success: false, message: 'Vật phẩm đấu giá không tồn tại!' });
+        }
+
+        const item = itemRows[0];
+
+        // Nếu có người đang giữ giá, hoàn tiền Coin cho người đó
+        if (item.highest_bidder_id !== -1 && item.highest_bidder_user && item.current_price > 0 && item.status === 0) {
+            await db.execute(
+                'UPDATE accounts SET coin = coin + ? WHERE BINARY user = ?',
+                [item.current_price, item.highest_bidder_user]
+            );
+            console.log(`[Admin Delete Auction] Hoàn trả ${item.current_price} Coin cho user ${item.highest_bidder_user}`);
+        }
+
+        await db.execute('DELETE FROM auction_items WHERE id = ?', [id]);
+
+        return res.json({
+            success: true,
+            message: `Đã xóa vật phẩm [${item.name}] khỏi sàn đấu giá! ${item.highest_bidder_user ? `(Đã hoàn ${item.current_price} Coin cho ${item.highest_bidder_name})` : ''}`
+        });
+    } catch (err) {
+        console.error('Delete auction error:', err);
+        return res.json({ success: false, message: `Lỗi xóa đấu giá: ${err.message}` });
+    }
+});
+
 module.exports = router;

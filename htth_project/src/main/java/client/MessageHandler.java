@@ -185,6 +185,32 @@ public class MessageHandler {
             }
             case -91: {
                 if (conn.p != null) { // dau gia
+                    byte type = m.reader().readByte();
+                    switch (type) {
+                        case 0: {
+                            activities.AuctionManager.gI().openAuctionScreen(conn.p);
+                            break;
+                        }
+                        case 1: {
+                            byte slotId = m.reader().readByte();
+                            activities.AuctionManager.gI().bidItem(conn.p, slotId);
+                            break;
+                        }
+                        case 2: {
+                            byte slotId = m.reader().readByte();
+                            activities.AuctionManager.gI().claimItem(conn.p, slotId);
+                            break;
+                        }
+                        case 3: {
+                            byte slotId = m.reader().readByte();
+                            activities.AuctionManager.gI().buyoutItem(conn.p, slotId);
+                            break;
+                        }
+                        case 4: {
+                            activities.AuctionManager.gI().closeAuctionScreen(conn.p);
+                            break;
+                        }
+                    }
                 }
                 break;
             }

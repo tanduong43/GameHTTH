@@ -105,6 +105,7 @@ export default function AdminLayout() {
           <SidebarLink to="/admin/giftcodes" currentPath={location.pathname} onRefresh={handleRefresh} icon="🎁">Quản lý Giftcode</SidebarLink>
           <SidebarLink to="/admin/news" currentPath={location.pathname} onRefresh={handleRefresh} icon="📰">Quản lý Tin Tức</SidebarLink>
           <SidebarLink to="/admin/items" currentPath={location.pathname} onRefresh={handleRefresh} icon="💎">Quản lý Vật phẩm</SidebarLink>
+          <SidebarLink to="/admin/auctions" currentPath={location.pathname} onRefresh={handleRefresh} icon="⚖️">Quản lý Đấu Giá</SidebarLink>
           <SidebarLink to="/admin/banking" currentPath={location.pathname} onRefresh={handleRefresh} icon="🏦">Quản lý Banking</SidebarLink>
           <SidebarLink to="/admin/logs" currentPath={location.pathname} onRefresh={handleRefresh} icon="📜">Lịch sử Người chơi</SidebarLink>
         </nav>

@@ -4,7 +4,9 @@ import template.ActionLogger;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
+import activities.AuctionItem;
 import activities.Rebuild_Item;
 import client.Body;
 import client.Clan;
@@ -2767,5 +2769,52 @@ public class Service {
         }
         p.conn.addmsg(m);
         m.cleanup();
+    }
+
+    public static void send_auction_list(Player p, List<AuctionItem> items) throws IOException {
+        if (p == null || p.conn == null) {
+            return;
+        }
+        Message m = new Message(-91);
+        m.writer().writeByte(0); // SubType 0: send list
+        m.writer().writeByte(items.size());
+        for (AuctionItem item : items) {
+            m.writer().writeByte(item.slotId);
+            m.writer().writeInt(item.currentPrice);
+            m.writer().writeInt(item.getTimeRemainSeconds());
+            m.writer().writeInt(item.buyoutPrice);
+            m.writer().writeByte(item.category);
+            m.writer().writeUTF(item.name);
+            m.writer().writeShort(item.templateId);
+            m.writer().writeShort((short) item.quantity);
+            m.writer().writeByte(item.color);
+            m.writer().writeByte(item.isHighestBidder(p.id) ? 1 : 0);
+        }
+        p.conn.addmsg(m);
+        m.cleanup();
+    }
+
+    public static void send_auction_update(AuctionItem item, Player bidder, Set<Player> viewers) {
+        if (item == null) {
+            return;
+        }
+        try {
+            Message m = new Message(-91);
+            m.writer().writeByte(1); // SubType 1: update value
+            m.writer().writeByte(item.slotId);
+            m.writer().writeShort((short) (bidder != null ? bidder.id : item.highestBidderId));
+            m.writer().writeInt(item.currentPrice);
+            m.writer().writeInt(item.getTimeRemainSeconds());
+
+            synchronized (viewers) {
+                viewers.removeIf(v -> v == null || v.conn == null || !v.conn.connected);
+                for (Player viewer : viewers) {
+                    viewer.conn.addmsg(m);
+                }
+            }
+            m.cleanup();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
