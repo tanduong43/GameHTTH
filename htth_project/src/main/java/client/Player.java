@@ -2346,7 +2346,10 @@ public class Player {
                 || activities.Battleground5v5.isBattleMapStatic(p.map)
                 || (p.map.template.id >= 500 && p.map.template.id <= 512)
                 || p.map.template.id == 984
-                || (p.map.template.id >= 167 && p.map.template.id <= 176));
+                || (p.map.template.id >= 167 && p.map.template.id <= 176)
+                || p.map.template.id == 2026
+                || (p.map.template.id >= event.EventTet.ARENA_MAP_MIN && p.map.template.id <= event.EventTet.ARENA_MAP_MAX)
+                || event.EventTet.getInstance().isDauTruongMap(p.map.template.id));
         if (inDungeon) {
             return false;
         }
@@ -2423,9 +2426,13 @@ public class Player {
                         || (this.map != null && (this.map.map_pvp_clan != null || this.map.map_dao_hoa != null || this.map.map_battleground5v5 != null))
                         || this.battleground5v5 != null
                         || activities.Battleground5v5.isBattleMapStatic(this.map)
-                        || (this.map != null && ((this.map.template.id >= 500 && this.map.template.id <= 512) || (this.map.template.id >= 167 && this.map.template.id <= 176))));
+                        || (this.map != null && ((this.map.template.id >= 500 && this.map.template.id <= 512)
+                                || (this.map.template.id >= 167 && this.map.template.id <= 176)
+                                || this.map.template.id == 2026
+                                || (this.map.template.id >= event.EventTet.ARENA_MAP_MIN && this.map.template.id <= event.EventTet.ARENA_MAP_MAX)
+                                || event.EventTet.getInstance().isDauTruongMap(this.map.template.id))));
                 if (inDungeon) {
-                    Service.send_box_ThongBao_OK(this, "Không thể sử dụng Vé Hồi Sinh hoặc hồi sinh tại chỗ trong Phó Bản / Chiến Trường!");
+                    Service.send_box_ThongBao_OK(this, "Không thể sử dụng Vé Hồi Sinh hoặc hồi sinh tại chỗ trong Phó Bản / Đấu Trường!");
                     return;
                 }
                 if (this.item.total_item_bag_by_id(4, 89) > 0) {
@@ -2478,6 +2485,12 @@ public class Player {
                     if (this.map != null && this.map.map_pvp != null) {
                         // Trong PVP: tự động hồi sinh hiệp mới sau vài giây (không cho về làng thủ công)
                         Service.send_box_ThongBao_OK(this, "Đang trong trận đấu PVP, tự động hồi sinh hiệp mới!");
+                        return;
+                    }
+                    if (this.map != null && (this.map.template.id == 2026
+                            || (this.map.template.id >= event.EventTet.ARENA_MAP_MIN && this.map.template.id <= event.EventTet.ARENA_MAP_MAX)
+                            || event.EventTet.getInstance().isDauTruongMap(this.map.template.id))) {
+                        Service.send_box_ThongBao_OK(this, "Đang trong Đấu Trường Sinh Tồn! Bạn sẽ tự động hồi sinh sau vài giây.");
                         return;
                     }
                     this.isdie = false;

@@ -1263,6 +1263,7 @@ public class MessageHandler {
             Service.Wanted(conn.p, true);
             Clan.send_info(conn.p, true);
             event.SeaLeaderManager.getInstance().checkAndGrantRewardOnLogin(conn.p);
+            activities.Bank.checkAndDeliverTicketsOnLogin(conn.p);
             conn.p.item.update_assets_Inventory(true);
 
             // // Boss Status Announcement

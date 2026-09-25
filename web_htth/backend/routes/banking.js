@@ -183,7 +183,7 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
         }
         
         // 1. Get current balance, sumamount, vip, and tichnap with lock
-        const [userRows] = await connection.execute('SELECT coin, sumamount, vip, tichnap FROM accounts WHERE user = ? FOR UPDATE', [username]);
+        const [userRows] = await connection.execute('SELECT coin, sumamount, vip, tichnap, `char`, onl FROM accounts WHERE user = ? FOR UPDATE', [username]);
         if (userRows.length === 0) {
             throw new Error(`User not found: ${username}`);
         }
@@ -192,6 +192,7 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
         const currentSumAmount = parseInt(userRows[0].sumamount || 0, 10);
         const currentVip = parseInt(userRows[0].vip || 0, 10);
         const currentTichNap = parseInt(userRows[0].tichnap || 0, 10);
+        const isOnline = parseInt(userRows[0].onl || 0, 10) === 1;
 
         const newBalance = currentBalance + coinAmount;
         const newSumAmount = currentSumAmount + actualAmount;
@@ -220,41 +221,43 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
         // 2. Update user's coin balance, sumamount, tongnap, vip, and tichnap
         await connection.execute('UPDATE accounts SET coin = ?, sumamount = ?, tongnap = ?, vip = ?, tichnap = ? WHERE user = ?', [newBalance, newSumAmount, newSumAmount, newVip, newTichNap, username]);
         
-        // 2b. Add Item 360 (Vé tặng 10 ruby, category 4) to player's inventory in `players` table (1k VND = 1 ticket)
+        // 2b. Tính toán số lượng Vé tặng Ruby (Item 360, 1k VNĐ = 1 vé)
         const ticketQuantity = Math.floor(actualAmount / 1000);
-        if (ticketQuantity > 0) {
-            try {
-                const [accRows] = await connection.execute('SELECT `char` FROM accounts WHERE user = ? LIMIT 1', [username]);
-                let charName = null;
-                if (accRows.length > 0 && accRows[0].char) {
-                    const parsedChar = typeof accRows[0].char === 'string' ? JSON.parse(accRows[0].char) : accRows[0].char;
-                    if (Array.isArray(parsedChar) && parsedChar.length > 0) {
-                        charName = parsedChar[0];
-                    }
+        let ticketClaimed = 0;
+
+        let charName = null;
+        try {
+            if (userRows[0].char) {
+                const charArr = JSON.parse(userRows[0].char);
+                if (Array.isArray(charArr) && charArr.length > 0) {
+                    charName = charArr[0];
                 }
-                if (charName) {
-                    const [pRows] = await connection.execute('SELECT `bag47` FROM players WHERE name = ? LIMIT 1 FOR UPDATE', [charName]);
-                    if (pRows.length > 0) {
+            }
+        } catch (e) {}
+
+        if (ticketQuantity > 0 && charName) {
+            if (!isOnline) {
+                // Nick đang OFFLINE: Cập nhật trực tiếp vào CSDL MySQL (players.bag47)
+                try {
+                    const [playerRows] = await connection.execute('SELECT bag47 FROM players WHERE name = ? FOR UPDATE', [charName]);
+                    if (playerRows.length > 0) {
                         let bag47 = [];
                         try {
-                            bag47 = typeof pRows[0].bag47 === 'string' ? JSON.parse(pRows[0].bag47) : pRows[0].bag47;
-                        } catch (e) {}
-                        if (!Array.isArray(bag47)) {
+                            if (playerRows[0].bag47) {
+                                bag47 = JSON.parse(playerRows[0].bag47);
+                                if (!Array.isArray(bag47)) bag47 = [];
+                            }
+                        } catch (e) {
                             bag47 = [];
                         }
 
                         let found = false;
                         for (let i = 0; i < bag47.length; i++) {
-                            const entry = typeof bag47[i] === 'string' ? JSON.parse(bag47[i]) : bag47[i];
-                            if (Array.isArray(entry) && entry.length >= 3) {
-                                const cat = parseInt(entry[0], 10);
-                                const itemId = parseInt(entry[1], 10);
-                                if (cat === 4 && itemId === 360) {
-                                    entry[2] = parseInt(entry[2], 10) + ticketQuantity;
-                                    bag47[i] = entry;
-                                    found = true;
-                                    break;
-                                }
+                            const it = bag47[i];
+                            if (Array.isArray(it) && it.length >= 3 && parseInt(it[0], 10) === 4 && parseInt(it[1], 10) === 360) {
+                                it[2] = parseInt(it[2], 10) + ticketQuantity;
+                                found = true;
+                                break;
                             }
                         }
                         if (!found) {
@@ -262,18 +265,22 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
                         }
 
                         await connection.execute('UPDATE players SET bag47 = ? WHERE name = ?', [JSON.stringify(bag47), charName]);
-                        console.log(`[Banking Webhook] Added ${ticketQuantity} tickets (Item 360) to player ${charName} (account: ${username})`);
+                        ticketClaimed = 1;
+                        console.log(`[Banking Payment] Đã cộng trực tiếp ${ticketQuantity} vé ruby vào DB players.bag47 cho nick offline [${charName}] (acc: ${username})`);
                     }
+                } catch (pErr) {
+                    console.error(`[Banking Payment] Lỗi cộng vé ruby vào DB cho [${charName}]:`, pErr.message);
                 }
-            } catch (itemErr) {
-                console.error('[Banking Webhook] Error adding ticket 360 to player:', itemErr.message);
+            } else {
+                // Nick đang ONLINE: Game Server đang giữ RAM túi đồ, để ticket_claimed = 0 để Game Server phát vào RAM tránh xung đột SaveData ghi đè mất đồ
+                ticketClaimed = 0;
             }
         }
-        
+
         // 3. Update deposit history
         await connection.execute(
-            'UPDATE recharge_history SET status = ?, real_amount = ?, description = ?, serial = ? WHERE id = ?',
-            [status, actualAmount, statusDesc, reference, deposit.id]
+            'UPDATE recharge_history SET status = ?, ticket_claimed = ?, real_amount = ?, description = ?, serial = ? WHERE id = ?',
+            [status, ticketClaimed, actualAmount, statusDesc, reference, deposit.id]
         );
         
         // 4. Record balance transaction
@@ -285,13 +292,14 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
         await connection.commit();
         connection.release();
         
-        console.log(`[Banking Webhook] Successfully processed payment for ${username}: ${actualAmount}đ → +${coinAmount} Coin (status=${status})`);
+        console.log(`[Banking Webhook] Successfully processed payment for ${username}: ${actualAmount}đ → +${coinAmount} Coin, +${ticketQuantity} Vé Ruby (status=${status})`);
         
         // 5. Emit Socket.IO event to user's room
         if (io) {
             io.to(`user_${username}`).emit('deposit_success', {
                 username: username,
                 amount: coinAmount,
+                ticketAmount: ticketQuantity,
                 multiplier: depositMultiplier,
                 newBalance: newBalance,
                 message: statusDesc,
@@ -310,7 +318,7 @@ async function processCompletedPayment(lookupVal, actualAmount, reference, gatew
             console.log(`[Banking Socket] Broadcasted global deposit notification`);
         }
         
-        return { success: true, coinAmount, multiplier: depositMultiplier, status };
+        return { success: true, coinAmount, ticketQuantity, multiplier: depositMultiplier, status };
     } catch (err) {
         console.error(`[Banking Webhook] Error processing payment:`, err.message);
         await connection.rollback();
@@ -786,7 +794,8 @@ router.post('/admin/banking/approve', jwtRequired, isAdmin, async (req, res) => 
         
         if (processed && processed.success) {
             const multTag = (processed.multiplier && processed.multiplier > 1) ? ` (x${processed.multiplier})` : '';
-            return res.json({ success: true, message: `Duyệt thành công! Đã cộng ${processed.coinAmount.toLocaleString()} Coin${multTag} cho tài khoản.` });
+            const ticketTag = (processed.ticketQuantity && processed.ticketQuantity > 0) ? ` và ${processed.ticketQuantity.toLocaleString()} Vé tặng Ruby` : '';
+            return res.json({ success: true, message: `Duyệt thành công! Đã cộng ${processed.coinAmount.toLocaleString()} Coin${multTag}${ticketTag} cho tài khoản.` });
         } else {
             return res.json({ success: false, message: 'Không thể duyệt đơn nạp. Đơn có thể đã được xử lý hoặc không tìm thấy.' });
         }

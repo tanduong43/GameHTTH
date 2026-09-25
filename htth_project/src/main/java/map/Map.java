@@ -3061,7 +3061,9 @@ public class Map implements Runnable {
         boolean inDungeon = (this.map_dungeon != null || p0.dungeon != null || Map.is_map_dungeon(this.template.id)
                 || this.map_battleground5v5 != null || p0.battleground5v5 != null || activities.Battleground5v5.isBattleMapStatic(this)
                 || this.map_pvp_clan != null || this.map_dao_hoa != null || this.map_pvp != null || this.map_little_garden != null
-                || (this.template.id >= 500 && this.template.id <= 512) || (this.template.id >= 167 && this.template.id <= 176));
+                || (this.template.id >= 500 && this.template.id <= 512) || (this.template.id >= 167 && this.template.id <= 176)
+                || this.template.id == 2026 || (this.template.id >= event.EventTet.ARENA_MAP_MIN && this.template.id <= event.EventTet.ARENA_MAP_MAX)
+                || event.EventTet.getInstance().isDauTruongMap(this.template.id));
         if (!inDungeon && p0.item.total_item_bag_by_id(4, 89) > 0) {
             p0.time_auto_revive_ticket = System.currentTimeMillis() + 4_000L;
         } else {

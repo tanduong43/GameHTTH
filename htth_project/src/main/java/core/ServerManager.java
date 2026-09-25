@@ -55,6 +55,7 @@ public class ServerManager implements Runnable {
         serverEventManager.init();
 
         activities.AuctionManager.gI().init();
+        activities.Bank.startTicketDeliveryWorker();
 
         // Start WebSocket server for WebGL clients
         try {

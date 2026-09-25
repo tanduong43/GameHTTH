@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import client.Player;
 import core.Manager;
@@ -546,7 +549,7 @@ public class Bank {
 
             // Cập nhật trạng thái đơn nạp
             psUpdateHistory = conn.prepareStatement(
-                    "UPDATE `recharge_history` SET `status` = 1, `real_amount` = ?, `description` = CONCAT(COALESCE(`description`,''), ' [Duyệt bởi ', ?, ']') WHERE `id` = ?;");
+                    "UPDATE `recharge_history` SET `status` = 1, `ticket_claimed` = 1, `real_amount` = ?, `description` = CONCAT(COALESCE(`description`,''), ' [Duyệt bởi ', ?, ']') WHERE `id` = ?;");
             psUpdateHistory.setInt(1, targetAmount);
             psUpdateHistory.setString(2, adminPlayer.name);
             psUpdateHistory.setInt(3, selected.id);
@@ -1146,5 +1149,279 @@ public class Bank {
             loadDepositMultiplierFromDb();
         }
         return DEPOSIT_MULTIPLIER;
+    }
+
+    private static ScheduledExecutorService TICKET_SCHEDULER = null;
+    private static final Object TICKET_LOCK = new Object();
+
+    /**
+     * Khởi động Worker định kỳ quét các đơn nạp đã duyệt trên Web để trao Vé Ruby cho người chơi
+     */
+    public static synchronized void startTicketDeliveryWorker() {
+        if (TICKET_SCHEDULER != null && !TICKET_SCHEDULER.isShutdown()) {
+            return;
+        }
+        TICKET_SCHEDULER = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "Recharge-Ticket-Delivery-Worker");
+            t.setDaemon(true);
+            return t;
+        });
+        TICKET_SCHEDULER.scheduleWithFixedDelay(() -> {
+            try {
+                processPendingWebRechargeTickets();
+            } catch (Throwable t) {
+                // Ignore silently to avoid interrupting scheduler
+            }
+        }, 3, 3, TimeUnit.SECONDS);
+        System.out.println("[BANK] Đã khởi động Worker tự động quét và trao Vé Ruby từ đơn nạp Web.");
+    }
+
+    /**
+     * Quét các đơn nạp đã duyệt trên Web (status = 1 hoặc 2) nhưng chưa nhận vé (ticket_claimed = 0)
+     * và phát cho người chơi đang Online ngay lập tức.
+     */
+    public static void processPendingWebRechargeTickets() {
+        synchronized (TICKET_LOCK) {
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            try {
+                conn = SQL.gI().getCon();
+                ps = conn.prepareStatement(
+                    "SELECT `id`, `username`, `amount`, `real_amount` FROM `recharge_history` WHERE `status` IN (1, 2) AND `ticket_claimed` = 0 ORDER BY `id` ASC LIMIT 20;");
+                rs = ps.executeQuery();
+                List<int[]> deliveredList = new ArrayList<>();
+                while (rs.next()) {
+                    int orderId = rs.getInt("id");
+                    String username = rs.getString("username");
+                    int amount = rs.getInt("amount");
+                    int realAmount = rs.getInt("real_amount");
+                    int finalAmount = realAmount > 0 ? realAmount : amount;
+                    int ticketQuantity = finalAmount / 1000;
+
+                    if (ticketQuantity <= 0) {
+                        deliveredList.add(new int[] { orderId, 0 });
+                        continue;
+                    }
+
+                    // Kiểm tra xem người chơi có đang Online không
+                    boolean delivered = false;
+                    synchronized (SessionManager.CLIENT_ENTRYS) {
+                        for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
+                            io.Session sess = SessionManager.CLIENT_ENTRYS.get(i);
+                            if (sess != null && username.equalsIgnoreCase(sess.user) && sess.p != null) {
+                                try {
+                                    boolean added = sess.p.item.add_item_bag47(4, 360, ticketQuantity);
+                                    if (added) {
+                                        sess.p.item.update_Inventory(-1, false);
+                                        Service.send_box_ThongBao_OK(sess.p, "🎉 THÔNG BÁO NẠP TIỀN THÀNH CÔNG!\n\n"
+                                                + "Đơn nạp " + Util.number_format(finalAmount) + " VNĐ của bạn đã được duyệt thành công.\n"
+                                                + "• Bạn được tặng kèm: +" + Util.number_format(ticketQuantity) + " Vé tặng 10 ruby!");
+                                    }
+                                    delivered = true;
+                                    System.out.println("[BANK WORKER] Đã trao +" + ticketQuantity + " vé ruby cho player online " + sess.p.name + " (account: " + username + ")");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    if (delivered) {
+                        deliveredList.add(new int[] { orderId, ticketQuantity });
+                    } else {
+                        // Người chơi không online -> cộng trực tiếp vào DB players.bag47
+                        boolean dbUpdated = deliverTicketsToOfflinePlayerInDB(conn, username, ticketQuantity);
+                        if (dbUpdated) {
+                            deliveredList.add(new int[] { orderId, ticketQuantity });
+                        }
+                    }
+                }
+                rs.close();
+                ps.close();
+
+                if (!deliveredList.isEmpty()) {
+                    PreparedStatement psUpdate = conn.prepareStatement("UPDATE `recharge_history` SET `ticket_claimed` = 1 WHERE `id` = ?;");
+                    for (int[] item : deliveredList) {
+                        psUpdate.setInt(1, item[0]);
+                        psUpdate.executeUpdate();
+                    }
+                    psUpdate.close();
+                }
+            } catch (SQLException e) {
+                // Bỏ qua lỗi nếu CSDL đang bận
+            } finally {
+                try {
+                    if (rs != null) rs.close();
+                    if (ps != null) ps.close();
+                    if (conn != null) conn.close();
+                } catch (SQLException e) {}
+            }
+        }
+    }
+
+    /**
+     * Cộng trực tiếp Vé Ruby vào CSDL MySQL (players.bag47) cho người chơi đang Offline
+     */
+    public static boolean deliverTicketsToOfflinePlayerInDB(Connection conn, String username, int ticketQuantity) {
+        if (conn == null || username == null || ticketQuantity <= 0) {
+            return false;
+        }
+        PreparedStatement psAcc = null;
+        ResultSet rsAcc = null;
+        PreparedStatement psBag = null;
+        ResultSet rsBag = null;
+        PreparedStatement psUpdateBag = null;
+        try {
+            psAcc = conn.prepareStatement("SELECT `char` FROM `accounts` WHERE BINARY `user` = ? LIMIT 1;");
+            psAcc.setString(1, username);
+            rsAcc = psAcc.executeQuery();
+            String charName = null;
+            if (rsAcc.next()) {
+                String charJson = rsAcc.getString("char");
+                if (charJson != null && !charJson.trim().isEmpty()) {
+                    try {
+                        JSONArray arr = (JSONArray) JSONValue.parse(charJson);
+                        if (arr != null && !arr.isEmpty()) {
+                            charName = arr.get(0).toString();
+                        }
+                    } catch (Exception e) {}
+                }
+            }
+            if (charName == null || charName.trim().isEmpty()) {
+                return false;
+            }
+
+            // Đảm bảo không online trong game
+            synchronized (SessionManager.CLIENT_ENTRYS) {
+                for (int i = 0; i < SessionManager.CLIENT_ENTRYS.size(); i++) {
+                    io.Session s = SessionManager.CLIENT_ENTRYS.get(i);
+                    if (s != null && s.p != null && charName.equalsIgnoreCase(s.p.name)) {
+                        return false; // Đang online, để nhánh online xử lý
+                    }
+                }
+            }
+
+            psBag = conn.prepareStatement("SELECT `bag47` FROM `players` WHERE BINARY `name` = ? LIMIT 1;");
+            psBag.setString(1, charName);
+            rsBag = psBag.executeQuery();
+            if (rsBag.next()) {
+                String bagJsonStr = rsBag.getString("bag47");
+                JSONArray bag47Json = null;
+                try {
+                    bag47Json = (JSONArray) JSONValue.parse(bagJsonStr);
+                } catch (Exception e) {}
+                if (bag47Json == null) {
+                    bag47Json = new JSONArray();
+                }
+                boolean found = false;
+                for (int idx = 0; idx < bag47Json.size(); idx++) {
+                    JSONArray entry = (JSONArray) JSONValue.parse(bag47Json.get(idx).toString());
+                    if (entry != null && entry.size() >= 3) {
+                        int cat = Integer.parseInt(entry.get(0).toString());
+                        int itemId = Integer.parseInt(entry.get(1).toString());
+                        if (cat == 4 && itemId == 360) {
+                            int oldQuant = Integer.parseInt(entry.get(2).toString());
+                            JSONArray newEntry = new JSONArray();
+                            newEntry.add(4);
+                            newEntry.add(360);
+                            newEntry.add(oldQuant + ticketQuantity);
+                            bag47Json.set(idx, newEntry);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    JSONArray newEntry = new JSONArray();
+                    newEntry.add(4);
+                    newEntry.add(360);
+                    newEntry.add(ticketQuantity);
+                    bag47Json.add(newEntry);
+                }
+                psUpdateBag = conn.prepareStatement("UPDATE `players` SET `bag47` = ? WHERE BINARY `name` = ?;");
+                psUpdateBag.setString(1, bag47Json.toJSONString());
+                psUpdateBag.setString(2, charName);
+                psUpdateBag.executeUpdate();
+                System.out.println("[BANK WORKER] Đã cộng trực tiếp " + ticketQuantity + " vé ruby vào DB players.bag47 cho nick offline " + charName + " (acc: " + username + ")");
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rsAcc != null) rsAcc.close();
+                if (psAcc != null) psAcc.close();
+                if (rsBag != null) rsBag.close();
+                if (psBag != null) psBag.close();
+                if (psUpdateBag != null) psUpdateBag.close();
+            } catch (Exception e) {}
+        }
+        return false;
+    }
+
+    /**
+     * Kiểm tra và trao tất cả Vé Ruby còn tồn đọng khi người chơi đăng nhập vào game
+     */
+    public static void checkAndDeliverTicketsOnLogin(Player p) {
+        if (p == null || p.conn == null || p.conn.user == null) {
+            return;
+        }
+        synchronized (TICKET_LOCK) {
+            Connection conn = null;
+            PreparedStatement ps = null;
+            PreparedStatement psUpdate = null;
+            ResultSet rs = null;
+            try {
+                conn = SQL.gI().getCon();
+                ps = conn.prepareStatement(
+                    "SELECT `id`, `amount`, `real_amount` FROM `recharge_history` WHERE `status` IN (1, 2) AND `ticket_claimed` = 0 AND BINARY `username` = ?;");
+                ps.setString(1, p.conn.user);
+                rs = ps.executeQuery();
+                int totalTickets = 0;
+                List<Integer> orderIds = new ArrayList<>();
+                while (rs.next()) {
+                    int orderId = rs.getInt("id");
+                    int amount = rs.getInt("amount");
+                    int realAmount = rs.getInt("real_amount");
+                    int finalAmount = realAmount > 0 ? realAmount : amount;
+                    int tickets = finalAmount / 1000;
+                    if (tickets > 0) {
+                        totalTickets += tickets;
+                    }
+                    orderIds.add(orderId);
+                }
+                rs.close();
+                ps.close();
+
+                if (!orderIds.isEmpty()) {
+                    if (totalTickets > 0) {
+                        boolean added = p.item.add_item_bag47(4, 360, totalTickets);
+                        if (added) {
+                            p.item.update_Inventory(-1, false);
+                            Service.send_box_ThongBao_OK(p, "🎉 QUÀ NẠP TIỀN!\n\n"
+                                    + "Bạn vừa nhận được +" + Util.number_format(totalTickets) + " Vé tặng 10 ruby từ đơn nạp tiền trên Web!");
+                            System.out.println("[BANK LOGIN] Đã trao +" + totalTickets + " vé ruby cho player login " + p.name + " (account: " + p.conn.user + ")");
+                        }
+                    }
+                    psUpdate = conn.prepareStatement("UPDATE `recharge_history` SET `ticket_claimed` = 1 WHERE `id` = ?;");
+                    for (int oid : orderIds) {
+                        psUpdate.setInt(1, oid);
+                        psUpdate.executeUpdate();
+                    }
+                    psUpdate.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (rs != null) rs.close();
+                    if (ps != null) ps.close();
+                    if (psUpdate != null) psUpdate.close();
+                    if (conn != null) conn.close();
+                } catch (Exception e) {}
+            }
+        }
     }
 }

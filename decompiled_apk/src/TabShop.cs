@@ -167,9 +167,13 @@ public class TabShop : MainTabShop
 			try
 			{
 				num = int.Parse(input.tfInput.getText());
-				if (num < 0)
+				if (num < 1)
 				{
 					num = 1;
+				}
+				if (num > 9999)
+				{
+					num = 9999;
 				}
 			}
 			catch (Exception)

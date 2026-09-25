@@ -453,7 +453,10 @@ public class Item {
     }
 
     public boolean add_item_bag47(int type, int id, int num) {
-        if ((total_item_bag_by_id(type, id) + num) > DataTemplate.MAX_ITEM_IN_BAG) {
+        if (num <= 0) {
+            return false;
+        }
+        if (((long) total_item_bag_by_id(type, id) + num) > DataTemplate.MAX_ITEM_IN_BAG) {
             if ((type == 4 && id > 28) || (type == 7)) {
                 ItemBag47 it_select = new ItemBag47();
                 it_select.category = (byte) type;
@@ -474,7 +477,7 @@ public class Item {
             }
         }
         if (it_select != null) {
-            if ((it_select.quant + num) <= DataTemplate.MAX_ITEM_IN_BAG) {
+            if (((long) it_select.quant + num) <= DataTemplate.MAX_ITEM_IN_BAG) {
                 it_select.quant += num;
                 return true;
             }
@@ -490,7 +493,7 @@ public class Item {
     }
 
     public boolean add_item_box47(int type, int id, int num) {
-        if (num > DataTemplate.MAX_ITEM_IN_BAG) {
+        if (num <= 0 || ((long) total_item_box_by_id(type, id) + num) > DataTemplate.MAX_ITEM_IN_BAG) {
             return false;
         }
         ItemBag47 it_select = null;
@@ -501,7 +504,7 @@ public class Item {
             }
         }
         if (it_select != null) {
-            if ((it_select.quant + num) <= DataTemplate.MAX_ITEM_IN_BAG) {
+            if (((long) it_select.quant + num) <= DataTemplate.MAX_ITEM_IN_BAG) {
                 it_select.quant += num;
                 return true;
             }

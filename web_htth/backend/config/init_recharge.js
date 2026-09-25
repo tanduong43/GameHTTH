@@ -36,6 +36,7 @@ async function initRechargeTable() {
                         real_amount INT NOT NULL DEFAULT 0,
                         type VARCHAR(50) DEFAULT 'card',
                         status TINYINT NOT NULL DEFAULT 0, -- 0: pending, 1: success, 2: success wrong amount, 3: failed
+                        ticket_claimed TINYINT NOT NULL DEFAULT 0,
                         request_id VARCHAR(255) DEFAULT NULL,
                         telco VARCHAR(50) DEFAULT NULL,
                         serial VARCHAR(255) DEFAULT NULL,
@@ -43,7 +44,8 @@ async function initRechargeTable() {
                         description VARCHAR(255) DEFAULT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         INDEX idx_username (username),
-                        INDEX idx_request_id (request_id)
+                        INDEX idx_request_id (request_id),
+                        INDEX idx_ticket_claimed (status, ticket_claimed)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                 `;
                 await db.query(createTableSql);
@@ -55,12 +57,14 @@ async function initRechargeTable() {
                     "ALTER TABLE recharge_history ADD COLUMN IF NOT EXISTS real_amount INT NOT NULL DEFAULT 0 AFTER amount",
                     "ALTER TABLE recharge_history MODIFY COLUMN type VARCHAR(50) DEFAULT 'card'",
                     "ALTER TABLE recharge_history ADD COLUMN IF NOT EXISTS status TINYINT NOT NULL DEFAULT 0 AFTER type",
+                    "ALTER TABLE recharge_history ADD COLUMN IF NOT EXISTS ticket_claimed TINYINT NOT NULL DEFAULT 0 AFTER status",
                     "ALTER TABLE recharge_history ADD COLUMN IF NOT EXISTS request_id VARCHAR(255) DEFAULT NULL AFTER status",
                     "ALTER TABLE recharge_history ADD COLUMN IF NOT EXISTS telco VARCHAR(50) DEFAULT NULL AFTER request_id",
                     "ALTER TABLE recharge_history ADD COLUMN IF NOT EXISTS serial VARCHAR(255) DEFAULT NULL AFTER telco",
                     "ALTER TABLE recharge_history ADD COLUMN IF NOT EXISTS code VARCHAR(255) DEFAULT NULL AFTER serial",
                     "ALTER TABLE recharge_history ADD INDEX IF NOT EXISTS idx_username (username)",
-                    "ALTER TABLE recharge_history ADD INDEX IF NOT EXISTS idx_request_id (request_id)"
+                    "ALTER TABLE recharge_history ADD INDEX IF NOT EXISTS idx_request_id (request_id)",
+                    "ALTER TABLE recharge_history ADD INDEX IF NOT EXISTS idx_ticket_claimed (status, ticket_claimed)"
                 ];
                 for (const query of colsToAdd) {
                     try {

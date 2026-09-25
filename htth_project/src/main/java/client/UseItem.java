@@ -294,9 +294,12 @@ public class UseItem {
                             || (p.map != null && p.map.map_battleground5v5 != null)
                             || (p.map != null && activities.Battleground5v5.isBattleMapStatic(p.map))
                             || (p.map != null && (p.map.template.id >= 500 && p.map.template.id <= 512))
-                            || (p.map != null && (p.map.template.id >= 167 && p.map.template.id <= 176)));
+                            || (p.map != null && (p.map.template.id >= 167 && p.map.template.id <= 176))
+                            || (p.map != null && (p.map.template.id == 2026
+                                    || (p.map.template.id >= event.EventTet.ARENA_MAP_MIN && p.map.template.id <= event.EventTet.ARENA_MAP_MAX)
+                                    || event.EventTet.getInstance().isDauTruongMap(p.map.template.id))));
                     if (inDungeon) {
-                        Service.send_box_ThongBao_OK(p, "Không thể sử dụng Vé Hồi Sinh trong Phó Bản / Chiến Trường!");
+                        Service.send_box_ThongBao_OK(p, "Không thể sử dụng Vé Hồi Sinh trong Phó Bản / Đấu Trường!");
                         return true;
                     }
                     if (p.isdie || p.hp <= 0) {

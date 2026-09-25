@@ -610,7 +610,7 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
     const countAsDeposit = isDeposit !== false;
 
     try {
-        const [rows] = await db.execute('SELECT coin, sumamount, vip, tichnap, onl FROM accounts WHERE user = ?', [username]);
+        const [rows] = await db.execute('SELECT coin, sumamount, vip, tichnap, onl, `char` FROM accounts WHERE user = ?', [username]);
         if (rows.length === 0) {
             return res.json({ success: false, message: 'Không tìm thấy tài khoản!' });
         }
@@ -647,63 +647,60 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
                 [coinAmount, actualAmount, actualAmount, newVip, actualAmount, username]
             );
 
-            // Add Item 360 (Vé tặng 10 ruby, category 4) to player's inventory in `players` table (1k VND = 1 ticket)
+            // Tính số lượng Vé tặng Ruby (Item 360, 1k VNĐ = 1 vé)
             const ticketQuantity = Math.floor(actualAmount / 1000);
-            let ticketNote = '';
+            let ticketNote = ticketQuantity > 0 ? ` + ${ticketQuantity} Vé Nạp` : '';
+            let ticketClaimed = 0;
 
-            if (ticketQuantity > 0) {
-                if (isUserOnline) {
-                    // Người chơi đang online trong Game Server: RAM của Server Java giữ bag47.
-                    // Nếu sửa trực tiếp DB lúc này, khi người chơi logout/chuyển map Server Java sẽ ghi đè RAM xuống DB làm mất đồ.
-                    ticketNote = ` (⚠️ Lưu ý: Tài khoản đang ONLINE, không thể thêm trực tiếp ${ticketQuantity} Vé Nạp vào túi để tránh bị Game Server ghi đè mất đồ. Hãy yêu cầu người chơi thoát game để buff đồ!)`;
-                    console.warn(`[Admin Buff] Account ${username} is currently ONLINE. Skipped direct bag47 DB write to avoid RAM overwrite loss.`);
-                } else {
-                    try {
-                        const [accRows] = await db.execute('SELECT `char` FROM accounts WHERE user = ? LIMIT 1', [username]);
-                        let charName = null;
-                        if (accRows.length > 0 && accRows[0].char) {
-                            const parsedChar = typeof accRows[0].char === 'string' ? JSON.parse(accRows[0].char) : accRows[0].char;
-                            if (Array.isArray(parsedChar) && parsedChar.length > 0) {
-                                charName = parsedChar[0];
-                            }
-                        }
-                        if (charName) {
-                            const [pRows] = await db.execute('SELECT `bag47` FROM players WHERE name = ? LIMIT 1', [charName]);
-                            if (pRows.length > 0) {
-                                let bag47 = [];
-                                try {
-                                    bag47 = typeof pRows[0].bag47 === 'string' ? JSON.parse(pRows[0].bag47) : pRows[0].bag47;
-                                } catch (e) {}
-                                if (!Array.isArray(bag47)) {
-                                    bag47 = [];
-                                }
-
-                                let found = false;
-                                for (let i = 0; i < bag47.length; i++) {
-                                    const entry = typeof bag47[i] === 'string' ? JSON.parse(bag47[i]) : bag47[i];
-                                    if (Array.isArray(entry) && entry.length >= 3) {
-                                        const cat = parseInt(entry[0], 10);
-                                        const itemId = parseInt(entry[1], 10);
-                                        if (cat === 4 && itemId === 360) {
-                                            entry[2] = parseInt(entry[2], 10) + ticketQuantity;
-                                            bag47[i] = entry;
-                                            found = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!found) {
-                                    bag47.push([4, 360, ticketQuantity]);
-                                }
-
-                                await db.execute('UPDATE players SET bag47 = ? WHERE name = ?', [JSON.stringify(bag47), charName]);
-                                console.log(`[Admin Buff] Added ${ticketQuantity} tickets (Item 360) to player ${charName} (account: ${username})`);
-                                ticketNote = ` + ${ticketQuantity} Vé Nạp`;
-                            }
-                        }
-                    } catch (itemErr) {
-                        console.error('[Admin Buff] Error adding ticket 360 to player:', itemErr.message);
+            let charName = null;
+            try {
+                if (acc.char) {
+                    const charArr = JSON.parse(acc.char);
+                    if (Array.isArray(charArr) && charArr.length > 0) {
+                        charName = charArr[0];
                     }
+                }
+            } catch (e) {}
+
+            if (ticketQuantity > 0 && charName) {
+                if (!isUserOnline) {
+                    // Nick đang OFFLINE: Cập nhật trực tiếp vào CSDL MySQL (players.bag47)
+                    try {
+                        const [playerRows] = await db.execute('SELECT bag47 FROM players WHERE name = ?', [charName]);
+                        if (playerRows.length > 0) {
+                            let bag47 = [];
+                            try {
+                                if (playerRows[0].bag47) {
+                                    bag47 = JSON.parse(playerRows[0].bag47);
+                                    if (!Array.isArray(bag47)) bag47 = [];
+                                }
+                            } catch (e) {
+                                bag47 = [];
+                            }
+
+                            let found = false;
+                            for (let i = 0; i < bag47.length; i++) {
+                                const it = bag47[i];
+                                if (Array.isArray(it) && it.length >= 3 && parseInt(it[0], 10) === 4 && parseInt(it[1], 10) === 360) {
+                                    it[2] = parseInt(it[2], 10) + ticketQuantity;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                bag47.push([4, 360, ticketQuantity]);
+                            }
+
+                            await db.execute('UPDATE players SET bag47 = ? WHERE name = ?', [JSON.stringify(bag47), charName]);
+                            ticketClaimed = 1;
+                            console.log(`[Admin Add Coin] Đã cộng trực tiếp ${ticketQuantity} vé ruby vào DB players.bag47 cho nick offline [${charName}] (acc: ${username})`);
+                        }
+                    } catch (pErr) {
+                        console.error(`[Admin Add Coin] Lỗi cộng vé ruby vào DB cho [${charName}]:`, pErr.message);
+                    }
+                } else {
+                    // Nick đang ONLINE: Game Server đang giữ RAM túi đồ, để ticketClaimed = 0 để Game Server phát vào RAM
+                    ticketClaimed = 0;
                 }
             }
 
@@ -717,13 +714,13 @@ router.post('/admin/add_coin', jwtRequired, isAdmin, async (req, res) => {
                 console.error('Transaction log error (non-fatal):', tErr.message);
             }
 
-            // Record into recharge_history so it has a timestamp for ranking tie-breaker and admin stats
+            // Record into recharge_history so it has a timestamp for ranking tie-breaker, admin stats, and automatic ticket delivery
             try {
                 const buffRequestId = `ADMIN_BUFF_${Date.now()}`;
                 const buffCode = Math.floor(100000 + Math.random() * 900000).toString();
                 await db.execute(
-                    'INSERT INTO recharge_history (username, amount, real_amount, type, status, request_id, code, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                    [username, actualAmount, actualAmount, 'admin_buff', 1, buffRequestId, buffCode, `Admin Buff Nạp (+${coinAmount.toLocaleString()} Coin)`]
+                    'INSERT INTO recharge_history (username, amount, real_amount, type, status, ticket_claimed, request_id, code, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [username, actualAmount, actualAmount, 'admin_buff', 1, ticketClaimed, buffRequestId, buffCode, `Admin Buff Nạp (+${coinAmount.toLocaleString()} Coin)`]
                 );
             } catch (rhErr) {
                 console.error('Recharge history log error (non-fatal):', rhErr.message);
